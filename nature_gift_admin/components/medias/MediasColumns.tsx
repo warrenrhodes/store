@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import Delete from "../custom ui/Delete";
+import Delete from "../custom-ui/Delete";
 import { MediaType } from "@/lib/types";
 import Image from "next/image";
 

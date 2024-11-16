@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import Delete from "../custom ui/Delete";
+import Delete from "../custom-ui/Delete";
 import Link from "next/link";
 import { CategoryType } from "@/lib/types";
 

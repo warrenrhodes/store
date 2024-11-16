@@ -3,17 +3,16 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { DataTable } from "@/components/custom ui/DataTable";
+import { DataTable } from "@/components/custom-ui/DataTable";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import DialogBox from "@/components/custom ui/CustomDialogue";
 import { mediColumns } from "@/components/medias/MediasColumns";
 
 import Image from "next/image";
-import { Loader, SimpleLoader } from "@/components/custom ui/Loader";
+import { Loader, SimpleLoader } from "@/components/custom-ui/Loader";
 import { XCircle } from "lucide-react";
 import toast from "react-hot-toast";
-import { boolean } from "zod";
 import router from "next/router";
 
 const Medias = () => {

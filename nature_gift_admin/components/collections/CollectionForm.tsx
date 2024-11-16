@@ -17,10 +17,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "../ui/textarea";
-import ImageUpload from "../custom ui/ImageUpload";
+import ImageUpload from "../custom-ui/ImageUpload";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import Delete from "../custom ui/Delete";
+import Delete from "../custom-ui/Delete";
 import { CollectionType } from "@/lib/types";
 
 const formSchema = z.object({

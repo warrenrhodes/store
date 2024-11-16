@@ -1,4 +1,4 @@
-import SalesChart from "@/components/custom ui/SalesChart";
+import SalesChart from "@/components/custom-ui/SalesChart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {

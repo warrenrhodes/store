@@ -1,7 +1,7 @@
 "use client";
 
-import { DataTable } from "@/components/custom ui/DataTable";
-import { Loader } from "@/components/custom ui/Loader";
+import { DataTable } from "@/components/custom-ui/DataTable";
+import { Loader } from "@/components/custom-ui/Loader";
 import { columns } from "@/components/orders/OrderColumns";
 import { Separator } from "@/components/ui/separator";
 

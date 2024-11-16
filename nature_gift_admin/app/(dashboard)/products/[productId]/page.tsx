@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader } from "@/components/custom ui/Loader";
+import { Loader } from "@/components/custom-ui/Loader";
 import ProductForm from "@/components/products/ProductForm";
 import { ProductType } from "@/lib/types";
 import { useEffect, useState } from "react";

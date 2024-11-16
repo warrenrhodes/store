@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { Loader } from "@/components/custom ui/Loader";
+import { Loader } from "@/components/custom-ui/Loader";
 import CategoryForm from "@/components/categories/CategoryForm";
 import { CategoryType } from "@/lib/types";
 

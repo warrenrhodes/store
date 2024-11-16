@@ -18,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import Delete from "../custom ui/Delete";
+import Delete from "../custom-ui/Delete";
 import { ProductType, PromotionType } from "@/lib/types";
 import { Checkbox } from "../ui/checkbox";
 import {

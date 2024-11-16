@@ -17,10 +17,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "../ui/textarea";
-import ImageUpload from "../custom ui/ImageUpload";
+import ImageUpload from "../custom-ui/ImageUpload";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import Delete from "../custom ui/Delete";
+import Delete from "../custom-ui/Delete";
 import { CategoryType } from "@/lib/types";
 import {
   Select,

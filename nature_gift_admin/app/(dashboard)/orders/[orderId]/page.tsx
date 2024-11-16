@@ -1,4 +1,4 @@
-import { DataTable } from "@/components/custom ui/DataTable";
+import { DataTable } from "@/components/custom-ui/DataTable";
 import { columns } from "@/components/orderItems/OrderItemsColums";
 
 const OrderDetails = async ({ params }: { params: { orderId: string } }) => {

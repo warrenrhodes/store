@@ -18,21 +18,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import Delete from "../custom ui/Delete";
-import MultiText from "../custom ui/MultiText";
-import MultiSelect from "../custom ui/MultiSelect";
-import { Loader } from "../custom ui/Loader";
+import Delete from "../custom-ui/Delete";
+import MultiText from "../custom-ui/MultiText";
+import MultiSelect from "../custom-ui/MultiSelect";
+import { Loader } from "../custom-ui/Loader";
 import { CategoryType, ContentType, ProductType } from "@/lib/types";
-import { BeneficesBuilder } from "../custom ui/BeneficesBuilder";
-import { ShipmentDetailsBuilder } from "../custom ui/ShipmentDetailsBuilder";
-import ProductLongDescriptionBuilder from "../custom ui/ProductLongDescriptionBuilder";
+import { BeneficesBuilder } from "../custom-ui/BeneficesBuilder";
+import { ShipmentDetailsBuilder } from "../custom-ui/ShipmentDetailsBuilder";
+import ProductLongDescriptionBuilder from "../custom-ui/ProductLongDescriptionBuilder";
 import CustomAccordionItem, {
   ContentElement,
   FileType,
 } from "../accordion/CustomAccordionItem";
 import CustomAccordion from "../accordion/CustomAccordion";
-import { FileUploader } from "../custom ui/FileUploader";
-import { Spacer } from "../custom ui/Spacer";
+import { FileUploader } from "../custom-ui/FileUploader";
+import { Spacer } from "../custom-ui/Spacer";
 
 const formSchema = z
   .object({

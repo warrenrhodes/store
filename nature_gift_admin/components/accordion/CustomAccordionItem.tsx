@@ -10,7 +10,7 @@ import { MoveUp, MoveDown, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
 import CustomRichTextEditor from "./CustomRichText";
 import { ContentType } from "@/lib/types";
-import { FileUploader } from "../custom ui/FileUploader";
+import { FileUploader } from "../custom-ui/FileUploader";
 
 export enum FileType {
   "IMAGE" = "IMAGE",

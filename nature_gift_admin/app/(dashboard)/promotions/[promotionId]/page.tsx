@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { Loader } from "@/components/custom ui/Loader";
+import { Loader } from "@/components/custom-ui/Loader";
 import { PromotionType } from "@/lib/types";
 import PromotionForm from "@/components/promotions/PromotionsForm";
 

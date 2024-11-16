@@ -1,0 +1,167 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
+import { DataTable } from "@/components/custom ui/DataTable";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import DialogBox from "@/components/custom ui/CustomDialogue";
+import { mediColumns } from "@/components/medias/MediasColumns";
+
+import Image from "next/image";
+import Loader from "@/components/custom ui/Loader";
+import { XCircle } from "lucide-react";
+import toast from "react-hot-toast";
+import { boolean } from "zod";
+import router from "next/router";
+
+const Medias = () => {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [medias, setMedia] = useState([]);
+
+  const getMedias = async () => {
+    try {
+      const res = await fetch("/api/media", {
+        method: "GET",
+      });
+      const data = await res.json();
+      setMedia(data);
+      setLoading(false);
+    } catch (err) {
+      console.log("[media_GET]", err);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getMedias();
+  }, []);
+
+  return loading ? (
+    <Loader />
+  ) : (
+    <div className="px-10 py-5">
+      <div className="flex items-center justify-between">
+        <p className="text-heading2-bold">Medias</p>
+        <Button variant="outline" onClick={() => setOpen(true)}>
+          Add Medias
+        </Button>
+      </div>
+      <Separator className="bg-grey-1 my-4" />
+      <DataTable columns={mediColumns} data={medias} searchKey="fileName" />
+      <DialogBox open={open} setOpen={setOpen}>
+        <AddMedia />
+      </DialogBox>
+    </div>
+  );
+};
+
+const AddMedia = () => {
+  const [files, setFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setFiles([...files, file]);
+  };
+
+  const updateFile = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    await fetch("/api/media", {
+      method: "POST",
+      body: formData,
+    });
+  };
+
+  const handleUpload = async () => {
+    const updatesPromises = [];
+    setUploading(true);
+    for (const file of files) {
+      updatesPromises.push(updateFile(file));
+    }
+    await Promise.allSettled(updatesPromises).then((results) => {
+      let isValidRequest: boolean = true;
+      results.forEach((result, index) => {
+        if (result.status === "rejected") {
+          isValidRequest = false;
+        }
+      });
+      if (!isValidRequest) {
+        toast.error("An error occurred. Please try again.");
+        return;
+      }
+      window.location.href = "/medias";
+      router.reload();
+    });
+    setUploading(false);
+  };
+
+  const handleDeleteFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div>
+      <div className="grid grid-cols-4 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-7">
+        {files.map((file, index) => (
+          <div
+            key={index}
+            className="bg-gray-100 rounded-lg overflow-hidden relative"
+          >
+            {file.type.startsWith("image/") ? (
+              <Image
+                src={URL.createObjectURL(file)}
+                alt={file.name}
+                width={300}
+                height={300}
+                className="w-full h-40 object-cover"
+              />
+            ) : file.type.startsWith("video/") ? (
+              <video
+                className="w-full h-40 object-cover"
+                controls
+                src={URL.createObjectURL(file)}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-40">
+                <span className="text-gray-600">{file.name}</span>
+              </div>
+            )}
+            <button
+              className="absolute top-2 right-2 bg-gray-800 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-gray-700"
+              onClick={() => handleDeleteFile(index)}
+            >
+              <XCircle size={12} />
+            </button>
+          </div>
+        ))}
+      </div>
+      <input
+        type="file"
+        accept="image/*,video/*"
+        onChange={handleFileChange}
+        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+      />
+      <div className="flex justify-end mt-4">
+        {uploading ? (
+          <SimpleLoader />
+        ) : (
+          <Button
+            variant="default"
+            onClick={handleUpload}
+            disabled={files.length < 1}
+          >
+            Save
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Medias;

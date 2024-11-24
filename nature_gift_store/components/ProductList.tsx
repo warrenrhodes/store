@@ -1,9 +1,9 @@
-import { getProducts } from "@/lib/actions/actions";
-import ProductCard from "./ProductCard";
-import { ProductType } from "@/lib/types";
+import { getProducts } from '@/lib/actions/actions'
+import ProductCard from './ProductCard'
+import { IProduct } from '@/lib/types'
 
 const ProductList = async () => {
-  const products = await getProducts();
+  const products = await getProducts()
 
   return (
     <div className="flex flex-col items-center gap-10 py-8 px-5">
@@ -12,13 +12,13 @@ const ProductList = async () => {
         <p className="text-body-bold">No products found</p>
       ) : (
         <div className="flex flex-wrap justify-center gap-16">
-          {products.map((product: ProductType) => (
+          {products.map((product: IProduct) => (
             <ProductCard key={product._id} product={product} />
           ))}
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default ProductList;
+export default ProductList

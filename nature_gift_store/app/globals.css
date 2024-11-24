@@ -24,6 +24,8 @@
     --destructive-foreground: 3 0% 100%;
     --ring: 229 100% 62%;
     --radius: 0.5rem;
+    --prose-strong-foreground: 236 0% 5%;
+    --prose-foreground: 236 0% 41%;
   }
 
   .theme-orange {

@@ -1,11 +1,11 @@
-"use client";
+'use client'
 
-import { MediaType } from "@/lib/types";
-import Image from "next/image";
-import React, { useState } from "react";
+import { IMedia } from '@/lib/types'
+import Image from 'next/image'
+import { useState } from 'react'
 
-const Gallery = ({ productMedia }: { productMedia: MediaType[] }) => {
-  const [mainImage, setMainImage] = useState(productMedia[0]);
+const Gallery = ({ productMedia }: { productMedia: IMedia[] }) => {
+  const [mainImage, setMainImage] = useState(productMedia[0])
 
   return (
     <div className="flex flex-col gap-3 max-w-[500px">
@@ -25,14 +25,14 @@ const Gallery = ({ productMedia }: { productMedia: MediaType[] }) => {
             width={200}
             alt="product"
             className={`w-20 h-20 rounded-lg object-cover cursor-pointer ${
-              mainImage === image ? "border-2 border-black" : ""
+              mainImage === image ? 'border-2 border-black' : ''
             }`}
             onClick={() => setMainImage(image)}
           />
         ))}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Gallery;
+export default Gallery

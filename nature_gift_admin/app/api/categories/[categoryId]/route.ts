@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs";
 import { connectToDB } from "@/lib/mongoDB";
 import Category from "@/lib/models/Category";
 import Product from "@/lib/models/Product";
+import { categorySchema } from "@/lib/validations/category";
 import Media from "@/lib/models/Media";
 
 export const GET = async (
@@ -12,19 +13,16 @@ export const GET = async (
 ) => {
   try {
     await connectToDB();
-
     const category = await Category.findById(params.categoryId)
-      .populate({
-        path: "products",
-        model: Product,
-      })
-      .populate({ path: "media", model: Media })
-      .populate({ path: "parent", model: Category });
+      .lean()
+      .populate({ path: "parent", model: Category })
+      .populate({ path: "image", model: Media })
+      .sort({ createdAt: "desc" });
 
     if (!category) {
       return new NextResponse(
         JSON.stringify({ message: "Category not found" }),
-        { status: 404 }
+        { status: 501 }
       );
     }
 
@@ -35,7 +33,7 @@ export const GET = async (
   }
 };
 
-export const POST = async (
+export const PUT = async (
   req: NextRequest,
   { params }: { params: { categoryId: string } }
 ) => {
@@ -54,19 +52,14 @@ export const POST = async (
       return new NextResponse("Category not found", { status: 404 });
     }
 
-    const { title, shortDescription, media, parent } = await req.json();
+    const json = await req.json();
+    const body = categorySchema.partial().parse(json);
 
-    if (!title) {
-      return new NextResponse("Title is required", { status: 400 });
-    }
+    category = await Category.findByIdAndUpdate(params.categoryId, body, {
+      new: true,
+    }).lean();
 
-    category = await Category.findByIdAndUpdate(
-      params.categoryId,
-      { title, shortDescription, media, parent },
-      { new: true }
-    );
-
-    await category.save();
+    await category?.save();
 
     return NextResponse.json(category, { status: 200 });
   } catch (err) {

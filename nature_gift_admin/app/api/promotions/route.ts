@@ -1,71 +1,57 @@
+import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs";
-import { NextRequest, NextResponse } from "next/server";
-
 import { connectToDB } from "@/lib/mongoDB";
-import Product from "@/lib/models/Product";
-import Promotion from "@/lib/models/Promotions";
+import { Promotion } from "@/lib/models/Promotions";
+import { promotionSchema } from "@/lib/validations/promotions";
 
-export const POST = async (req: NextRequest) => {
+export async function GET(req: Request) {
   try {
-    const { userId } = auth();
-
-    if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-
     await connectToDB();
+    const { searchParams } = new URL(req.url);
+    const status = searchParams.get("status");
+    const query = status ? { status } : {};
 
-    const {
-      product,
-      promotionName,
-      discountValue,
-      minProductsToApply,
-      isActive,
-    } = await req.json();
+    const promotions = await Promotion.find(query)
+      .sort({ priority: -1, createdAt: -1 })
+      .lean();
 
-    if (
-      !product ||
-      !promotionName ||
-      !discountValue ||
-      !minProductsToApply ||
-      !isActive
-    ) {
-      console.log("Not enough data to create a promotion");
-      return new NextResponse("Not enough data to create a promotion", {
-        status: 400,
-      });
+    return NextResponse.json(promotions);
+  } catch (error) {
+    console.error("Failed to fetch promotions:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch promotions" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    await connectToDB();
+    const { userId } = auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const newPromotion = await Promotion.create({
-      product,
-      isActive,
-      promotionName,
-      discountValue,
-      minProductsToApply,
+    const json = await req.json();
+    const body = promotionSchema.parse({
+      ...json,
+      metadata: {
+        ...json.metadata,
+        createdBy: userId,
+        updatedBy: userId,
+      },
     });
 
-    await newPromotion.save();
-
-    return NextResponse.json(newPromotion, { status: 200 });
-  } catch (err) {
-    console.log("[promotions_POST]", err);
-    return new NextResponse("Internal Error", { status: 500 });
+    const promotion = await Promotion.create(body);
+    return NextResponse.json(promotion);
+  } catch (error) {
+    console.error("Failed to create promotion:", error);
+    return NextResponse.json(
+      { error: "Failed to create promotion" },
+      { status: 500 }
+    );
   }
-};
-
-export const GET = async (req: NextRequest) => {
-  try {
-    await connectToDB();
-
-    const promotions = await Promotion.find()
-      .sort({ createdAt: "desc" })
-      .populate({ path: "product", model: Product });
-
-    return NextResponse.json(promotions, { status: 200 });
-  } catch (err) {
-    console.log("[promotions_GET]", err);
-    return new NextResponse("Internal Error", { status: 500 });
-  }
-};
+}
 
 export const dynamic = "force-dynamic";

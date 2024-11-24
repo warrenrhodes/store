@@ -1,8 +1,8 @@
 import Category from "@/lib/models/Category";
-import Collection from "@/lib/models/Collection";
 import Media from "@/lib/models/Media";
 import Product from "@/lib/models/Product";
 import { connectToDB } from "@/lib/mongoDB";
+import { productSchema } from "@/lib/validations/product";
 import { auth } from "@clerk/nextjs";
 
 import { NextRequest, NextResponse } from "next/server";
@@ -42,7 +42,7 @@ export const GET = async (
   }
 };
 
-export const POST = async (
+export const PUT = async (
   req: NextRequest,
   { params }: { params: { productId: string } }
 ) => {
@@ -55,7 +55,7 @@ export const POST = async (
 
     await connectToDB();
 
-    const product = await Product.findById(params.productId);
+    const product = await Product.findById(params.productId).lean();
 
     if (!product) {
       return new NextResponse(
@@ -64,81 +64,46 @@ export const POST = async (
       );
     }
 
-    const {
-      title,
-      description,
-      longDescription,
-      media,
-      categories,
-      benefices,
-      shipmentDetails,
-      tags,
-      sizes,
-      colors,
-      price,
-      expense,
-    } = await req.json();
+    const json = await req.json();
+    const body = productSchema.partial().parse(json);
 
-    if (!title || !description || !media || !categories || !price || !expense) {
-      return new NextResponse("Not enough data to create a new product", {
-        status: 400,
-      });
-    }
-
-    const addedCategories = categories.filter(
-      (categoryId: string) => !product.categories.includes(categoryId)
-    );
-    // included in new data, but not included in the previous data
-
-    const removedCategories = product.categories.filter(
-      (categoryId: string) => !categories.includes(categoryId)
-    );
-
-    // Update collections
-    await Promise.all([
-      // Update added collections with this product
-      ...addedCategories.map((collectionId: string) =>
-        Collection.findByIdAndUpdate(collectionId, {
-          $push: { products: product._id },
-        })
-      ),
-
-      // Update removed collections without this product
-      ...removedCategories.map((collectionId: string) =>
-        Collection.findByIdAndUpdate(collectionId, {
-          $pull: { products: product._id },
-        })
-      ),
-    ]);
-
-    // Update product
-    const updatedProduct = await Product.findByIdAndUpdate(
-      product._id,
-      {
-        title,
-        description,
-        longDescription,
-        benefices,
-        shipmentDetails,
-        media,
-        categories,
-        tags,
-        sizes,
-        colors,
-        price,
-        expense,
-      },
-      { new: true }
-    )
+    const updatedProduct = await Product.findByIdAndUpdate(product._id, body, {
+      new: true,
+    })
       .populate({ path: "categories", model: Category })
       .populate({ path: "media", model: Media });
 
-    await updatedProduct.save();
+    if (!updatedProduct) {
+      return new NextResponse(
+        JSON.stringify({ message: "Failed to update product" }),
+        { status: 500 }
+      );
+    }
 
-    return NextResponse.json("updatedProduct", { status: 200 });
+    // await updatedProduct?.save();
+
+    return NextResponse.json(updatedProduct, { status: 200 });
   } catch (err) {
-    console.log("[productId_POST]", err);
-    return new NextResponse("Internal error", { status: 500 });
+    const error = err as any;
+
+    if (error.name === "ZodError") {
+      return NextResponse.json(
+        { error: "Invalid product data", details: error.errors },
+        { status: 400 }
+      );
+    }
+
+    if (error.code === 11000) {
+      return NextResponse.json(
+        { error: "Product with this slug already exists" },
+        { status: 409 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Failed to create product", details: error.message },
+      { status: 500 }
+    );
   }
 };
 
@@ -165,14 +130,6 @@ export const DELETE = async (
     }
 
     await Product.findByIdAndDelete(product._id);
-
-    await Promise.all(
-      product.collections.map((collectionId: string) =>
-        Collection.findByIdAndUpdate(collectionId, {
-          $pull: { products: product._id },
-        })
-      )
-    );
 
     return new NextResponse(JSON.stringify({ message: "Product deleted" }), {
       status: 200,

@@ -1,22 +1,31 @@
-import mongoose from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
+import { IOrder } from "../types";
+import { getOrCreateModel } from "../utils";
 
-const customerSchema = new mongoose.Schema({
-  clerkId: String,
-  name: String,
-  email: String,
-  orders: {
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Order"}]
+interface ICustomer extends Document {
+  clerkId: string;
+  name: string;
+  email: string;
+  orders: IOrder[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+const customerSchema = new Schema<ICustomer>(
+  {
+    clerkId: String,
+    name: String,
+    email: String,
+    orders: {
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Order" }],
+    },
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
+  {
+    timestamps: true,
   }
-});
+);
 
-const Customer = mongoose.models.Customer || mongoose.model("Customer", customerSchema);
+const Customer = getOrCreateModel("Customer", customerSchema);
 
 export default Customer;
+export type { ICustomer };

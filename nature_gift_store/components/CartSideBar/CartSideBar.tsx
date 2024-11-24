@@ -13,36 +13,21 @@ import React from "react";
 
 import { useCart, useCartSideBar } from "@/lib/hooks/useCart";
 import { ShoppingCart } from "lucide-react";
-import { CartItemComponent } from "./CartItem";
+import { CartItemSideBarComponent } from "./CartItemSideBar";
 import Link from "next/link";
 import { Button } from "../ui/button";
-import { CartItem, ProductType, PromotionType } from "@/lib/types";
+import { CartItem } from "@/lib/types";
+import { calculateTotalPriceOfItemCart } from "@/lib/utils";
 
 export interface CartSideBarProps {}
 const CartSideBar: React.FC<CartSideBarProps> = () => {
   const cart = useCart();
   const cartSideBar = useCartSideBar();
-  const calculateTotalPrice = (
-    quantity: number,
-    product: ProductType,
-    promotion?: PromotionType
-  ): number => {
-    if (!promotion) {
-      return product.price * quantity;
-    }
 
-    if (quantity >= promotion.minProductsToApply) {
-      const timesApplied = Math.floor(quantity / promotion.minProductsToApply);
-      return product.price * quantity - promotion.discountValue * timesApplied;
-    } else {
-      return product.price * quantity;
-    }
-  };
   const total = cart.cartItems.reduce(
     (acc: number, cartItem: CartItem) =>
-      acc +
-      calculateTotalPrice(cartItem.quantity, cartItem.item, cartItem.promotion),
-    0
+      acc + calculateTotalPriceOfItemCart(cartItem),
+    0,
   );
 
   const totalRounded = parseFloat(total.toFixed(2));
@@ -77,7 +62,7 @@ const CartSideBar: React.FC<CartSideBarProps> = () => {
           <div className="overflow-hidden">
             <div className="divide-y divide-neutral-300">
               {cart.cartItems.map((item) => (
-                <CartItemComponent key={item.item._id} cartItem={item} />
+                <CartItemSideBarComponent key={item.item._id} cartItem={item} />
               ))}
             </div>
           </div>

@@ -1,50 +1,47 @@
-"use client";
-import { useState, type FC } from "react";
+'use client'
+import { useState, type FC } from 'react'
 
-import { ProductType, ReviewType } from "@/lib/types";
-import ProductInfoTab from "./ProductInfoTab";
-import { Card, CardContent } from "@/components/ui/card";
-import { AnimatePresence, motion } from "framer-motion";
-import { MotionDiv } from "@/shared/Motion/MotionDiv";
-import { ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { IProduct, IReview } from '@/lib/types'
+import ProductInfoTab from './ProductInfoTab'
+import { Card, CardContent } from '@/components/ui/card'
+import { AnimatePresence, motion } from 'framer-motion'
+import { MotionDiv } from '@/shared/Motion/MotionDiv'
+import { ChevronRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 interface SectionProductInfoProps {
-  product: ProductType;
-  reviews: ReviewType[];
+  product: IProduct
+  reviews: IReview[]
 }
 
-const SectionProductInfo: FC<SectionProductInfoProps> = ({
-  product,
-  reviews,
-}) => {
+const SectionProductInfo: FC<SectionProductInfoProps> = ({ product, reviews }) => {
   return (
     <div className="flex flex-col gap-10 mt-10">
       <ProductInfoDetail product={product} />
       <ProductInfoTab description={product.description} reviews={reviews} />
     </div>
-  );
-};
+  )
+}
 
-const ProductInfoDetail = ({ product }: { product: ProductType }) => {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const [isImageLoaded, setIsImageLoaded] = useState(false);
+const ProductInfoDetail = ({ product }: { product: IProduct }) => {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  const [isImageLoaded, setIsImageLoaded] = useState(false)
 
-  if (product.benefices.length < 1) {
-    return null;
+  if (product.features.length < 1) {
+    return null
   }
   const desktopPositions = [
-    "top-0 left-0 z-10",
-    "top-0 right-0 z-10",
-    "bottom-0 left-0 z-10",
-    "bottom-0 right-0 z-10",
-  ];
+    'top-0 left-0 z-10',
+    'top-0 right-0 z-10',
+    'bottom-0 left-0 z-10',
+    'bottom-0 right-0 z-10',
+  ]
 
   const gradients = {
-    primary: "from-primary to-indigo-600",
-    secondary: "from-fuchsia-600 to-pink-600",
-    accent: "from-blue-600 to-cyan-600",
-  };
+    primary: 'from-primary to-indigo-600',
+    secondary: 'from-fuchsia-600 to-pink-600',
+    accent: 'from-blue-600 to-cyan-600',
+  }
 
   return (
     <div className="w-full min-h-[80vh] px-4 py-12 md:py-20">
@@ -59,7 +56,7 @@ const ProductInfoDetail = ({ product }: { product: ProductType }) => {
         </h3>
         <motion.div
           initial={{ width: 0 }}
-          animate={{ width: "9rem" }}
+          animate={{ width: '9rem' }}
           transition={{ duration: 0.8, delay: 0.2 }}
           className="h-1.5 bg-gradient-to-r from-primary to-black rounded-full"
         />
@@ -81,7 +78,7 @@ const ProductInfoDetail = ({ product }: { product: ProductType }) => {
                   alt={product.title}
                   onLoad={() => setIsImageLoaded(true)}
                   className={`object-c w-full h-full rounded-lg shadow-xl transform transition-all duration-700 ${
-                    isImageLoaded ? "scale-100" : "scale-110"
+                    isImageLoaded ? 'scale-100' : 'scale-110'
                   } group-hover:scale-105`}
                 />
               </div>
@@ -89,7 +86,7 @@ const ProductInfoDetail = ({ product }: { product: ProductType }) => {
           </div>
 
           <AnimatePresence>
-            {product.benefices.slice(0, 4).map((benefit, index) => (
+            {product.features.slice(0, 4).map((benefit, index) => (
               <MotionDiv
                 key={benefit.title}
                 className={`absolute ${desktopPositions[index]} max-w-xs`}
@@ -148,7 +145,7 @@ const ProductInfoDetail = ({ product }: { product: ProductType }) => {
             </div>
           </motion.div>
 
-          {product.benefices.slice(0, 4).map((benefit, index) => (
+          {product.features.slice(0, 4).map((benefit, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
@@ -189,8 +186,8 @@ const ProductInfoDetail = ({ product }: { product: ProductType }) => {
       </div>
       <SeeMoreButton />
     </div>
-  );
-};
+  )
+}
 
 const SeeMoreButton = () => {
   return (
@@ -203,7 +200,7 @@ const SeeMoreButton = () => {
         </MotionDiv>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default SectionProductInfo;
+export default SectionProductInfo

@@ -42,7 +42,10 @@ const IconSelector = ({ selectedIcon, onSelectIcon }: IconSelectorProps) => {
                 return (
                   <button
                     key={iconName}
-                    onClick={() => onSelectIcon(iconName)}
+                    onClick={() => {
+                      setSearchTerm(iconName);
+                      onSelectIcon(iconName);
+                    }}
                     className={`p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
                       selectedIcon === iconName
                         ? "bg-blue-100 dark:bg-blue-900"

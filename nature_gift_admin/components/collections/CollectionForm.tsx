@@ -19,9 +19,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "../ui/textarea";
 import ImageUpload from "../custom-ui/ImageUpload";
 import { useState } from "react";
-import toast from "react-hot-toast";
 import Delete from "../custom-ui/Delete";
 import { CollectionType } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   title: z.string().min(2).max(20),
@@ -35,7 +35,7 @@ interface CollectionFormProps {
 
 const CollectionForm: React.FC<CollectionFormProps> = ({ initialData }) => {
   const router = useRouter();
-
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -71,13 +71,19 @@ const CollectionForm: React.FC<CollectionFormProps> = ({ initialData }) => {
       });
       if (res.ok) {
         setLoading(false);
-        toast.success(`Collection ${initialData ? "updated" : "created"}`);
+        toast({
+          description: `Collection ${initialData ? "updated" : "created"}`,
+        });
         window.location.href = "/collections";
         router.push("/collections");
       }
     } catch (err) {
       console.log("[collections_POST]", err);
-      toast.error("Something went wrong! Please try again.");
+      toast({
+        variant: "destructive",
+
+        description: "Something went wrong! Please try again.",
+      });
     }
   };
 

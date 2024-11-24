@@ -68,8 +68,6 @@ const ImageShowCase: FC<ImageShowCaseProps> = ({ medias }) => {
 export { ImageShowCase, ProductGallery };
 
 const ProductGallery: FC<ImageShowCaseProps> = ({ medias }) => {
-  // Sample product images - replace with your actual images
-
   const [currentImage, setCurrentImage] = useState(0);
   const [direction, setDirection] = useState(0);
 

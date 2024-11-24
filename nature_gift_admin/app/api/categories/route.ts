@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
 import Category from "@/lib/models/Category";
+import { categorySchema } from "@/lib/validations/category";
 import Media from "@/lib/models/Media";
 
 export const POST = async (req: NextRequest) => {
@@ -15,23 +16,16 @@ export const POST = async (req: NextRequest) => {
 
     await connectToDB();
 
-    const { title, shortDescription, media, parent } = await req.json();
+    const json = await req.json();
+    const body = categorySchema.parse(json);
 
-    const existingCategory = await Category.findOne({ title });
-
+    const existingCategory = await Category.findOne({ name: body.slug });
     if (existingCategory) {
-      return new NextResponse("Category already exists", { status: 400 });
-    }
-
-    if (!title) {
-      return new NextResponse("Title are required", { status: 400 });
+      return new NextResponse("Category already exists", { status: 200 });
     }
 
     const newCategory = await Category.create({
-      title,
-      shortDescription,
-      media,
-      parent,
+      ...body,
     });
 
     await newCategory.save();
@@ -46,17 +40,15 @@ export const POST = async (req: NextRequest) => {
 export const GET = async (req: NextRequest) => {
   try {
     await connectToDB();
-
     const categories = await Category.find()
-      .populate({ path: "media", model: Media })
+      .lean()
       .populate({ path: "parent", model: Category })
+      .populate({ path: "image", model: Media })
       .sort({ createdAt: "desc" });
-
     return NextResponse.json(categories, { status: 200 });
   } catch (err) {
     console.log("[categories_GET]", err);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 };
-
 export const dynamic = "force-dynamic";

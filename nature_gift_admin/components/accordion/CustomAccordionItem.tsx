@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import {
   Select,
@@ -49,21 +51,23 @@ const CustomAccordionItem = ({
     <>
       <div className="mb-3 flex w-full gap-3">
         <div className="w-full flex flex-col gap-2">
-          <Select
-            onValueChange={(value) => setCurrenType(value)}
-            defaultValue={currentType}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select a type" />
-            </SelectTrigger>
-            <SelectContent>
-              {listAvailableContentType.map((value) => (
-                <SelectItem key={value} value={value}>
-                  {value}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {listAvailableContentType.length > 1 && (
+            <Select
+              onValueChange={(value) => setCurrenType(value)}
+              defaultValue={currentType}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a type" />
+              </SelectTrigger>
+              <SelectContent>
+                {listAvailableContentType.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <div>
             {currentType === ContentType.TEXT ? (
               <CustomRichTextEditor

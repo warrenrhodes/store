@@ -1,8 +1,15 @@
-import { Film, Trash2, ImageIcon, Upload, Loader2 } from "lucide-react";
-import { useState, useCallback } from "react";
+import { Film, ImageIcon, Upload, Loader2, Trash2 } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { FileType } from "../accordion/CustomAccordionItem";
 import { Button } from "../ui/button";
+import { getMediaById } from "@/lib/actions/actions";
+import { useToast } from "@/hooks/use-toast";
+
+export enum FileTargetType {
+  "PRODUCT" = "PRODUCT",
+  "CATEGORY" = "CATEGORY",
+}
 
 interface FileUploaderProps {
   mediaIds: string[];
@@ -10,6 +17,8 @@ interface FileUploaderProps {
   fileType: FileType;
   maxFiles?: number;
   maxFileSize?: number;
+  targetType?: FileTargetType;
+  multiple?: boolean;
 }
 
 export const FileUploader: React.FC<FileUploaderProps> = ({
@@ -18,11 +27,13 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   fileType = FileType.IMAGE,
   maxFiles = 5,
   maxFileSize = 5 * 1024 * 1024, // 5MB
+  targetType,
+  multiple = true,
 }) => {
+  const { toast } = useToast();
   const [files, setFiles] = useState<(File | string)[]>(mediaIds);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const getFileTypeText = (type: FileType) => {
     switch (type) {
       case FileType.IMAGE:
@@ -33,7 +44,6 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         return "files";
     }
   };
-
   const validateFile = (file: File) => {
     const fileType = file.type.split("/")[0];
     if (fileType === FileType.IMAGE && ![FileType.IMAGE].includes(fileType)) {
@@ -89,39 +99,21 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
           }
         : { "image/*": [".jpeg", ".jpg", ".png", ".gif", ".webp"] },
     maxSize: maxFileSize,
-    multiple: true,
+    multiple: multiple, // Use the multiple prop to determine if multiple files can be selected
   });
 
   const removeFile = (index: number) => {
     setFiles(files.filter((_, i) => i !== index));
     setError(null);
   };
-
   const renderPreview = (file: File | string, index: number) => {
     if (typeof file === "string") {
       return (
-        <div key={index} className="relative group">
-          <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-            <img
-              src={file}
-              alt={`Preview ${index + 1}`}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="absolute bottom-1 left-1 right-1 px-2 py-1 text-xs text-white bg-black/50 rounded truncate">
-            {file}
-          </div>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              removeFile(index);
-            }}
-            className="absolute -top-2 -right-2 bg-red-500 text-white p-1.5 
-              shadow-lg transition-opacity"
-          >
-            <Trash2 size={14} />
-          </button>
-        </div>
+        <ImageRender
+          key={index}
+          mediaId={file}
+          removeFile={() => removeFile(index)}
+        />
       );
     } else {
       const isVideo = file.type.startsWith("video/");
@@ -161,8 +153,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
               e.stopPropagation();
               removeFile(index);
             }}
-            className="absolute -top-2 -right-2 bg-red-500 text-white p-1.5 
-              shadow-lg transition-opacity"
+            className="absolute -top-2 -right-2 bg-red-500 text-white p-1.5
+                    shadow-lg transition-opacity"
           >
             <Trash2 size={14} />
           </button>
@@ -170,8 +162,28 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
       );
     }
   };
+  const updateFile = async (files: File[]): Promise<string[] | null> => {
+    const formData = new FormData();
+    files.forEach((file, index) => {
+      formData.append(`files`, file);
+    });
+    const result = await fetch("/api/media/upload", {
+      method: "POST",
+      body: formData,
+    });
+    if (result.ok) {
+      const data = await result.json();
+
+      return data.files.map((e: any) =>
+        targetType === FileTargetType.PRODUCT ? e.file.id : e.file.url
+      );
+    }
+    return null;
+  };
 
   const handleImport = async () => {
+    const existingFiles = files.filter((f) => typeof f === "string");
+    const updatedFiles = files.filter((f) => !(typeof f === "string"));
     if (files.length === 0) {
       setError("Please select at least one file");
       return;
@@ -179,16 +191,18 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 
     setIsLoading(true);
     try {
-      // Simulated upload delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      // Here you would typically upload the files to your server
-      setContent(files.map((f) => (typeof f === "string" ? f : f.name)));
-      setFiles([]);
+      const result = await updateFile(updatedFiles);
+      if (result) {
+        existingFiles.push(...result);
+      }
+
+      setContent(existingFiles);
       setError(null);
     } catch (err) {
       setError("Upload failed. Please try again.");
     } finally {
       setIsLoading(false);
+      toast({ description: "File uploaded successfully!" });
     }
   };
 
@@ -270,6 +284,47 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
           </Button>
         </div>
       </div>
+    </div>
+  );
+};
+
+const ImageRender = ({
+  mediaId,
+  removeFile,
+}: {
+  mediaId: string;
+  removeFile: () => void;
+}) => {
+  const [fileUrl, setFileUrl] = useState<string>();
+
+  useEffect(() => {
+    getMediaById(mediaId).then((url) => {
+      if (url) setFileUrl(url);
+    });
+  }, [mediaId]);
+
+  return (
+    <div className="relative group">
+      <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+        <img
+          src={fileUrl}
+          alt={`Preview of ${mediaId}`}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div className="absolute bottom-1 left-1 right-1 px-2 py-1 text-xs text-white bg-black/50 rounded truncate">
+        {mediaId as string}
+      </div>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          removeFile();
+        }}
+        className="absolute -top-2 -right-2 bg-red-500 text-white p-1.5
+          shadow-lg transition-opacity"
+      >
+        <Trash2 size={14} />
+      </button>
     </div>
   );
 };

@@ -14,8 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Button } from "../ui/button";
-import toast from "react-hot-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface DeleteProps {
   item: string;
@@ -24,6 +23,7 @@ interface DeleteProps {
 
 const Delete: React.FC<DeleteProps> = ({ item, handleDelete }) => {
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   const onDelete = async () => {
     try {
@@ -33,19 +33,20 @@ const Delete: React.FC<DeleteProps> = ({ item, handleDelete }) => {
       if (result) {
         setLoading(false);
         window.location.href = `/${item}`;
-        toast.success(`${item} deleted`);
+        toast({ description: `${item} deleted` });
       }
     } catch (err) {
       console.log(err);
-      toast.error("Something went wrong! Please try again.");
+      toast({
+        variant: "destructive",
+        description: "Something went wrong! Please try again.",
+      });
     }
   };
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button className="hover:bg-red-500/15 text-red-500 bg-red-500/10">
-          <Trash className="h-4 w-4" />
-        </Button>
+        <Trash className="h-4 w-4" color="red" />
       </AlertDialogTrigger>
       <AlertDialogContent className=" text-grey-1">
         <AlertDialogHeader>

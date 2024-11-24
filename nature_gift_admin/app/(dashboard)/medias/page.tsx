@@ -1,22 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import { DataTable } from "@/components/custom-ui/DataTable";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import DialogBox from "@/components/custom ui/CustomDialogue";
 import { mediColumns } from "@/components/medias/MediasColumns";
 
 import Image from "next/image";
 import { Loader, SimpleLoader } from "@/components/custom-ui/Loader";
 import { XCircle } from "lucide-react";
-import toast from "react-hot-toast";
 import router from "next/router";
+import DialogBox from "@/components/custom-ui/CustomDialogue";
+import { useToast } from "@/hooks/use-toast";
 
 const Medias = () => {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [medias, setMedia] = useState([]);
@@ -59,6 +57,7 @@ const Medias = () => {
 };
 
 const AddMedia = () => {
+  const { toast } = useToast();
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
 
@@ -68,12 +67,6 @@ const AddMedia = () => {
     setFiles([...files, file]);
   };
 
-  /*************  ✨ Codeium Command ⭐  *************/
-  /**
-   * Sends a POST request to "/api/media" with the given file.
-   * @param file - The file to upload.
-   */
-  /******  673732ae-2751-4405-aae1-8a2e80614a57  *******/
   const updateFile = async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -97,7 +90,10 @@ const AddMedia = () => {
         }
       });
       if (!isValidRequest) {
-        toast.error("An error occurred. Please try again.");
+        toast({
+          variant: "destructive",
+          description: "An error occurred. Please try again.",
+        });
         return;
       }
       window.location.href = "/medias";

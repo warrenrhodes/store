@@ -4,6 +4,8 @@ import { Ref, useRef } from "react";
 import JoditEditor, { Jodit } from "jodit-react";
 import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
+import { useToast } from "@/hooks/use-toast";
+
 const CustomRichTextEditor = ({
   content,
   onSave,
@@ -12,6 +14,7 @@ const CustomRichTextEditor = ({
   onSave: (value: string) => void;
 }) => {
   const editor: Ref<Jodit> = useRef(null);
+  const { toast } = useToast();
 
   const config = {
     createAttributes: {
@@ -48,16 +51,14 @@ const CustomRichTextEditor = ({
         title: "Special Character",
       },
     },
+    height: 300,
     readonly: false,
-    height: 400,
     toolbar: true,
     askBeforePasteHTML: true,
     askBeforePasteFromWord: true,
     enableDragAndDropFileToEditor: true,
     spellcheck: true,
     triggerChangeEvent: true,
-    cropWidth: 1000,
-    cropHeight: 1000,
     showFoldersPanel: false,
     createNewFolder: false,
     deleteFolder: false,
@@ -504,6 +505,7 @@ const CustomRichTextEditor = ({
   const handleSave = () => {
     const value = editor.current?.value;
     onSave?.(value || "");
+    toast({ description: "Content saved", variant: "success" });
   };
 
   return (
@@ -519,3 +521,4 @@ const CustomRichTextEditor = ({
 };
 
 export default CustomRichTextEditor;
+export const dynamic = "force-dynamic";

@@ -1,62 +1,62 @@
-"use client";
+'use client'
 
-import Loader from "@/components/Loader";
-import ProductCard from "@/components/ProductCard";
-import { getProductDetails } from "@/lib/actions/actions";
-import { UserType } from "@/lib/types";
-import { ProductType } from "@/lib/types";
-import { useUser } from "@clerk/nextjs";
-import { useEffect, useState } from "react";
+import Loader from '@/components/Loader'
+import ProductCard from '@/components/ProductCard'
+import { getProductDetails } from '@/lib/actions/actions'
+import { UserType } from '@/lib/types'
+import { IProduct } from '@/lib/types'
+import { useUser } from '@clerk/nextjs'
+import { useEffect, useState } from 'react'
 
 const Wishlist = () => {
-  const { user } = useUser();
+  const { user } = useUser()
 
-  const [loading, setLoading] = useState(true);
-  const [signedInUser, setSignedInUser] = useState<UserType | null>(null);
-  const [wishlist, setWishlist] = useState<ProductType[]>([]);
+  const [loading, setLoading] = useState(true)
+  const [signedInUser, setSignedInUser] = useState<UserType | null>(null)
+  const [wishlist, setWishlist] = useState<IProduct[]>([])
 
   const getUser = async () => {
     try {
-      const res = await fetch("/api/users");
-      const data = await res.json();
-      setSignedInUser(data);
-      setLoading(false);
+      const res = await fetch('/api/users')
+      const data = await res.json()
+      setSignedInUser(data)
+      setLoading(false)
     } catch (err) {
-      console.log("[users_GET", err);
+      console.log('[users_GET', err)
     }
-  };
+  }
 
   useEffect(() => {
     if (user) {
-      getUser();
+      getUser()
     }
-  }, [user]);
+  }, [user])
 
   const getWishlistProducts = async () => {
-    setLoading(true);
+    setLoading(true)
 
-    if (!signedInUser) return;
+    if (!signedInUser) return
 
     const wishlistProducts = await Promise.all(
-      signedInUser.wishlist.map(async (productId) => {
-        const res = await getProductDetails(productId);
-        return res;
-      })
-    );
+      signedInUser.wishlist.map(async productId => {
+        const res = await getProductDetails(productId)
+        return res
+      }),
+    )
 
-    setWishlist(wishlistProducts);
-    setLoading(false);
-  };
+    setWishlist(wishlistProducts)
+    setLoading(false)
+  }
 
   useEffect(() => {
     if (signedInUser) {
-      getWishlistProducts();
+      getWishlistProducts()
     }
-  }, [signedInUser]);
+  }, [signedInUser])
 
   const updateSignedInUser = (updatedUser: UserType) => {
-    setSignedInUser(updatedUser);
-  };
+    setSignedInUser(updatedUser)
+  }
 
   return loading ? (
     <Loader />
@@ -66,7 +66,7 @@ const Wishlist = () => {
       {wishlist.length === 0 && <p>No items in your wishlist</p>}
 
       <div className="flex flex-wrap justify-center gap-16">
-        {wishlist.map((product) => (
+        {wishlist.map(product => (
           <ProductCard
             key={product._id}
             product={product}
@@ -75,9 +75,9 @@ const Wishlist = () => {
         ))}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'
 
-export default Wishlist;
+export default Wishlist

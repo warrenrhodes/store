@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { writeFile } from "fs/promises";
 import path from "path";
-import { v4 as uuidv4 } from "uuid";
 import { connectToDB } from "@/lib/mongoDB";
 import { auth } from "@clerk/nextjs";
 import Media from "@/lib/models/Media";
@@ -61,7 +60,7 @@ export async function POST(request: Request) {
             fileName: file.name,
             userId,
           });
-          mediaId = existingMedia._id;
+          mediaId = existingMedia?._id;
         }
 
         // Return the URL that can be used to access the file
@@ -69,7 +68,7 @@ export async function POST(request: Request) {
           file: {
             url: `${process.env.NEXT_PUBLIC_SERVER_URL}/tmp/${userId}/${file.name}`,
             name: file.name,
-            id: uuidv4(), // You might want to use your database ID here
+            id: mediaId, // You might want to use your database ID here
           },
         };
       })

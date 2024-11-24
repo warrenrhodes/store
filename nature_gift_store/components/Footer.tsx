@@ -9,10 +9,10 @@ import {
   CreditCard,
   Lock,
   Truck,
-} from "lucide-react";
+} from 'lucide-react'
 
 const Footer = () => {
-  const currentYear = new Date().getFullYear();
+  const currentYear = new Date().getFullYear()
 
   return (
     <footer className="bg-gray-900 text-gray-300">
@@ -23,8 +23,7 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-xl font-bold text-white">Shop Name</h3>
             <p className="text-sm">
-              Your trusted destination for quality products and exceptional
-              service.
+              Your trusted destination for quality products and exceptional service.
             </p>
             <div className="flex space-x-4">
               <Facebook className="w-5 h-5 cursor-pointer hover:text-blue-400 transition-colors" />
@@ -88,9 +87,7 @@ const Footer = () => {
           {/* Newsletter */}
           <div className="space-y-4">
             <h3 className="text-xl font-bold text-white">Newsletter</h3>
-            <p className="text-sm">
-              Subscribe to receive updates and exclusive offers!
-            </p>
+            <p className="text-sm">Subscribe to receive updates and exclusive offers!</p>
             <form className="space-y-2">
               <input
                 type="email"
@@ -131,9 +128,7 @@ const Footer = () => {
       <div className="border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="text-sm">
-              © {currentYear} Nature's Gift. All rights reserved.
-            </div>
+            <div className="text-sm">© {currentYear} Nature's Gift. All rights reserved.</div>
             <div className="flex space-x-4 text-sm">
               <a href="#" className="hover:text-white transition-colors">
                 Privacy Policy
@@ -149,7 +144,7 @@ const Footer = () => {
         </div>
       </div>
     </footer>
-  );
-};
+  )
+}
 
-export default Footer;
+export default Footer

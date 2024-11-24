@@ -1,11 +1,11 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-import { Separator } from "../ui/separator";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -16,188 +16,184 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "../ui/textarea";
-import ImageUpload from "../custom-ui/ImageUpload";
-import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
-import Delete from "../custom-ui/Delete";
-import { CategoryType } from "@/lib/types";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
-import { X } from "lucide-react";
+} from "@/components/ui/select";
+import { CategorySchemaType, categorySchema } from "@/lib/validations/category";
+import { generateSlug } from "@/lib/utils/slugify";
+import { ICategory } from "@/lib/models/Category";
+import CustomAccordion from "../accordion/CustomAccordion";
+import { FileTargetType, FileUploader } from "../custom-ui/FileUploader";
+import { FileType } from "../accordion/CustomAccordionItem";
 import { cn } from "@/lib/utils";
-
-const formSchema = z.object({
-  title: z.string().min(2).max(20),
-  shortDescription: z.string().optional().nullable(),
-  media: z.string(),
-  parent: z.string().optional().nullable(),
-});
+import { useToast } from "@/hooks/use-toast";
 
 interface CategoryFormProps {
-  initialData?: CategoryType | null;
+  initialData?: ICategory;
+  categories?: ICategory[];
 }
 
-const CategoryForm: React.FC<CategoryFormProps> = ({ initialData }) => {
+export function CategoryForm({ initialData, categories }: CategoryFormProps) {
   const router = useRouter();
+  const { toast } = useToast();
 
-  const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState<CategoryType[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const getCategories = async () => {
-    try {
-      const res = await fetch("/api/categories", {
-        method: "GET",
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setCategories(
-          (data as CategoryType[]).filter((c) => c.title !== initialData?.title)
-        );
-        setLoading(false);
-      }
-    } catch (err) {
-      setLoading(false);
-      console.log("[categories_GET]", err);
-      toast.error("Something went wrong! Please try again.");
-    }
-  };
-
-  useEffect(() => {
-    getCategories();
-  }, []);
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: initialData
-      ? {
-          title: initialData.title,
-          shortDescription: initialData.shortDescription || null,
-          media: initialData.media ? initialData.media._id : "",
-          parent: initialData.parent ? initialData.parent._id : null,
-        }
-      : {
-          title: "",
-          shortDescription: null,
-          media: "",
-          parent: null,
-        },
+  const form = useForm<CategorySchemaType>({
+    resolver: zodResolver(categorySchema),
+    defaultValues: useMemo(
+      () =>
+        initialData
+          ? {
+              name: initialData.name || "",
+              slug: initialData.slug || "",
+              description: initialData.description || "",
+              featured: initialData.featured || false,
+              parent: initialData.parent?._id || null,
+              image: initialData.image?._id || null,
+              metadata: {
+                seoTitle: initialData.metadata?.seoTitle || "",
+                seoDescription: initialData.metadata?.seoDescription || "",
+                keywords: initialData.metadata?.keywords || [],
+              },
+            }
+          : {
+              name: "",
+              slug: "",
+              description: "",
+              featured: false,
+              parent: null,
+              image: null,
+              metadata: {
+                seoTitle: "",
+                seoDescription: "",
+                keywords: [],
+              },
+            },
+      [initialData]
+    ),
   });
 
-  const handleKeyPress = (
-    e:
-      | React.KeyboardEvent<HTMLInputElement>
-      | React.KeyboardEvent<HTMLTextAreaElement>
-  ) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-    }
+  const onNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const name = e.target.value;
+    form.setValue("name", name);
+    form.setValue("slug", generateSlug(name));
   };
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  // Filter out the current category and its children to prevent circular references
+  const availableParentCategories = (categories || []).filter(
+    (category) =>
+      category._id !== initialData?._id &&
+      (!category.parent || category.parent?._id !== initialData?._id)
+  );
+
+  async function onSubmit(data: CategorySchemaType) {
+    setIsLoading(true);
     try {
-      setLoading(true);
       const url = initialData
-        ? `/api/categories/${initialData._id}`
-        : "/api/categories";
+        ? `${process.env.NEXT_PUBLIC_SERVER_URL}/api/categories/${initialData._id}`
+        : `${process.env.NEXT_PUBLIC_SERVER_URL}/api/categories`;
+
       const res = await fetch(url, {
-        method: "POST",
-        body: JSON.stringify(values),
+        method: initialData ? "PUT" : "POST",
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
       if (res.ok) {
-        setLoading(false);
-        toast.success(`Category ${initialData ? "updated" : "created"}`);
+        toast({
+          variant: "default",
+          description: `Category ${initialData ? "updated" : "created"}`,
+        });
         window.location.href = "/categories";
         router.push("/categories");
+      } else {
+        toast({
+          variant: "destructive",
+          description: "Something went wrong! Please try again.",
+        });
       }
-    } catch (err) {
-      console.log("[categories_POST]", err);
-      toast.error("Something went wrong! Please try again.");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
     }
-  };
-
-  const onDelete = async (categoryId: string): Promise<boolean> => {
-    const res = await fetch(`/api/categories/${categoryId}`, {
-      method: "DELETE",
-    });
-    return res.ok;
-  };
-
+  }
   return (
-    <div className="p-10">
-      {initialData ? (
-        <div className="flex items-center justify-between">
-          <p className="text-heading2-bold">Edit Category</p>
-          <Delete
-            handleDelete={() => onDelete(initialData._id)}
-            item="categories"
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input {...field} onChange={onNameChange} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="slug"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Slug</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
-      ) : (
-        <p className="text-heading2-bold">Create Category</p>
-      )}
-      <Separator className="bg-grey-1 mt-4 mb-7" />
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Title</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Title"
-                    {...field}
-                    onKeyDown={handleKeyPress}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="shortDescription"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Short Description</FormLabel>
-                <FormControl>
-                  <Textarea
-                    value={field.value || ""}
-                    maxLength={500}
-                    placeholder="Short Description"
-                    rows={5}
-                    onKeyDown={handleKeyPress}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="media"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Media</FormLabel>
-                <FormControl>
-                  <ImageUpload
-                    value={field.value ? [field.value] : []}
-                    onChange={(url) => field.onChange(url)}
-                    onRemove={() => field.onChange("")}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {categories.length > 0 && (
+
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea {...field} value={field.value || ""} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="image"
+          render={({ field }) => (
+            <FormItem>
+              <CustomAccordion title="Category Image">
+                <FileUploader
+                  mediaIds={field.value ? [field.value] : []}
+                  setContent={(value: string[]) => field.onChange(value[0])}
+                  fileType={FileType.IMAGE}
+                  maxFiles={1}
+                  targetType={FileTargetType.PRODUCT}
+                />
+              </CustomAccordion>
+              <FormMessage className="text-red-1" />
+            </FormItem>
+          )}
+        />
+
+        <div className="grid gap-4 sm:grid-cols-2 items-end">
+          {availableParentCategories.length > 0 && (
             <FormField
               control={form.control}
               name="parent"
@@ -216,9 +212,9 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ initialData }) => {
                       </FormControl>
 
                       <SelectContent>
-                        {categories.map((category) => (
+                        {availableParentCategories.map((category) => (
                           <SelectItem key={category._id} value={category._id}>
-                            {category.title}
+                            {category.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -240,22 +236,109 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ initialData }) => {
               )}
             />
           )}
-          <div className="flex gap-10">
-            <Button type="submit" className=" text-white">
-              Submit
-            </Button>
+          <FormField
+            control={form.control}
+            name="featured"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2">
+                <FormControl>
+                  <Switch
+                    defaultChecked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <FormLabel className="!mt-0">Featured Category</FormLabel>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="space-y-4">
+          <FormField
+            control={form.control}
+            name="metadata.seoTitle"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>SEO Title</FormLabel>
+                <FormControl>
+                  <Input {...field} value={field.value || ""} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="metadata.seoDescription"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>SEO Description</FormLabel>
+                <FormControl>
+                  <Textarea {...field} value={field.value || ""} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="metadata.keywords"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Keywords (comma-separated)</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value?.join(", ") || ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value
+                          .split(",")
+                          .map((keyword) => keyword.trim())
+                      )
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="flex justify-between">
+          <Button type="submit" disabled={isLoading}>
+            {isLoading && <Loader2 className="animate-spin" />}
+            {initialData ? "Update" : "Create"} Category
+          </Button>
+          {initialData && (
             <Button
               type="button"
-              onClick={() => router.push("/categories")}
-              className="bg-gray-50 text-black hover:bg-gray-100"
+              variant="destructive"
+              disabled={isLoading}
+              onClick={async () => {
+                setIsLoading(true);
+                try {
+                  await fetch(`/api/categories/${initialData._id}`, {
+                    method: "DELETE",
+                  });
+                  router.refresh();
+                  router.push("/categories");
+                } catch (error) {
+                  console.error(error);
+                } finally {
+                  setIsLoading(false);
+                }
+              }}
             >
-              Discard
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Category
             </Button>
-          </div>
-        </form>
-      </Form>
-    </div>
+          )}
+        </div>
+      </form>
+    </Form>
   );
-};
-
-export default CategoryForm;
+}

@@ -1,34 +1,48 @@
-"use client";
-
-import { Loader } from "@/components/custom-ui/Loader";
-import ProductForm from "@/components/products/ProductForm";
-import { ProductType } from "@/lib/types";
-import { useEffect, useState } from "react";
-
-const ProductDetails = ({ params }: { params: { productId: string } }) => {
-  const [loading, setLoading] = useState(true);
-  const [productDetails, setProductDetails] = useState<ProductType | null>(
-    null
+import { ProductFormV2 } from "@/components/products/ProductFormV2";
+import { notFound } from "next/navigation";
+async function getProduct(productId: string) {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/products/${productId}`
   );
 
-  const getProductDetails = async () => {
-    try {
-      const res = await fetch(`/api/products/${params.productId}`, {
-        method: "GET",
-      });
-      const data = await res.json();
-      setProductDetails(data);
-      setLoading(false);
-    } catch (err) {
-      console.log("[productId_GET]", err);
-    }
-  };
+  if (!response.ok) {
+    notFound();
+  }
 
-  useEffect(() => {
-    getProductDetails();
-  }, []);
+  return response.json();
+}
 
-  return loading ? <Loader /> : <ProductForm initialData={productDetails} />;
-};
+async function getCategories() {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/categories`
+  );
+  if (!response.ok) {
+    console.error("Failed to fetch categories");
+    return [];
+  }
+  const categories = await response.json();
+  return categories;
+}
 
-export default ProductDetails;
+export default async function EditProductPage({
+  params,
+}: {
+  params: { productId: string };
+}) {
+  const [product, categories] = await Promise.all([
+    getProduct(params.productId),
+    getCategories(),
+  ]);
+
+  return (
+    <div className="container py-10">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">Edit Product</h1>
+        <p className="text-muted-foreground">Make changes to your product</p>
+      </div>
+      <ProductFormV2 initialData={product} categories={categories} />
+    </div>
+  );
+}
+
+export const dynamic = "force-dynamic";

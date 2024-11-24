@@ -1,22 +1,18 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import HeartFavorite from "./HeartFavorite";
-import { MinusCircle, PlusCircle } from "lucide-react";
+import { useState } from 'react'
+import HeartFavorite from './HeartFavorite'
+import { MinusCircle, PlusCircle } from 'lucide-react'
 
-import { useCart } from "@/lib/hooks/useCart";
-import { ProductType } from "@/lib/types";
+import { useCart } from '@/lib/hooks/useCart'
+import { IProduct } from '@/lib/types'
 
-const ProductInfo = ({ productInfo }: { productInfo: ProductType }) => {
-  const [selectedColor, setSelectedColor] = useState<string>(
-    productInfo.colors[0]
-  );
-  const [selectedSize, setSelectedSize] = useState<string>(
-    productInfo.sizes[0]
-  );
-  const [quantity, setQuantity] = useState<number>(1);
+const ProductInfo = ({ productInfo }: { productInfo: IProduct }) => {
+  const [selectedColor, setSelectedColor] = useState<string>(productInfo.colors[0])
+  const [selectedSize, setSelectedSize] = useState<string>(productInfo.sizes[0])
+  const [quantity, setQuantity] = useState<number>(1)
 
-  const cart = useCart();
+  const cart = useCart()
 
   return (
     <div className="max-w-[400px] flex flex-col gap-4">
@@ -29,10 +25,8 @@ const ProductInfo = ({ productInfo }: { productInfo: ProductType }) => {
         <p className="text-base-medium text-grey-2">Category:</p>
         <p className="text-base-bold">{productInfo.category}</p>
       </div>
-      <p className="line-through text-sm text-red-600">
-        FCFA {productInfo.expense}
-      </p>
-      <p className="text-heading3-bold">FCFA {productInfo.price}</p>
+      <p className="line-through text-sm text-red-600">FCFA {productInfo.price}</p>
+      <p className="text-heading3-bold">FCFA {productInfo.promoPrice}</p>
 
       <div className="flex flex-col gap-2">
         <p className="text-base-medium text-grey-2">Description:</p>
@@ -47,7 +41,7 @@ const ProductInfo = ({ productInfo }: { productInfo: ProductType }) => {
               <p
                 key={index}
                 className={`border border-black px-2 py-1 rounded-lg cursor-pointer ${
-                  selectedColor === color && "bg-black text-white"
+                  selectedColor === color && 'bg-black text-white'
                 }`}
                 onClick={() => setSelectedColor(color)}
               >
@@ -66,7 +60,7 @@ const ProductInfo = ({ productInfo }: { productInfo: ProductType }) => {
               <p
                 key={index}
                 className={`border border-black px-2 py-1 rounded-lg cursor-pointer ${
-                  selectedSize === size && "bg-black text-white"
+                  selectedSize === size && 'bg-black text-white'
                 }`}
                 onClick={() => setSelectedSize(size)}
               >
@@ -100,13 +94,13 @@ const ProductInfo = ({ productInfo }: { productInfo: ProductType }) => {
             quantity,
             color: selectedColor,
             size: selectedSize,
-          });
+          })
         }}
       >
         Add To Cart
       </button>
     </div>
-  );
-};
+  )
+}
 
-export default ProductInfo;
+export default ProductInfo

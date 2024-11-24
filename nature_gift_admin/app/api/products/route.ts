@@ -2,89 +2,84 @@ import { auth } from "@clerk/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
 import { connectToDB } from "@/lib/mongoDB";
-import Product from "@/lib/models/Product";
 import Media from "@/lib/models/Media";
 import Category from "@/lib/models/Category";
+import { productSchema } from "@/lib/validations/product";
+import Product from "@/lib/models/Product";
 
-export const POST = async (req: NextRequest) => {
+export async function POST(req: Request) {
   try {
     const { userId } = auth();
-
     if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const json = await req.json();
+    const body = productSchema.parse(json);
 
     await connectToDB();
 
-    const {
-      title,
-      description,
-      longDescription,
-      media,
-      categories,
-      benefices,
-      shipmentDetails,
-      tags,
-      sizes,
-      colors,
-      price,
-      expense,
-    } = await req.json();
+    const newProduct = await Product.create({ ...body });
 
-    if (!title || !description || !media || !categories || !price || !expense) {
-      console.log("Not enough data to create a product");
-      return new NextResponse("Not enough data to create a product", {
-        status: 400,
-      });
-    }
-
-    const newProduct = await Product.create({
-      title,
-      description,
-      longDescription,
-      media,
-      categories,
-      benefices,
-      shipmentDetails,
-      tags,
-      sizes,
-      colors,
-      price,
-      expense,
-    });
-
-    await newProduct.save();
-
-    if (categories) {
-      for (const categoryId of categories) {
-        const category = await Category.findById(categoryId);
-        if (category) {
-          category.products.push(newProduct._id);
-          await category.save();
-        }
-      }
-    }
-
-    return NextResponse.json(newProduct, { status: 200 });
+    return NextResponse.json(newProduct, { status: 201 });
   } catch (err) {
-    console.log("[products_POST]", err);
-    return new NextResponse("Internal Error", { status: 500 });
+    const error = err as any;
+    console.error("[products_POST]", error);
+
+    if (error.name === "ZodError") {
+      return NextResponse.json(
+        { error: "Invalid product data", details: error.errors },
+        { status: 400 }
+      );
+    }
+
+    if (error.code === 11000) {
+      return NextResponse.json(
+        { error: "Product with this slug already exists" },
+        { status: 409 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Failed to create product", details: error.message },
+      { status: 500 }
+    );
   }
-};
+}
 
 export const GET = async (req: NextRequest) => {
   try {
     await connectToDB();
 
     const products = await Product.find()
+      .lean()
       .sort({ createdAt: "desc" })
       .populate({ path: "categories", model: Category })
       .populate({ path: "media", model: Media });
 
     return NextResponse.json(products, { status: 200 });
   } catch (err) {
-    console.log("[products_GET]", err);
-    return new NextResponse("Internal Error", { status: 500 });
+    const error = err as any;
+    console.error("[products_POST]", error);
+
+    if (error.name === "ZodError") {
+      return NextResponse.json(
+        { error: "Invalid product data", details: error.errors },
+        { status: 400 }
+      );
+    }
+
+    if (error.code === 11000) {
+      return NextResponse.json(
+        { error: "Product with this slug already exists" },
+        { status: 409 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Failed to create product", details: error.message },
+      { status: 500 }
+    );
   }
 };
 

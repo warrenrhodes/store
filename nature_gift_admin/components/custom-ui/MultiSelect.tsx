@@ -62,7 +62,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
     []
   );
 
-  const selectables = values.filter((value) => !selected.includes(value));
+  const selectTableData = values.filter((value) => !selected.includes(value));
 
   return (
     <Command
@@ -107,10 +107,10 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
       </div>
       <div className="relative mt-2">
         <CommandList>
-          {open && selectables.length > 0 ? (
+          {open && selectTableData.length > 0 ? (
             <div className="absolute top-0 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
               <CommandGroup className="h-full overflow-auto">
-                {selectables.map((_value) => {
+                {selectTableData.map((_value) => {
                   return (
                     <CommandItem
                       key={_value.value}
@@ -120,7 +120,15 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
                       }}
                       onSelect={(value) => {
                         setInputValue("");
-                        setSelected((prev) => [...prev, _value]);
+                        {
+                          !selected.find(
+                            (e) =>
+                              e.label.toLocaleLowerCase() ===
+                              value.toLocaleLowerCase()
+                          )
+                            ? setSelected((prev) => [...prev, _value])
+                            : null;
+                        }
                       }}
                       className={"cursor-pointer"}
                     >

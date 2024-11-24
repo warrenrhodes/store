@@ -1,10 +1,9 @@
-import { Plus, Trash } from "lucide-react";
+import { Trash } from "lucide-react";
 
 import { Button } from "../ui/button";
 import Image from "next/image";
-import toast from "react-hot-toast";
-import { MediaType } from "@/lib/types";
 import { useCallback, useEffect, useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface ImageUploadProps {
   value: string[];
@@ -17,6 +16,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   onRemove,
   value,
 }) => {
+  const { toast } = useToast();
   const updateFile = async (file: File): Promise<string | null> => {
     const formData = new FormData();
     formData.append("file", file);
@@ -40,14 +40,18 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       if (mediaId) {
         onChange(mediaId);
       } else {
-        toast.error(
-          "Something went wrong when upload you image! Please try again."
-        );
+        toast({
+          variant: "destructive",
+          description:
+            "Something went wrong when upload you image! Please try again.",
+        });
       }
     } catch (e) {
-      toast.error(
-        "Something went wrong when upload you image! Please try again."
-      );
+      toast({
+        variant: "destructive",
+        description:
+          "Something went wrong when upload you image! Please try again.",
+      });
     }
   };
 

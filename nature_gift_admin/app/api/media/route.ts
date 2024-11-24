@@ -57,9 +57,9 @@ export const POST = async (req: Request) => {
         fileName: convertFile.name,
         userId,
       });
-      mediaId = existingMedia._id;
+      mediaId = existingMedia?._id;
     }
-    return NextResponse.json({ id: mediaId }, { status: 200 });
+    return NextResponse.json({ url: mediaId }, { status: 200 });
   } catch (err) {
     console.log("[media_POST]", err);
     return new NextResponse(`Internal Error, ${err}`, { status: 500 });

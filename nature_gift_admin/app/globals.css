@@ -24,6 +24,14 @@
     --destructive-foreground: 3 0% 100%;
     --ring: 229 100% 62%;
     --radius: 0.5rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .theme-orange {
@@ -139,8 +147,18 @@
     --ring: 24.6 95% 53.1%;
     --radius: 0.5rem;
   }
+  .dark {
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
 }
-
+/* 
 @layer base {
   * {
     @apply border-border;
@@ -148,20 +166,20 @@
   body {
     @apply bg-background text-foreground;
   }
-}
+} */
 
 * {
   font-family: "Poppins", sans-serif;
 }
 
-.container {
+/* .container {
   width: 100%;
   margin-right: auto;
   margin-left: auto;
-  padding-right: 1rem /* 16px */;
-  padding-left: 1rem /* 16px */;
-}
-@media (min-width: 640px) {
+  padding-right: 1rem;
+  padding-left: 1rem;
+} */
+/* @media (min-width: 640px) {
   .container {
     max-width: 640px;
   }
@@ -175,8 +193,8 @@
   .container {
     max-width: 1024px;
   }
-}
-@media (min-width: 1280px) {
+} */
+/* @media (min-width: 1280px) {
   .container {
     max-width: 1280px;
     padding-right: 40px;
@@ -189,7 +207,7 @@
     padding-right: 70px;
     padding-left: 70px;
   }
-}
+} */
 
 .transitionEffect {
   @apply transition ease-in-out hover:-translate-y-1 delay-150 hover:scale-95 duration-300;

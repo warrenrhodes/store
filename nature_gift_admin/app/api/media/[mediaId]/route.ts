@@ -58,7 +58,7 @@ export const GET = async (
     await connectToDB();
     const media = await Media.findById(params.mediaId);
 
-    return NextResponse.json({ mediaUrl: media.url }, { status: 200 });
+    return NextResponse.json({ mediaUrl: media?.url }, { status: 200 });
   } catch (err) {
     console.log("[mediaId_GET]", err);
     return new NextResponse("Internal error", { status: 500 });

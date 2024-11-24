@@ -4,13 +4,13 @@ import SectionProductHeader from "./SectionProductHeader";
 import SectionProductInfo from "./SectionProductInfo";
 import {
   getProductDetails,
-  getPromotions,
   getRelatedProducts,
   getReviewByProductId,
 } from "@/lib/actions/actions";
 import { Spacer } from "@/shared/Spacer";
 import SectionMoreRelatedProducts from "./SectionMoreRelatedProducts";
 import ProductCTA from "./ProductCTA";
+import GeneralCTAComponent from "@/components/Cta/GeneralCta";
 
 type Props = {
   params: { productId: string };
@@ -21,9 +21,7 @@ const SingleProductPage = async (props: Props) => {
   const selectedProduct = await getProductDetails(props.params.productId);
   const reviews = await getReviewByProductId(props.params.productId);
   const relatedProducts = await getRelatedProducts(props.params.productId);
-  const promotions = (await getPromotions())?.filter(
-    (e) => e.product._id === props.params.productId && e.isActive
-  );
+
   return !selectedProduct ? (
     <p>data not found</p>
   ) : (
@@ -38,7 +36,6 @@ const SingleProductPage = async (props: Props) => {
           sizes={pathOr([], ["sizes"], selectedProduct)}
           ratings={pathOr(4.8, ["rating"], selectedProduct)}
           description={pathOr("", ["description"], selectedProduct)}
-          promotions={promotions || []}
           reviews={reviews || []}
           product={selectedProduct}
         />
@@ -53,6 +50,9 @@ const SingleProductPage = async (props: Props) => {
       </div>
       <div className="mb-10">
         <ProductCTA product={selectedProduct} />
+      </div>
+      <div>
+        <GeneralCTAComponent />
       </div>
     </div>
   );

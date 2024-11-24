@@ -1,38 +1,38 @@
-"use client";
+import { PromotionFormV2 } from "@/components/promotions/PromotionsFormV2";
+import { getProducts } from "@/lib/actions/actions";
+import { notFound } from "next/navigation";
 
-import { useEffect, useState } from "react";
-
-import { Loader } from "@/components/custom-ui/Loader";
-import { PromotionType } from "@/lib/types";
-import PromotionForm from "@/components/promotions/PromotionsForm";
-
-const PromotionDetails = ({ params }: { params: { promotionId: string } }) => {
-  const [loading, setLoading] = useState(true);
-  const [promotionDetails, setPromotionDetails] =
-    useState<PromotionType | null>(null);
-
-  const getPromotionDetails = async () => {
-    try {
-      const res = await fetch(`/api/promotions/${params.promotionId}`, {
-        method: "GET",
-      });
-      const data = await res.json();
-      setPromotionDetails(data);
-      setLoading(false);
-    } catch (err) {
-      console.log("[promotionId_GET]", err);
-    }
-  };
-
-  useEffect(() => {
-    getPromotionDetails();
-  }, []);
-
-  return loading ? (
-    <Loader />
-  ) : (
-    <PromotionForm initialData={promotionDetails} />
+async function getPromotion(promotionId: string) {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/promotions/${promotionId}`
   );
-};
 
-export default PromotionDetails;
+  if (!response.ok) {
+    return null;
+  }
+
+  return response.json();
+}
+
+export default async function EditPromotionPage({
+  params,
+}: {
+  params: { promotionId: string };
+}) {
+  const [promotion, products] = await Promise.all([
+    getPromotion(params.promotionId),
+    getProducts(),
+  ]);
+
+  return (
+    <div className="container py-10">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">Edit Promotion</h1>
+        <p className="text-muted-foreground">Make changes to your promotion</p>
+      </div>
+      <PromotionFormV2 initialData={promotion} products={products} />
+    </div>
+  );
+}
+
+export const dynamic = "force-dynamic";

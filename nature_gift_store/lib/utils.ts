@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { CartItem, IProduct } from './types'
+import mongoose, { Schema, Model, Document } from 'mongoose'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -22,3 +23,17 @@ export const calculateTotalPriceOfItemCart = (cartItem: CartItem): number => {
 }
 
 export const getPrice = (product: IProduct) => product.promoPrice || product.price
+
+// Singleton pattern to prevent model redefinition
+export function getOrCreateModel<T extends Document>(
+  modelName: string,
+  schema: Schema<T>,
+): Model<T> {
+  // Check if the model already exists
+  if (mongoose.models[modelName]) {
+    return mongoose.models[modelName] as Model<T>
+  }
+
+  // If not, create and return the model
+  return mongoose.model<T>(modelName, schema)
+}

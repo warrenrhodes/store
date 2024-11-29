@@ -11,7 +11,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: "Nature's Gift Store",
-  description: 'N.Gift Ecommerce Store',
+  description: 'N.Gift E-Commerce Store',
 }
 
 export default function RootLayout({

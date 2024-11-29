@@ -6,10 +6,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ContentSchema, productSchema } from "@/lib/validations/product";
+import {
+  ContentSchema,
+  productSchema,
+  ProductSchemaType,
+} from "@/lib/validations/product";
 import CustomAccordion from "@/components/accordion/CustomAccordion";
 import {
   FormControl,
+  FormField,
   FormItem,
   FormLabel,
   FormMessage,
@@ -18,71 +23,87 @@ import CustomRichTextEditor from "@/components/accordion/CustomRichText";
 import { Textarea } from "@/components/ui/textarea";
 import { z } from "zod";
 import { Spacer } from "@/components/custom-ui/Spacer";
+import { Path, PathValue, UseFormReturn } from "react-hook-form";
 
-type Content = z.infer<typeof ContentSchema>;
-interface ContentEditorProps {
-  content: Content;
+interface ContentEditorProps<T extends Record<string, any>> {
+  form: UseFormReturn<T>;
+  contentTypeFieldKey: Path<T>;
+  contentFieldKey: Path<T>;
   label: string;
-  onChange: (content: Content) => void;
-  error?: string;
 }
 
-export function ContentEditor({
-  content,
+export const ContentEditor = <T extends Record<string, any>>({
+  form,
+  contentTypeFieldKey,
+  contentFieldKey,
   label,
-  onChange,
-  error,
-}: ContentEditorProps) {
+}: ContentEditorProps<T>) => {
   return (
-    <div className="flex flex-col gap-2">
-      <CustomAccordion title={label}>
-        <FormItem>
-          <FormLabel>Content Type</FormLabel>
-          <Select
-            onValueChange={(value) =>
-              onChange({
-                content: "",
-                contentType: value as typeof content.contentType,
-              })
-            }
-            defaultValue={content.contentType}
-          >
+    <div className="flex flex-col gap-2 w-full">
+      <FormLabel>{label}</FormLabel>
+      <FormField
+        control={form.control}
+        name={contentTypeFieldKey}
+        render={({ field }) => (
+          <FormItem className="w-full">
             <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Select content type" />
-              </SelectTrigger>
+              <Select
+                onValueChange={(e) => {
+                  form.setValue(contentFieldKey, "" as PathValue<T, Path<T>>, {
+                    shouldValidate: true,
+                  });
+                  field.onChange(e);
+                }}
+                defaultValue={(field.value || "") as string}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select content type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="HTML">HTML</SelectItem>
+                  <SelectItem value="TEXT">Plain Text</SelectItem>
+                </SelectContent>
+              </Select>
             </FormControl>
-            <SelectContent>
-              <SelectItem value="TEXT">Plain Text</SelectItem>
-              <SelectItem value="HTML">HTML</SelectItem>
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-        <Spacer />
-        <FormItem>
-          <FormLabel>Content</FormLabel>
-          {content.contentType === "TEXT" ? (
-            <FormControl>
-              <Textarea
-                defaultValue={content.content}
-                className="min-h-[50px]"
-                onChange={(e) =>
-                  onChange({ ...content, content: e.target.value })
-                }
-              />
-            </FormControl>
-          ) : (
-            <FormControl>
-              <CustomRichTextEditor
-                content={content.content}
-                onSave={(e) => onChange({ ...content, content: e })}
-              />
-            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      {form.watch(contentTypeFieldKey) === "HTML" ? (
+        <FormField
+          control={form.control}
+          name={contentFieldKey}
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <CustomRichTextEditor
+                  content={(field.value || "") as string}
+                  onSave={field.onChange}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
-          <FormMessage />
-        </FormItem>
-      </CustomAccordion>
+        />
+      ) : (
+        <FormField
+          control={form.control}
+          name={contentFieldKey}
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Textarea
+                  placeholder={`${label} ...`}
+                  className="min-h-[50px]"
+                  defaultValue={(field.value || "") as string}
+                  onChange={field.onChange}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
     </div>
   );
-}
+};

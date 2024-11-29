@@ -19,14 +19,11 @@ const CustomAccordion = ({
     <Accordion
       type="single"
       collapsible
-      className={cn(
-        className,
-        "py-2 text-left text-sm font-medium text-muted-foreground"
-      )}
+      className={cn("py-2 text-left text-sm font-medium text-muted-foreground")}
     >
       <AccordionItem value={title}>
         <AccordionTrigger>{title}</AccordionTrigger>
-        <AccordionContent>{children}</AccordionContent>
+        <AccordionContent className={className}>{children}</AccordionContent>
       </AccordionItem>
     </Accordion>
   );

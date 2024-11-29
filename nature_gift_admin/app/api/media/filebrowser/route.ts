@@ -50,6 +50,7 @@ export async function GET(request: Request) {
             baseurl: process.env.NEXT_PUBLIC_SERVER_URL,
             files: items,
             name: "default",
+            folders: [],
           },
         ],
         code: 220,

@@ -87,7 +87,6 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
       return;
     }
     setIsLoading(true);
-    console.log(data);
     try {
       const url = initialData
         ? `${process.env.NEXT_PUBLIC_SERVER_URL}/api/promotions/${initialData._id}`

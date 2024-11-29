@@ -3,19 +3,11 @@
 import { ColumnDef } from "@tanstack/react-table";
 import Delete from "../custom-ui/Delete";
 import Link from "next/link";
-import Image from "next/image";
 import { IProduct } from "@/lib/models/Product";
 import { Checkbox } from "../ui/checkbox";
 import { Button } from "../ui/button";
-import { ArrowUpDown, Edit, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, Edit } from "lucide-react";
 import { Badge } from "../ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 export const productColumns: ColumnDef<IProduct>[] = [
@@ -81,10 +73,10 @@ export const productColumns: ColumnDef<IProduct>[] = [
         <Badge
           className={cn({
             "bg-blue-500 ": row.original.visibility === true,
-            "bg-red-500": row.original.visibility !== false,
+            "bg-gray-500": !row.original.visibility,
           })}
         >
-          {row.original.visibility ? "Visible" : "Hidden"}
+          {row.original.visibility === true ? "Visible" : "Hidden"}
         </Badge>
       </div>
     ),
@@ -122,29 +114,17 @@ export const productColumns: ColumnDef<IProduct>[] = [
       };
 
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem>
-              <Link href={`/products/${product._id}`}>
-                <div className="flex gap-3 items-center">
-                  <Edit className="w-4 h-4" />
-                  Edit
-                </div>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              {" "}
-              <Delete item="products" handleDelete={onDelete} /> Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div>
+          <Link href={`/products/${product._id}`}>
+            <div className="flex gap-3 items-center">
+              <Edit className="w-4 h-4" />
+              Edit
+            </div>
+          </Link>
+          <div className="flex gap-3 items-center cursor-pointer">
+            <Delete item="products" handleDelete={onDelete} /> Delete
+          </div>
+        </div>
       );
     },
   },

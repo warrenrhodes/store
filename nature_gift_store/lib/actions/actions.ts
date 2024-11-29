@@ -1,3 +1,4 @@
+import { ICategory } from '../models/Category'
 import { IProduct, IPromotion, IReview } from '../types'
 
 export const getCollections = async () => {
@@ -94,6 +95,14 @@ export const getReviewByProductId = async (productId: string): Promise<IReview[]
   const reviews = await fetch(
     `${process.env.NEXT_PUBLIC_API_CLIENT_URL}/reviews?productId=${productId}`,
   )
+
+  if (!reviews.ok) return null
+  return await reviews.json()
+}
+
+
+export const getCategories = async (): Promise<ICategory[] | null> => {
+  const reviews = await fetch(`${process.env.NEXT_PUBLIC_API_CLIENT_URL}/categories`)
 
   if (!reviews.ok) return null
   return await reviews.json()

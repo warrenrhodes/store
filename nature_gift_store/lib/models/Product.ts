@@ -1,92 +1,172 @@
-import mongoose from "mongoose";
+import { Schema, Document } from 'mongoose'
+import { getOrCreateModel } from '../utils'
+import { IMedia } from './Media'
+import { ICategory } from './Category'
 
-const StoredProductDescriptionSchema = new mongoose.Schema({
-  id: {
-    type: Number,
-    required: true,
-  },
-  type: {
+// Define interfaces for nested schemas
+interface IContent {
+  contentType: 'TEXT' | 'HTML'
+  content: string
+}
+
+interface IPrice {
+  regular: number
+  sale?: number
+  saleStartDate?: Date
+  saleEndDate?: Date
+}
+
+interface IFeature {
+  title: string
+  description?: IContent
+}
+
+interface IInventory {
+  quantity: number
+  lowStockThreshold: number
+  stockQuantity?: number
+}
+
+interface IMetadata {
+  seoTitle: string
+  seoDescription: string
+  keywords: string[]
+}
+
+// Define the main Product interface
+interface IProduct extends Document {
+  title: string
+  slug: string
+  description: IContent
+  media: IMedia[]
+  categories: ICategory[]
+  tags?: string[]
+  price: IPrice
+  features?: IFeature[]
+  status: 'draft' | 'published' | 'archived'
+  visibility: boolean
+  inventory: IInventory
+  metadata: IMetadata
+  blogUrl?: string
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+const descriptionSchema = new Schema({
+  contentType: {
     type: String,
-    enum: ["text", "image", "video"],
+    enum: ['HTML', 'TEXT'],
     required: true,
   },
   content: {
     type: String,
+    required: true,
+  },
+})
+const featureSchema = new Schema({
+  icon: {
+    type: String,
     required: false,
-  },
-  mediaIds: {
-    type: [{ type: String }],
-  },
-});
-
-const ShipmentDetailsSchema = new mongoose.Schema({
-  icon: {
-    type: String,
-    required: true,
-  },
-  description: {
-    type: String,
-    required: true,
-  },
-});
-
-const BeneficesSchema = new mongoose.Schema({
-  icon: {
-    type: String,
-    required: true,
   },
   title: {
     type: String,
     required: true,
   },
-  description: {
-    type: String,
-  },
-});
+  description: descriptionSchema,
+})
 
-const ProductSchema = new mongoose.Schema(
+// Create the Mongoose schema
+const productSchema = new Schema<IProduct>(
   {
-    title: String,
-    description: String,
-    longDescription: [StoredProductDescriptionSchema],
-    media: [{ type: mongoose.Schema.Types.ObjectId, ref: "media" }],
-    categories: [{ type: mongoose.Schema.Types.ObjectId, ref: "category" }],
-    tags: [
-      {
-        type: String,
-      },
-    ],
-    sizes: [
-      {
-        type: String,
-      },
-    ],
-    colors: [
-      {
-        type: String,
-      },
-    ],
+    title: {
+      type: String,
+      required: [true, 'Title is required'],
+    },
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    description: descriptionSchema,
+    media: {
+      type: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: 'Media',
+          required: true,
+        },
+      ],
+      required: true,
+    },
+    categories: {
+      type: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: 'Category',
+          required: true,
+        },
+      ],
+    },
+    tags: [String],
     price: {
-      type: mongoose.Schema.Types.Decimal128,
-      get: (v: mongoose.Schema.Types.Decimal128) => {
-        return parseFloat(v.toString());
+      regular: {
+        type: Number,
+        required: true,
+        min: [0, 'Regular price must be non-negative'],
+      },
+      sale: {
+        type: Number,
+      },
+      saleStartDate: Date,
+      saleEndDate: Date,
+    },
+    features: [featureSchema],
+    status: {
+      type: String,
+      enum: ['draft', 'published', 'archived'],
+      default: 'draft',
+    },
+    visibility: {
+      type: Boolean,
+      default: true,
+    },
+    inventory: {
+      quantity: {
+        type: Number,
+        default: 0,
+      },
+      lowStockThreshold: {
+        type: Number,
+        default: 5,
+      },
+      stockQuantity: {
+        type: Number,
+        default: 0,
       },
     },
-    expense: {
-      type: mongoose.Schema.Types.Decimal128,
-      get: (v: mongoose.Schema.Types.Decimal128) => {
-        return parseFloat(v.toString());
+    blogUrl: String,
+    metadata: {
+      seoTitle: {
+        type: String,
+        required: true,
+      },
+      seoDescription: {
+        type: String,
+        required: true,
+      },
+      keywords: {
+        type: [String],
+        required: true,
       },
     },
-    benefices: [BeneficesSchema],
-    shipmentDetails: [ShipmentDetailsSchema],
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now },
   },
-  { toJSON: { getters: true } }
-);
+  {
+    timestamps: true,
+  },
+)
 
-const Product =
-  mongoose.models.Product || mongoose.model("Product", ProductSchema);
+// Create and export the Mongoose model
+const Product = getOrCreateModel<IProduct>('Product', productSchema)
 
-export default Product;
+export default Product
+export type { IProduct }

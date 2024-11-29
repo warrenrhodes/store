@@ -1,16 +1,5 @@
 import { CategoryList } from "@/components/categories/CategoryList";
-
-async function getCategories() {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/categories`
-  );
-  if (!response.ok) {
-    console.error("Failed to fetch categories");
-    return [];
-  }
-  const categories = await response.json();
-  return categories;
-}
+import { getCategories } from "@/lib/actions/actions";
 
 export default async function CategoriesPage() {
   const categories = await getCategories();

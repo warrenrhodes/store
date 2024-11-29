@@ -1,15 +1,8 @@
 import { IReview } from "@/lib/models/Reviews";
 import { ColumnDef } from "@tanstack/react-table";
-import { Link, ArrowUpDown, Edit, MoreHorizontal } from "lucide-react";
+import { Link, ArrowUpDown, Edit } from "lucide-react";
 import { Checkbox } from "../ui/checkbox";
 import { Button } from "../ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
 import Delete from "../custom-ui/Delete";
 
 export const reviewColumns: ColumnDef<IReview>[] = [
@@ -75,28 +68,17 @@ export const reviewColumns: ColumnDef<IReview>[] = [
       };
 
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem>
-              <Link href={`/reviews/${review._id}`}>
-                <div className="flex gap-3 items-center">
-                  <Edit className="w-4 h-4" />
-                  Edit
-                </div>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Delete item="reviews" handleDelete={onDelete} /> Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div>
+          <Link href={`/reviews/${review._id}`}>
+            <div className="flex gap-3 items-center">
+              <Edit className="w-4 h-4" />
+              Edit
+            </div>
+          </Link>
+          <div className="flex gap-3 items-center cursor-pointer">
+            <Delete item="reviews" handleDelete={onDelete} /> Delete
+          </div>
+        </div>
       );
     },
   },

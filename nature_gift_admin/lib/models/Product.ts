@@ -17,14 +17,8 @@ interface IPrice {
 }
 
 interface IFeature {
-  icon: string;
   title: string;
   description?: IContent;
-}
-
-interface IShipmentDetail {
-  icon: string;
-  description: string;
 }
 
 interface IInventory {
@@ -49,14 +43,37 @@ interface IProduct extends Document {
   tags?: string[];
   price: IPrice;
   features?: IFeature[];
-  shipmentDetails?: IShipmentDetail[];
   status: "draft" | "published" | "archived";
   visibility: boolean;
   inventory: IInventory;
   metadata: IMetadata;
+  blogUrl?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+const descriptionSchema = new Schema({
+  contentType: {
+    type: String,
+    enum: ["HTML", "TEXT"],
+    required: true,
+  },
+  content: {
+    type: String,
+    required: true,
+  },
+});
+const featureSchema = new Schema({
+  icon: {
+    type: String,
+    required: false,
+  },
+  title: {
+    type: String,
+    required: true,
+  },
+  description: descriptionSchema,
+});
 
 // Create the Mongoose schema
 const productSchema = new Schema<IProduct>(
@@ -70,17 +87,7 @@ const productSchema = new Schema<IProduct>(
       required: true,
       unique: true,
     },
-    description: {
-      contentType: {
-        type: String,
-        enum: ["TEXT", "HTML"],
-        required: true,
-      },
-      content: {
-        type: String,
-        required: true,
-      },
-    },
+    description: descriptionSchema,
     media: {
       type: [
         {
@@ -113,37 +120,7 @@ const productSchema = new Schema<IProduct>(
       saleStartDate: Date,
       saleEndDate: Date,
     },
-    features: [
-      {
-        icon: {
-          type: String,
-          required: true,
-        },
-        title: {
-          type: String,
-          required: true,
-        },
-        description: {
-          contentType: {
-            type: String,
-            enum: ["TEXT", "HTML"],
-          },
-          content: String,
-        },
-      },
-    ],
-    shipmentDetails: [
-      {
-        icon: {
-          type: String,
-          required: true,
-        },
-        description: {
-          type: String,
-          required: true,
-        },
-      },
-    ],
+    features: [featureSchema],
     status: {
       type: String,
       enum: ["draft", "published", "archived"],
@@ -167,6 +144,7 @@ const productSchema = new Schema<IProduct>(
         default: 0,
       },
     },
+    blogUrl: String,
     metadata: {
       seoTitle: {
         type: String,

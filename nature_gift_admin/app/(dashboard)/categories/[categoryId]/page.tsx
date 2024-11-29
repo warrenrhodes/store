@@ -6,7 +6,7 @@ async function getCategories() {
     `${process.env.NEXT_PUBLIC_SERVER_URL}/api/categories`
   );
   if (!response.ok) {
-    notFound();
+    return [];
   }
   const categories = await response.json();
   return categories;

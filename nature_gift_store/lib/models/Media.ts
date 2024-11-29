@@ -1,26 +1,35 @@
-import mongoose from "mongoose";
+import { Schema, Document } from "mongoose";
+import { getOrCreateModel } from "../utils";
 
-const mediaSchema = new mongoose.Schema({
-  fileName: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  type: {
-    type: String,
-    enum: ["image", "video"],
-    required: true,
-  },
-  url: {
-    type: String,
-    required: true,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+interface IMedia extends Document {
+  type: "image" | "video";
+  url: string;
+  fileName: string;
+}
 
-const Media = mongoose.models.Media || mongoose.model("Media", mediaSchema);
+const mediaSchema = new Schema<IMedia>(
+  {
+    fileName: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    type: {
+      type: String,
+      enum: ["image", "video"],
+      required: true,
+    },
+    url: {
+      type: String,
+      required: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const Media = getOrCreateModel<IMedia>("Media", mediaSchema);
 
 export default Media;
+export type { IMedia };

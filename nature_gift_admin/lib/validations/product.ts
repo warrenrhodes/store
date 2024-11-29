@@ -13,14 +13,8 @@ const PriceSchema = z.object({
 });
 
 const FeatureSchema = z.object({
-  icon: z.string(),
   title: z.string(),
   description: ContentSchema.optional(),
-});
-
-const ShipmentDetailSchema = z.object({
-  icon: z.string(),
-  description: z.string().max(50),
 });
 
 const InventorySchema = z.object({
@@ -43,8 +37,8 @@ const productSchema = z.object({
   categories: z.array(z.string()).min(1),
   tags: z.array(z.string()).optional(),
   price: PriceSchema,
+  blogUrl: z.string().url().optional(),
   features: z.array(FeatureSchema).optional(),
-  shipmentDetails: z.array(ShipmentDetailSchema).optional(),
   status: z.enum(["draft", "published", "archived"]).default("draft"),
   visibility: z.boolean().default(true),
   inventory: InventorySchema,
@@ -95,25 +89,12 @@ const productVerificationForm = (
   // Features validation
   if (values.features && values.features.length > 0) {
     for (const feature of values.features) {
-      if (!feature.icon.trim() || !feature.title.trim()) {
-        return "All features must have a title and an icon.";
+      if (!feature.title.trim()) {
+        return "All features must have a title.";
       }
 
       if (feature.description && !feature.description.content.trim()) {
         return "Feature description content cannot be empty if provided.";
-      }
-    }
-  }
-
-  // Shipment details validation
-  if (values.shipmentDetails && values.shipmentDetails.length > 0) {
-    for (const detail of values.shipmentDetails) {
-      if (!detail.icon.trim()) {
-        return "All shipment details must have an icon.";
-      }
-
-      if (!detail.description.trim() || detail.description.length > 50) {
-        return "Shipment detail description must be between 1 and 50 characters.";
       }
     }
   }
@@ -149,10 +130,4 @@ const productVerificationForm = (
 };
 
 type ProductSchemaType = z.infer<typeof productSchema>;
-type ShipmentDetailSchemaType = z.infer<typeof ShipmentDetailSchema>;
-export {
-  productSchema,
-  type ShipmentDetailSchemaType,
-  type ProductSchemaType,
-  productVerificationForm,
-};
+export { productSchema, type ProductSchemaType, productVerificationForm };

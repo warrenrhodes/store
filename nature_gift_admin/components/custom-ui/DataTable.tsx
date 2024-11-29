@@ -72,7 +72,6 @@ export function DataTable<TData, TValue>({
       rowSelection,
     },
   });
-
   return (
     <div>
       <div className="w-full">
@@ -108,10 +107,8 @@ export function DataTable<TData, TValue>({
                           .getColumn(filterButton.columnKey || "")
                           ?.getFilterValue() as string) === value
                       }
-                      onCheckedChange={(value) =>
-                        table
-                          .getColumn(filterButton.columnKey || "")
-                          ?.setFilterValue(value)
+                      onCheckedChange={(_value) =>
+                        table.getColumn("status")?.setFilterValue(value)
                       }
                     >
                       {value}

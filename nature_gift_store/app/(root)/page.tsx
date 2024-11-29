@@ -1,22 +1,20 @@
-import Collections from "@/components/Collections";
-import ProductList from "@/components/ProductList";
-
-import Image from "next/image";
+import { BrandValues } from '@/components/Home/BrandValues'
+import { CategoryShowcase } from '@/components/Home/CategoryShowcase'
+import { FeaturedProducts } from '@/components/Home/FeaturedProducts'
+import { HeroSection } from '@/components/Home/HeroSection'
+import { NewArrivals } from '@/components/Home/NewArrivals'
+import { PromotionBanner } from '@/components/Home/PromotionBanner'
+import Image from 'next/image'
 
 export default function Home() {
   return (
-    <>
-      <Image
-        src="/banner.jpg"
-        alt="banner"
-        width={2000}
-        height={1000}
-        className="w-screen"
-      />
-      <Collections />
-      <ProductList />
-    </>
-  );
+    <main>
+      <HeroSection />
+      <CategoryShowcase />
+      <FeaturedProducts />
+      <PromotionBanner />
+      <NewArrivals />
+      <BrandValues />
+    </main>
+  )
 }
-
-export const dynamic = "force-dynamic";

@@ -18,20 +18,19 @@ async function migrateSchema() {
     };
     const client = await mongoose.connect(process.env.MONGODB_URL, options);
 
-    await Product.updateMany({}, { $set: { categories: [] } });
+    // await Product.updateMany({}, { $set: { categories: [] } });
 
     // Example: Remove an old field
-    await Product.updateMany({}, { $unset: { category: "", collections: "" } });
-
-    //   // Example: Change data type (e.g., from string to number)
-    //   const cursor = collection.find({});
-    //   while (await cursor.hasNext()) {
-    //       const doc = await cursor.next();
-    //       await collection.updateOne(
-    //           { _id: doc._id },
-    //           { $set: { numericField: Number(doc.numericField) } }
-    //       );
-    //   }
+    await Product.updateMany(
+      { "features.icon": { $exists: true } },
+      {
+        $unset: { "features.$[].icon": "" },
+        $set: { migratedFeatures: true },
+      },
+      {
+        multi: true, // Ensure multiple documents can be updated
+      }
+    );
 
     await client.disconnect();
   } catch (err) {

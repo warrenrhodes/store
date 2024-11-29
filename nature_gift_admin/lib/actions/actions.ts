@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import { connectToDB } from "../mongoDB";
 
 export const getTotalSales = async () => {
@@ -82,4 +83,28 @@ export async function getProducts() {
   }
   const products = await response.json();
   return products;
+}
+
+export async function getCategories() {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/categories`
+  );
+  if (!response.ok) {
+    console.error("Failed to fetch categories");
+    return [];
+  }
+  const categories = await response.json();
+  return categories;
+}
+
+export async function getBlogPostById(blogPostId: string) {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/blogs/${blogPostId}`
+  );
+
+  if (!response.ok) {
+    notFound();
+  }
+
+  return response.json();
 }

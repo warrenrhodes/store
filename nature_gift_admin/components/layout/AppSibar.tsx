@@ -3,6 +3,8 @@
 import * as React from "react";
 import {
   BaggageClaim,
+  BookOpenTextIcon,
+  Edit3Icon,
   Gift,
   LayoutDashboard,
   LucideImage,
@@ -64,6 +66,11 @@ const data = {
       title: "Customers",
     },
     {
+      url: "/blogs",
+      icon: BookOpenTextIcon,
+      title: "Blogs",
+    },
+    {
       url: "/reviews",
       icon: Stars,
       title: "Reviews",
@@ -84,7 +91,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <BaggageClaim className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Nature's Gift</span>
+                  <span className="truncate font-semibold">
+                    {"Nature's Gift"}
+                  </span>
                   <span className="truncate text-xs">Enterprise</span>
                 </div>
               </a>

@@ -59,8 +59,6 @@ export const PUT = async (
       new: true,
     }).lean();
 
-    await category?.save();
-
     return NextResponse.json(category, { status: 200 });
   } catch (err) {
     console.log("[categoryId_POST]", err);

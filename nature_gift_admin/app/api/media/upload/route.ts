@@ -5,6 +5,7 @@ import { connectToDB } from "@/lib/mongoDB";
 import { auth } from "@clerk/nextjs";
 import Media from "@/lib/models/Media";
 import fs from "fs";
+import { normalizeFileName } from "@/lib/utils/normalize_file_name";
 
 export const config = {
   api: {
@@ -32,18 +33,19 @@ export async function POST(request: Request) {
         if (!fs.existsSync(userDir)) {
           fs.mkdirSync(userDir, { recursive: true });
         }
-        const fileName = `${userDir}/${file.name}`;
+        const fileName = normalizeFileName(file.name);
+        const fileDirectory = `${userDir}/${fileName}`;
 
         // Save to your public directory
-        await writeFile(fileName, buffer);
+        await writeFile(fileDirectory, buffer);
 
         // 1. Save to your media collection in the database
         const updateResult = await Media.updateOne(
-          { fileName: file.name },
+          { fileName: fileName },
           {
             $setOnInsert: {
               type: file.type.startsWith("image/") ? "image" : "video",
-              url: `${process.env.NEXT_PUBLIC_SERVER_URL}/tmp/${userId}/${file.name}`,
+              url: `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/tmp/${userId}/${fileName}`,
             },
           },
           { upsert: true, new: true }
@@ -57,7 +59,7 @@ export async function POST(request: Request) {
         } else {
           // An existing document was updated, fetch its ID
           const existingMedia = await Media.findOne({
-            fileName: file.name,
+            fileName: fileName,
             userId,
           });
           mediaId = existingMedia?._id;
@@ -66,9 +68,9 @@ export async function POST(request: Request) {
         // Return the URL that can be used to access the file
         return {
           file: {
-            url: `${process.env.NEXT_PUBLIC_SERVER_URL}/tmp/${userId}/${file.name}`,
-            name: file.name,
-            id: mediaId, // You might want to use your database ID here
+            url: `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/tmp/${userId}/${fileName}`,
+            name: fileName,
+            id: mediaId,
           },
         };
       })

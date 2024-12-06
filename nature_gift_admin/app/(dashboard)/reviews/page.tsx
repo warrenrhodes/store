@@ -2,7 +2,7 @@ import { ReviewList } from "@/components/reviews/ReviewList";
 
 async function getReviews() {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/reviews`
+    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/reviews`
   );
   if (!response.ok) {
     console.error("Failed to fetch reviews");

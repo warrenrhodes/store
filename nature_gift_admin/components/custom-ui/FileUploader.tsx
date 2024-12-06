@@ -5,6 +5,7 @@ import { FileType } from "../accordion/CustomAccordionItem";
 import { Button } from "../ui/button";
 import { getMediaById } from "@/lib/actions/actions";
 import { useToast } from "@/hooks/use-toast";
+import Image from "next/image";
 
 export enum FileTargetType {
   "PRODUCT" = "PRODUCT",
@@ -121,13 +122,14 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 
       return (
         <div key={index} className="relative group">
-          <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+          <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative">
             {isImage && (
-              <img
+              <Image
                 src={URL.createObjectURL(file)}
                 alt={`Preview ${index + 1}`}
+                fill
                 className="w-full h-full object-cover"
-                onLoad={() => URL.revokeObjectURL(URL.createObjectURL(file))}
+                // onLoad={() => URL.revokeObjectURL(URL.createObjectURL(file))}
               />
             )}
             {isVideo && (
@@ -306,11 +308,17 @@ const ImageRender = ({
   return (
     <div className="relative group">
       <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-        <img
-          src={fileUrl}
-          alt={`Preview of ${mediaId}`}
-          className="w-full h-full object-cover"
-        />
+        {!fileUrl ? (
+          <Loader2 className="w-5 h-5 animate-spin" />
+        ) : (
+          <Image
+            src={fileUrl}
+            alt={`Preview of ${mediaId}`}
+            fill
+            className="w-full h-full object-cover rounded-lg"
+            onLoad={() => URL.revokeObjectURL(fileUrl || "")}
+          />
+        )}
       </div>
       <div className="absolute bottom-1 left-1 right-1 px-2 py-1 text-xs text-white bg-black/50 rounded truncate">
         {mediaId as string}

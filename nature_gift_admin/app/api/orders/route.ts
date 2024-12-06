@@ -3,81 +3,37 @@ import { connectToDB } from "@/lib/mongoDB";
 
 import { NextRequest, NextResponse } from "next/server";
 import Product from "@/lib/models/Product";
-import Promotion from "@/lib/models/Promotions";
+import { auth } from "@clerk/nextjs";
 
 export async function GET(req: NextRequest) {
   try {
+    const { userId } = auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     await connectToDB();
 
-    // Get query parameters
-    const { searchParams } = new URL(req.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const status = searchParams.get("status");
-
-    // Build query
-    const query: any = {};
-    if (status) query.status = status;
-
-    // Calculate skip for pagination
-    const skip = (page - 1) * limit;
-
-    const orders = await Order.find(query)
+    const orders = await Order.find()
       .populate({
-        path: "items.productId",
+        path: "items.product",
         model: Product,
       })
-      .populate({
-        path: "items.promotion.id",
-        model: Promotion,
-      })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+      .sort({ createdAt: -1 });
 
-    const total = await Order.countDocuments(query);
+    if (!orders) {
+      return NextResponse.json({ message: "No orders found" }, { status: 500 });
+    }
 
-    return NextResponse.json({
-      orders,
-      pagination: {
-        total,
-        page,
-        pages: Math.ceil(total / limit),
-      },
+    const filterOrders = orders.filter((order) => {
+      return order.items.some((item: any) => item.product.parternId === userId);
     });
+
+    return NextResponse.json(filterOrders, { status: 201 });
   } catch (err) {
     console.log("[ORDERS_GET]", err);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
-
-// export const GET = async (req: NextRequest) => {
-//   try {
-//     await connectToDB();
-
-//     const orders = await Order.find().sort({ createdAt: "desc" });
-
-//     const orderDetails = await Promise.all(
-//       orders.map(async (order) => {
-//         const customer = await Customer.findOne({
-//           clerkId: order.customerClerkId,
-//         });
-//         return {
-//           _id: order._id,
-//           customer: customer.name,
-//           products: order.products.length,
-//           totalAmount: order.totalAmount,
-//           createdAt: format(order.createdAt, "MMM do, yyyy"),
-//         };
-//       })
-//     );
-
-//     return NextResponse.json(orderDetails, { status: 200 });
-//   } catch (err) {
-//     console.log("[orders_GET]", err);
-//     return new NextResponse("Internal Server Error", { status: 500 });
-//   }
-// };
 
 export async function POST(req: Request) {
   try {

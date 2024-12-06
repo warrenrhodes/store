@@ -103,9 +103,18 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
       });
       if (res.ok) {
         setLoading(false);
-        toast({ description: `Review ${initialData ? "updated" : "created"}` });
+        toast({
+          description: `Review ${initialData ? "updated" : "created"}`,
+          variant: "success",
+        });
         window.location.href = "/reviews";
         router.push("/reviews");
+      } else {
+        setLoading(false);
+        toast({
+          description: "Something went wrong! Please try again.",
+          variant: "destructive",
+        });
       }
     } catch (err) {
       console.log("[reviews_POST]", err);
@@ -303,7 +312,15 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
               <FormItem>
                 <FormLabel>Helpful</FormLabel>
                 <FormControl>
-                  <Input type="number" {...field} onKeyDown={handleKeyPress} />
+                  <Input
+                    min={0}
+                    type="number"
+                    {...field}
+                    onKeyDown={handleKeyPress}
+                    onChange={(e) =>
+                      field.onChange(parseInt(e.target.value || "0"))
+                    }
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -322,6 +339,9 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
                     placeholder="Not Helpful"
                     {...field}
                     onKeyDown={handleKeyPress}
+                    onChange={(e) =>
+                      field.onChange(parseInt(e.target.value || "0"))
+                    }
                   />
                 </FormControl>
                 <FormMessage />
@@ -334,7 +354,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
               onClick={() => onSubmit(form.getValues())}
             >
               {isLoading && <Loader2 className="animate-spin" />}
-              {initialData ? "Update" : "Create"} Product
+              {initialData ? "Update" : "Create"} Review
             </Button>
             {initialData && (
               <Button

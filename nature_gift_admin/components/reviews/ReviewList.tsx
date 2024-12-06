@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { ICategory } from "@/lib/models/Category";
 import { DataTable } from "../custom-ui/DataTable";
 import { reviewColumns } from "./ReviewColumns";
 import { IReview } from "@/lib/models/Reviews";
@@ -19,7 +18,7 @@ export function ReviewList({ reviews }: ReviewListProps) {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Reviews</h2>
         <Button asChild>
-          <Link href="/categories/new">
+          <Link href="/reviews/new">
             <Plus className="w-4 h-4 mr-2" />
             Add Review
           </Link>

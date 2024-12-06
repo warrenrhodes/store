@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 
 async function getReview(reviewId: string) {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/reviews/${reviewId}`
+    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/reviews/${reviewId}`
   );
 
   if (!response.ok) {

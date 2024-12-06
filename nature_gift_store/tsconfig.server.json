@@ -1,0 +1,12 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+      "module": "Node16",
+    "outDir": "dist",
+    "noEmit": false,
+    "jsx": "react",
+    },
+    "include": [
+      "src/server.ts",
+    ]
+  }

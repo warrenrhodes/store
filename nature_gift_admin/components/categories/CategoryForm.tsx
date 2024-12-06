@@ -97,8 +97,8 @@ export function CategoryForm({ initialData, categories }: CategoryFormProps) {
     setIsLoading(true);
     try {
       const url = initialData
-        ? `${process.env.NEXT_PUBLIC_SERVER_URL}/api/categories/${initialData._id}`
-        : `${process.env.NEXT_PUBLIC_SERVER_URL}/api/categories`;
+        ? `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/categories/${initialData._id}`
+        : `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/categories`;
 
       const res = await fetch(url, {
         method: initialData ? "PUT" : "POST",

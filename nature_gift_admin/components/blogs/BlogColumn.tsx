@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import Delete from "../custom-ui/Delete";
 import { Toggle } from "../ui/toggle";
+import { toast } from "@/hooks/use-toast";
 
 export const blogsColumns: ColumnDef<IBlog>[] = [
   {
@@ -94,28 +95,35 @@ export const blogsColumns: ColumnDef<IBlog>[] = [
         return res.ok;
       };
 
+      const copyLink = (code: string) => {
+        navigator.clipboard.writeText(code);
+        toast({ description: "Link copied to clipboard!" });
+      };
+
       return (
-        <div>
-          <Toggle
-            aria-label="Toggle bold"
-            onClick={async () => {
-              await navigator.clipboard.writeText(
-                `${process.env.NEXT_PUBLIC_SERVER_URL}/blogs/${blogs.slug}`
-              );
-            }}
+        <div className="flex flex-col items-center gap-2 w-full">
+          <Button
+            variant="outline"
+            className="w-full"
+            size="sm"
+            onClick={() =>
+              copyLink(
+                `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/blogs/${blogs.slug}`
+              )
+            }
           >
-            <Copy className="h-4 w-4" /> Copy
-          </Toggle>
-          <Link href={`/blogs/${blogs._id}`}>
-            <Toggle aria-label="Toggle bold">
+            Copy link
+            <Copy className="ml-2 h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" className="w-full" asChild>
+            <Link href={`/blogs/${blogs._id}`}>
               <Edit className="w-4 h-4" />
               Edit
-            </Toggle>
-          </Link>
-          <Toggle aria-label="Toggle bold">
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" className="w-full">
             <Delete item="blogs" handleDelete={onDelete} />
-            Delete
-          </Toggle>
+          </Button>
         </div>
       );
     },

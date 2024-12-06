@@ -4,7 +4,6 @@ export const promotionConditionSchema = z.object({
   type: z.enum([
     "MINIMUM_QUANTITY",
     "SPECIFIC_PRODUCTS",
-    "FIRST_ORDER",
     "DELIVERY_METHOD",
     "LOCATION",
   ]),
@@ -49,7 +48,6 @@ export const promotionSchema = z.object({
 const validatePromotionFrom = (
   values: PromotionSchemaType
 ): string | undefined => {
-  console.log(values);
   // Code validation
   if (values.code.length < 3 || values.code.length > 20) {
     return "Promotion code must be between 3 and 20 characters.";
@@ -78,11 +76,15 @@ const validatePromotionFrom = (
   }
 
   // Conditions validation
-  if (values.conditions.length === 0 && values.actions.length === 0) {
-    return "At least one condition or one action is required.";
+  if (values.conditions.length === 0) {
+    return "At least one condition is required.";
   }
 
   // Validate actions
+  if (values.actions.length === 0) {
+    return "At least one action is required.";
+  }
+
   for (const action of values.actions) {
     if (action.type === "PERCENTAGE_DISCOUNT") {
       const value = Number(action.value);

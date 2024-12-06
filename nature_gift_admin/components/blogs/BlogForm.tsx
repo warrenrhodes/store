@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarIcon, Trash2 } from "lucide-react";
+import { CalendarIcon, Loader2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 
@@ -59,6 +59,10 @@ export function BlogForm({ initialData, categories }: BlogFormProps) {
       ? {
           ...initialData,
           categories: initialData.categories.map((category) => category._id),
+          metadata: {
+            ...initialData.metadata,
+            coverImage: initialData.metadata.coverImage?._id,
+          },
         }
       : {
           title: "",
@@ -66,6 +70,7 @@ export function BlogForm({ initialData, categories }: BlogFormProps) {
           content: {
             type: "HTML",
             content: "",
+            excerpt: "",
           },
           publishedAt: new Date(),
           metadata: {
@@ -96,8 +101,8 @@ export function BlogForm({ initialData, categories }: BlogFormProps) {
 
     try {
       const url = initialData
-        ? `${process.env.NEXT_PUBLIC_SERVER_URL}/api/blogs/${initialData._id}`
-        : `${process.env.NEXT_PUBLIC_SERVER_URL}/api/blogs`;
+        ? `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/blogs/${initialData._id}`
+        : `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/blogs`;
 
       const res = await fetch(url, {
         method: initialData ? "PATCH" : "POST",
@@ -126,7 +131,6 @@ export function BlogForm({ initialData, categories }: BlogFormProps) {
       setIsLoading(false);
     }
   }
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -162,6 +166,20 @@ export function BlogForm({ initialData, categories }: BlogFormProps) {
 
         <FormField
           control={form.control}
+          name="content.excerpt"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Excerpt</FormLabel>
+              <FormControl>
+                <Input {...field} value={field.value || ""} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="content.content"
           render={({ field }) => (
             <FormItem>
@@ -176,7 +194,6 @@ export function BlogForm({ initialData, categories }: BlogFormProps) {
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
           name="metadata.coverImage"
@@ -384,9 +401,14 @@ export function BlogForm({ initialData, categories }: BlogFormProps) {
         </div>
 
         <div className="flex justify-between">
-          <Button type="submit" disabled={isLoading}>
+          <Button
+            disabled={isLoading}
+            onClick={() => onSubmit(form.getValues())}
+          >
+            {isLoading && <Loader2 className="animate-spin" />}
             {initialData ? "Update" : "Create"} Blog Post
           </Button>
+
           {initialData && (
             <Button
               type="button"

@@ -2,7 +2,7 @@ import { BlogList } from "@/components/blogs/BlogList";
 
 async function getBlogs() {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/blogs`
+    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/blogs`
   );
   if (!response.ok) {
     console.error("Failed to fetch blogs");

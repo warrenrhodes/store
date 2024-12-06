@@ -1,16 +1,16 @@
 import { notFound } from "next/navigation";
 import { connectToDB } from "../mongoDB";
+import Order from "../models/Order";
 
 export const getTotalSales = async () => {
   await connectToDB();
-  // const orders = await Order.find();
-  // const totalOrders = orders.length;
-  // const totalRevenue = orders.reduce(
-  //   (acc, order) => acc + order.totalAmount,
-  //   0
-  // );
-  const totalOrders = 0;
-  const totalRevenue = 0;
+  const orders = await Order.find();
+
+  const totalOrders = orders.length;
+  const totalRevenue = orders.reduce(
+    (acc, order) => acc + order.totalAmount,
+    0
+  );
   return { totalOrders, totalRevenue };
 };
 
@@ -46,7 +46,7 @@ export const getSalesPerMonth = async () => {
 
 export const getMediaById = async (mediaId: string): Promise<string | null> => {
   const media = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/media/${mediaId}`
+    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/media/${mediaId}`
   );
   if (media.ok) {
     const url = await media.json();
@@ -75,7 +75,7 @@ export const uploadImages = async (files: File[]): Promise<string | null> => {
 
 export async function getProducts() {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/products`
+    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/products`
   );
   if (!response.ok) {
     console.error("Failed to fetch products");
@@ -87,7 +87,7 @@ export async function getProducts() {
 
 export async function getCategories() {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/categories`
+    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/categories`
   );
   if (!response.ok) {
     console.error("Failed to fetch categories");
@@ -99,7 +99,7 @@ export async function getCategories() {
 
 export async function getBlogPostById(blogPostId: string) {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/blogs/${blogPostId}`
+    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/blogs/${blogPostId}`
   );
 
   if (!response.ok) {

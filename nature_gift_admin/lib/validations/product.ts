@@ -13,6 +13,7 @@ const PriceSchema = z.object({
 });
 
 const FeatureSchema = z.object({
+  icon: z.string().optional(),
   title: z.string(),
   description: ContentSchema.optional(),
 });
@@ -41,6 +42,8 @@ const productSchema = z.object({
   features: z.array(FeatureSchema).optional(),
   status: z.enum(["draft", "published", "archived"]).default("draft"),
   visibility: z.boolean().default(true),
+  isFeature: z.boolean().default(false),
+  isNewProduct: z.boolean().default(false),
   inventory: InventorySchema,
   metadata: MetadataSchema,
 });

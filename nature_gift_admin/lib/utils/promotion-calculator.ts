@@ -1,8 +1,8 @@
 import {
-  type PromotionCondition,
-  type PromotionAction,
-} from "@/lib/validations/promotions";
-import { IPromotion } from "../models/Promotions";
+  IPromotion,
+  IPromotionAction,
+  IPromotionCondition,
+} from "../models/Promotions";
 
 export interface CartItem {
   productId: string;
@@ -66,7 +66,7 @@ export class PromotionCalculator {
       .sort((a, b) => (b.priority || 0) - (a.priority || 0));
   }
 
-  private checkCondition(condition: PromotionCondition): boolean {
+  private checkCondition(condition: IPromotionCondition): boolean {
     const subtotal = this.cart.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
@@ -86,9 +86,6 @@ export class PromotionCalculator {
           : [condition.value];
         return this.cart.some((item) => productIds.includes(item.productId));
 
-      case "FIRST_ORDER":
-        return this.customer.orderCount === 0;
-
       case "DELIVERY_METHOD":
         return this.shipping.method === condition.value;
 
@@ -100,7 +97,7 @@ export class PromotionCalculator {
     }
   }
 
-  private calculateActionValue(action: PromotionAction): number {
+  private calculateActionValue(action: IPromotionAction): number {
     const subtotal = this.cart.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0

@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDB } from "@/lib/mongoDB";
 import { auth } from "@clerk/nextjs";
 import fs from "fs";
+import { normalizeFileName } from "@/lib/utils/normalize_file_name";
 
 export const config = {
   api: {
@@ -29,19 +30,23 @@ export const POST = async (req: Request) => {
     }
     const convertFile = file as File;
     const userDir = path.join(process.cwd(), "tmp", userId);
+    const fileName = normalizeFileName(convertFile.name);
 
     if (!fs.existsSync(userDir)) {
       fs.mkdirSync(userDir, { recursive: true });
     }
     const data = await convertFile.arrayBuffer();
-    fs.writeFileSync(`${userDir}/${convertFile.name}`, Buffer.from(data));
+
+    fs.writeFileSync(`${userDir}/${fileName}`, Buffer.from(data));
     // Create media record in database
     const updateResult = await Media.updateOne(
-      { fileName: convertFile.name },
+      {
+        fileName: fileName,
+      },
       {
         $setOnInsert: {
           type: convertFile.type.startsWith("image/") ? "image" : "video",
-          url: `${process.env.NEXT_PUBLIC_SERVER_URL}/tmp/${userId}/${convertFile.name}`,
+          url: `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/tmp/${userId}/${fileName}`,
         },
       },
       { upsert: true, new: true }
@@ -54,7 +59,7 @@ export const POST = async (req: Request) => {
     } else {
       // An existing document was updated, fetch its ID
       const existingMedia = await Media.findOne({
-        fileName: convertFile.name,
+        fileName: fileName,
         userId,
       });
       mediaId = existingMedia?._id;

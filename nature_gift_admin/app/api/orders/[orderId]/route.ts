@@ -1,6 +1,5 @@
 import Order from "@/lib/models/Order";
 import Product from "@/lib/models/Product";
-import Promotion from "@/lib/models/Promotions";
 import { connectToDB } from "@/lib/mongoDB";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -11,15 +10,10 @@ export async function GET(
   try {
     await connectToDB();
 
-    const orderDetails = await Order.findById(params.orderId)
-      .populate({
-        path: "items.productId",
-        model: Product,
-      })
-      .populate({
-        path: "items.promotion.id",
-        model: Promotion,
-      });
+    const orderDetails = await Order.findById(params.orderId).populate({
+      path: "items.product",
+      model: Product,
+    });
 
     if (!orderDetails) {
       return new NextResponse(JSON.stringify({ message: "Order Not Found" }), {

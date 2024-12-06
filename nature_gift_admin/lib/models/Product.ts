@@ -2,6 +2,7 @@ import { Schema, Document } from "mongoose";
 import { getOrCreateModel } from "../utils";
 import { IMedia } from "./Media";
 import { ICategory } from "./Category";
+import { IReview } from "./Reviews";
 
 // Define interfaces for nested schemas
 interface IContent {
@@ -17,6 +18,7 @@ interface IPrice {
 }
 
 interface IFeature {
+  icon?: string;
   title: string;
   description?: IContent;
 }
@@ -47,7 +49,11 @@ interface IProduct extends Document {
   visibility: boolean;
   inventory: IInventory;
   metadata: IMetadata;
+  reviews?: IReview[];
+  isFeature: boolean;
+  isNewProduct: boolean;
   blogUrl?: string;
+  parternId: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -98,6 +104,14 @@ const productSchema = new Schema<IProduct>(
       ],
       required: true,
     },
+    reviews: {
+      type: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "Review",
+        },
+      ],
+    },
     categories: {
       type: [
         {
@@ -106,6 +120,14 @@ const productSchema = new Schema<IProduct>(
           required: true,
         },
       ],
+    },
+    isFeature: {
+      type: Boolean,
+      default: false,
+    },
+    isNewProduct: {
+      type: Boolean,
+      default: false,
     },
     tags: [String],
     price: {
@@ -145,6 +167,10 @@ const productSchema = new Schema<IProduct>(
       },
     },
     blogUrl: String,
+    parternId: {
+      type: String,
+      required: true,
+    },
     metadata: {
       seoTitle: {
         type: String,

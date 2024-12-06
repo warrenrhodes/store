@@ -9,6 +9,7 @@ import { Button } from "../ui/button";
 import { ArrowUpDown, Edit } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
+import { priceFormatted } from "@/lib/utils/utils";
 
 export const productColumns: ColumnDef<IProduct>[] = [
   {
@@ -84,7 +85,7 @@ export const productColumns: ColumnDef<IProduct>[] = [
   {
     accessorKey: "price",
     header: "Price (FCFA)",
-    cell: ({ row }) => <div>{row.original.price.regular.toFixed(2)}</div>,
+    cell: ({ row }) => <div>{priceFormatted(row.original.price.regular)}</div>,
   },
   {
     accessorKey: "inventory",
@@ -122,7 +123,7 @@ export const productColumns: ColumnDef<IProduct>[] = [
             </div>
           </Link>
           <div className="flex gap-3 items-center cursor-pointer">
-            <Delete item="products" handleDelete={onDelete} /> Delete
+            <Delete item="products" handleDelete={onDelete} />
           </div>
         </div>
       );

@@ -20,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { PromotionSchemaType } from "@/lib/validations/promotions";
 import { IProduct } from "@/lib/models/Product";
+import MultiText from "@/components/custom-ui/MultiText";
 
 interface ConditionFieldsProps {
   form: UseFormReturn<PromotionSchemaType>;
@@ -72,7 +73,6 @@ export function ConditionFields({ form, products }: ConditionFieldsProps) {
                       <SelectItem value="SPECIFIC_PRODUCTS">
                         Specific Products
                       </SelectItem>
-                      <SelectItem value="FIRST_ORDER">First Order</SelectItem>
                       <SelectItem value="DELIVERY_METHOD">
                         Delivery Method
                       </SelectItem>
@@ -109,7 +109,30 @@ export function ConditionFields({ form, products }: ConditionFieldsProps) {
                       </SelectContent>
                     </Select>
                   ) : form.watch(`conditions.${index}.type`) === "LOCATION" ? (
-                    <Input {...field} type="text" />
+                    <MultiText
+                      placeholder="Locations"
+                      value={
+                        field.value
+                          ? Array.isArray(field.value)
+                            ? field.value
+                            : [field.value as string]
+                          : []
+                      }
+                      onChange={(tag) =>
+                        field.onChange([
+                          ...(field.value ? (field.value as string[]) : []),
+                          tag,
+                        ])
+                      }
+                      onRemove={(tagToRemove) =>
+                        field.onChange([
+                          ...(field.value
+                            ? (field.value as string[])
+                            : []
+                          ).filter((tag) => tag !== tagToRemove),
+                        ])
+                      }
+                    />
                   ) : form.watch(`conditions.${index}.type`) ===
                       "SPECIFIC_PRODUCTS" && products.length > 0 ? (
                     <Select

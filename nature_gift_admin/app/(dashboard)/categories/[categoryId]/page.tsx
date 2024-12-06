@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 async function getCategories() {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/categories`
+    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/categories`
   );
   if (!response.ok) {
     return [];
@@ -13,7 +13,7 @@ async function getCategories() {
 }
 async function getCategory(categoryId: string) {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/categories/${categoryId}`
+    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/categories/${categoryId}`
   );
 
   if (!response.ok) {

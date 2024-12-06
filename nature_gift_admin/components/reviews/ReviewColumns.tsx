@@ -1,9 +1,10 @@
 import { IReview } from "@/lib/models/Reviews";
 import { ColumnDef } from "@tanstack/react-table";
-import { Link, ArrowUpDown, Edit } from "lucide-react";
+import { ArrowUpDown, Edit } from "lucide-react";
 import { Checkbox } from "../ui/checkbox";
 import { Button } from "../ui/button";
 import Delete from "../custom-ui/Delete";
+import Link from "next/link";
 
 export const reviewColumns: ColumnDef<IReview>[] = [
   {
@@ -55,9 +56,10 @@ export const reviewColumns: ColumnDef<IReview>[] = [
     header: "Rating",
     cell: ({ row }) => <p>{row.original.rating}</p>,
   },
+
   {
     id: "actions",
-    enableHiding: false,
+    header: "Product",
     cell: ({ row }) => {
       const review = row.original;
       const onDelete = async (): Promise<boolean> => {
@@ -76,7 +78,7 @@ export const reviewColumns: ColumnDef<IReview>[] = [
             </div>
           </Link>
           <div className="flex gap-3 items-center cursor-pointer">
-            <Delete item="reviews" handleDelete={onDelete} /> Delete
+            <Delete item="reviews" handleDelete={onDelete} />
           </div>
         </div>
       );

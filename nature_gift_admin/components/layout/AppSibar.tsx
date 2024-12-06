@@ -4,6 +4,7 @@ import * as React from "react";
 import {
   BaggageClaim,
   BookOpenTextIcon,
+  CarTaxiFrontIcon,
   Edit3Icon,
   Gift,
   LayoutDashboard,
@@ -74,6 +75,11 @@ const data = {
       url: "/reviews",
       icon: Stars,
       title: "Reviews",
+    },
+    {
+      url: "/shipments",
+      icon: CarTaxiFrontIcon,
+      title: "Shipments",
     },
   ],
 };

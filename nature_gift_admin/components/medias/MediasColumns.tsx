@@ -31,7 +31,7 @@ export const mediColumns: ColumnDef<IMedia>[] = [
     cell: ({ row }) => {
       const media = row.original;
       const onDelete = async (): Promise<boolean> => {
-        const res = await fetch(`/api/medias/${media._id}`, {
+        const res = await fetch(`/api/media/${media._id}`, {
           method: "DELETE",
         });
         return res.ok;
@@ -39,7 +39,7 @@ export const mediColumns: ColumnDef<IMedia>[] = [
 
       return (
         <div className="flex gap-3 items-center cursor-pointer">
-          <Delete item="medias" handleDelete={onDelete} /> Delete
+          <Delete item="medias" handleDelete={onDelete} />
         </div>
       );
     },

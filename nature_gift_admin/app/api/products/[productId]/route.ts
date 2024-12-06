@@ -1,6 +1,7 @@
 import Category from "@/lib/models/Category";
 import Media from "@/lib/models/Media";
 import Product from "@/lib/models/Product";
+import Review from "@/lib/models/Reviews";
 import { connectToDB } from "@/lib/mongoDB";
 import { productSchema } from "@/lib/validations/product";
 import { auth } from "@clerk/nextjs";
@@ -15,11 +16,11 @@ export const GET = async (
     await connectToDB();
 
     const product = await Product.findById(params.productId)
-      .populate({
-        path: "categories",
-        model: Category,
-      })
-      .populate({ path: "media", model: Media });
+      .lean()
+      .sort({ createdAt: "desc" })
+      .populate({ path: "categories", model: Category })
+      .populate({ path: "media", model: Media })
+      .populate({ path: "reviews", model: Review });
 
     if (!product) {
       return new NextResponse(
@@ -31,7 +32,7 @@ export const GET = async (
     return new NextResponse(JSON.stringify(product), {
       status: 200,
       headers: {
-        "Access-Control-Allow-Origin": `${process.env.ECOMMERCE_STORE_URL}`,
+        "Access-Control-Allow-Origin": `${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}`,
         "Access-Control-Allow-Methods": "GET",
         "Access-Control-Allow-Headers": "Content-Type",
       },
@@ -67,9 +68,13 @@ export const PUT = async (
     const json = await req.json();
     const body = productSchema.partial().parse(json);
 
-    const updatedProduct = await Product.findByIdAndUpdate(product._id, body, {
-      new: true,
-    })
+    const updatedProduct = await Product.findByIdAndUpdate(
+      product._id,
+      { ...body, parternId: userId },
+      {
+        new: true,
+      }
+    )
       .populate({ path: "categories", model: Category })
       .populate({ path: "media", model: Media });
 

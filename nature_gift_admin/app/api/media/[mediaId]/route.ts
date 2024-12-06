@@ -19,7 +19,6 @@ export const DELETE = async (
     }
 
     await connectToDB();
-
     const media = await Media.findById(params.mediaId);
 
     if (!media) {

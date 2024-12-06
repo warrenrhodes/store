@@ -9,13 +9,13 @@ interface IPromotionAction {
     | "FREE_PRODUCT"
     | "BUY_X_GET_Y";
   value: number | string | string[];
+  maxDiscount?: number;
 }
 
 interface IPromotionCondition {
   type:
     | "MINIMUM_QUANTITY"
     | "SPECIFIC_PRODUCTS"
-    | "FIRST_ORDER"
     | "DELIVERY_METHOD"
     | "LOCATION";
   value: number | string | string[];
@@ -79,7 +79,6 @@ const promotionConditionSchema = new Schema({
     enum: [
       "MINIMUM_QUANTITY",
       "SPECIFIC_PRODUCTS",
-      "FIRST_ORDER",
       "DELIVERY_METHOD",
       "LOCATION",
     ],
@@ -180,4 +179,4 @@ promotionSchema.pre("save", function (next) {
 });
 
 export const Promotion = getOrCreateModel("Promotion", promotionSchema);
-export type { IPromotion };
+export type { IPromotion, IPromotionAction, IPromotionCondition };

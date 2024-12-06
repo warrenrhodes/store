@@ -89,8 +89,8 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
     setIsLoading(true);
     try {
       const url = initialData
-        ? `${process.env.NEXT_PUBLIC_SERVER_URL}/api/promotions/${initialData._id}`
-        : `${process.env.NEXT_PUBLIC_SERVER_URL}/api/promotions`;
+        ? `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/promotions/${initialData._id}`
+        : `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/promotions`;
 
       const res = await fetch(url, {
         method: initialData ? "PATCH" : "POST",

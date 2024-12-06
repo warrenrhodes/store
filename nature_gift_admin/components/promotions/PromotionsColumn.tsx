@@ -113,7 +113,7 @@ export const promotionsColumns: ColumnDef<IPromotion>[] = [
             </div>
           </Link>
           <div className="flex gap-3 items-center cursor-pointer">
-            <Delete item="promotions" handleDelete={onDelete} /> Delete
+            <Delete item="promotions" handleDelete={onDelete} />
           </div>
         </div>
       );

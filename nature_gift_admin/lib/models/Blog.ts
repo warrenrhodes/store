@@ -2,6 +2,7 @@ import mongoose, { Document } from "mongoose";
 import { getOrCreateModel } from "../utils";
 import { ICategory } from "./Category";
 import cron from "node-cron";
+import { IMedia } from "./Media";
 
 interface IBlog extends Document {
   slug: string;
@@ -22,7 +23,7 @@ interface IBlog extends Document {
       avatar?: string;
     };
     readingTime?: number;
-    coverImage?: string;
+    coverImage?: IMedia;
     featured: boolean;
   };
   tags: string[];
@@ -66,7 +67,10 @@ const blogMetadataSchema = new mongoose.Schema({
     avatar: String,
   },
   readingTime: Number,
-  coverImage: String,
+  coverImage: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Media",
+  },
   featured: {
     type: Boolean,
     default: false,

@@ -2,7 +2,7 @@ import { ProductFormV2 } from "@/components/products/ProductFormV2";
 import { notFound } from "next/navigation";
 async function getProduct(productId: string) {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/products/${productId}`
+    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/products/${productId}`
   );
 
   if (!response.ok) {
@@ -14,7 +14,7 @@ async function getProduct(productId: string) {
 
 async function getCategories() {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/categories`
+    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/categories`
   );
   if (!response.ok) {
     console.error("Failed to fetch categories");

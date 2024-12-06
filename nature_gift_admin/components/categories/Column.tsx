@@ -80,7 +80,7 @@ export const categoryColumns: ColumnDef<ICategory>[] = [
             </div>
           </Link>
           <div className="flex gap-3 items-center cursor-pointer">
-            <Delete item="categories" handleDelete={onDelete} /> Delete
+            <Delete item="categories" handleDelete={onDelete} />
           </div>
         </div>
       );

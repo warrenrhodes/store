@@ -2,7 +2,7 @@ import { PromotionsList } from "@/components/promotions/PromotionsList";
 
 async function getPromotions() {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/promotions`
+    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/promotions`
   );
   if (!response.ok) {
     console.error("Failed to fetch promotions");

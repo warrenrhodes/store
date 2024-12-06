@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs";
 import { blogSchema } from "@/lib/validations/blog";
 import { connectToDB } from "@/lib/mongoDB";
 import Blog from "@/lib/models/Blog";
+import Media from "@/lib/models/Media";
 
 export async function GET(
   req: Request,
@@ -12,6 +13,10 @@ export async function GET(
     await connectToDB();
     const blog = await Blog.findById(params.blogId)
       .populate("categories")
+      .populate({
+        path: "metadata.coverImage",
+        model: Media,
+      })
       .lean();
 
     if (!blog) {

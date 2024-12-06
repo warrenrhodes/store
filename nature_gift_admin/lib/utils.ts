@@ -12,7 +12,7 @@ export function getOrCreateModel<T extends Document>(
   schema: Schema<T>
 ): Model<T> {
   // Check if the model already exists
-  if (mongoose.models[modelName]) {
+  if (mongoose.models?.[modelName]) {
     return mongoose.models[modelName] as Model<T>;
   }
 

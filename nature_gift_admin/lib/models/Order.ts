@@ -1,92 +1,96 @@
 import mongoose from "mongoose";
+import { IProduct } from "./Product";
+import { getOrCreateModel } from "../utils";
 
-const orderSchema = new mongoose.Schema({
-  deliveryInfo: {
-    address: { type: String, required: true },
-    deliveryDate: { type: Date, required: true },
-    deliveryTime: { type: String, required: true },
-    city: { type: String, required: true },
-    notes: String,
-  },
+export interface IDeliveryInfo {
+  address: string;
+  deliveryDate: Date;
+  deliveryTime: string;
+  city?: string;
+  additionalNotes?: string;
+  deliveryMethod?: "DELIVERY" | "EXPEDITION";
+  location?: string;
+  cost?: number;
+}
+export interface IOrder extends mongoose.Document {
+  deliveryInfo: IDeliveryInfo;
   userData: {
-    email: String,
-    fullName: { type: String, required: true },
-    phone: { type: String, required: true },
-    phoneContainsWhatsApp: Boolean,
-    whatsAppNumber: String,
-  },
-  items: [
-    {
-      productId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Product",
-      },
-      quantity: { type: Number, required: true },
-      price: { type: Number, required: true },
-      promotion: {
-        id: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Promotion",
-        },
-        discountAmount: Number,
-        promotionName: String,
-      },
-    },
-  ],
+    id?: string;
+    email?: string;
+    fullName: string;
+    phone: string;
+  };
+  promotions: Array<{
+    promotionId: string;
+    discountAmount: number;
+    code: string;
+  }>;
+  items: Array<{
+    product: IProduct;
+    quantity: number;
+    price: number;
+  }>;
   orderPrices: {
-    totalAmount: { type: Number, required: true },
-    discountAmount: Number,
-    totalWithoutDiscount: Number,
-    totalWithDiscount: Number,
-  },
-  status: {
-    type: String,
-    enum: [
-      "PENDING",
-      "CONFIRMED",
-      "PROCESSING",
-      "SHIPPED",
-      "DELIVERED",
-      "CANCELLED",
-    ],
-    default: "PENDING",
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
-//   customerClerkId: String,
-//   products: [
-//     {
-//       product: {
-//         type: mongoose.Schema.Types.ObjectId,
-//         ref: "Product",
-//       },
-//       color: String,
-//       size: String,
-//       quantity: Number,
-//     },
-//   ],
-//   shippingAddress: {
-//     street: String,
-//     city: String,
-//     state: String,
-//     postalCode: String,
-//     country: String,
-//   },
-//   shippingRate: String,
-//   totalAmount: Number,
-//   createdAt: {
-//     type: Date,
-//     default: Date.now,
-//   },
-// });
+    subtotal: number;
+    shipping: number;
+    discount: number;
+    total: number;
+  };
+  status: "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELED" | "COMPLETED";
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
-const Order = mongoose.models.Order || mongoose.model("Order", orderSchema);
+const orderSchema = new mongoose.Schema(
+  {
+    deliveryInfo: {
+      address: String,
+      deliveryDate: Date,
+      deliveryTime: String,
+      city: String,
+      additionalNotes: String,
+      deliveryMethod: String,
+      location: String,
+    },
+    userData: {
+      id: String,
+      email: String,
+      fullName: String,
+      phone: String,
+    },
+    promotions: [
+      {
+        promotionId: String,
+        discountAmount: Number,
+        code: String,
+      },
+    ],
+    items: [
+      {
+        product: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+        },
+        quantity: Number,
+        price: Number,
+      },
+    ],
+    orderPrices: {
+      subtotal: Number,
+      shipping: Number,
+      discount: Number,
+      total: Number,
+    },
+    status: {
+      type: String,
+      enum: ["PENDING", "ACCEPTED", "REJECTED", "CANCELED", "COMPLETED"],
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const Order = getOrCreateModel("Order", orderSchema);
 
 export default Order;

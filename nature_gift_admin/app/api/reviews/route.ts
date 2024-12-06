@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import Review from "@/lib/models/Reviews";
 import Product from "@/lib/models/Product";
+import { reviewSchema } from "@/lib/validations/reviews";
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -14,34 +15,15 @@ export const POST = async (req: NextRequest) => {
     }
 
     await connectToDB();
+    const json = await req.json();
+    const body = reviewSchema.parse(json);
 
-    const {
-      product,
-      userName,
-      rating,
-      comment,
-      imageUrl,
-      verify,
-      helpful,
-      notHelpful,
-    } = await req.json();
+    const newReview = await Review.create(body);
 
-    if (!product || !userName || !rating || !comment) {
-      return new NextResponse("Missing required fields", { status: 400 });
-    }
-
-    const newReview = await Review.create({
-      product,
-      userName,
-      rating,
-      comment,
-      imageUrl,
-      verify,
-      helpful,
-      notHelpful,
+    // Add review to product's review list
+    await Product.findByIdAndUpdate(body.product, {
+      $addToSet: { reviews: newReview._id },
     });
-
-    await newReview.save();
 
     return NextResponse.json(newReview, { status: 200 });
   } catch (err) {

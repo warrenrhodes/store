@@ -6,6 +6,7 @@ import Media from "@/lib/models/Media";
 import Category from "@/lib/models/Category";
 import { productSchema } from "@/lib/validations/product";
 import Product from "@/lib/models/Product";
+import Review from "@/lib/models/Reviews";
 
 export async function POST(req: Request) {
   try {
@@ -19,7 +20,7 @@ export async function POST(req: Request) {
 
     await connectToDB();
 
-    const newProduct = await Product.create({ ...body });
+    const newProduct = await Product.create({ ...body, parternId: userId });
 
     return NextResponse.json(newProduct, { status: 201 });
   } catch (err) {
@@ -55,7 +56,8 @@ export const GET = async (req: NextRequest) => {
       .lean()
       .sort({ createdAt: "desc" })
       .populate({ path: "categories", model: Category })
-      .populate({ path: "media", model: Media });
+      .populate({ path: "media", model: Media })
+      .populate({ path: "reviews", model: Review });
 
     return NextResponse.json(products, { status: 200 });
   } catch (err) {

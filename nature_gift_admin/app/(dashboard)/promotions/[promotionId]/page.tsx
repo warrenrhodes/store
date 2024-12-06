@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 
 async function getPromotion(promotionId: string) {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/promotions/${promotionId}`
+    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/promotions/${promotionId}`
   );
 
   if (!response.ok) {

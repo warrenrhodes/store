@@ -23,6 +23,19 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: root
       MONGO_INITDB_DATABASE: store
+  
+  bidnamiMongo:
+    image: bitnami/mongodb:5.0.10-debian-11-r3
+    container_name: store-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGODB_ROOT_USER=root
+      - MONGODB_ROOT_PASSWORD=root
+      - MONGODB_DATABASE=store
+    volumes:
+      - "./data:/data/db"
+
 
   mongo-express:
     image: mongo-express

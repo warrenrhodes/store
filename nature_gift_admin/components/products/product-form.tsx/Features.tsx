@@ -12,6 +12,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import CustomAccordion from "@/components/accordion/CustomAccordion";
+import { IconSelector } from "./IconSelector";
 
 type Feature = {
   title: string;
@@ -72,6 +73,22 @@ export const FeaturesForm: React.FC<FeaturesFormProps> = ({ form }) => {
                       placeholder="Title....."
                       value={field.value}
                       onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name={`features.${index}.icon`}
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormControl>
+                    <IconSelector
+                      key={field.value}
+                      onSelectIcon={field.onChange}
+                      selectedIcon={field.value}
                     />
                   </FormControl>
                   <FormMessage />

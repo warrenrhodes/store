@@ -2,7 +2,7 @@ import { ProductFormV2 } from "@/components/products/ProductFormV2";
 
 async function getCategories() {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/categories`
+    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/categories`
   );
   if (!response.ok) {
     console.error("Failed to fetch categories");

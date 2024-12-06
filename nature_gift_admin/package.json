@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
+    "seed": "tsc --project tsconfig.seed.json && node dist/scripts/seed.js",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -12,6 +13,7 @@
   "dependencies": {
     "@clerk/nextjs": "^4.29.7",
     "@hookform/resolvers": "^3.3.4",
+    "@next/env": "^15.0.3",
     "@radix-ui/react-accordion": "^1.2.1",
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-avatar": "^1.1.1",
@@ -50,8 +52,8 @@
     "react-dom": "^18",
     "react-dropzone": "^14.3.5",
     "react-hook-form": "^7.50.1",
+    "react-window": "^1.8.10",
     "recharts": "^2.12.2",
-    "resend": "^4.0.1-alpha.0",
     "slugify": "^1.6.6",
     "stripe": "^14.19.0",
     "tailwind-merge": "^2.2.1",
@@ -66,15 +68,17 @@
     "@types/formidable": "^3.4.5",
     "@types/lodash": "^4.17.13",
     "@types/mime-types": "^2.1.4",
-    "@types/node": "^20",
+    "@types/node": "^20.17.9",
     "@types/node-cron": "^3.0.11",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/react-window": "^1.8.8",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
     "eslint-config-next": "14.1.0",
     "postcss": "^8",
     "tailwindcss": "^3.3.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }

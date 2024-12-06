@@ -68,6 +68,8 @@ export function ProductFormV2({ initialData, categories }: ProductFormProps) {
       : {
           title: "",
           slug: "",
+          isFeature: false,
+          isNewProduct: false,
           description: {
             contentType: "TEXT",
             content: "",
@@ -119,8 +121,8 @@ export function ProductFormV2({ initialData, categories }: ProductFormProps) {
     setIsLoading(true);
     try {
       const url = initialData
-        ? `${process.env.NEXT_PUBLIC_SERVER_URL}/api/products/${initialData._id}`
-        : `${process.env.NEXT_PUBLIC_SERVER_URL}/api/products`;
+        ? `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/products/${initialData._id}`
+        : `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/products`;
       const res = await fetch(url, {
         method: initialData ? "PUT" : "POST",
         body: JSON.stringify(data),
@@ -195,6 +197,40 @@ export function ProductFormV2({ initialData, categories }: ProductFormProps) {
             )}
           />
         </div>
+        <div className="md:grid sm:grid-cols-2 gap-8">
+          <FormField
+            control={form.control}
+            name="isFeature"
+            render={({ field }) => (
+              <FormItem className="space-y-0 flex gap-3 items-center">
+                <FormLabel className="!mt-0">Is Feature</FormLabel>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="isNewProduct"
+            render={({ field }) => (
+              <FormItem className="space-y-0 flex gap-3 items-center">
+                <FormLabel className="!mt-0">Is New</FormLabel>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         <ContentEditor
           label="Product Description*"
           form={form}
@@ -249,7 +285,7 @@ export function ProductFormV2({ initialData, categories }: ProductFormProps) {
           control={form.control}
           name="visibility"
           render={({ field }) => (
-            <FormItem className="flex items-center gap-2">
+            <FormItem className="space-y-0 flex gap-3 items-center">
               <FormLabel className="!mt-0">Visibility</FormLabel>
               <FormControl>
                 <Switch
@@ -263,7 +299,7 @@ export function ProductFormV2({ initialData, categories }: ProductFormProps) {
         />
         <FeaturesForm form={form} />
 
-        <div className="grid gap-10 sm:grid-cols-2 items-center">
+        <div className="md:grid sm:grid-cols-2 gap-8">
           {categories && <CategoriesForm form={form} categories={categories} />}
           <VariantFields form={form} />
         </div>

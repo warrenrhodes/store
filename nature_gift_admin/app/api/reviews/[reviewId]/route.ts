@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs";
 import { connectToDB } from "@/lib/mongoDB";
 import Review from "@/lib/models/Reviews";
 import Product from "@/lib/models/Product";
+import { reviewSchema } from "@/lib/validations/reviews";
 
 export const GET = async (
   req: NextRequest,
@@ -49,39 +50,23 @@ export const POST = async (
       return new NextResponse("Review not found", { status: 404 });
     }
 
-    const {
-      product,
-      userName,
-      rating,
-      comment,
-      imageUrl,
-      verify,
-      helpful,
-      notHelpful,
-    } = await req.json();
+    const json = await req.json();
+    const body = reviewSchema.parse(json);
 
-    if (!rating || !comment) {
-      return new NextResponse("Rating and comment are required", {
-        status: 400,
-      });
-    }
+    review = await Review.findByIdAndUpdate(params.reviewId, body, {
+      new: true,
+    });
 
-    review = await Review.findByIdAndUpdate(
-      params.reviewId,
-      {
-        product,
-        userName,
-        rating,
-        comment,
-        imageUrl,
-        verify,
-        helpful,
-        notHelpful,
-      },
-      { new: true }
-    );
-
-    await review.save();
+    // If the product has changed, update both old and new product review lists
+    // Remove from old product
+    await Product.findByIdAndUpdate(body.product, {
+      $pull: { reviews: params.reviewId },
+    });
+    const ee = await Product.findById(body.product);
+    // Add to new product
+    await Product.findByIdAndUpdate(body.product, {
+      $addToSet: { reviews: params.reviewId },
+    });
 
     return NextResponse.json(review, { status: 200 });
   } catch (err) {

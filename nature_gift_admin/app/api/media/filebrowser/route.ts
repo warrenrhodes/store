@@ -34,7 +34,7 @@ export async function GET(request: Request) {
           changed: stats.mtime,
           size: stats.size,
           isImage: /\.(jpg|jpeg|png|gif|webp)$/i.test(file),
-          source: process.env.NEXT_PUBLIC_SERVER_URL ?? "-",
+          source: process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL ?? "-",
           permissions: { read: true },
           name: file,
           type: /\.(jpg|jpeg|png|gif|webp)$/i.test(file) ? "image" : "video",
@@ -47,7 +47,7 @@ export async function GET(request: Request) {
         sources: [
           {
             path: `/tmp/${userId}/`,
-            baseurl: process.env.NEXT_PUBLIC_SERVER_URL,
+            baseurl: process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL,
             files: items,
             name: "default",
             folders: [],

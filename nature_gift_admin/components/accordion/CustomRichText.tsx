@@ -441,7 +441,7 @@ const CustomRichTextEditor = forwardRef<HTMLDivElement, CustomRichTextProps>(
         "🇮🇷",
       ],
       uploader: {
-        url: `${process.env.NEXT_PUBLIC_SERVER_URL}/api/media/upload`,
+        url: `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/media/upload`,
         insertImageAsBase64URI: false,
         imagesExtensions: ["jpg", "jpeg", "png", "gif", "webp"],
         filesVariableName: (i: number): string => {
@@ -481,7 +481,7 @@ const CustomRichTextEditor = forwardRef<HTMLDivElement, CustomRichTextProps>(
       filebrowser: {
         ajax: {
           cache: true,
-          url: `${process.env.NEXT_PUBLIC_SERVER_URL}/api/media/filebrowser`,
+          url: `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/media/filebrowser`,
           method: "GET",
           process: (resp: any) => {
             if (!resp.success) {

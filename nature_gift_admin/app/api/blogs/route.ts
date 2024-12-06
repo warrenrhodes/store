@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs";
+import { auth, clerkClient } from "@clerk/nextjs";
 import { blogSchema } from "@/lib/validations/blog";
 import { generateSlug } from "@/lib/utils/slugify";
 import { connectToDB } from "@/lib/mongoDB";
 import Blog from "@/lib/models/Blog";
+import Category from "@/lib/models/Category";
 
 export async function GET(req: Request) {
   try {
@@ -22,7 +23,12 @@ export async function GET(req: Request) {
 
     const blogs = await Blog.find(query)
       .sort({ createdAt: -1 })
-      .populate("categories")
+      .populate({ path: "categories", model: Category })
+      .populate({
+        path: "metadata.coverImage",
+        model: "Media",
+        select: "url",
+      })
       .lean();
 
     return NextResponse.json(blogs);
@@ -42,6 +48,13 @@ export async function POST(req: Request) {
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const user = await clerkClient.users.getUser(userId);
+    let userName;
+    if (user?.firstName || user?.lastName) {
+      userName = `${user.firstName} ${user.lastName}`;
+    } else {
+      userName = user?.emailAddresses[0].emailAddress;
+    }
 
     const json = await req.json();
     const body = blogSchema.parse({
@@ -51,7 +64,8 @@ export async function POST(req: Request) {
         ...json.metadata,
         author: {
           ...json.metadata.author,
-          name: userId,
+          name: userName,
+          avatar: user?.imageUrl,
         },
       },
     });

@@ -9,8 +9,6 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination'
 import { motion } from 'framer-motion'
-import { FilterX } from 'lucide-react'
-import { Button } from './ui/button'
 
 interface PaginationProps<T> {
   items: T[]

@@ -8,7 +8,7 @@ import { RelatedBlogs } from './RelatedBlogs'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { IBlog } from '@/lib/models/Blog'
-import { format } from 'date-fns'
+import { format, subDays } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 
@@ -44,7 +44,7 @@ const BlogDetail = ({ blog, relatedBlogs }: { blog: IBlog; relatedBlogs: IBlog[]
           {blog.publishedAt && (
             <div className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
-              && <span>{format(blog.publishedAt, 'PPP')}</span>
+              && <span>{format(blog.publishedAt || subDays(new Date(), 4), 'PPP')}</span>
             </div>
           )}
           <div className="flex items-center gap-1">
@@ -58,7 +58,7 @@ const BlogDetail = ({ blog, relatedBlogs }: { blog: IBlog; relatedBlogs: IBlog[]
         </div>
         <div className="flex flex-wrap gap-2">
           {blog.categories.map(category => (
-            <Badge key={category._id} variant="outline">
+            <Badge key={`${category._id}`} variant="outline">
               {category.name}
             </Badge>
           ))}

@@ -50,12 +50,12 @@ export function ProductGrid({ products, loading, clearFilters }: ProductGridProp
   return (
     <GlobalPagination
       items={products}
-      itemsPerPage={2}
+      itemsPerPage={9}
       children={productList => (
         <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence>
             {productList.map(product => (
-              <ProductCard key={product._id} product={product} />
+              <ProductCard key={`${product._id}`} product={product} />
             ))}
           </AnimatePresence>
         </motion.div>

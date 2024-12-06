@@ -1,7 +1,7 @@
 import { Schema, Document } from 'mongoose'
 import { getOrCreateModel } from '../utils/utils'
 
-interface IMedia extends Document {
+interface IMedia extends Document<string> {
   type: 'image' | 'video'
   url: string
   fileName: string

@@ -12,7 +12,7 @@ interface IPromotionCondition {
   value: number | string | string[]
 }
 
-interface IPromotion extends mongoose.Document {
+interface IPromotion extends mongoose.Document<string> {
   code: string
   name: string
   description: string

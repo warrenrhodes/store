@@ -68,9 +68,9 @@ export function FilterOptions({
               <AccordionContent>
                 <div className="space-y-4 pt-2">
                   {categories.map(category => (
-                    <div key={category._id} className="flex items-center space-x-2">
+                    <div key={`${category._id}`} className="flex items-center space-x-2">
                       <Checkbox
-                        id={category._id}
+                        id={`${category._id}`}
                         checked={filters.categories.includes(category._id)}
                         onCheckedChange={e =>
                           setFilters({
@@ -83,7 +83,7 @@ export function FilterOptions({
                         }
                       />
                       <label
-                        htmlFor={category._id}
+                        htmlFor={`${category._id}`}
                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1"
                       >
                         {category.name}

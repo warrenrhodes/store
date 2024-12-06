@@ -3,7 +3,7 @@ import { getOrCreateModel } from '../utils/utils'
 import { IMedia } from './Media'
 
 // Define an interface for the Category document
-interface ICategory extends Document {
+interface ICategory extends Document<string> {
   name: string
   slug: string
   description?: string

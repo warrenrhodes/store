@@ -80,7 +80,7 @@ export function ProductReviews({ product }: { product: IProduct }) {
       <div className="space-y-6">
         {reviews.map(review => (
           <motion.div
-            key={review._id}
+            key={`${review._id}`}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}

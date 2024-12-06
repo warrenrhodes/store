@@ -51,7 +51,7 @@ export function ActivePromotions({ activePromotions }: { activePromotions: IProm
         {activePromotions.map(promo => {
           const expiresIn = getDetailedExpiresIn(promo.endDate)
           return (
-            <motion.div key={promo._id} variants={itemVariants} className="h-full">
+            <motion.div key={`${promo._id}`} variants={itemVariants} className="h-full">
               <Card className="h-full">
                 <CardHeader>
                   <div className="flex items-center gap-2 text-primary mb-2">

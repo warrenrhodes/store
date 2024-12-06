@@ -1,6 +1,17 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
+import localFont from 'next/font/local'
+
+const geistSans = localFont({
+  src: './fonts/GeistVF.woff',
+  variable: '--font-geist-sans',
+  weight: '100 900',
+})
+const geistMono = localFont({
+  src: './fonts/GeistMonoVF.woff',
+  variable: '--font-geist-mono',
+  weight: '100 900',
+})
 
 import './globals.css'
 import ToasterProvider from '@/lib/providers/ToasterProvider'
@@ -8,8 +19,6 @@ import Footer from '@/components/Footer'
 import { Toaster } from '@/components/ui/toaster'
 import { url } from 'inspector'
 import { Header } from '@/components/Header/Index'
-
-const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   metadataBase: new URL(`${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}`),
@@ -38,7 +47,7 @@ export default function RootLayout({
         <link rel="manifest" href="/site.webmanifest" />
       </head>
 
-      <body className={inter.className}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ClerkProvider>
           <ToasterProvider />
           <Header />

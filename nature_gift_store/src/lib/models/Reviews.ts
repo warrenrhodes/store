@@ -3,7 +3,7 @@ import { IProduct } from './Product'
 import { getOrCreateModel } from '../utils/utils'
 
 // Define an interface for the Review document
-interface IReview extends Document {
+interface IReview extends Document<string> {
   product: IProduct
   userName: string
   rating: number

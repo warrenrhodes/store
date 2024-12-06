@@ -82,7 +82,7 @@ export function CartSidebar() {
                   <AnimatePresence initial={false}>
                     {cartItems.map(item => (
                       <CartItem
-                        key={item.product._id}
+                        key={`${item.product._id}`}
                         item={item}
                         increaseQuantity={increaseQuantity}
                         decreaseQuantity={decreaseQuantity}

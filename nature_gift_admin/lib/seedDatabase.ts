@@ -7,7 +7,6 @@ import Media from "./models/Media";
 import Product from "./models/Product";
 import { Promotion } from "./models/Promotions";
 import Shipment from "./models/Shipment";
-import { connectToDB } from "./mongoDB";
 import { generateSlug } from "./utils/slugify";
 
 /**....................................Blog view ...............................*/
@@ -52,7 +51,7 @@ const generateRandomData = {
   title: () =>
     [
       "Organic Bamboo Tumbler",
-      "Eco-Friendly Water Bottle",
+      "Eco-Friend Water Bottle",
       "Sustainable Plant Pot",
       "Recycled Glass Planter",
       "Natural Cotton Tote Bag",
@@ -202,9 +201,6 @@ export async function seedDatabase() {
   }
 
   try {
-    // Connect to database
-    await connectToDB();
-
     // Clear existing data
     await Product.deleteMany({});
     await Category.deleteMany({});

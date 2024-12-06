@@ -38,7 +38,7 @@ export function FeaturedBlogCarousel({ blogs }: FeaturedBlogCarouselProps) {
       <div className="overflow-hidden rounded-lg" ref={emblaRef}>
         <div className="flex">
           {blogs.map(blog => (
-            <div key={blog._id} className="relative flex-[0_0_100%] min-w-0">
+            <div key={`${blog._id}`} className="relative flex-[0_0_100%] min-w-0">
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -53,7 +53,7 @@ export function FeaturedBlogCarousel({ blogs }: FeaturedBlogCarouselProps) {
                 <div className="relative h-full flex flex-col justify-end p-8">
                   <div className="flex flex-wrap gap-2 mb-4">
                     {blog.categories.slice(0, 3).map(category => (
-                      <Badge key={category._id} variant="secondary">
+                      <Badge key={category._id as string} variant="secondary">
                         {category.name}
                       </Badge>
                     ))}

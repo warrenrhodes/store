@@ -48,7 +48,7 @@ export function BlogGrid({ blogs }: BlogGridProps) {
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
           {blogList.map((blog, index) => (
-            <motion.div key={blog._id} variants={itemVariants}>
+            <motion.div key={`${`${blog._id}`}`} variants={itemVariants}>
               <Link href={`/blogs/${blog.slug}`}>
                 <Card className="h-full group">
                   <CardHeader className="p-0">
@@ -62,7 +62,7 @@ export function BlogGrid({ blogs }: BlogGridProps) {
                   <CardContent className="p-6">
                     <div className="flex flex-wrap gap-2 mb-4">
                       {blog.categories.slice(0, 3).map(category => (
-                        <Badge key={category._id} variant="outline">
+                        <Badge key={`${category._id}`} variant="outline">
                           {category.name}
                         </Badge>
                       ))}

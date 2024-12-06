@@ -38,7 +38,7 @@ export function CartItem({ item, increaseQuantity, decreaseQuantity, onRemove }:
             <div className="text-center">
               <p className="mb-4">Remove this item?</p>
               <div className="flex gap-2 justify-center">
-                <Button variant="destructive" onClick={() => onRemove(item.product._id)}>
+                <Button variant="destructive" onClick={() => onRemove(item.product._id as string)}>
                   Remove
                 </Button>
                 <Button variant="outline" onClick={() => setIsRemoving(false)}>

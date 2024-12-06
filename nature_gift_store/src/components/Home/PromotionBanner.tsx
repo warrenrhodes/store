@@ -45,7 +45,7 @@ export function PromotionBanner() {
   const currentPromotion = promotions[currentIndex]
 
   return (
-    <section className="bg-primary" key={currentPromotion._id}>
+    <section className="bg-primary" key={`${currentPromotion._id}`}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}

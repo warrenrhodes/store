@@ -1,7 +1,7 @@
 import { Document, Schema } from 'mongoose'
 import { getOrCreateModel } from '../utils/utils'
 
-interface IShipment extends Document {
+interface IShipment extends Document<string> {
   method: 'DELIVERY' | 'EXPEDITION'
   cost: number
   locations: string[]

@@ -1,7 +1,7 @@
 import { Document, Schema } from 'mongoose'
 import { getOrCreateModel } from '../utils/utils'
 
-interface IUser extends Document {
+interface IUser extends Document<string> {
   fullName: string
   phone: string
   phoneContainsWhatsApp: boolean

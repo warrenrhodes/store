@@ -1,3 +1,4 @@
+import BaseComponent from '@/components/BaseComponent'
 import { BrandValues } from '@/components/Home/BrandValues'
 import { CategoryShowcase } from '@/components/Home/CategoryShowcase'
 import { FeaturedProducts } from '@/components/Home/FeaturedProducts'
@@ -8,12 +9,14 @@ import { PromotionBanner } from '@/components/Home/PromotionBanner'
 export default function Home() {
   return (
     <main>
-      <HeroSection />
-      <CategoryShowcase />
-      <FeaturedProducts />
-      <PromotionBanner />
-      <NewArrivals />
-      <BrandValues />
+      <BaseComponent>
+        <HeroSection />
+        <CategoryShowcase />
+        <FeaturedProducts />
+        <PromotionBanner />
+        <NewArrivals />
+        <BrandValues />
+      </BaseComponent>
     </main>
   )
 }

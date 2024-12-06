@@ -3,7 +3,7 @@ import { getOrCreateModel } from '../utils/utils'
 import { ICategory } from './Category'
 import { IMedia } from './Media'
 
-interface IBlog extends Document {
+interface IBlog extends Document<string> {
   slug: string
   title: string
   content: {

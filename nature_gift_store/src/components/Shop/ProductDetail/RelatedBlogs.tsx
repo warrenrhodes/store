@@ -5,7 +5,8 @@ import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { IBlog } from '@/lib/models/Blog'
-import { format } from 'date-fns'
+import { format, subDays } from 'date-fns'
+import Link from 'next/link'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -44,7 +45,7 @@ export function RelatedBlogs({ relatedBlogs }: { relatedBlogs: IBlog[] }) {
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
       >
         {relatedBlogs.slice(0, 3).map(blog => (
-          <motion.div key={blog._id} variants={itemVariants}>
+          <motion.div key={`${blog._id}`} variants={itemVariants}>
             <Card className="group h-full flex flex-col">
               <CardHeader className="p-0">
                 <div className="relative aspect-video overflow-hidden rounded-t-lg">
@@ -56,15 +57,18 @@ export function RelatedBlogs({ relatedBlogs }: { relatedBlogs: IBlog[] }) {
               </CardHeader>
               <CardContent className="flex-1 p-6">
                 <div className="text-sm text-muted-foreground mb-2">
-                  {blog.metadata.author.name} • {format(blog.publishedAt || '', 'PPP')}
+                  {blog.metadata.author.name} •{' '}
+                  {format(blog.publishedAt || subDays(new Date(), 4), 'PPP')}
                 </div>
                 <h3 className="font-semibold mb-2">{blog.title}</h3>
                 <p className="text-muted-foreground text-sm line-clamp-2">{blog.content.excerpt}</p>
               </CardContent>
               <CardFooter className="p-6 pt-0">
-                <Button variant="ghost" className="w-full group">
-                  Read More
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                <Button variant="ghost" className="w-full group" asChild>
+                  <Link href={`/blogs/${blog.slug}`}>
+                    Read More
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />{' '}
+                  </Link>
                 </Button>
               </CardFooter>
             </Card>

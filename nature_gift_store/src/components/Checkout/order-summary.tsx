@@ -76,7 +76,7 @@ export function OrderSummary({
       </CardHeader>
       <CardContent className="space-y-4">
         {cartItems.map(item => (
-          <div key={item.product._id} className="flex justify-between text-sm">
+          <div key={`${item.product._id}`} className="flex justify-between text-sm">
             <span>
               {item.product.title} x {item.quantity}
             </span>

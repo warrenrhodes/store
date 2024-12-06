@@ -34,7 +34,7 @@ export function ProductCard({ product }: ProductCardProps) {
   }
 
   return (
-    <motion.div key={product._id}>
+    <motion.div key={`${product._id}`}>
       <Card className="group h-full flex flex-col overflow-hidden">
         <CardHeader className="p-0">
           <Link href={`/shop/${product.slug}`}>
@@ -62,7 +62,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <CardContent className="flex-1 p-6">
           <div className="flex items-center justify-between mb-2">
             {product.categories.slice(0, 1).map(category => (
-              <Badge variant="outline" key={category._id}>
+              <Badge variant="outline" key={`${category._id}`}>
                 {category.name}
               </Badge>
             ))}

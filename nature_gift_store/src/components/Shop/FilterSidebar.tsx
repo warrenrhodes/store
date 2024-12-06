@@ -76,15 +76,15 @@ export function FilterSidebar({
         <ScrollArea className="h-[300px] pr-4">
           <div className="space-y-3">
             {categories.map(category => (
-              <div key={category._id} className="flex items-center space-x-2">
+              <div key={`${category._id}`} className="flex items-center space-x-2">
                 <Checkbox
-                  id={category._id}
+                  id={`${category._id}`}
                   checked={filters.categories.includes(category._id)}
                   onCheckedChange={checked =>
                     handleCategoryChange(category._id, checked as boolean)
                   }
                 />
-                <Label htmlFor={category._id} className="text-sm">
+                <Label htmlFor={`${category._id}`} className="text-sm">
                   {category.name}
                 </Label>
               </div>

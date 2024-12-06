@@ -49,7 +49,7 @@ export default function CartPage() {
                   <AnimatePresence initial={false}>
                     {cart.cartItems.map(item => (
                       <CartItem
-                        key={item.product._id}
+                        key={`${item.product._id}`}
                         item={item}
                         increaseQuantity={cart.increaseQuantity}
                         decreaseQuantity={cart.decreaseQuantity}

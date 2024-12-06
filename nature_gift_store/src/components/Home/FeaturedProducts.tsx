@@ -1,3 +1,4 @@
+// @refresh reset
 'use client'
 
 import { motion } from 'framer-motion'
@@ -66,7 +67,7 @@ export function FeaturedProducts() {
           className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4"
         >
           {products.map(product => (
-            <ProductCard key={product._id} product={product} />
+            <ProductCard key={`${product._id}`} product={product} />
           ))}
         </motion.div>
       </div>

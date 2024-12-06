@@ -47,7 +47,7 @@ interface IMetadata {
 }
 
 // Define the main Product interface
-interface IProduct extends Document {
+interface IProduct extends Document<string> {
   title: string
   slug: string
   description: IContent

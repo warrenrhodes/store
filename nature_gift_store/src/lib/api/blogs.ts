@@ -23,9 +23,6 @@ export const getFilterBlogs = async ({
 
   const blogs = await fetch(
     `${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}/api/blogs/filter${query ? '?' + searchParams.toString() : ''}`,
-    {
-      next: { revalidate: 3600 },
-    },
   )
 
   if (!blogs.ok) return null
@@ -33,9 +30,7 @@ export const getFilterBlogs = async ({
 }
 
 export const getAllBlogs = async (): Promise<IBlog[] | null> => {
-  const blogs = await fetch(`${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}/api/blogs`, {
-    next: { revalidate: 3600 },
-  })
+  const blogs = await fetch(`${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}/api/blogs`, {})
 
   if (!blogs.ok) return null
   return await blogs.json()

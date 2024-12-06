@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { useEffect, useState } from 'react'
 import { IBlog } from '@/lib/models/Blog'
-import { format } from 'date-fns'
+import { format, subDays } from 'date-fns'
 
 const blogs = [
   {
@@ -46,7 +46,7 @@ export function RelatedBlogs({ relatedBlogs }: RelatedBlogsProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {relatedBlogs.map(blog => (
           <motion.div
-            key={blog._id}
+            key={`${blog._id}`}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -62,7 +62,8 @@ export function RelatedBlogs({ relatedBlogs }: RelatedBlogsProps) {
               </CardHeader>
               <CardContent className="flex-1 p-6">
                 <div className="text-sm text-muted-foreground mb-2">
-                  {blog.metadata.author.name} • {format(blog.publishedAt || '', 'PPP')}
+                  {blog.metadata.author.name} •{' '}
+                  {format(blog.publishedAt || subDays(new Date(), 4), 'PPP')}
                 </div>
                 <h3 className="font-semibold mb-2">{blog.title}</h3>
                 <p className="text-muted-foreground text-sm line-clamp-2">{blog.content.excerpt}</p>

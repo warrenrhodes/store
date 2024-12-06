@@ -14,8 +14,8 @@
 /**/.next/
 /**/out/
 /**/.history/
-/.vscode/
-/.vscode/
+/**/.vscode
+/**/dist
 
 # production
 /**/build

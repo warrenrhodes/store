@@ -2,6 +2,7 @@
   "name": "nature_gift_admin",
   "version": "0.1.0",
   "private": true,
+  "main": "dist/server.js",
   "scripts": {
     "dev": "next dev -p 3000",
     "seed": "tsc --project tsconfig.seed.json && node dist/scripts/seed.js",

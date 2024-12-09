@@ -129,6 +129,16 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
     [form]
   );
 
+  const handleKeyPress = (
+    e:
+      | React.KeyboardEvent<HTMLInputElement>
+      | React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+    }
+  };
+
   return (
     <Form {...form}>
       <div className="space-y-8">
@@ -144,6 +154,7 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
                     {...field}
                     placeholder="Summer Sale 2024"
                     onChange={onTitleChange}
+                    onKeyDown={handleKeyPress}
                   />
                 </FormControl>
                 <FormMessage />
@@ -157,7 +168,12 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
               <FormItem>
                 <FormLabel>Promotion Code</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="SUMMER2024" disabled />
+                  <Input
+                    {...field}
+                    placeholder="SUMMER2024"
+                    disabled
+                    onKeyDown={handleKeyPress}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

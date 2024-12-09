@@ -10,20 +10,20 @@ import { UserNav } from './UserNav'
 import { CartSidebar } from '../Cart/CartSidebar'
 
 export function Header() {
-  const [isScrolled, setIsScrolled] = useState(false)
-  const { scrollY } = useScroll()
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
-    return scrollY.onChange(latest => {
-      setIsScrolled(latest > 0)
-    })
-  }, [scrollY])
+    setIsClient(true)
+  }, [])
+
+  if (!isClient) {
+    return null
+  }
 
   return (
     <motion.header
       className={cn(
-        'sticky top-0 z-50 w-full',
-        isScrolled && 'backdrop-blur-lg bg-background/80 border-b shadow-sm',
+        'sticky top-0 z-50 w-full backdrop-blur-lg bg-background/80 border-b shadow-sm',
       )}
       initial={{ y: -100 }}
       animate={{ y: 0 }}

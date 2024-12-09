@@ -15,6 +15,14 @@ export function BlogSearch({ blogs }: { blogs: IBlog[] }) {
 
   const blogsFiltered = blogs.filter(blog => blog.title.toLowerCase().includes(query.toLowerCase()))
 
+  const handleKeyPress = (
+    e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
+  ) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+    }
+  }
+
   return (
     <div className="relative w-full max-w-sm">
       <div className="relative">
@@ -24,6 +32,7 @@ export function BlogSearch({ blogs }: { blogs: IBlog[] }) {
           className="pl-10 pr-4"
           value={query}
           onChange={e => setQuery(e.target.value)}
+          onKeyDown={handleKeyPress}
         />
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       </div>

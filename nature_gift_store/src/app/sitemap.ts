@@ -1,8 +1,10 @@
-import { fetchProducts } from '@/lib/api/products'
+import { fetchAllBlogs } from '@/lib/api/blogs'
+import { fetchAllProducts } from '@/lib/api/products'
 import { MetadataRoute } from 'next'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const products = await fetchProducts({})
+  const products = await fetchAllProducts()
+  const blogs = await fetchAllBlogs()
 
   const postEntries: MetadataRoute.Sitemap =
     products?.map(e => ({
@@ -12,5 +14,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     })) || []
 
-  return [...postEntries]
+  const blogsEntries: MetadataRoute.Sitemap =
+    blogs?.map(e => ({
+      url: `${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}/blogs/${e.slug}`,
+      lastModified: new Date(e.updatedAt || new Date()),
+      changeFrequency: 'hourly',
+      priority: 0.7,
+    })) || []
+
+  return [...postEntries, ...blogsEntries]
 }

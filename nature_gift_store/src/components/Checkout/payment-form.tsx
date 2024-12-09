@@ -33,6 +33,14 @@ export function PaymentForm({ initialData, onSubmit, onBack }: PaymentFormProps)
     },
   })
 
+  const handleKeyPress = (
+    e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
+  ) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+    }
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -58,6 +66,7 @@ export function PaymentForm({ initialData, onSubmit, onBack }: PaymentFormProps)
                       const formatted = value.replace(/(\d{4})/g, '$1 ').trim()
                       field.onChange(formatted)
                     }}
+                    onKeyDown={handleKeyPress}
                   />
                 </FormControl>
                 <FormMessage />
@@ -72,7 +81,7 @@ export function PaymentForm({ initialData, onSubmit, onBack }: PaymentFormProps)
               <FormItem>
                 <FormLabel>Card Holder Name</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="John Doe" />
+                  <Input {...field} placeholder="John Doe" onKeyDown={handleKeyPress} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -91,6 +100,7 @@ export function PaymentForm({ initialData, onSubmit, onBack }: PaymentFormProps)
                       {...field}
                       placeholder="MM/YY"
                       maxLength={5}
+                      onKeyDown={handleKeyPress}
                       onChange={e => {
                         const value = e.target.value.replace(/\D/g, '')
                         const formatted = value.replace(/^(\d{2})(\d{0,2})/, '$1/$2')
@@ -110,7 +120,13 @@ export function PaymentForm({ initialData, onSubmit, onBack }: PaymentFormProps)
                 <FormItem>
                   <FormLabel>CVV</FormLabel>
                   <FormControl>
-                    <Input {...field} type="password" maxLength={4} placeholder="123" />
+                    <Input
+                      {...field}
+                      type="password"
+                      maxLength={4}
+                      placeholder="123"
+                      onKeyDown={handleKeyPress}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -41,7 +41,7 @@ export function BlogGrid({ blogs }: BlogGridProps) {
       items={blogs}
       itemsPerPage={2}
       children={blogList => (
-        <motion.div
+        <motion.section
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -105,7 +105,7 @@ export function BlogGrid({ blogs }: BlogGridProps) {
               </Link>
             </motion.div>
           ))}
-        </motion.div>
+        </motion.section>
       )}
     />
   )

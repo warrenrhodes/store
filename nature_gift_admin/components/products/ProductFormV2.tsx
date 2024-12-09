@@ -158,6 +158,16 @@ export function ProductFormV2({ initialData, categories }: ProductFormProps) {
     return res.ok;
   };
 
+  const handleKeyPress = (
+    e:
+      | React.KeyboardEvent<HTMLInputElement>
+      | React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+    }
+  };
+
   return (
     <Form {...form}>
       <div className="space-y-8">
@@ -171,6 +181,7 @@ export function ProductFormV2({ initialData, categories }: ProductFormProps) {
                 <FormControl>
                   <Input
                     {...field}
+                    onKeyDown={handleKeyPress}
                     onChange={onTitleChange}
                     placeholder="Product Title"
                   />
@@ -188,6 +199,7 @@ export function ProductFormV2({ initialData, categories }: ProductFormProps) {
                 <FormControl>
                   <Input
                     {...form.register("slug")}
+                    onKeyDown={handleKeyPress}
                     placeholder="product-slug"
                     disabled
                   />
@@ -312,7 +324,7 @@ export function ProductFormV2({ initialData, categories }: ProductFormProps) {
             <FormItem>
               <FormLabel className="!mt-0">Blog Url</FormLabel>
               <FormControl>
-                <Input {...field} type="url" />
+                <Input {...field} type="url" onKeyDown={handleKeyPress} />
               </FormControl>
               <FormMessage />
             </FormItem>

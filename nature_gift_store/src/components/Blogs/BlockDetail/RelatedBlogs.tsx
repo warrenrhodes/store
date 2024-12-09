@@ -40,6 +40,7 @@ interface RelatedBlogsProps {
 }
 
 export function RelatedBlogs({ relatedBlogs }: RelatedBlogsProps) {
+  if (relatedBlogs.length === 0) return null
   return (
     <section>
       <h2 className="text-2xl font-bold mb-8">Related Articles</h2>

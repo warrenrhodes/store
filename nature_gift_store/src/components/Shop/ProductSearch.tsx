@@ -8,6 +8,13 @@ interface ProductSearchProps {
   onChange: (value: string) => void
 }
 
+const handleKeyPress = (
+  e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
+) => {
+  if (e.key === 'Enter') {
+    e.preventDefault()
+  }
+}
 export function ProductSearch({ value, onChange }: ProductSearchProps) {
   return (
     <div className="relative w-full sm:w-[300px]">
@@ -15,6 +22,7 @@ export function ProductSearch({ value, onChange }: ProductSearchProps) {
       <Input
         placeholder="Search products..."
         value={value}
+        onKeyDown={handleKeyPress}
         onChange={e => onChange(e.target.value)}
         className="pl-9"
       />

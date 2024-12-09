@@ -4,11 +4,7 @@ import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
-import { useEffect, useState } from 'react'
-import { useCart } from '@/hooks/useCart'
-import { useCallback } from 'react'
 import { IProduct } from '@/lib/models/Product'
-import { fetchProducts } from '@/lib/api/products'
 import { Price } from '../Price'
 import Link from 'next/link'
 import { cn } from '@/lib/utils/utils'
@@ -34,24 +30,7 @@ const itemVariants = {
   },
 }
 
-export function NewArrivals() {
-  const [products, setProducts] = useState<IProduct[]>([])
-
-  const _fetchProducts = useCallback(async () => {
-    const newProducts = await fetchProducts({
-      query: {
-        isNewProduct: 'true',
-      },
-    })
-    if (newProducts) {
-      setProducts(newProducts)
-    }
-  }, [])
-
-  useEffect(() => {
-    _fetchProducts()
-  }, [_fetchProducts])
-
+export function NewArrivals({ products }: { products: IProduct[] }) {
   return (
     <section
       className={cn({

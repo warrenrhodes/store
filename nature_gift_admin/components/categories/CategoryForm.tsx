@@ -126,6 +126,17 @@ export function CategoryForm({ initialData, categories }: CategoryFormProps) {
       setIsLoading(false);
     }
   }
+
+  const handleKeyPress = (
+    e:
+      | React.KeyboardEvent<HTMLInputElement>
+      | React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+    }
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -137,7 +148,11 @@ export function CategoryForm({ initialData, categories }: CategoryFormProps) {
               <FormItem>
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input {...field} onChange={onNameChange} />
+                  <Input
+                    {...field}
+                    onChange={onNameChange}
+                    onKeyDown={handleKeyPress}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -151,7 +166,7 @@ export function CategoryForm({ initialData, categories }: CategoryFormProps) {
               <FormItem>
                 <FormLabel>Slug</FormLabel>
                 <FormControl>
-                  <Input {...field} disabled />
+                  <Input {...field} disabled onKeyDown={handleKeyPress} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -262,7 +277,11 @@ export function CategoryForm({ initialData, categories }: CategoryFormProps) {
               <FormItem>
                 <FormLabel>SEO Title</FormLabel>
                 <FormControl>
-                  <Input {...field} value={field.value || ""} />
+                  <Input
+                    {...field}
+                    value={field.value || ""}
+                    onKeyDown={handleKeyPress}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -293,6 +312,7 @@ export function CategoryForm({ initialData, categories }: CategoryFormProps) {
                   <Input
                     {...field}
                     value={field.value?.join(", ") || ""}
+                    onKeyDown={handleKeyPress}
                     onChange={(e) =>
                       field.onChange(
                         e.target.value

@@ -67,10 +67,10 @@ export function ActivePromotions({ activePromotions }: { activePromotions: IProm
                       <Timer className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm text-muted-foreground">Expires in {expiresIn}</span>
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => copyCode(promo.code)}>
+                    {/* <Button variant="outline" size="sm" onClick={() => copyCode(promo.code)}>
                       {promo.code}
                       <Copy className="ml-2 h-4 w-4" />
-                    </Button>
+                    </Button> */}
                   </div>
                 </CardContent>
               </Card>

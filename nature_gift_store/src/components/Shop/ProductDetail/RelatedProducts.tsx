@@ -14,7 +14,7 @@ const containerVariants = {
 }
 
 export function RelatedProducts({ relatedProducts }: { relatedProducts: IProduct[] }) {
-  if (!relatedProducts || relatedProducts.length === 0) {
+  if (relatedProducts.length === 0) {
     return <></>
   }
 

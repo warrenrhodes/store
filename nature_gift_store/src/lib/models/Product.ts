@@ -64,7 +64,7 @@ interface IProduct extends Document<string> {
   isFeature: boolean
   isNewProduct: boolean
   blogUrl?: string
-  parternId: string
+  partnerId: string
   createdAt?: Date
   updatedAt?: Date
 }
@@ -178,7 +178,7 @@ const productSchema = new Schema<IProduct>(
       },
     },
     blogUrl: String,
-    parternId: {
+    partnerId: {
       type: String,
       required: true,
     },

@@ -97,6 +97,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
           <CommandPrimitive.Input
             ref={inputRef}
             value={inputValue}
+            onKeyDown={handleKeyDown}
             onValueChange={setInputValue}
             onBlur={() => setOpen(false)}
             onFocus={() => setOpen(true)}

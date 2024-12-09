@@ -5,7 +5,8 @@ import Product from '@/lib/models/Product'
 import Review from '@/lib/models/Reviews'
 import { connectToDB } from '@/lib/mongoDB'
 
-export const GET = async (req: NextRequest, { params }: { params: { reviewId: string } }) => {
+export const GET = async (req: NextRequest, props: { params: Promise<{ reviewId: string }> }) => {
+  const params = await props.params;
   try {
     await connectToDB()
     const review = await Review.findById(params.reviewId).populate({
@@ -26,7 +27,8 @@ export const GET = async (req: NextRequest, { params }: { params: { reviewId: st
   }
 }
 
-export const POST = async (req: NextRequest, { params }: { params: { reviewId: string } }) => {
+export const POST = async (req: NextRequest, props: { params: Promise<{ reviewId: string }> }) => {
+  const params = await props.params;
   try {
     await connectToDB()
     const { userId } = auth()
@@ -72,7 +74,8 @@ export const POST = async (req: NextRequest, { params }: { params: { reviewId: s
   }
 }
 
-export const DELETE = async (req: NextRequest, { params }: { params: { reviewId: string } }) => {
+export const DELETE = async (req: NextRequest, props: { params: Promise<{ reviewId: string }> }) => {
+  const params = await props.params;
   try {
     const { userId } = auth()
 

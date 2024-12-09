@@ -1,17 +1,14 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { ArrowRight, Zap } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Zap } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useEffect } from 'react'
-import { getPromotions } from '@/lib/api/promotions'
 import { IPromotion } from '@/lib/models/Promotions'
 
-export function PromotionBanner() {
+export function PromotionBanner({ promotions }: { promotions: IPromotion[] }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [opacity, setOpacity] = useState(1)
-  const [promotions, setPromotions] = useState<IPromotion[]>([])
 
   const goToNext = useCallback(() => {
     setOpacity(0)
@@ -21,17 +18,6 @@ export function PromotionBanner() {
     }, 300)
   }, [])
 
-  const fetchPromotions = useCallback(async () => {
-    const activePromotions = await getPromotions()
-    if (!activePromotions) return
-
-    setPromotions(activePromotions)
-  }, [])
-
-  useEffect(() => {
-    fetchPromotions()
-  }, [fetchPromotions])
-
   useEffect(() => {
     let interval: NodeJS.Timeout
     if (promotions.length > 1) {
@@ -40,7 +26,7 @@ export function PromotionBanner() {
     return () => clearInterval(interval)
   }, [goToNext])
 
-  if (!promotions || promotions.length === 0) return null
+  if (promotions.length === 0) return null
 
   const currentPromotion = promotions[currentIndex]
 

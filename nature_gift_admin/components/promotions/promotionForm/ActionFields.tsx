@@ -30,6 +30,16 @@ export function ActionFields({ form }: ActionFieldsProps) {
     name: "actions",
   });
 
+  const handleKeyPress = (
+    e:
+      | React.KeyboardEvent<HTMLInputElement>
+      | React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -178,6 +188,7 @@ export function ActionFields({ form }: ActionFieldsProps) {
                         value={
                           ((field.value || "") as string)?.split(",")[1] || ""
                         }
+                        onKeyDown={handleKeyPress}
                         onChange={(e) => {
                           const [buyX, getY] = (
                             (field.value || "") as string
@@ -210,6 +221,7 @@ export function ActionFields({ form }: ActionFieldsProps) {
                       type="number"
                       placeholder="Max discount"
                       {...field}
+                      onKeyDown={handleKeyPress}
                       onChange={(e) =>
                         field.onChange(parseFloat(e.target.value))
                       }

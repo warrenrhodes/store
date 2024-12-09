@@ -33,6 +33,16 @@ export function ConditionFields({ form, products }: ConditionFieldsProps) {
     name: "conditions",
   });
 
+  const handleKeyPress = (
+    e:
+      | React.KeyboardEvent<HTMLInputElement>
+      | React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -93,7 +103,12 @@ export function ConditionFields({ form, products }: ConditionFieldsProps) {
                 <FormControl>
                   {form.watch(`conditions.${index}.type`) ===
                   "MINIMUM_QUANTITY" ? (
-                    <Input {...field} type="number" min={0} />
+                    <Input
+                      {...field}
+                      type="number"
+                      min={0}
+                      onKeyDown={handleKeyPress}
+                    />
                   ) : form.watch(`conditions.${index}.type`) ===
                     "DELIVERY_METHOD" ? (
                     <Select

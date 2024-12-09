@@ -85,3 +85,5 @@ export const canDisplayPromoPrice = (product: IProduct) => {
 
   return now >= startDate && now <= endDate
 }
+
+export const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))

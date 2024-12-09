@@ -81,14 +81,22 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
     return shipments.find(item => item.locations.includes(location))?.cost
   }
 
-  const deliveriesLocation = shipments
-    .filter(shipment => shipment.method === 'DELIVERY')
-    .map(e => e.locations)
-    .flat()
-  const expeditionLocation = shipments
-    .filter(shipment => shipment.method === 'EXPEDITION')
-    .map(e => e.locations)
-    .flat()
+  const deliveriesLocation = Array.from(
+    new Set(
+      shipments
+        .filter(shipment => shipment.method === 'DELIVERY')
+        .map(e => e.locations)
+        .flat(),
+    ),
+  )
+  const expeditionLocation = Array.from(
+    new Set(
+      shipments
+        .filter(shipment => shipment.method === 'EXPEDITION')
+        .map(e => e.locations)
+        .flat(),
+    ),
+  )
 
   const handleLocationChange = (location: string) => {
     if (!location) {
@@ -110,6 +118,14 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
     })
   }
 
+  const handleKeyPress = (
+    e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
+  ) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+    }
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -123,7 +139,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} onKeyDown={handleKeyPress} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -136,7 +152,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
                 <FormItem>
                   <FormLabel>Phone</FormLabel>
                   <FormControl>
-                    <Input type="tel" {...field} />
+                    <Input type="tel" {...field} onKeyDown={handleKeyPress} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -149,7 +165,12 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
                 <FormItem>
                   <FormLabel>Email (Optional)</FormLabel>
                   <FormControl>
-                    <Input type="email" {...field} defaultValue={field.value || ''} />
+                    <Input
+                      type="email"
+                      {...field}
+                      defaultValue={field.value || ''}
+                      onKeyDown={handleKeyPress}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -243,7 +264,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
               <FormItem>
                 <FormLabel>Address</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input {...field} onKeyDown={handleKeyPress} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -261,7 +282,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
                 <FormItem>
                   <FormLabel>City</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} onKeyDown={handleKeyPress} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -347,7 +368,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
               <FormItem>
                 <FormLabel>Additional Notes (Optional)</FormLabel>
                 <FormControl>
-                  <Input placeholder="Additional notes" {...field} />
+                  <Input placeholder="Additional notes" {...field} onKeyDown={handleKeyPress} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

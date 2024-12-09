@@ -3,8 +3,6 @@
 import { motion } from 'framer-motion'
 import { Link, Tag } from 'lucide-react'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { useCart } from '@/hooks/useCart'
 import { priceFormatted } from '@/lib/utils/utils'

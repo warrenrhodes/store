@@ -131,6 +131,17 @@ export function BlogForm({ initialData, categories }: BlogFormProps) {
       setIsLoading(false);
     }
   }
+
+  const handleKeyPress = (
+    e:
+      | React.KeyboardEvent<HTMLInputElement>
+      | React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+    }
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -142,7 +153,11 @@ export function BlogForm({ initialData, categories }: BlogFormProps) {
               <FormItem>
                 <FormLabel>Title</FormLabel>
                 <FormControl>
-                  <Input {...field} onChange={onTitleChange} />
+                  <Input
+                    {...field}
+                    onChange={onTitleChange}
+                    onKeyPress={handleKeyPress}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -156,7 +171,7 @@ export function BlogForm({ initialData, categories }: BlogFormProps) {
               <FormItem>
                 <FormLabel>Slug</FormLabel>
                 <FormControl>
-                  <Input {...field} disabled />
+                  <Input {...field} disabled onKeyPress={handleKeyPress} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -171,7 +186,11 @@ export function BlogForm({ initialData, categories }: BlogFormProps) {
             <FormItem>
               <FormLabel>Excerpt</FormLabel>
               <FormControl>
-                <Input {...field} value={field.value || ""} />
+                <Input
+                  {...field}
+                  value={field.value || ""}
+                  onKeyPress={handleKeyPress}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -259,6 +278,7 @@ export function BlogForm({ initialData, categories }: BlogFormProps) {
                 <Input
                   {...field}
                   value={field.value?.join(", ") || ""}
+                  onKeyDown={handleKeyPress}
                   onChange={(e) =>
                     field.onChange(
                       e.target.value.split(",").map((keyword) => keyword.trim())

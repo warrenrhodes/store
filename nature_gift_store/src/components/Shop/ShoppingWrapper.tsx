@@ -29,15 +29,15 @@ export const ShoppingWrapper = ({
   const [pageData, setPageData] = useState<ProductPageData>({
     categories: categories,
     products: productList,
-    tags: Array.from(new Set(productList.flatMap(product => product.tags || []))),
+    tags: Array.from(new Set(productList.map(product => product.tags?.flat() || []).flat())),
   })
   const [filteredProducts, setFilteredProducts] = useState<IProduct[]>(productList)
   const [activeFilters, setActiveFilters] = useState(0)
 
   useEffect(() => {
     let count = 0
-    if (filters.categories) count++
-    if (filters.colors.length > 0) count++
+    if (filters.categories.length > 0) count++
+    if (filters.tags.length > 0) count++
     if (filters.priceRange[0] > MIN_PRICE || filters.priceRange[1] < MAX_PRICE) count++
     if (filters.search) count++
     setActiveFilters(count)

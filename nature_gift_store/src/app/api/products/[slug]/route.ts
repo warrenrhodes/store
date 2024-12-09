@@ -6,11 +6,14 @@ import { connectToDB } from '@/lib/mongoDB'
 import { NextRequest, NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
 
-export const GET = async (req: NextRequest, { params }: { params: { slug: string } }) => {
+export const GET = async (req: NextRequest, props: { params: Promise<{ slug: string }> }) => {
+  const params = await props.params
   try {
     await connectToDB()
     const product = await Product.findOne({
       slug: params.slug,
+      visibility: true,
+      status: 'published',
     })
       .lean()
       .sort({ createdAt: 'desc' })

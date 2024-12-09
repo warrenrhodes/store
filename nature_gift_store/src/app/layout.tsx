@@ -17,7 +17,6 @@ import './globals.css'
 import ToasterProvider from '@/lib/providers/ToasterProvider'
 import Footer from '@/components/Footer'
 import { Toaster } from '@/components/ui/toaster'
-import { url } from 'inspector'
 import { Header } from '@/components/Header/Index'
 
 export const metadata: Metadata = {
@@ -32,30 +31,30 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link rel="shortcut icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        <link rel="manifest" href="/site.webmanifest" />
-      </head>
+  return await ClerkProvider({
+    children: (
+      <html lang="en" suppressHydrationWarning>
+        <head>
+          <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+          <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+          <link rel="shortcut icon" href="/favicon.ico" />
+          <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+          <link rel="manifest" href="/site.webmanifest" />
+        </head>
 
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ClerkProvider>
+        <body className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}>
           <ToasterProvider />
           <Header />
           {children}
           <Footer />
           <Toaster />
-        </ClerkProvider>
-      </body>
-    </html>
-  )
+        </body>
+      </html>
+    ),
+  })
 }

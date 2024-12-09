@@ -1,3 +1,11 @@
+
 {
-  "extends": "next/core-web-vitals"
+  "extends": ["next/core-web-vitals", "next/typescript", "prettier",
+  "plugin:prettier/recommended"],
+  "root": true,
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "plugins": ["prettier"]
 }

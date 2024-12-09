@@ -40,9 +40,13 @@ import { Switch } from "../ui/switch";
 
 interface ShipmentFormProps {
   initialData?: IShipment | null;
+  shipments?: IShipment[];
 }
 
-const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData }) => {
+const ShipmentForm: React.FC<ShipmentFormProps> = ({
+  initialData,
+  shipments,
+}) => {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setLoading] = useState(false);
@@ -177,6 +181,7 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData }) => {
                     type="number"
                     step="0.01"
                     {...field}
+                    onKeyDown={handleKeyPress}
                     onChange={(e) =>
                       field.onChange(parseFloat(e.target.value || "0"))
                     }

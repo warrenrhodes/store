@@ -3,7 +3,8 @@ import Category from '@/lib/models/Category'
 import { connectToDB } from '@/lib/mongoDB'
 import { NextRequest, NextResponse } from 'next/server'
 
-export const GET = async (req: NextRequest, { params }: { params: { slug: string } }) => {
+export const GET = async (req: NextRequest, props: { params: Promise<{ slug: string }> }) => {
+  const params = await props.params;
   try {
     await connectToDB()
     const blog = await Blog.findOne({

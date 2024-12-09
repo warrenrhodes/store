@@ -4,7 +4,8 @@ import Product from '@/lib/models/Product'
 import Review from '@/lib/models/Reviews'
 import { NextRequest, NextResponse } from 'next/server'
 
-export const GET = async (req: NextRequest, { params }: { params: { slug: string } }) => {
+export const GET = async (req: NextRequest, props: { params: Promise<{ slug: string }> }) => {
+  const params = await props.params
   try {
     const product = await Product.findOne({
       slug: params.slug,
@@ -18,6 +19,7 @@ export const GET = async (req: NextRequest, { params }: { params: { slug: string
       $or: [{ categories: { $in: product.categories } }],
       slug: { $ne: params.slug },
       status: 'published',
+      visibility: true,
     })
       .lean()
       .sort({ createdAt: 'desc' })

@@ -1,13 +1,13 @@
 import { IBlog } from '../models/Blog'
 
-export const getBlog = async (slug: string): Promise<IBlog | null> => {
+export const fetchBlogBySlug = async (slug: string): Promise<IBlog | null> => {
   const blog = await fetch(`${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}/api/blogs/${slug}`)
 
   if (!blog.ok) return null
   return await blog.json()
 }
 
-export const getFilterBlogs = async ({
+export const fetchBlogsByQuery = async ({
   query,
 }: {
   query?: Partial<{ [key in keyof IBlog]: string }>
@@ -29,13 +29,13 @@ export const getFilterBlogs = async ({
   return await blogs.json()
 }
 
-export const getAllBlogs = async (): Promise<IBlog[] | null> => {
+export const fetchAllBlogs = async (): Promise<IBlog[] | null> => {
   const blogs = await fetch(`${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}/api/blogs`, {})
 
   if (!blogs.ok) return null
   return await blogs.json()
 }
-export const getRelatedBlogs = async (slug: string): Promise<IBlog[] | null> => {
+export const fetchRelatedBlogs = async (slug: string): Promise<IBlog[] | null> => {
   const relatedBlogs = await fetch(
     `${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}/api/products/${slug}/related`,
   )

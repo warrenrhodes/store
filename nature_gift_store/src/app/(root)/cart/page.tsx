@@ -8,10 +8,18 @@ import { Separator } from '@/components/ui/separator'
 import { CartItem } from '@/components/Cart/CartItem'
 import { PromotionSummary } from '@/components/Cart/PromotionSummary'
 import { useCart } from '@/hooks/useCart'
+import { useShallow } from 'zustand/react/shallow'
 
 export default function CartPage() {
-  const cart = useCart()
-  const { cartItems, cartShipment } = cart
+  const cartItems = useCart(e => e.cartItems)
+  const cartShipment = useCart(e => e.cartShipment)
+  const { decreaseQuantity, increaseQuantity, removeCartItem } = useCart(
+    useShallow(s => ({
+      increaseQuantity: s.increaseQuantity,
+      decreaseQuantity: s.decreaseQuantity,
+      removeCartItem: s.removeItem,
+    })),
+  )
 
   return (
     <div className="min-h-screen bg-background">
@@ -27,7 +35,7 @@ export default function CartPage() {
             <h1 className="text-3xl font-bold tracking-tight">Shopping Cart</h1>
           </div>
 
-          {cart.cartItems.length === 0 ? (
+          {cartItems.length === 0 ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -47,13 +55,13 @@ export default function CartPage() {
               <div className="lg:col-span-2">
                 <div className="space-y-4">
                   <AnimatePresence initial={false}>
-                    {cart.cartItems.map(item => (
+                    {cartItems.map(item => (
                       <CartItem
                         key={`${item.product._id}`}
                         item={item}
-                        increaseQuantity={cart.increaseQuantity}
-                        decreaseQuantity={cart.decreaseQuantity}
-                        onRemove={cart.removeItem}
+                        increaseQuantity={increaseQuantity}
+                        decreaseQuantity={decreaseQuantity}
+                        onRemove={removeCartItem}
                       />
                     ))}
                   </AnimatePresence>

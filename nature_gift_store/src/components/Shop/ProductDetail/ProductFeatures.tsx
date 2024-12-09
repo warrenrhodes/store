@@ -31,7 +31,7 @@ const itemVariants = {
   },
 }
 
-export function ProductFeatures({ product }: { product: IProduct }) {
+export function FeaturesForProducts({ product }: { product: IProduct }) {
   const { features, description } = product
 
   if (!features || features.length === 0) {

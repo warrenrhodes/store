@@ -48,6 +48,16 @@ export function PriceFields({ form }: PriceFieldsProps) {
     }
   }, [date, form]);
 
+  const handleKeyPress = (
+    e:
+      | React.KeyboardEvent<HTMLInputElement>
+      | React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <FormField
@@ -61,6 +71,7 @@ export function PriceFields({ form }: PriceFieldsProps) {
                 type="number"
                 step="0.01"
                 {...field}
+                onKeyDown={handleKeyPress}
                 onChange={(e) =>
                   field.onChange(parseFloat(e.target.value || "0"))
                 }
@@ -83,6 +94,7 @@ export function PriceFields({ form }: PriceFieldsProps) {
                   type="number"
                   step="0.01"
                   value={field.value || "0"}
+                  onKeyDown={handleKeyPress}
                   onChange={(e) => field.onChange(parseInt(e.target.value))}
                 />
               </FormControl>

@@ -16,6 +16,16 @@ interface MetadataFieldsProps {
   form: UseFormReturn<ProductSchemaType>;
 }
 
+const handleKeyPress = (
+  e:
+    | React.KeyboardEvent<HTMLInputElement>
+    | React.KeyboardEvent<HTMLTextAreaElement>
+) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+  }
+};
+
 export function MetadataFields({ form }: MetadataFieldsProps) {
   return (
     <div className="space-y-4">
@@ -26,7 +36,7 @@ export function MetadataFields({ form }: MetadataFieldsProps) {
           <FormItem>
             <FormLabel>SEO Title</FormLabel>
             <FormControl>
-              <Input {...field} />
+              <Input {...field} onKeyDown={handleKeyPress} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -57,6 +67,7 @@ export function MetadataFields({ form }: MetadataFieldsProps) {
               <Input
                 {...field}
                 value={field.value?.join(", ") || ""}
+                onKeyDown={handleKeyPress}
                 onChange={(e) =>
                   field.onChange(
                     e.target.value.split(",").map((keyword) => keyword.trim())

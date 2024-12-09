@@ -72,6 +72,17 @@ export function DataTable<TData, TValue>({
       rowSelection,
     },
   });
+
+  const handleKeyPress = (
+    e:
+      | React.KeyboardEvent<HTMLInputElement>
+      | React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div>
       <div className="w-full">
@@ -82,6 +93,7 @@ export function DataTable<TData, TValue>({
               (table.getColumn(searchKey || "")?.getFilterValue() as string) ??
               ""
             }
+            onKeyDown={handleKeyPress}
             onChange={(event) =>
               table
                 .getColumn(searchKey || "")

@@ -2,11 +2,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useCallback, useEffect, useState } from 'react'
 import { IProduct } from '@/lib/models/Product'
-import { useCart } from '@/hooks/useCart'
 import { ProductCard } from '../ProductCard'
-import { fetchProducts } from '@/lib/api/products'
 
 const itemVariants = {
   hidden: { opacity: 0, x: -20 },
@@ -29,24 +26,7 @@ const containerVariants = {
   },
 }
 
-export function FeaturedProducts() {
-  const [products, setProducts] = useState<IProduct[]>([])
-
-  const _fetchProducts = useCallback(async () => {
-    const newProducts = await fetchProducts({
-      query: {
-        isFeature: 'true',
-      },
-    })
-    if (newProducts) {
-      setProducts(newProducts)
-    }
-  }, [])
-
-  useEffect(() => {
-    _fetchProducts()
-  }, [_fetchProducts])
-
+export function FeaturedProducts({ products }: { products: IProduct[] }) {
   return (
     <section className="py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

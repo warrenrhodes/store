@@ -18,6 +18,17 @@ const nextConfig = {
       },
     ];
   },
+  experimental: {
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+      resolveExtensions: ['.tsx', '.ts', '.jsx', '.js'],
+    },
+  },
 };
 
 export default nextConfig;

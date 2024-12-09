@@ -30,7 +30,7 @@ const itemVariants = {
 }
 
 export function RelatedBlogs({ relatedBlogs }: { relatedBlogs: IBlog[] }) {
-  if (!relatedBlogs || relatedBlogs.length === 0) {
+  if (relatedBlogs.length === 0) {
     return <></>
   }
 

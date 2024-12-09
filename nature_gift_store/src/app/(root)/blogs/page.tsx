@@ -1,9 +1,9 @@
 import Blogs from '@/components/Blogs/Index'
-import { getAllBlogs } from '@/lib/api/blogs'
+import { fetchAllBlogs } from '@/lib/api/blogs'
 import { Suspense } from 'react'
 
 export default async function BlogsPage() {
-  const blogsList = await getAllBlogs()
+  const blogsList = await fetchAllBlogs()
 
   return (
     <div className="min-h-screen bg-background">

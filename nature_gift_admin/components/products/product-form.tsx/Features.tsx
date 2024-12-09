@@ -36,6 +36,16 @@ export const FeaturesForm: React.FC<FeaturesFormProps> = ({ form }) => {
     name: "features",
   });
 
+  const handleKeyPress = (
+    e:
+      | React.KeyboardEvent<HTMLInputElement>
+      | React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center">
@@ -73,6 +83,7 @@ export const FeaturesForm: React.FC<FeaturesFormProps> = ({ form }) => {
                       placeholder="Title....."
                       value={field.value}
                       onChange={field.onChange}
+                      onKeyDown={handleKeyPress}
                     />
                   </FormControl>
                   <FormMessage />

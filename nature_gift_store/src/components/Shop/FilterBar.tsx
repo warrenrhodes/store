@@ -82,7 +82,7 @@ export function FilterBar({
                   )}
                 </Button>
               </SheetTrigger>
-              <SheetContent className="w-full sm:max-w-md">
+              <SheetContent className="w-full sm:max-w-md overflow-y-auto">
                 <SheetHeader>
                   <div className="flex items-center justify-between">
                     <SheetTitle>Filters</SheetTitle>

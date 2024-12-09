@@ -7,9 +7,9 @@ function GeneralCTAComponent() {
   const router = useRouter()
 
   return (
-    <Section className="mb-10 rounded-2xl  w-full bg-[url('/bgProducts.png')] bg-cover bg-center bg-no-repeat">
+    <section className="mb-10 rounded-2xl  w-full bg-[url('/bgProducts.png')] bg-cover bg-center bg-no-repeat">
       <motion.div
-        className="flex flex-col items-center  py-16 bg-gray-900/50 rounded-2xl"
+        className="flex flex-col items-center  py-16 bg-gray-900/80 rounded-2xl  w-full"
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
@@ -24,7 +24,7 @@ function GeneralCTAComponent() {
         </motion.h2>
 
         <motion.p
-          className="mx-auto w-[80%] text-center md:w-[50%] text-white/60 mb-5"
+          className="mx-auto w-[80%] text-center md:w-[50%] text-white/90 mb-5"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
@@ -42,7 +42,7 @@ function GeneralCTAComponent() {
           See Our Products
         </motion.button>
       </motion.div>
-    </Section>
+    </section>
   )
 }
 

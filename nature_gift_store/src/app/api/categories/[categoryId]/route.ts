@@ -5,7 +5,8 @@ import Product from '@/lib/models/Product'
 import Media from '@/lib/models/Media'
 import { connectToDB } from '@/lib/mongoDB'
 
-export const GET = async (req: NextRequest, { params }: { params: { categoryId: string } }) => {
+export const GET = async (req: NextRequest, props: { params: Promise<{ categoryId: string }> }) => {
+  const params = await props.params;
   try {
     await connectToDB()
     const category = await Category.findById(params.categoryId)

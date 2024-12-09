@@ -26,6 +26,17 @@ export function InventoryFields({ form }: InventoryFieldsProps) {
     },
     [form]
   );
+
+  const handleKeyPress = (
+    e:
+      | React.KeyboardEvent<HTMLInputElement>
+      | React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <FormField
@@ -35,7 +46,12 @@ export function InventoryFields({ form }: InventoryFieldsProps) {
           <FormItem>
             <FormLabel>Quantity</FormLabel>
             <FormControl>
-              <Input type="number" {...field} onChange={onQuantityChange} />
+              <Input
+                type="number"
+                {...field}
+                onChange={onQuantityChange}
+                onKeyDown={handleKeyPress}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -52,6 +68,7 @@ export function InventoryFields({ form }: InventoryFieldsProps) {
                 type="number"
                 {...field}
                 onChange={(e) => field.onChange(parseInt(e.target.value))}
+                onKeyDown={handleKeyPress}
               />
             </FormControl>
             <FormMessage />
@@ -68,6 +85,7 @@ export function InventoryFields({ form }: InventoryFieldsProps) {
               type="number"
               {...field}
               value={form.watch("inventory.quantity") ?? 0}
+              onKeyDown={handleKeyPress}
               disabled
             />
             <FormMessage />

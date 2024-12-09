@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Minus, Plus, Search, ShoppingCart, Trash2, X } from 'lucide-react'
+import { Search, ShoppingCart } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '../ui/card'
@@ -11,7 +11,7 @@ import { Badge } from '../ui/badge'
 import { useCart } from '@/hooks/useCart'
 import { priceFormatted, getRegularPrice } from '@/lib/utils/utils'
 import Image from 'next/image'
-import { fetchAllProducts, fetchProducts } from '@/lib/api/products'
+import { fetchAllProducts } from '@/lib/api/products'
 import Link from 'next/link'
 
 export function SearchBar() {
@@ -36,6 +36,14 @@ export function SearchBar() {
     product.title.toLowerCase().includes(query.toLowerCase()),
   )
 
+  const handleKeyPress = (
+    e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
+  ) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+    }
+  }
+
   return (
     <div className="relative w-full max-w-md">
       <div className="relative">
@@ -44,6 +52,7 @@ export function SearchBar() {
           placeholder="Search products..."
           className="w-full pl-10 pr-4"
           value={query}
+          onKeyDown={handleKeyPress}
           onChange={e => setQuery(e.target.value)}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
@@ -62,7 +71,7 @@ export function SearchBar() {
               {productsFiltered.length > 0 ? (
                 <div className="flex flex-col gap-2">
                   {productsFiltered.map(e => (
-                    <ItemResult product={e} />
+                    <ItemResult product={e} key={e._id} />
                   ))}
                 </div>
               ) : (

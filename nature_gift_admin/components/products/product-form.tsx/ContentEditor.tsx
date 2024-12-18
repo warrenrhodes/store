@@ -1,35 +1,21 @@
-"use client";
+'use client'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import {
-  ContentSchema,
-  productSchema,
-  ProductSchemaType,
-} from "@/lib/validations/product";
-import CustomAccordion from "@/components/accordion/CustomAccordion";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import CustomRichTextEditor from "@/components/accordion/CustomRichText";
-import { Textarea } from "@/components/ui/textarea";
-import { z } from "zod";
-import { Spacer } from "@/components/custom-ui/Spacer";
-import { Path, PathValue, UseFormReturn } from "react-hook-form";
+} from '@/components/ui/select'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import CustomRichTextEditor from '@/components/accordion/CustomRichText'
+import { Textarea } from '@/components/ui/textarea'
+import { Path, PathValue, UseFormReturn } from 'react-hook-form'
 
 interface ContentEditorProps<T extends Record<string, any>> {
-  form: UseFormReturn<T>;
-  contentTypeFieldKey: Path<T>;
-  contentFieldKey: Path<T>;
-  label: string;
+  form: UseFormReturn<T>
+  contentTypeFieldKey: Path<T>
+  contentFieldKey: Path<T>
+  label: string
 }
 
 export const ContentEditor = <T extends Record<string, any>>({
@@ -48,13 +34,13 @@ export const ContentEditor = <T extends Record<string, any>>({
           <FormItem className="w-full">
             <FormControl>
               <Select
-                onValueChange={(e) => {
-                  form.setValue(contentFieldKey, "" as PathValue<T, Path<T>>, {
+                onValueChange={e => {
+                  form.setValue(contentFieldKey, '' as PathValue<T, Path<T>>, {
                     shouldValidate: true,
-                  });
-                  field.onChange(e);
+                  })
+                  field.onChange(e)
                 }}
-                defaultValue={(field.value || "") as string}
+                defaultValue={(field.value || '') as string}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select content type" />
@@ -69,7 +55,7 @@ export const ContentEditor = <T extends Record<string, any>>({
           </FormItem>
         )}
       />
-      {form.watch(contentTypeFieldKey) === "HTML" ? (
+      {form.watch(contentTypeFieldKey) === 'HTML' ? (
         <FormField
           control={form.control}
           name={contentFieldKey}
@@ -77,7 +63,7 @@ export const ContentEditor = <T extends Record<string, any>>({
             <FormItem>
               <FormControl>
                 <CustomRichTextEditor
-                  content={(field.value || "") as string}
+                  content={(field.value || '') as string}
                   onSave={field.onChange}
                 />
               </FormControl>
@@ -95,7 +81,7 @@ export const ContentEditor = <T extends Record<string, any>>({
                 <Textarea
                   placeholder={`${label} ...`}
                   className="min-h-[50px]"
-                  defaultValue={(field.value || "") as string}
+                  defaultValue={(field.value || '') as string}
                   onChange={field.onChange}
                 />
               </FormControl>
@@ -105,5 +91,5 @@ export const ContentEditor = <T extends Record<string, any>>({
         />
       )}
     </div>
-  );
-};
+  )
+}

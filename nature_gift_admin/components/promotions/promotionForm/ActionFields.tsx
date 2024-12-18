@@ -1,44 +1,36 @@
-"use client";
+'use client'
 
-import { useFieldArray, UseFormReturn } from "react-hook-form";
-import { Plus, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { useFieldArray, UseFormReturn } from 'react-hook-form'
+import { Plus, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { PromotionSchemaType } from "@/lib/validations/promotions";
+} from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
+import { PromotionSchemaType } from '@/lib/validations/promotions'
 
 interface ActionFieldsProps {
-  form: UseFormReturn<PromotionSchemaType>;
+  form: UseFormReturn<PromotionSchemaType>
 }
 
 export function ActionFields({ form }: ActionFieldsProps) {
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "actions",
-  });
+    name: 'actions',
+  })
 
   const handleKeyPress = (
-    e:
-      | React.KeyboardEvent<HTMLInputElement>
-      | React.KeyboardEvent<HTMLTextAreaElement>
+    e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
   ) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
+    if (e.key === 'Enter') {
+      e.preventDefault()
     }
-  };
+  }
 
   return (
     <div className="space-y-4">
@@ -47,8 +39,9 @@ export function ActionFields({ form }: ActionFieldsProps) {
         <Button
           type="button"
           variant="outline"
+          disabled={form.watch('conditions').length == 0}
           size="sm"
-          onClick={() => append({ type: "PERCENTAGE_DISCOUNT", value: 0 })}
+          onClick={() => append({ type: 'PERCENTAGE_DISCOUNT', value: '0' })}
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Action
@@ -64,9 +57,9 @@ export function ActionFields({ form }: ActionFieldsProps) {
               <FormItem className="flex-1">
                 <FormControl>
                   <Select
-                    onValueChange={(e) => {
-                      form.setValue(`actions.${index}.value`, "");
-                      field.onChange(e);
+                    onValueChange={e => {
+                      form.setValue(`actions.${index}.value`, '')
+                      field.onChange(e)
                     }}
                     defaultValue={field.value}
                   >
@@ -74,15 +67,9 @@ export function ActionFields({ form }: ActionFieldsProps) {
                       <SelectValue placeholder="Select action type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="PERCENTAGE_DISCOUNT">
-                        Percentage Discount
-                      </SelectItem>
-                      <SelectItem value="FIXED_DISCOUNT">
-                        Fixed Discount
-                      </SelectItem>
-                      <SelectItem value="FREE_SHIPPING">
-                        Free Shipping
-                      </SelectItem>
+                      <SelectItem value="PERCENTAGE_DISCOUNT">Percentage Discount</SelectItem>
+                      <SelectItem value="FIXED_DISCOUNT">Fixed Discount</SelectItem>
+                      <SelectItem value="FREE_SHIPPING">Free Shipping</SelectItem>
                       <SelectItem value="FREE_PRODUCT">Free Product</SelectItem>
                       <SelectItem value="BUY_X_GET_Y">Buy X Get Y</SelectItem>
                     </SelectContent>
@@ -99,85 +86,82 @@ export function ActionFields({ form }: ActionFieldsProps) {
             render={({ field }) => (
               <FormItem className="flex-1">
                 <FormControl>
-                  {form.watch(`actions.${index}.type`) ===
-                  "PERCENTAGE_DISCOUNT" ? (
+                  {form.watch(`actions.${index}.type`) === 'PERCENTAGE_DISCOUNT' ? (
                     <Input
                       type="number"
                       min={0}
                       placeholder="Percentage discount"
                       {...field}
-                      onChange={(e) => {
-                        const value = e.target.value;
+                      onChange={e => {
+                        const value = e.target.value
                         if (/^\d*$/.test(value)) {
-                          const parsedValue = value ? parseFloat(value) : 0;
-                          field.onChange(parsedValue);
+                          const parsedValue = value ? value : '0'
+                          field.onChange(parsedValue)
                         }
                       }}
-                      onKeyDown={(e) => {
+                      onKeyDown={e => {
                         if (
                           !/\d/.test(e.key) &&
-                          e.key !== "Backspace" &&
-                          e.key !== "Delete" &&
-                          e.key !== "ArrowLeft" &&
-                          e.key !== "ArrowRight"
+                          e.key !== 'Backspace' &&
+                          e.key !== 'Delete' &&
+                          e.key !== 'ArrowLeft' &&
+                          e.key !== 'ArrowRight'
                         ) {
-                          e.preventDefault();
+                          e.preventDefault()
                         }
                       }}
                     />
-                  ) : form.watch(`actions.${index}.type`) ===
-                    "FIXED_DISCOUNT" ? (
+                  ) : form.watch(`actions.${index}.type`) === 'FIXED_DISCOUNT' ? (
                     <Input
                       type="number"
                       min={0}
                       placeholder="Fixed discount"
                       {...field}
-                      onChange={(e) => {
-                        const value = e.target.value;
+                      onChange={e => {
+                        const value = e.target.value
                         if (/^\d*$/.test(value)) {
-                          const parsedValue = value ? parseFloat(value) : 0;
-                          field.onChange(parsedValue);
+                          const parsedValue = value ? value : '0'
+                          field.onChange(parsedValue)
                         }
                       }}
-                      onKeyDown={(e) => {
+                      onKeyDown={e => {
                         if (
                           !/\d/.test(e.key) &&
-                          e.key !== "Backspace" &&
-                          e.key !== "Delete" &&
-                          e.key !== "ArrowLeft" &&
-                          e.key !== "ArrowRight"
+                          e.key !== 'Backspace' &&
+                          e.key !== 'Delete' &&
+                          e.key !== 'ArrowLeft' &&
+                          e.key !== 'ArrowRight'
                         ) {
-                          e.preventDefault();
+                          e.preventDefault()
                         }
                       }}
                     />
-                  ) : form.watch(`actions.${index}.type`) === "BUY_X_GET_Y" ? (
-                    <div className="flex gap-4">
+                  ) : form.watch(`actions.${index}.type`) === 'BUY_X_GET_Y' ? (
+                    <div className="flex gap-4 w-full flex-1">
                       <Input
                         type="number"
                         placeholder="Buy X"
                         min={0}
                         {...field}
-                        value={
-                          ((field.value || "") as string)?.split(",")[0] || ""
-                        }
-                        onKeyDown={(e) => {
+                        value={((field.value || '') as string)?.split(',')[0] || ''}
+                        onKeyDown={e => {
                           if (
                             !/\d/.test(e.key) &&
-                            e.key !== "Backspace" &&
-                            e.key !== "Delete" &&
-                            e.key !== "ArrowLeft" &&
-                            e.key !== "ArrowRight"
+                            e.key !== 'Backspace' &&
+                            e.key !== 'Delete' &&
+                            e.key !== 'ArrowLeft' &&
+                            e.key !== 'ArrowRight'
                           ) {
-                            e.preventDefault();
+                            e.preventDefault()
                           }
                         }}
-                        onChange={(e) => {
-                          const [buyX, getY] = (
-                            (field.value || "") as string
-                          ).split(",") || ["", ""];
-                          const newBuyX = parseInt(e.target.value);
-                          field.onChange(`${newBuyX},${getY}`);
+                        onChange={e => {
+                          const [buyX, getY] = ((field.value || '') as string).split(',') || [
+                            '',
+                            '',
+                          ]
+                          const newBuyX = parseInt(e.target.value)
+                          field.onChange(`${newBuyX},${getY}`)
                         }}
                       />
                       <Input
@@ -185,21 +169,19 @@ export function ActionFields({ form }: ActionFieldsProps) {
                         placeholder="Get Y"
                         min={0}
                         {...field}
-                        value={
-                          ((field.value || "") as string)?.split(",")[1] || ""
-                        }
+                        value={((field.value || '') as string)?.split(',')[1] || ''}
                         onKeyDown={handleKeyPress}
-                        onChange={(e) => {
-                          const [buyX, getY] = (
-                            (field.value || "") as string
-                          ).split(",") || ["", ""];
-                          const newGetY = parseInt(e.target.value);
-                          field.onChange(`${buyX},${newGetY}`);
+                        onChange={e => {
+                          const [buyX, getY] = ((field.value || '') as string).split(',') || [
+                            '',
+                            '',
+                          ]
+                          const newGetY = parseInt(e.target.value)
+                          field.onChange(`${buyX},${newGetY}`)
                         }}
                       />
                     </div>
-                  ) : form.watch(`actions.${index}.type`) ===
-                    "FREE_SHIPPING" ? (
+                  ) : form.watch(`actions.${index}.type`) === 'FREE_SHIPPING' ? (
                     <></>
                   ) : (
                     <></>
@@ -209,8 +191,8 @@ export function ActionFields({ form }: ActionFieldsProps) {
               </FormItem>
             )}
           />
-          {(form.watch(`actions.${index}.type`) === "FIXED_DISCOUNT" ||
-            form.watch(`actions.${index}.type`) === "PERCENTAGE_DISCOUNT") && (
+          {(form.watch(`actions.${index}.type`) === 'FIXED_DISCOUNT' ||
+            form.watch(`actions.${index}.type`) === 'PERCENTAGE_DISCOUNT') && (
             <FormField
               control={form.control}
               name={`actions.${index}.maxDiscount`}
@@ -221,10 +203,9 @@ export function ActionFields({ form }: ActionFieldsProps) {
                       type="number"
                       placeholder="Max discount"
                       {...field}
+                      value={field.value ?? ''}
                       onKeyDown={handleKeyPress}
-                      onChange={(e) =>
-                        field.onChange(parseFloat(e.target.value))
-                      }
+                      onChange={e => field.onChange(e.target.value)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -233,16 +214,11 @@ export function ActionFields({ form }: ActionFieldsProps) {
             />
           )}
 
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => remove(index)}
-          >
+          <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
       ))}
     </div>
-  );
+  )
 }

@@ -1,12 +1,8 @@
-import type { Metadata } from "next";
-import "../globals.css";
-import { ClerkProvider } from "@clerk/nextjs";
+import type { Metadata } from 'next'
+import '../globals.css'
+import { ClerkProvider } from '@clerk/nextjs'
 
-import {
-  SidebarProvider,
-  SidebarInset,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -14,19 +10,19 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Separator } from "@radix-ui/react-separator";
-import { AppSidebar } from "@/components/layout/AppSibar";
-import { Toaster } from "@/components/ui/toaster";
+} from '@/components/ui/breadcrumb'
+import { Separator } from '@radix-ui/react-separator'
+import { AppSidebar } from '@/components/layout/AppSibar'
+import { Toaster } from '@/components/ui/toaster'
 import localFont from 'next/font/local'
 
 const geistSans = localFont({
-  src: './fonts/GeistVF.woff',
+  src: '../fonts/GeistVF.woff',
   variable: '--font-geist-sans',
   weight: '100 900',
 })
 const geistMono = localFont({
-  src: './fonts/GeistMonoVF.woff',
+  src: '../fonts/GeistMonoVF.woff',
   variable: '--font-geist-mono',
   weight: '100 900',
 })
@@ -34,12 +30,12 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "Nature's Gift - Admin Dashboard",
   description: "Admin dashboard to manage N.Gift's data",
-};
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <ClerkProvider>
@@ -50,13 +46,13 @@ export default function RootLayout({
         </body>
       </html>
     </ClerkProvider>
-  );
+  )
 }
 
 const NewSideBar = ({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) => {
   return (
     <SidebarProvider>
@@ -80,5 +76,5 @@ const NewSideBar = ({
         <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
       </SidebarInset>
     </SidebarProvider>
-  );
-};
+  )
+}

@@ -1,28 +1,27 @@
-import { IReview } from "@/lib/models/Reviews";
-import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Edit } from "lucide-react";
-import { Checkbox } from "../ui/checkbox";
-import { Button } from "../ui/button";
-import Delete from "../custom-ui/Delete";
-import Link from "next/link";
+import { ColumnDef } from '@tanstack/react-table'
+import { ArrowUpDown, Edit } from 'lucide-react'
+import { Checkbox } from '../ui/checkbox'
+import { Button } from '../ui/button'
+import Delete from '../custom-ui/Delete'
+import Link from 'next/link'
+import { Prisma } from '@naturegift/models'
 
-export const reviewColumns: ColumnDef<IReview>[] = [
+export const reviewColumns: ColumnDef<Prisma.ReviewGetPayload<{}>>[] = [
   {
-    id: "select",
+    id: 'select',
     header: ({ table }) => (
       <Checkbox
         checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
+          table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')
         }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
       />
     ),
     cell: ({ row }) => (
       <Checkbox
         checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        onCheckedChange={value => row.toggleSelected(!!value)}
         aria-label="Select row"
       />
     ),
@@ -30,48 +29,46 @@ export const reviewColumns: ColumnDef<IReview>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "userName",
+    accessorKey: 'userName',
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
           User Name
           <ArrowUpDown />
         </Button>
-      );
+      )
     },
-    cell: ({ row }) => (
-      <div className="lowercase">{row.getValue("userName")}</div>
-    ),
+    cell: ({ row }) => <div className="lowercase">{row.getValue('userName')}</div>,
   },
   {
-    accessorKey: "product",
-    header: "Product",
-    cell: ({ row }) => <p>{row.original.product.title}</p>,
+    accessorKey: 'product',
+    header: 'Product',
+    cell: ({ row }) => <p>{row.original.productId}</p>,
   },
   {
-    accessorKey: "rating",
-    header: "Rating",
+    accessorKey: 'rating',
+    header: 'Rating',
     cell: ({ row }) => <p>{row.original.rating}</p>,
   },
 
   {
-    id: "actions",
-    header: "Product",
+    id: 'actions',
+    header: 'Product',
     cell: ({ row }) => {
-      const review = row.original;
+      const review = row.original
       const onDelete = async (): Promise<boolean> => {
-        const res = await fetch(`/api/reviews/${row.original._id}`, {
-          method: "DELETE",
-        });
-        return res.ok;
-      };
+        const res = await fetch(`/api/reviews/${row.original.id}`, {
+          method: 'DELETE',
+        })
+        return res.ok
+      }
 
       return (
         <div>
-          <Link href={`/reviews/${review._id}`}>
+          <Link href={`/reviews/${review.id}`}>
             <div className="flex gap-3 items-center">
               <Edit className="w-4 h-4" />
               Edit
@@ -81,7 +78,7 @@ export const reviewColumns: ColumnDef<IReview>[] = [
             <Delete item="reviews" handleDelete={onDelete} />
           </div>
         </div>
-      );
+      )
     },
   },
-];
+]

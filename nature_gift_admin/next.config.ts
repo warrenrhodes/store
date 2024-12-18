@@ -3,20 +3,20 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: "http",
-        hostname: "localhost",
-        port: "3000",
-        pathname: "/tmp/**",
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3000',
+        pathname: '/tmp/**',
       },
     ],
   },
   async rewrites() {
     return [
       {
-        source: "/tmp/:path*",
-        destination: "/api/media/:path*",
+        source: '/tmp/:path*',
+        destination: '/api/media/:path*',
       },
-    ];
+    ]
   },
   experimental: {
     turbo: {
@@ -29,6 +29,6 @@ const nextConfig = {
       resolveExtensions: ['.tsx', '.ts', '.jsx', '.js'],
     },
   },
-};
+}
 
-export default nextConfig;
+export default nextConfig

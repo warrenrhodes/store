@@ -1,18 +1,18 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose'
 
-let isConnected: boolean = false;
+let isConnected: boolean = false
 
 export const connectToDB = async (): Promise<void> => {
-  mongoose.set("strictQuery", true);
+  mongoose.set('strictQuery', true)
 
   if (isConnected) {
-    console.log("MongoDB is already connected");
-    return;
+    console.log('MongoDB is already connected')
+    return
   }
 
   try {
-    if (!process.env.MONGODB_URL) {
-      throw new Error("MONGODB_URL is not defined in environment variables");
+    if (!process.env.DATABASE_URL) {
+      throw new Error('DATABASE_URL is not defined in environment variables')
     }
 
     const options = {
@@ -21,12 +21,12 @@ export const connectToDB = async (): Promise<void> => {
       retryWrites: true,
       maxPoolSize: 10, // Maintain up to 10 socket connections
       minPoolSize: 1, // Minimum number of socket connections
-    };
-    await mongoose.connect(process.env.MONGODB_URL, options);
+    }
+    await mongoose.connect(process.env.DATABASE_URL, options)
 
-    isConnected = true;
-    console.log("MongoDB is connected");
+    isConnected = true
+    console.log('MongoDB is connected')
   } catch (err) {
-    console.log(err);
+    console.log(err)
   }
-};
+}

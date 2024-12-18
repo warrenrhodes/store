@@ -1,19 +1,30 @@
-import ReviewForm from "@/components/reviews/ReviewFrom";
-import ShipmentForm from "@/components/shipments/ShipmentForm";
-import { getProducts } from "@/lib/actions/actions";
+import ShipmentForm from '@/components/shipments/ShipmentForm'
+import { prisma, Prisma } from '@naturegift/models'
 
+async function getShipments(): Promise<Prisma.ShipmentGetPayload<{}>[]> {
+  try {
+    const shipments = prisma.shipment.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+    })
+    return shipments
+  } catch (error) {
+    console.error('Failed to fetch shipments:', error)
+    return []
+  }
+}
 export default async function NewShipmentPage() {
+  const shipments = await getShipments()
   return (
     <div className="container py-10">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Create New Shipment</h1>
-        <p className="text-muted-foreground">
-          Add a new shipment to your store
-        </p>
+        <p className="text-muted-foreground">Add a new shipment to your store</p>
       </div>
-      <ShipmentForm />
+      <ShipmentForm shipments={shipments} />
     </div>
-  );
+  )
 }
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'

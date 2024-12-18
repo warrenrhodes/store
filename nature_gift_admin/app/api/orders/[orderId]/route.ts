@@ -1,31 +1,34 @@
-import Order from "@/lib/models/Order";
-import Product from "@/lib/models/Product";
-import { connectToDB } from "@/lib/mongoDB";
-import { NextRequest, NextResponse } from "next/server";
+import { connectToDB } from '@/lib/mongoDB'
+import { prisma } from '@naturegift/models'
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { orderId: string } }
-) {
+export async function GET(req: NextRequest, props: { params: Promise<{ orderId: string }> }) {
+  const params = await props.params
   try {
-    await connectToDB();
+    await connectToDB()
 
-    const orderDetails = await Order.findById(params.orderId).populate({
-      path: "items.product",
-      model: Product,
-    });
+    const orderDetails = await prisma.order.findUnique({
+      where: { id: params.orderId },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    })
 
     if (!orderDetails) {
-      return new NextResponse(JSON.stringify({ message: "Order Not Found" }), {
+      return new NextResponse(JSON.stringify({ message: 'Order Not Found' }), {
         status: 404,
-      });
+      })
     }
 
-    return NextResponse.json({ orderDetails }, { status: 200 });
+    return NextResponse.json({ orderDetails }, { status: 200 })
   } catch (err) {
-    console.log("[ORDER_GET]", err);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    console.log('[ORDER_GET]', err)
+    return new NextResponse('Internal Server Error', { status: 500 })
   }
 }
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'

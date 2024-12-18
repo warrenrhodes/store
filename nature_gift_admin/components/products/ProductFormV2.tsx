@@ -1,12 +1,12 @@
-"use client";
+'use client'
 
-import { useState, useCallback } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Loader2, Trash2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useCallback, useState } from 'react'
+import { useForm } from 'react-hook-form'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -14,65 +14,64 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { generateSlug } from "@/lib/utils/slugify";
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { generateSlug } from '@/lib/utils/slugify'
 import {
   productSchema,
   ProductSchemaType,
   productVerificationForm,
-} from "@/lib/validations/product";
+} from '@/lib/validations/product'
 
-import { InventoryFields } from "./product-form.tsx/InventoryFields";
-import { MetadataFields } from "./product-form.tsx/MetadataFields";
-import { PriceFields } from "./product-form.tsx/PriceFields";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import { Switch } from "../ui/switch";
-import { FileUploader } from "../custom-ui/FileUploader";
-import CustomAccordion from "../accordion/CustomAccordion";
-import { FileTargetType } from "../custom-ui/FileUploader";
-import { FileType } from "../accordion/CustomAccordionItem";
-import { FeaturesForm } from "./product-form.tsx/Features";
-import { VariantFields } from "./product-form.tsx/Variant";
-import { ContentEditor } from "./product-form.tsx/ContentEditor";
-import { CategoriesForm } from "./product-form.tsx/Categories";
-import { IProduct } from "@/lib/models/Product";
-import { ICategory } from "@/lib/models/Category";
-import { useToast } from "@/hooks/use-toast";
-import { ToastAction } from "../ui/toast";
+import { useToast } from '@/hooks/use-toast'
+import CustomAccordion from '../accordion/CustomAccordion'
+import { FileType } from '../accordion/CustomAccordionItem'
+import { MediaIdentity, FileUploader } from '../custom-ui/FileUploader'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import { Switch } from '../ui/switch'
+import { ToastAction } from '../ui/toast'
+import { CategoriesForm } from './product-form.tsx/Categories'
+import { ContentEditor } from './product-form.tsx/ContentEditor'
+import { FeaturesForm } from './product-form.tsx/Features'
+import { InventoryFields } from './product-form.tsx/InventoryFields'
+import { MetadataFields } from './product-form.tsx/MetadataFields'
+import { PriceFields } from './product-form.tsx/PriceFields'
+import { VariantFields } from './product-form.tsx/Variant'
+import { Prisma } from '@naturegift/models'
 
 interface ProductFormProps {
-  initialData?: IProduct;
-  categories?: ICategory[];
+  initialData?: Prisma.ProductGetPayload<{}> | null
+  categories: Prisma.CategoryGetPayload<{}>[]
+  categoriesOfProduct: Prisma.CategoriesOnProductsGetPayload<{}>[]
+  mediasOfProduct: Prisma.MediasOnProductsGetPayload<{}>[]
 }
 
-export function ProductFormV2({ initialData, categories }: ProductFormProps) {
-  const { toast } = useToast();
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+export function ProductFormV2({
+  initialData,
+  categories,
+  categoriesOfProduct,
+  mediasOfProduct,
+}: ProductFormProps) {
+  const { toast } = useToast()
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<ProductSchemaType>({
     resolver: zodResolver(productSchema),
     defaultValues: initialData
       ? {
           ...initialData,
-          categories: initialData.categories.map((category) => category._id),
-          media: initialData.media.map((media) => media._id),
+          categoryIds: categoriesOfProduct.map(e => e.categoryId),
+          media: mediasOfProduct.map(e => e.mediaId),
         }
       : {
-          title: "",
-          slug: "",
+          title: '',
+          slug: '',
           isFeature: false,
           isNewProduct: false,
           description: {
-            contentType: "TEXT",
-            content: "",
+            contentType: 'TEXT',
+            content: '',
           },
 
           price: {
@@ -83,90 +82,88 @@ export function ProductFormV2({ initialData, categories }: ProductFormProps) {
             quantity: 0,
             lowStockThreshold: 5,
           },
-          status: "draft",
+          status: 'draft',
           visibility: false,
           media: [],
-          categories: [],
+          categoryIds: [],
           tags: [],
           features: [],
           metadata: {
-            seoTitle: "",
-            seoDescription: "",
+            seoTitle: '',
+            seoDescription: '',
             keywords: [],
           },
         },
-  });
+  })
 
   const onTitleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const title = e.target.value;
-      form.setValue("title", title);
-      form.setValue("slug", generateSlug(title));
+      const title = e.target.value
+      form.setValue('title', title)
+      form.setValue('slug', generateSlug(title))
     },
-    [form]
-  );
+    [form],
+  )
 
   async function onSubmit(data: ProductSchemaType) {
-    const errorMessage = productVerificationForm(data);
-
+    const errorMessage = productVerificationForm(data)
+    console.log(data)
     if (errorMessage) {
       toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
+        variant: 'destructive',
+        title: 'Uh oh! Something went wrong.',
         description: errorMessage,
         action: <ToastAction altText="Try again">Try again</ToastAction>,
-      });
-      return;
+      })
+      return
     }
-    setIsLoading(true);
+    setIsLoading(true)
     try {
       const url = initialData
-        ? `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/products/${initialData._id}`
-        : `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/products`;
+        ? `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/products/${initialData.id}`
+        : `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/products`
       const res = await fetch(url, {
-        method: initialData ? "PUT" : "POST",
+        method: initialData ? 'PUT' : 'POST',
         body: JSON.stringify(data),
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
-      });
+      })
       if (res.ok) {
         toast({
-          variant: "success",
-          description: `Products ${initialData ? "updated" : "created"}`,
-        });
-        window.location.href = "/products";
-        router.push("/products");
+          variant: 'success',
+          description: `Products ${initialData ? 'updated' : 'created'}`,
+        })
+        window.location.href = '/products'
+        router.push('/products')
       } else {
         toast({
-          variant: "destructive",
-          description: "Something went wrong! Please try again.",
-        });
-        console.log(res.body);
+          variant: 'destructive',
+          description: 'Something went wrong! Please try again.',
+        })
+        console.log(res.body)
       }
     } catch (error) {
-      console.error(error);
+      console.error(error)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   }
 
   const onDelete = async (): Promise<boolean> => {
     const res = await fetch(`/api/products/${initialData?.id}`, {
-      method: "DELETE",
-    });
-    return res.ok;
-  };
+      method: 'DELETE',
+    })
+    return res.ok
+  }
 
   const handleKeyPress = (
-    e:
-      | React.KeyboardEvent<HTMLInputElement>
-      | React.KeyboardEvent<HTMLTextAreaElement>
+    e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
   ) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
+    if (e.key === 'Enter') {
+      e.preventDefault()
     }
-  };
+  }
 
   return (
     <Form {...form}>
@@ -198,7 +195,7 @@ export function ProductFormV2({ initialData, categories }: ProductFormProps) {
                 <FormLabel>Product Slug</FormLabel>
                 <FormControl>
                   <Input
-                    {...form.register("slug")}
+                    {...form.register('slug')}
                     onKeyDown={handleKeyPress}
                     placeholder="product-slug"
                     disabled
@@ -217,10 +214,7 @@ export function ProductFormV2({ initialData, categories }: ProductFormProps) {
               <FormItem className="space-y-0 flex gap-3 items-center">
                 <FormLabel className="!mt-0">Is Feature</FormLabel>
                 <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
+                  <Switch checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -233,10 +227,7 @@ export function ProductFormV2({ initialData, categories }: ProductFormProps) {
               <FormItem className="space-y-0 flex gap-3 items-center">
                 <FormLabel className="!mt-0">Is New</FormLabel>
                 <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
+                  <Switch checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -263,7 +254,7 @@ export function ProductFormV2({ initialData, categories }: ProductFormProps) {
                   mediaIds={field.value || []}
                   setContent={(value: string[]) => field.onChange(value)}
                   fileType={FileType.IMAGE}
-                  targetType={FileTargetType.PRODUCT}
+                  targetType={MediaIdentity.ID}
                 />
               </CustomAccordion>
               <FormMessage className="text-red-1" />
@@ -300,10 +291,7 @@ export function ProductFormV2({ initialData, categories }: ProductFormProps) {
             <FormItem className="space-y-0 flex gap-3 items-center">
               <FormLabel className="!mt-0">Visibility</FormLabel>
               <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
+                <Switch checked={field.value} onCheckedChange={field.onChange} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -324,7 +312,7 @@ export function ProductFormV2({ initialData, categories }: ProductFormProps) {
             <FormItem>
               <FormLabel className="!mt-0">Blog Url</FormLabel>
               <FormControl>
-                <Input {...field} type="url" onKeyDown={handleKeyPress} />
+                <Input {...field} type="url" onKeyDown={handleKeyPress} value={field.value || ''} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -332,12 +320,9 @@ export function ProductFormV2({ initialData, categories }: ProductFormProps) {
         />
 
         <div className="flex justify-between">
-          <Button
-            disabled={isLoading}
-            onClick={() => onSubmit(form.getValues())}
-          >
+          <Button disabled={isLoading} onClick={() => onSubmit(form.getValues())}>
             {isLoading && <Loader2 className="animate-spin" />}
-            {initialData ? "Update" : "Create"} Product
+            {initialData ? 'Update' : 'Create'} Product
           </Button>
           {initialData && (
             <Button
@@ -353,5 +338,5 @@ export function ProductFormV2({ initialData, categories }: ProductFormProps) {
         </div>
       </div>
     </Form>
-  );
+  )
 }

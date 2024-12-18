@@ -1,25 +1,26 @@
-import { Film, ImageIcon, Upload, Loader2, Trash2 } from "lucide-react";
-import { useState, useCallback, useEffect } from "react";
-import { useDropzone } from "react-dropzone";
-import { FileType } from "../accordion/CustomAccordionItem";
-import { Button } from "../ui/button";
-import { getMediaById } from "@/lib/actions/actions";
-import { useToast } from "@/hooks/use-toast";
-import Image from "next/image";
+import { useToast } from '@/hooks/use-toast'
+import { Film, ImageIcon, Loader2, Trash2, Upload } from 'lucide-react'
+import Image from 'next/image'
+import { useCallback, useEffect, useState } from 'react'
+import { useDropzone } from 'react-dropzone'
+import { FileType } from '../accordion/CustomAccordionItem'
+import { Button } from '../ui/button'
+import { getMediaById } from '@/lib/actions/actions'
+import { Prisma } from '@naturegift/models'
 
-export enum FileTargetType {
-  "PRODUCT" = "PRODUCT",
-  "CATEGORY" = "CATEGORY",
+export enum MediaIdentity {
+  'ID' = 'ID',
+  'URL' = 'URL',
 }
 
 interface FileUploaderProps {
-  mediaIds: string[];
-  setContent: (value: string[]) => void;
-  fileType: FileType;
-  maxFiles?: number;
-  maxFileSize?: number;
-  targetType?: FileTargetType;
-  multiple?: boolean;
+  mediaIds: string[]
+  setContent: (value: string[]) => void
+  fileType: FileType
+  maxFiles?: number
+  maxFileSize?: number
+  targetType?: MediaIdentity
+  multiple?: boolean
 }
 
 export const FileUploader: React.FC<FileUploaderProps> = ({
@@ -31,94 +32,88 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   targetType,
   multiple = true,
 }) => {
-  const { toast } = useToast();
-  const [files, setFiles] = useState<(File | string)[]>(mediaIds);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast()
+  const [files, setFiles] = useState<(File | string)[]>(mediaIds)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const getFileTypeText = (type: FileType) => {
     switch (type) {
       case FileType.IMAGE:
-        return "images (JPEG, PNG, GIF, WEBP)";
+        return 'images (JPEG, PNG, GIF, WEBP)'
       case FileType.VIDEO:
-        return "videos (MP4, WEBM, OGG)";
+        return 'videos (MP4, WEBM, OGG)'
       default:
-        return "files";
+        return 'files'
     }
-  };
+  }
   const validateFile = (file: File) => {
-    const fileType = file.type.split("/")[0];
+    const fileType = file.type.split('/')[0]
     if (fileType === FileType.IMAGE && ![FileType.IMAGE].includes(fileType)) {
-      return "Only image files are allowed";
+      return 'Only image files are allowed'
     }
     if (fileType === FileType.VIDEO && ![FileType.VIDEO].includes(fileType)) {
-      return "Only video files are allowed";
+      return 'Only video files are allowed'
     }
     if (file.size > maxFileSize) {
-      return `File size must be less than ${maxFileSize / (1024 * 1024)}MB`;
+      return `File size must be less than ${maxFileSize / (1024 * 1024)}MB`
     }
-    return null;
-  };
+    return null
+  }
 
   const onDrop = useCallback(
     (acceptedFiles: File[], rejectedFiles: any[]) => {
-      setError(null);
+      setError(null)
 
       if (rejectedFiles.length > 0) {
-        const errorMessages = rejectedFiles.map((file) => {
-          if (file.size > maxFileSize) return "File too large";
-          return "Invalid file type";
-        });
-        setError(errorMessages[0]);
-        return;
+        const errorMessages = rejectedFiles.map(file => {
+          if (file.size > maxFileSize) return 'File too large'
+          return 'Invalid file type'
+        })
+        setError(errorMessages[0])
+        return
       }
 
       // Validate each file
       for (const file of acceptedFiles) {
-        const error = validateFile(file);
+        const error = validateFile(file)
         if (error) {
-          setError(error);
-          return;
+          setError(error)
+          return
         }
       }
 
       if (files.length + acceptedFiles.length > maxFiles) {
-        setError(`Maximum ${maxFiles} files allowed`);
-        return;
+        setError(`Maximum ${maxFiles} files allowed`)
+        return
       }
 
-      setFiles((prev) => [...prev, ...acceptedFiles]);
+      setFiles(prev => [...prev, ...acceptedFiles])
     },
-    [files, maxFiles, maxFileSize, fileType]
-  );
+    [files, maxFiles, maxFileSize, fileType],
+  )
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept:
       fileType === FileType.VIDEO
         ? {
-            "video/*": [".mp4", ".webm", ".ogg"],
+            'video/*': ['.mp4', '.webm', '.ogg'],
           }
-        : { "image/*": [".jpeg", ".jpg", ".png", ".gif", ".webp"] },
+        : { 'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp'] },
     maxSize: maxFileSize,
     multiple: multiple, // Use the multiple prop to determine if multiple files can be selected
-  });
+  })
 
   const removeFile = (index: number) => {
-    setFiles(files.filter((_, i) => i !== index));
-    setError(null);
-  };
+    setFiles(files.filter((_, i) => i !== index))
+    setError(null)
+  }
   const renderPreview = (file: File | string, index: number) => {
-    if (typeof file === "string") {
-      return (
-        <ImageRender
-          key={index}
-          mediaId={file}
-          removeFile={() => removeFile(index)}
-        />
-      );
+    if (typeof file === 'string') {
+      return <ImageRender key={index} mediaId={file} removeFile={() => removeFile(index)} />
     } else {
-      const isVideo = file.type.startsWith("video/");
-      const isImage = file.type.startsWith("image/");
+      const isVideo = file.type.startsWith('video/')
+      const isImage = file.type.startsWith('image/')
 
       return (
         <div key={index} className="relative group">
@@ -129,6 +124,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 alt={`Preview ${index + 1}`}
                 fill
                 className="w-full h-full object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 // onLoad={() => URL.revokeObjectURL(URL.createObjectURL(file))}
               />
             )}
@@ -137,9 +133,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 <video
                   src={URL.createObjectURL(file)}
                   className="w-full h-full object-cover"
-                  onLoadedMetadata={() =>
-                    URL.revokeObjectURL(URL.createObjectURL(file))
-                  }
+                  onLoadedMetadata={() => URL.revokeObjectURL(URL.createObjectURL(file))}
                 />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                   <Film className="w-8 h-8 text-white" />
@@ -151,9 +145,9 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             {file.name}
           </div>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              removeFile(index);
+            onClick={e => {
+              e.stopPropagation()
+              removeFile(index)
             }}
             className="absolute -top-2 -right-2 bg-red-500 text-white p-1.5
                     shadow-lg transition-opacity"
@@ -161,52 +155,54 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             <Trash2 size={14} />
           </button>
         </div>
-      );
+      )
     }
-  };
+  }
   const updateFile = async (files: File[]): Promise<string[] | null> => {
-    const formData = new FormData();
+    const formData = new FormData()
     files.forEach((file, index) => {
-      formData.append(`files`, file);
-    });
-    const result = await fetch("/api/media/upload", {
-      method: "POST",
+      formData.append(`files`, file)
+    })
+    const result = await fetch('/api/media/upload', {
+      method: 'POST',
       body: formData,
-    });
+    })
     if (result.ok) {
-      const data = await result.json();
-
-      return data.files.map((e: any) =>
-        targetType === FileTargetType.PRODUCT ? e.file.id : e.file.url
-      );
+      const data = await result.json()
+      return data.data.files.map((e: Prisma.MediaGetPayload<{}>) =>
+        targetType === MediaIdentity.ID ? e.id : e.url,
+      )
     }
-    return null;
-  };
+    return null
+  }
 
   const handleImport = async () => {
-    const existingFiles = files.filter((f) => typeof f === "string");
-    const updatedFiles = files.filter((f) => !(typeof f === "string"));
+    const existingFiles = files.filter(f => typeof f === 'string')
+    const updatedFiles = files.filter(f => !(typeof f === 'string'))
     if (files.length === 0) {
-      setError("Please select at least one file");
-      return;
+      setError('Please select at least one file')
+      return
     }
 
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      const result = await updateFile(updatedFiles);
+      const result = await updateFile(updatedFiles)
       if (result) {
-        existingFiles.push(...result);
+        existingFiles.push(...result)
+        setIsLoading(false)
+        toast({ description: 'File uploaded successfully!' })
+        setContent(existingFiles)
+        return
       }
-
-      setContent(existingFiles);
-      setError(null);
+      setError(null)
+      setIsLoading(false)
+      toast({ description: 'Failed to upload file' })
     } catch (err) {
-      setError("Upload failed. Please try again.");
-    } finally {
-      setIsLoading(false);
-      toast({ description: "File uploaded successfully!" });
+      console.log(err)
+      setIsLoading(false)
+      setError('Upload failed. Please try again.')
     }
-  };
+  }
 
   return (
     <div className="w-full">
@@ -214,8 +210,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         <div
           {...getRootProps()}
           className={`relative rounded-lg border-2 border-dashed transition-colors
-              ${isDragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"}
-              ${error ? "border-red-500" : ""}
+              ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}
+              ${error ? 'border-red-500' : ''}
               hover:border-blue-500`}
         >
           <input {...getInputProps()} id="fileInput" />
@@ -232,23 +228,18 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 <span className="text-blue-500">Drop files here...</span>
               ) : (
                 <span>
-                  Drag & drop {getFileTypeText(fileType)}, or{" "}
+                  Drag & drop {getFileTypeText(fileType)}, or{' '}
                   <span className="text-blue-500 cursor-pointer">browse</span>
                 </span>
               )}
             </p>
             <p className="text-sm text-gray-500 mt-2">
-              Maximum {maxFiles} files, up to {maxFileSize / (1024 * 1024)}MB
-              each
+              Maximum {maxFiles} files, up to {maxFileSize / (1024 * 1024)}MB each
             </p>
           </div>
         </div>
 
-        {error && (
-          <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">
-            {error}
-          </div>
-        )}
+        {error && <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">{error}</div>}
 
         {files.length > 0 && (
           <div className="mt-6 bg-gray-50 rounded-lg p-4">
@@ -261,8 +252,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         <div className="mt-6 border-t border-gray-200 pt-6 flex gap-4">
           <Button
             onClick={() => {
-              setFiles([]);
-              setError(null);
+              setFiles([])
+              setError(null)
             }}
             variant="outline"
             className="flex-1"
@@ -281,30 +272,23 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 Uploading...
               </>
             ) : (
-              "Save Data"
+              'Save Data'
             )}
           </Button>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-const ImageRender = ({
-  mediaId,
-  removeFile,
-}: {
-  mediaId: string;
-  removeFile: () => void;
-}) => {
-  const [fileUrl, setFileUrl] = useState<string>();
+const ImageRender = ({ mediaId, removeFile }: { mediaId: string; removeFile: () => void }) => {
+  const [fileUrl, setFileUrl] = useState<string>()
 
   useEffect(() => {
-    getMediaById(mediaId).then((url) => {
-      if (url) setFileUrl(url);
-    });
-  }, [mediaId]);
-
+    getMediaById(mediaId).then(url => {
+      if (url) setFileUrl(url)
+    })
+  }, [mediaId])
   return (
     <div className="relative group">
       <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
@@ -313,10 +297,11 @@ const ImageRender = ({
         ) : (
           <Image
             src={fileUrl}
-            alt={`Preview of ${mediaId}`}
+            alt={`Preview of ${fileUrl}`}
             fill
             className="w-full h-full object-cover rounded-lg"
-            onLoad={() => URL.revokeObjectURL(fileUrl || "")}
+            onLoad={() => URL.revokeObjectURL(fileUrl || '')}
+            sizes="(max-width: 768px) 100vw,"
           />
         )}
       </div>
@@ -324,9 +309,9 @@ const ImageRender = ({
         {mediaId as string}
       </div>
       <button
-        onClick={(e) => {
-          e.stopPropagation();
-          removeFile();
+        onClick={e => {
+          e.stopPropagation()
+          removeFile()
         }}
         className="absolute -top-2 -right-2 bg-red-500 text-white p-1.5
           shadow-lg transition-opacity"
@@ -334,5 +319,5 @@ const ImageRender = ({
         <Trash2 size={14} />
       </button>
     </div>
-  );
-};
+  )
+}

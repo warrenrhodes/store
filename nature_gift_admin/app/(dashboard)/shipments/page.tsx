@@ -1,24 +1,27 @@
-import { ShipmentList } from "@/components/shipments/ShipmentList";
+import { ShipmentList } from '@/components/shipments/ShipmentList'
+import { Prisma, prisma } from '@naturegift/models'
 
-async function getShipments() {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/shipments`
-  );
-  if (!response.ok) {
-    console.error("Failed to fetch reviews");
-    return [];
+async function getShipments(): Promise<Prisma.ShipmentGetPayload<{}>[]> {
+  try {
+    const shipments = prisma.shipment.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+    })
+    return shipments
+  } catch (error) {
+    console.error('Failed to fetch shipments:', error)
+    return []
   }
-  const shipments = await response.json();
-  return shipments;
 }
 
 export default async function ShipmentsPage() {
-  const shipments = await getShipments();
+  const shipments = await getShipments()
   return (
     <div className="container py-10">
       <ShipmentList shipments={shipments} />
     </div>
-  );
+  )
 }
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'

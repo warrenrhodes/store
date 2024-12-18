@@ -1,13 +1,13 @@
-"use client";
+'use client'
 
-import { useCallback, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarIcon, Loader2, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { addDays, format, subDays } from "date-fns";
+import { useCallback, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { CalendarIcon, Loader2, Trash2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { format, subDays } from 'date-fns'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -15,129 +15,119 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import {
-  promotionSchema,
-  validatePromotionFrom,
-} from "@/lib/validations/promotions";
-import { IPromotion } from "@/lib/models/Promotions";
-import { PromotionSchemaType } from "@/lib/validations/promotions";
-import { ActionFields } from "./promotionForm/ActionFields";
-import { ConditionFields } from "./promotionForm/ConditionFields";
-import { IProduct } from "@/lib/models/Product";
-import { generatePromoCode } from "@/lib/utils/generate-promo";
-import { useToast } from "@/hooks/use-toast";
-import { ToastAction } from "../ui/toast";
+} from '@/components/ui/select'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { cn } from '@/lib/utils'
+import { promotionSchema, validatePromotionFrom } from '@/lib/validations/promotions'
+import { PromotionSchemaType } from '@/lib/validations/promotions'
+import { ActionFields } from './promotionForm/ActionFields'
+import { ConditionFields } from './promotionForm/ConditionFields'
+import { generatePromoCode } from '@/lib/utils/generate-promo'
+import { useToast } from '@/hooks/use-toast'
+import { ToastAction } from '../ui/toast'
+import { Prisma } from '@naturegift/models'
 
 interface PromotionFormProps {
-  initialData?: IPromotion;
-  products: IProduct[];
+  initialData?: Prisma.PromotionGetPayload<{}> | null
+  products: Prisma.ProductGetPayload<{}>[]
 }
 
 export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
-  const router = useRouter();
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter()
+  const { toast } = useToast()
+  const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<PromotionSchemaType>({
     resolver: zodResolver(promotionSchema),
     defaultValues: initialData || {
-      code: "",
-      name: "",
-      description: "",
+      code: '',
+      name: '',
+      description: '',
       startDate: new Date(),
       endDate: new Date(),
       conditions: [],
       actions: [],
-      status: "DRAFT",
+      status: 'DRAFT',
       priority: 0,
       metadata: {
-        createdBy: "",
-        updatedBy: "",
+        createdBy: '',
+        updatedBy: '',
       },
     },
-  });
+  })
 
   async function onSubmit(data: PromotionSchemaType) {
-    const errorMessage = validatePromotionFrom(data);
+    const errorMessage = validatePromotionFrom(data)
 
     if (errorMessage) {
       toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
+        variant: 'destructive',
+        title: 'Uh oh! Something went wrong.',
         description: errorMessage,
         action: <ToastAction altText="Try again">Try again</ToastAction>,
-      });
-      return;
+      })
+      return
     }
-    setIsLoading(true);
+    setIsLoading(true)
     try {
       const url = initialData
-        ? `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/promotions/${initialData._id}`
-        : `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/promotions`;
+        ? `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/promotions/${initialData.id}`
+        : `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/promotions`
 
       const res = await fetch(url, {
-        method: initialData ? "PATCH" : "POST",
+        method: initialData ? 'PATCH' : 'POST',
         body: JSON.stringify(data),
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
-      });
+      })
       if (res.ok) {
         toast({
-          variant: "success",
-          description: `Promotions ${initialData ? "updated" : "created"}`,
-        });
-        window.location.href = "/promotions";
-        router.push("/promotions");
+          variant: 'success',
+          description: `Promotions ${initialData ? 'updated' : 'created'}`,
+        })
+        window.location.href = '/promotions'
+        router.push('/promotions')
       } else {
         toast({
-          variant: "destructive",
-          description: "Something went wrong! Please try again.",
-        });
-        console.log(res.body);
+          variant: 'destructive',
+          description: 'Something went wrong! Please try again.',
+        })
+        console.log(res.body)
       }
     } catch (error) {
-      console.error(error);
+      console.error(error)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   }
 
   const onTitleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const name = e.target.value;
-      form.setValue("name", name);
-      form.setValue("code", generatePromoCode(name));
+      const name = e.target.value
+      form.setValue('name', name)
+      form.setValue('code', generatePromoCode(name))
     },
-    [form]
-  );
+    [form],
+  )
 
   const handleKeyPress = (
-    e:
-      | React.KeyboardEvent<HTMLInputElement>
-      | React.KeyboardEvent<HTMLTextAreaElement>
+    e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
   ) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
+    if (e.key === 'Enter') {
+      e.preventDefault()
     }
-  };
+  }
 
   return (
     <Form {...form}>
@@ -168,12 +158,7 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
               <FormItem>
                 <FormLabel>Promotion Code</FormLabel>
                 <FormControl>
-                  <Input
-                    {...field}
-                    placeholder="SUMMER2024"
-                    disabled
-                    onKeyDown={handleKeyPress}
-                  />
+                  <Input {...field} placeholder="SUMMER2024" disabled onKeyDown={handleKeyPress} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -187,7 +172,7 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea {...field} />
+                <Textarea {...field} value={field.value || ''} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -207,15 +192,11 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
+                          'w-full pl-3 text-left font-normal',
+                          !field.value && 'text-muted-foreground',
                         )}
                       >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
+                        {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
@@ -225,7 +206,7 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
                       mode="single"
                       selected={new Date(field.value)}
                       onSelect={field.onChange}
-                      disabled={(date) => date < subDays(new Date(), 1)}
+                      disabled={date => date < subDays(new Date(), 1)}
                       initialFocus
                     />
                   </PopoverContent>
@@ -247,15 +228,11 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
+                          'w-full pl-3 text-left font-normal',
+                          !field.value && 'text-muted-foreground',
                         )}
                       >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
+                        {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
@@ -265,7 +242,7 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
                       mode="single"
                       selected={new Date(field.value)}
                       onSelect={field.onChange}
-                      disabled={(date) => date < form.getValues("startDate")}
+                      disabled={date => date < form.getValues('startDate')}
                       initialFocus
                     />
                   </PopoverContent>
@@ -286,10 +263,7 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Status</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select status" />
@@ -316,22 +290,22 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
                   <Input
                     type="number"
                     {...field}
-                    onChange={(e) => {
-                      const value = e.target.value;
+                    onChange={e => {
+                      const value = e.target.value
                       if (/^\d*$/.test(value)) {
-                        const parsedValue = value ? parseInt(value) : 0;
-                        field.onChange(parsedValue);
+                        const parsedValue = value ? parseInt(value) : 0
+                        field.onChange(parsedValue)
                       }
                     }}
-                    onKeyDown={(e) => {
+                    onKeyDown={e => {
                       if (
                         !/\d/.test(e.key) &&
-                        e.key !== "Backspace" &&
-                        e.key !== "Delete" &&
-                        e.key !== "ArrowLeft" &&
-                        e.key !== "ArrowRight"
+                        e.key !== 'Backspace' &&
+                        e.key !== 'Delete' &&
+                        e.key !== 'ArrowLeft' &&
+                        e.key !== 'ArrowRight'
                       ) {
-                        e.preventDefault();
+                        e.preventDefault()
                       }
                     }}
                   />
@@ -343,12 +317,9 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
         </div>
 
         <div className="flex justify-between">
-          <Button
-            disabled={isLoading}
-            onClick={() => onSubmit(form.getValues())}
-          >
+          <Button disabled={isLoading} onClick={() => onSubmit(form.getValues())}>
             {isLoading && <Loader2 className="animate-spin" />}
-            {initialData ? "Update" : "Create"} Promotion
+            {initialData ? 'Update' : 'Create'} Promotion
           </Button>
           {initialData && (
             <Button
@@ -356,17 +327,17 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
               variant="destructive"
               disabled={isLoading}
               onClick={async () => {
-                setIsLoading(true);
+                setIsLoading(true)
                 try {
                   await fetch(`/api/promotions/${initialData.id}`, {
-                    method: "DELETE",
-                  });
-                  router.refresh();
-                  router.push("/promotions");
+                    method: 'DELETE',
+                  })
+                  router.refresh()
+                  router.push('/promotions')
                 } catch (error) {
-                  console.error(error);
+                  console.error(error)
                 } finally {
-                  setIsLoading(false);
+                  setIsLoading(false)
                 }
               }}
             >
@@ -377,5 +348,5 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
         </div>
       </div>
     </Form>
-  );
+  )
 }

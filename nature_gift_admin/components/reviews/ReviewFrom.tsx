@@ -1,12 +1,11 @@
-"use client";
+'use client'
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { useRouter } from "next/navigation";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useRouter } from 'next/navigation'
+import { useForm } from 'react-hook-form'
 
-import { Separator } from "../ui/separator";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -14,130 +13,117 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "../ui/textarea";
-import { ChangeEvent, useEffect, useState } from "react";
-import Delete from "../custom-ui/Delete";
-import { Camera, Loader2, Trash2, X } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Checkbox } from "../ui/checkbox";
-import { Label } from "../ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { uploadImages } from "@/lib/actions/actions";
-import { IProduct } from "@/lib/models/Product";
-import { useToast } from "@/hooks/use-toast";
-import { reviewSchema, ReviewSchemaType } from "@/lib/validations/reviews";
-import { IReview } from "@/lib/models/Reviews";
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { useToast } from '@/hooks/use-toast'
+import { uploadImages } from '@/lib/actions/actions'
+import { cn } from '@/lib/utils'
+import { reviewSchema, ReviewSchemaType } from '@/lib/validations/reviews'
+import { AlertTriangle, Camera, Loader2, Trash2, X } from 'lucide-react'
+import { ChangeEvent, useState } from 'react'
+import { Checkbox } from '../ui/checkbox'
+import { Label } from '../ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import { Textarea } from '../ui/textarea'
+import { Prisma } from '@naturegift/models'
 
 interface ReviewFormProps {
-  initialData?: IReview | null;
-  products: IProduct[];
+  initialData?: Prisma.ReviewGetPayload<{}> | null
+  products: Prisma.ProductGetPayload<{}>[]
 }
 
 const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
-  const router = useRouter();
-  const { toast } = useToast();
-  const [imagePreview, setImagePreview] = useState<File | null>(null);
-  const [isLoading, setLoading] = useState(false);
+  const router = useRouter()
+  const { toast } = useToast()
+  const [imagePreview, setImagePreview] = useState<File | null>(null)
+  const [isLoading, setLoading] = useState(false)
 
   const form = useForm<ReviewSchemaType>({
     resolver: zodResolver(reviewSchema),
     defaultValues: initialData
       ? {
           ...initialData,
-          product: initialData.product._id || "",
+          productId: initialData.productId || '',
           notHelpful: initialData.notHelpful ?? 0,
           helpful: initialData.helpful ?? 0,
         }
       : {
-          userName: "",
+          userName: '',
           rating: 1,
-          comment: "",
+          comment: '',
           helpful: 0,
           verify: false,
-          product: "",
+          productId: '',
           notHelpful: 0,
         },
-  });
+  })
 
   const handleKeyPress = (
-    e:
-      | React.KeyboardEvent<HTMLInputElement>
-      | React.KeyboardEvent<HTMLTextAreaElement>
+    e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
   ) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
+    if (e.key === 'Enter') {
+      e.preventDefault()
     }
-  };
+  }
 
   const onSubmit = async (values: ReviewSchemaType) => {
     try {
-      setLoading(true);
+      setLoading(true)
       if (imagePreview) {
-        const imageUrl = await uploadImages([imagePreview]);
+        const imageUrl = await uploadImages([imagePreview])
         if (imageUrl) {
-          values.imageUrl = imageUrl;
+          values.imageUrl = imageUrl
         } else {
-          setLoading(false);
+          setLoading(false)
           toast({
-            description: "Failed to upload image. Please try again.",
-            variant: "destructive",
-          });
-          return;
+            description: 'Failed to upload image. Please try again.',
+            variant: 'destructive',
+          })
+          return
         }
       }
-      const url = initialData
-        ? `/api/reviews/${initialData._id}`
-        : "/api/reviews";
+      const url = initialData ? `/api/reviews/${initialData.id}` : '/api/reviews'
       const res = await fetch(url, {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify(values),
-      });
+      })
       if (res.ok) {
-        setLoading(false);
+        setLoading(false)
         toast({
-          description: `Review ${initialData ? "updated" : "created"}`,
-          variant: "success",
-        });
-        window.location.href = "/reviews";
-        router.push("/reviews");
+          description: `Review ${initialData ? 'updated' : 'created'}`,
+          variant: 'success',
+        })
+        window.location.href = '/reviews'
+        router.push('/reviews')
       } else {
-        setLoading(false);
+        setLoading(false)
         toast({
-          description: "Something went wrong! Please try again.",
-          variant: "destructive",
-        });
+          description: 'Something went wrong! Please try again.',
+          variant: 'destructive',
+        })
       }
     } catch (err) {
-      console.log("[reviews_POST]", err);
+      console.log('[reviews_POST]', err)
       toast({
-        description: "Something went wrong! Please try again.",
-        variant: "destructive",
-      });
+        description: 'Something went wrong! Please try again.',
+        variant: 'destructive',
+      })
     }
-  };
+  }
 
   const onDelete = async (): Promise<boolean> => {
-    const res = await fetch(`/api/reviews/${initialData?._id}`, {
-      method: "DELETE",
-    });
-    return res.ok;
-  };
+    const res = await fetch(`/api/reviews/${initialData?.id}`, {
+      method: 'DELETE',
+    })
+    return res.ok
+  }
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]
     if (file) {
-      setImagePreview(file);
+      setImagePreview(file)
     }
-  };
+  }
 
   return (
     <div className="p-10">
@@ -150,28 +136,22 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
               <FormItem>
                 <FormLabel>User Name</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="User Name"
-                    {...field}
-                    onKeyDown={handleKeyPress}
-                  />
+                  <Input placeholder="User Name" {...field} onKeyDown={handleKeyPress} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          {products.length > 0 && (
-            <FormField
-              control={form.control}
-              name="product"
-              render={({ field }) => (
-                <FormItem className=" flex flex-col gap-3">
-                  <FormLabel>Product</FormLabel>
+          <FormField
+            control={form.control}
+            name="productId"
+            render={({ field }) => (
+              <FormItem className=" flex flex-col gap-3">
+                <FormLabel>Product</FormLabel>
+
+                {products.length > 0 ? (
                   <div className="flex flex-row items-center gap-3">
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value || ""}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
                       <FormControl>
                         <SelectTrigger className="w-[180px]">
                           <SelectValue placeholder="Select a product" />
@@ -179,8 +159,8 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
                       </FormControl>
 
                       <SelectContent>
-                        {products.map((product) => (
-                          <SelectItem key={product._id} value={product._id}>
+                        {products.map(product => (
+                          <SelectItem key={product.id} value={product.id}>
                             {product.title}
                           </SelectItem>
                         ))}
@@ -192,17 +172,20 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
                         {
                           hidden: !field.value,
                         },
-                        "text-red-500 cursor-pointer"
+                        'text-red-500 cursor-pointer',
                       )}
                       onClick={() => field.onChange(null)}
                     />
                   </div>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+                ) : (
+                  <div className="text-red-500 flex items-center gap-3 justify-center">
+                    <AlertTriangle /> Adds least of one product before create a review
+                  </div>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="rating"
@@ -210,16 +193,12 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
               <FormItem>
                 <FormLabel>Rating</FormLabel>
                 <div className="flex items-center space-x-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
+                  {[1, 2, 3, 4, 5].map(star => (
                     <Button
                       key={star}
                       type="button"
                       variant="ghost"
-                      className={`p-1 ${
-                        field.value >= star
-                          ? "text-yellow-400"
-                          : "text-gray-300"
-                      }`}
+                      className={`p-1 ${field.value >= star ? 'text-yellow-400' : 'text-gray-300'}`}
                       onClick={() => field.onChange(star)}
                     >
                       ★
@@ -239,7 +218,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
                 <FormLabel>Comment</FormLabel>
                 <FormControl>
                   <Textarea
-                    value={field.value || ""}
+                    value={field.value || ''}
                     maxLength={500}
                     placeholder="Comment"
                     rows={5}
@@ -260,11 +239,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
                   <FormLabel>Image</FormLabel>
                   <Avatar className="w-24 h-24">
                     <AvatarImage
-                      src={
-                        field.value ||
-                        (imagePreview && URL.createObjectURL(imagePreview)) ||
-                        ""
-                      }
+                      src={field.value || (imagePreview && URL.createObjectURL(imagePreview)) || ''}
                       alt="User avatar"
                     />
                     <AvatarFallback className="bg-gray-100">
@@ -297,10 +272,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
               <FormItem className=" flex items-center gap-3 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 <FormLabel>Verify</FormLabel>
                 <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
               </FormItem>
             )}
@@ -317,9 +289,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
                     type="number"
                     {...field}
                     onKeyDown={handleKeyPress}
-                    onChange={(e) =>
-                      field.onChange(parseInt(e.target.value || "0"))
-                    }
+                    onChange={e => field.onChange(parseInt(e.target.value || '0'))}
                   />
                 </FormControl>
                 <FormMessage />
@@ -339,9 +309,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
                     placeholder="Not Helpful"
                     {...field}
                     onKeyDown={handleKeyPress}
-                    onChange={(e) =>
-                      field.onChange(parseInt(e.target.value || "0"))
-                    }
+                    onChange={e => field.onChange(parseInt(e.target.value || '0'))}
                   />
                 </FormControl>
                 <FormMessage />
@@ -349,12 +317,9 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
             )}
           />
           <div className="flex justify-between">
-            <Button
-              disabled={isLoading}
-              onClick={() => onSubmit(form.getValues())}
-            >
+            <Button disabled={isLoading || products.length < 1}>
               {isLoading && <Loader2 className="animate-spin" />}
-              {initialData ? "Update" : "Create"} Review
+              {initialData ? 'Update' : 'Create'} Review
             </Button>
             {initialData && (
               <Button
@@ -371,7 +336,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
         </form>
       </Form>
     </div>
-  );
-};
+  )
+}
 
-export default ReviewForm;
+export default ReviewForm

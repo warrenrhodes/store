@@ -1,38 +1,19 @@
-import { ProductFormV2 } from "@/components/products/ProductFormV2";
-import { notFound } from "next/navigation";
-async function getProduct(productId: string) {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/products/${productId}`
-  );
+import { ProductFormV2 } from '@/components/products/ProductFormV2'
+import {
+  getCategories,
+  getCategoriesOfProduct,
+  getMediasOfProduct,
+  getProductId,
+} from '@/lib/actions/actions'
 
-  if (!response.ok) {
-    notFound();
-  }
-
-  return response.json();
-}
-
-async function getCategories() {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/categories`
-  );
-  if (!response.ok) {
-    console.error("Failed to fetch categories");
-    return [];
-  }
-  const categories = await response.json();
-  return categories;
-}
-
-export default async function EditProductPage({
-  params,
-}: {
-  params: { productId: string };
-}) {
-  const [product, categories] = await Promise.all([
-    getProduct(params.productId),
+export default async function EditProductPage(props: { params: Promise<{ productId: string }> }) {
+  const params = await props.params
+  const [product, categories, categoriesOfProduct, mediasOfProduct] = await Promise.all([
+    getProductId(params.productId),
     getCategories(),
-  ]);
+    getCategoriesOfProduct(params.productId),
+    getMediasOfProduct(params.productId),
+  ])
 
   return (
     <div className="container py-10">
@@ -40,9 +21,14 @@ export default async function EditProductPage({
         <h1 className="text-3xl font-bold">Edit Product</h1>
         <p className="text-muted-foreground">Make changes to your product</p>
       </div>
-      <ProductFormV2 initialData={product} categories={categories} />
+      <ProductFormV2
+        initialData={product}
+        categories={categories}
+        categoriesOfProduct={categoriesOfProduct}
+        mediasOfProduct={mediasOfProduct}
+      />
     </div>
-  );
+  )
 }
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'

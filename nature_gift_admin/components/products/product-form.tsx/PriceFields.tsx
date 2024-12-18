@@ -1,62 +1,49 @@
-"use client";
+'use client'
 
-import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { ProductSchemaType } from "@/lib/validations/product";
-import { Controller, useForm, UseFormReturn } from "react-hook-form";
-import { addDays, format } from "date-fns";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
-import { DateRange } from "react-day-picker";
-import { useEffect, useState } from "react";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { ProductSchemaType } from '@/lib/validations/product'
+import { UseFormReturn } from 'react-hook-form'
+import { addDays, format } from 'date-fns'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { CalendarIcon } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
+import { cn } from '@/lib/utils'
+import { DateRange } from 'react-day-picker'
+import { useEffect, useState } from 'react'
 
 interface PriceFieldsProps {
-  form: UseFormReturn<ProductSchemaType>;
+  form: UseFormReturn<ProductSchemaType>
 }
 
 export function PriceFields({ form }: PriceFieldsProps) {
-  const saleStartDate = form.getValues("price.saleStartDate");
-  const saleEndDate = form.getValues("price.saleEndDate");
+  const saleStartDate = form.getValues('price.saleStartDate')
+  const saleEndDate = form.getValues('price.saleEndDate')
 
-  form.getValues("price.saleStartDate") !== undefined &&
-  typeof form.getValues("price.saleStartDate") === "string"
+  form.getValues('price.saleStartDate') !== undefined &&
+  typeof form.getValues('price.saleStartDate') === 'string'
     ? new Date()
-    : form.getValues("price.saleStartDate");
+    : form.getValues('price.saleStartDate')
   const [date, setDate] = useState<DateRange | undefined>({
     from: (saleStartDate && new Date(saleStartDate)) || addDays(new Date(), 1),
     to: (saleEndDate && new Date(saleEndDate)) || addDays(new Date(), 20),
-  });
+  })
 
   useEffect(() => {
     if (date) {
-      form.setValue("price.saleStartDate", date.from);
-      form.setValue("price.saleEndDate", date.to);
+      form.setValue('price.saleStartDate', date.from)
+      form.setValue('price.saleEndDate', date.to)
     }
-  }, [date, form]);
+  }, [date, form])
 
   const handleKeyPress = (
-    e:
-      | React.KeyboardEvent<HTMLInputElement>
-      | React.KeyboardEvent<HTMLTextAreaElement>
+    e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
   ) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
+    if (e.key === 'Enter') {
+      e.preventDefault()
     }
-  };
+  }
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -72,9 +59,7 @@ export function PriceFields({ form }: PriceFieldsProps) {
                 step="0.01"
                 {...field}
                 onKeyDown={handleKeyPress}
-                onChange={(e) =>
-                  field.onChange(parseFloat(e.target.value || "0"))
-                }
+                onChange={e => field.onChange(parseFloat(e.target.value || '0'))}
               />
             </FormControl>
             <FormMessage />
@@ -93,9 +78,9 @@ export function PriceFields({ form }: PriceFieldsProps) {
                 <Input
                   type="number"
                   step="0.01"
-                  value={field.value || "0"}
+                  value={field.value || '0'}
                   onKeyDown={handleKeyPress}
-                  onChange={(e) => field.onChange(parseInt(e.target.value))}
+                  onChange={e => field.onChange(parseInt(e.target.value))}
                 />
               </FormControl>
             </FormControl>
@@ -103,27 +88,26 @@ export function PriceFields({ form }: PriceFieldsProps) {
           </FormItem>
         )}
       />
-      <div className={cn("grid gap-2")}>
+      <div className={cn('grid gap-2')}>
         <FormLabel>Sale Date Range (Optional)</FormLabel>
         <Popover>
           <PopoverTrigger asChild>
             <Button
               id="date"
-              variant={"outline"}
+              variant={'outline'}
               className={cn(
-                "w-[300px] justify-start text-left font-normal",
-                !date && "text-muted-foreground"
+                'w-[300px] justify-start text-left font-normal',
+                !date && 'text-muted-foreground',
               )}
             >
               <CalendarIcon />
               {date?.from ? (
                 date.to ? (
                   <>
-                    {format(date.from, "LLL dd, y")} -{" "}
-                    {format(date.to, "LLL dd, y")}
+                    {format(date.from, 'LLL dd, y')} - {format(date.to, 'LLL dd, y')}
                   </>
                 ) : (
-                  format(date.from, "LLL dd, y")
+                  format(date.from, 'LLL dd, y')
                 )
               ) : (
                 <span>Pick a date</span>
@@ -138,14 +122,14 @@ export function PriceFields({ form }: PriceFieldsProps) {
               selected={date}
               onSelect={setDate}
               numberOfMonths={2}
-              disabled={(date) => {
-                const today = new Date();
-                return date < today;
+              disabled={date => {
+                const today = new Date()
+                return date < today
               }}
             />
           </PopoverContent>
         </Popover>
       </div>
     </div>
-  );
+  )
 }

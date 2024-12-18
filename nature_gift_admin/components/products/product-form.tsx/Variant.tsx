@@ -1,16 +1,10 @@
-import MultiText from "@/components/custom-ui/MultiText";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { ProductSchemaType } from "@/lib/validations/product";
-import { UseFormReturn } from "react-hook-form";
+import MultiText from '@/components/custom-ui/MultiText'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { ProductSchemaType } from '@/lib/validations/product'
+import { UseFormReturn } from 'react-hook-form'
 
 interface VariantFieldsProps {
-  form: UseFormReturn<ProductSchemaType>;
+  form: UseFormReturn<ProductSchemaType>
 }
 export function VariantFields({ form }: VariantFieldsProps) {
   return (
@@ -24,11 +18,9 @@ export function VariantFields({ form }: VariantFieldsProps) {
             <MultiText
               placeholder="Tags"
               value={field.value || []}
-              onChange={(tag) => field.onChange([...(field.value || []), tag])}
-              onRemove={(tagToRemove) =>
-                field.onChange([
-                  ...(field.value || []).filter((tag) => tag !== tagToRemove),
-                ])
+              onChange={tag => field.onChange([...(field.value || []), tag])}
+              onRemove={tagToRemove =>
+                field.onChange([...(field.value || []).filter(tag => tag !== tagToRemove)])
               }
             />
           </FormControl>
@@ -36,5 +28,5 @@ export function VariantFields({ form }: VariantFieldsProps) {
         </FormItem>
       )}
     />
-  );
+  )
 }

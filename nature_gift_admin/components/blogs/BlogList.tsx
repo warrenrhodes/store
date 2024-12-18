@@ -1,14 +1,14 @@
-"use client";
-import Link from "next/link";
-import { Plus } from "lucide-react";
+'use client'
+import { Plus } from 'lucide-react'
+import Link from 'next/link'
 
-import { Button } from "@/components/ui/button";
-import { DataTable } from "../custom-ui/DataTable";
-import { IBlog } from "@/lib/models/Blog";
-import { blogsColumns } from "./BlogColumn";
+import { Button } from '@/components/ui/button'
+import { Prisma } from '@naturegift/models'
+import { DataTable } from '../custom-ui/DataTable'
+import { blogsColumns } from './BlogColumn'
 
 interface BlogListProps {
-  blogs: IBlog[];
+  blogs: Prisma.BlogGetPayload<{}>[]
 }
 
 export function BlogList({ blogs }: BlogListProps) {
@@ -28,11 +28,11 @@ export function BlogList({ blogs }: BlogListProps) {
         data={blogs}
         searchKey="title"
         filterButton={{
-          label: "Status",
-          columnKey: "status",
-          values: ["PUBLISHED", "DRAFT", "ARCHIVED"],
+          label: 'Status',
+          columnKey: 'status',
+          values: ['PUBLISHED', 'DRAFT', 'ARCHIVED'],
         }}
       />
     </div>
-  );
+  )
 }

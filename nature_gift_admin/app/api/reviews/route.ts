@@ -1,49 +1,65 @@
-import { connectToDB } from "@/lib/mongoDB";
-import { auth } from "@clerk/nextjs";
-import { NextRequest, NextResponse } from "next/server";
-
-import Review from "@/lib/models/Reviews";
-import Product from "@/lib/models/Product";
-import { reviewSchema } from "@/lib/validations/reviews";
+import { reviewSchema } from '@/lib/validations/reviews'
+import { auth } from '@clerk/nextjs/server'
+import { prisma } from '@naturegift/models'
+import { NextRequest, NextResponse } from 'next/server'
 
 export const POST = async (req: NextRequest) => {
   try {
-    const { userId } = auth();
+    const { userId } = await auth()
 
     if (!userId) {
-      return new NextResponse("Unauthorized", { status: 403 });
+      return new NextResponse('Unauthorized', { status: 403 })
     }
 
-    await connectToDB();
-    const json = await req.json();
-    const body = reviewSchema.parse(json);
+    const json = await req.json()
+    const body = reviewSchema.parse(json)
 
-    const newReview = await Review.create(body);
+    const newReview = await prisma.review.create({
+      data: {
+        userName: body.userName,
+        rating: body.rating,
+        comment: body.comment,
+        verify: body.verify,
+        imageUrl: body.imageUrl,
+        helpful: body.helpful ?? 0,
+        notHelpful: body.notHelpful ?? 0,
+        product: {
+          connect: {
+            id: body.productId,
+          },
+        },
+      },
+    })
 
-    // Add review to product's review list
-    await Product.findByIdAndUpdate(body.product, {
-      $addToSet: { reviews: newReview._id },
-    });
-
-    return NextResponse.json(newReview, { status: 200 });
-  } catch (err) {
-    console.log("[reviews_POST]", err);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return NextResponse.json(newReview, { status: 201 })
+  } catch (error) {
+    console.error('[REVIEWS_POST]', error)
+    return new NextResponse('Internal error', { status: 500 })
   }
-};
+}
+
 export const GET = async (req: NextRequest) => {
   try {
-    await connectToDB();
+    const { userId } = await auth()
 
-    const reviews = await Review.find()
-      .sort({ createdAt: "desc" })
-      .populate({ path: "product", model: Product });
+    if (!userId) {
+      return new NextResponse('Unauthorized', { status: 403 })
+    }
 
-    return NextResponse.json(reviews, { status: 200 });
-  } catch (err) {
-    console.log("[reviews_GET]", err);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    const reviews = await prisma.review.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        product: true,
+      },
+    })
+
+    return NextResponse.json(reviews)
+  } catch (error) {
+    console.error('[REVIEWS_GET]', error)
+    return new NextResponse('Internal error', { status: 500 })
   }
-};
+}
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'

@@ -1,38 +1,17 @@
-import { CategoryForm } from "@/components/categories/CategoryForm";
-import { notFound } from "next/navigation";
+import { CategoryForm } from '@/components/categories/CategoryForm'
+import { getCategories, getCategoryById } from '@/lib/actions/actions'
+import { notFound } from 'next/navigation'
 
-async function getCategories() {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/categories`
-  );
-  if (!response.ok) {
-    return [];
-  }
-  const categories = await response.json();
-  return categories;
-}
-async function getCategory(categoryId: string) {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/categories/${categoryId}`
-  );
-
-  if (!response.ok) {
-    notFound();
-  }
-
-  return response.json();
-}
-
-export default async function EditCategoryPage({
-  params,
-}: {
-  params: { categoryId: string };
-}) {
+export default async function EditCategoryPage(props: { params: Promise<{ categoryId: string }> }) {
+  const params = await props.params
   const [category, categories] = await Promise.all([
-    getCategory(params.categoryId),
+    getCategoryById(params.categoryId),
     getCategories(),
-  ]);
+  ])
 
+  if (!category) {
+    notFound()
+  }
   return (
     <div className="container py-10">
       <div className="mb-8">
@@ -41,7 +20,7 @@ export default async function EditCategoryPage({
       </div>
       <CategoryForm initialData={category} categories={categories} />
     </div>
-  );
+  )
 }
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'

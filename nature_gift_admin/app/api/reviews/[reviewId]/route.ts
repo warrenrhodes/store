@@ -1,100 +1,90 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs";
+import { NextRequest, NextResponse } from 'next/server'
+import { reviewSchema } from '@/lib/validations/reviews'
+import { auth } from '@clerk/nextjs/server'
+import { prisma } from '@naturegift/models'
 
-import { connectToDB } from "@/lib/mongoDB";
-import Review from "@/lib/models/Reviews";
-import Product from "@/lib/models/Product";
-import { reviewSchema } from "@/lib/validations/reviews";
-
-export const GET = async (
-  req: NextRequest,
-  { params }: { params: { reviewId: string } }
-) => {
+export const GET = async (req: NextRequest, props: { params: Promise<{ reviewId: string }> }) => {
+  const params = await props.params
   try {
-    await connectToDB();
-
-    const review = await Review.findById(params.reviewId).populate({
-      path: "product",
-      model: Product,
-    });
+    const review = await prisma.review.findUnique({
+      where: {
+        id: params.reviewId,
+      },
+      include: {
+        product: true,
+      },
+    })
 
     if (!review) {
-      return new NextResponse(JSON.stringify({ message: "Review not found" }), {
-        status: 404,
-      });
+      return new NextResponse('Review not found', { status: 404 })
     }
 
-    return NextResponse.json(review, { status: 200 });
-  } catch (err) {
-    console.log("[reviewId_GET]", err);
-    return new NextResponse("Internal error", { status: 500 });
+    return NextResponse.json(review)
+  } catch (error) {
+    console.error('[REVIEW_GET]', error)
+    return new NextResponse('Internal error', { status: 500 })
   }
-};
+}
 
-export const POST = async (
-  req: NextRequest,
-  { params }: { params: { reviewId: string } }
-) => {
+export const POST = async (req: NextRequest, props: { params: Promise<{ reviewId: string }> }) => {
+  const params = await props.params
   try {
-    const { userId } = auth();
+    const { userId } = await auth()
 
     if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    await connectToDB();
+    const json = await req.json()
+    const body = reviewSchema.parse(json)
 
-    let review = await Review.findById(params.reviewId);
+    const review = await prisma.review.update({
+      where: {
+        id: params.reviewId,
+      },
+      data: {
+        userName: body.userName,
+        rating: body.rating,
+        comment: body.comment,
+        verify: body.verify,
+        imageUrl: body.imageUrl,
+        helpful: body.helpful ?? 0,
+        notHelpful: body.notHelpful ?? 0,
+        product: {
+          connect: {
+            id: body.productId,
+          },
+        },
+      },
+    })
 
-    if (!review) {
-      return new NextResponse("Review not found", { status: 404 });
-    }
-
-    const json = await req.json();
-    const body = reviewSchema.parse(json);
-
-    review = await Review.findByIdAndUpdate(params.reviewId, body, {
-      new: true,
-    });
-
-    // If the product has changed, update both old and new product review lists
-    // Remove from old product
-    await Product.findByIdAndUpdate(body.product, {
-      $pull: { reviews: params.reviewId },
-    });
-    const ee = await Product.findById(body.product);
-    // Add to new product
-    await Product.findByIdAndUpdate(body.product, {
-      $addToSet: { reviews: params.reviewId },
-    });
-
-    return NextResponse.json(review, { status: 200 });
-  } catch (err) {
-    console.log("[reviewId_POST]", err);
-    return new NextResponse("Internal error", { status: 500 });
+    return NextResponse.json(review)
+  } catch (error) {
+    console.error('[REVIEW_POST]', error)
+    return new NextResponse('Internal error', { status: 500 })
   }
-};
+}
 
-export const DELETE = async (
-  req: NextRequest,
-  { params }: { params: { reviewId: string } }
-) => {
+export const DELETE = async (req: NextRequest, props: { params: Promise<{ reviewId: string }> }) => {
+  const params = await props.params
   try {
-    const { userId } = auth();
+    const { userId } = await auth()
 
     if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    await connectToDB();
+    await prisma.review.delete({
+      where: {
+        id: params.reviewId,
+      },
+    })
 
-    await Review.findByIdAndDelete(params.reviewId);
-
-    return new NextResponse("Review is deleted", { status: 200 });
-  } catch (err) {
-    console.log("[reviewId_DELETE]", err);
-    return new NextResponse("Internal error", { status: 500 });
+    return new NextResponse(null, { status: 204 })
+  } catch (error) {
+    console.error('[REVIEW_DELETE]', error)
+    return new NextResponse('Internal error', { status: 500 })
   }
-};
+}
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'

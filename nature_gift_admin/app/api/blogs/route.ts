@@ -1,82 +1,111 @@
-import { NextResponse } from "next/server";
-import { auth, clerkClient } from "@clerk/nextjs";
-import { blogSchema } from "@/lib/validations/blog";
-import { generateSlug } from "@/lib/utils/slugify";
-import { connectToDB } from "@/lib/mongoDB";
-import Blog from "@/lib/models/Blog";
-import Category from "@/lib/models/Category";
+import { generateSlug } from '@/lib/utils/slugify'
+import { blogSchema } from '@/lib/validations/blog'
+import { auth, currentUser } from '@clerk/nextjs/server'
+import { prisma } from '@naturegift/models'
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET(req: Request) {
+export const GET = async (req: NextRequest) => {
   try {
-    await connectToDB();
-    const { searchParams } = new URL(req.url);
-    const status = searchParams.get("status");
-    const featured = searchParams.get("featured");
-    const category = searchParams.get("category");
-    const tag = searchParams.get("tag");
+    const categories = await prisma.blog.findMany({
+      include: {
+        categories: {
+          include: {
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    })
 
-    const query: any = {};
-    if (status) query.status = status;
-    if (featured) query["metadata.featured"] = featured === "true";
-    if (category) query.categories = category;
-    if (tag) query.tags = tag;
-
-    const blogs = await Blog.find(query)
-      .sort({ createdAt: -1 })
-      .populate({ path: "categories", model: Category })
-      .populate({
-        path: "metadata.coverImage",
-        model: "Media",
-        select: "url",
-      })
-      .lean();
-
-    return NextResponse.json(blogs);
+    return NextResponse.json(categories)
   } catch (error) {
-    console.error("Failed to fetch blogs:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch blogs" },
-      { status: 500 }
-    );
+    console.error('[CATEGORIES_GET]', error)
+    return new NextResponse('Internal error', { status: 500 })
   }
 }
 
 export async function POST(req: Request) {
   try {
-    await connectToDB();
-    const { userId } = auth();
+    const { userId } = await auth()
+
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const user = await clerkClient.users.getUser(userId);
-    let userName;
-    if (user?.firstName || user?.lastName) {
-      userName = `${user.firstName} ${user.lastName}`;
-    } else {
-      userName = user?.emailAddresses[0].emailAddress;
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const json = await req.json();
+    const user = await currentUser()
+    const userName =
+      user?.firstName && user?.lastName
+        ? `${user.firstName} ${user.lastName}`
+        : user?.emailAddresses[0].emailAddress
+
+    const json = await req.json()
     const body = blogSchema.parse({
       ...json,
       slug: generateSlug(json.title),
       metadata: {
         ...json.metadata,
+        readingTime: calculateReadingTime(json.content.content),
         author: {
           ...json.metadata.author,
           name: userName,
           avatar: user?.imageUrl,
         },
       },
-    });
+    })
 
-    const blog = await Blog.create(body);
-    return NextResponse.json(blog);
+    const blog = await prisma.blog.create({
+      data: {
+        title: body.title,
+        slug: body.slug,
+        content: body.content,
+        metadata: body.metadata,
+        tags: body.tags,
+        status: body.status,
+        layout: body.layout,
+        customFields: [],
+        publishedAt: body.publishedAt,
+        ...(body.categoryIds?.length > 0 && {
+          categories: {
+            create: body.categoryIds.map(categoryId => ({
+              category: { connect: { id: categoryId } },
+            })),
+          },
+        }),
+      },
+      include: {
+        categories: {
+          include: {
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        },
+      },
+    })
+
+    return NextResponse.json(blog)
   } catch (error) {
-    console.error("Failed to create blog:", error);
-    return NextResponse.json(
-      { error: "Failed to create blog" },
-      { status: 500 }
-    );
+    console.error('[BLOGS_POST]', error)
+    return NextResponse.json({ error: 'Failed to create blog' }, { status: 500 })
   }
 }
+
+function calculateReadingTime(content: string): number {
+  const wordsPerMinute = 200
+  const wordCount = content.split(/\s+/).length
+  return Math.ceil(wordCount / wordsPerMinute)
+}
+
+export const dynamic = 'force-dynamic'

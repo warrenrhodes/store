@@ -1,50 +1,42 @@
-import { Button } from "../../ui/button";
-import { Plus, Trash2 } from "lucide-react";
-import { ProductSchemaType } from "@/lib/validations/product";
-import { Input } from "@/components/ui/input";
-import { ContentEditor } from "./ContentEditor";
-import { useFieldArray, UseFormReturn } from "react-hook-form";
-import {
-  FormLabel,
-  FormField,
-  FormItem,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import CustomAccordion from "@/components/accordion/CustomAccordion";
-import { IconSelector } from "./IconSelector";
+import { Button } from '../../ui/button'
+import { Plus, Trash2 } from 'lucide-react'
+import { ProductSchemaType } from '@/lib/validations/product'
+import { Input } from '@/components/ui/input'
+import { ContentEditor } from './ContentEditor'
+import { useFieldArray, UseFormReturn } from 'react-hook-form'
+import { FormLabel, FormField, FormItem, FormControl, FormMessage } from '@/components/ui/form'
+import CustomAccordion from '@/components/accordion/CustomAccordion'
+import { IconSelector } from './IconSelector'
 
 type Feature = {
-  title: string;
-  icon: string;
+  title: string
+  icon: string
   description?: {
-    contentType: "TEXT" | "HTML";
-    content: string;
-  };
-};
+    contentType: 'TEXT' | 'HTML'
+    content: string
+  }
+}
 
-type Features = Feature[];
+type Features = Feature[]
 export interface FeaturesFormProps {
-  initialData?: Features;
-  onChange?: (features: Features) => void;
-  form: UseFormReturn<ProductSchemaType>;
+  initialData?: Features
+  onChange?: (features: Features) => void
+  form: UseFormReturn<ProductSchemaType>
 }
 
 export const FeaturesForm: React.FC<FeaturesFormProps> = ({ form }) => {
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "features",
-  });
+    name: 'features',
+  })
 
   const handleKeyPress = (
-    e:
-      | React.KeyboardEvent<HTMLInputElement>
-      | React.KeyboardEvent<HTMLTextAreaElement>
+    e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
   ) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
+    if (e.key === 'Enter') {
+      e.preventDefault()
     }
-  };
+  }
 
   return (
     <div>
@@ -56,8 +48,8 @@ export const FeaturesForm: React.FC<FeaturesFormProps> = ({ form }) => {
           size="sm"
           onClick={() =>
             append({
-              title: "",
-              description: { contentType: "TEXT", content: "" },
+              title: '',
+              description: { contentType: 'TEXT', content: '' },
             })
           }
         >
@@ -69,8 +61,8 @@ export const FeaturesForm: React.FC<FeaturesFormProps> = ({ form }) => {
       {fields.map((field, index) => (
         <CustomAccordion
           key={field.id}
-          className="flex gap-4 items-start flex-col w-full"
-          title={"Feature " + (index + 1)}
+          className="flex gap-4 items-start flex-col w-full px-4 py-2"
+          title={'Feature ' + (index + 1)}
         >
           <div className="grid gap-4 sm:grid-cols-2 w-full">
             <FormField
@@ -119,13 +111,13 @@ export const FeaturesForm: React.FC<FeaturesFormProps> = ({ form }) => {
             type="button"
             variant="outline"
             size="icon"
-            className="w-full"
+            className="w-full border border-red-500/20 hover:bg-red-500/10"
             onClick={() => remove(index)}
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-4 h-4 text-red-500" />
           </Button>
         </CustomAccordion>
       ))}
     </div>
-  );
-};
+  )
+}

@@ -1,15 +1,15 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import { Plus } from "lucide-react";
+import Link from 'next/link'
+import { Plus } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
-import { DataTable } from "../custom-ui/DataTable";
-import { shipmentColumns } from "./ShipmentColumns";
-import { IShipment } from "@/lib/models/Shipment";
+import { Button } from '@/components/ui/button'
+import { DataTable } from '../custom-ui/DataTable'
+import { shipmentColumns } from './ShipmentColumns'
+import { Prisma } from '@naturegift/models'
 
 interface ShipmentListProps {
-  shipments: IShipment[];
+  shipments: Prisma.ShipmentGetPayload<{}>[]
 }
 
 export function ShipmentList({ shipments }: ShipmentListProps) {
@@ -24,11 +24,7 @@ export function ShipmentList({ shipments }: ShipmentListProps) {
           </Link>
         </Button>
       </div>
-      <DataTable
-        columns={shipmentColumns}
-        data={shipments}
-        searchKey="method"
-      />
+      <DataTable columns={shipmentColumns} data={shipments} searchKey="method" />
     </div>
-  );
+  )
 }

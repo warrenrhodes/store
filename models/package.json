@@ -1,21 +1,22 @@
 {
-  "name": "models",
-  "version": "1.0.0",
+  "name": "@naturegift/models",
+  "version": "1.0.1",
   "description": "the nature gift models",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp -R  src/generated dist/src",
     "prisma:generate": "prisma generate"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^6.0.1"
+    "@prisma/client": "^6.1.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.1",
-    "prisma": "^6.0.1",
+    "prisma": "^6.1.0",
+    "ts-node": "^10.9.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   }

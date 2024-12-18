@@ -1,41 +1,32 @@
-"use client";
+'use client'
 
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { generateSlug } from "@/lib/utils/slugify";
-import { ProductSchemaType } from "@/lib/validations/product";
-import { useCallback } from "react";
-import { UseFormReturn } from "react-hook-form";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { ProductSchemaType } from '@/lib/validations/product'
+import { useCallback } from 'react'
+import { UseFormReturn } from 'react-hook-form'
 
 interface InventoryFieldsProps {
-  form: UseFormReturn<ProductSchemaType>;
+  form: UseFormReturn<ProductSchemaType>
 }
 
 export function InventoryFields({ form }: InventoryFieldsProps) {
   const onQuantityChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (!e.target.value) return;
-      form.setValue("inventory.stockQuantity", parseInt(e.target.value || "0"));
-      form.setValue("inventory.quantity", parseInt(e.target.value || "0"));
+      if (!e.target.value) return
+      form.setValue('inventory.stockQuantity', parseInt(e.target.value || '0'))
+      form.setValue('inventory.quantity', parseInt(e.target.value || '0'))
     },
-    [form]
-  );
+    [form],
+  )
 
   const handleKeyPress = (
-    e:
-      | React.KeyboardEvent<HTMLInputElement>
-      | React.KeyboardEvent<HTMLTextAreaElement>
+    e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
   ) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
+    if (e.key === 'Enter') {
+      e.preventDefault()
     }
-  };
+  }
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -67,14 +58,14 @@ export function InventoryFields({ form }: InventoryFieldsProps) {
               <Input
                 type="number"
                 {...field}
-                onChange={(e) => field.onChange(parseInt(e.target.value))}
+                onChange={e => field.onChange(parseInt(e.target.value))}
                 onKeyDown={handleKeyPress}
               />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
-      />{" "}
+      />{' '}
       <FormField
         control={form.control}
         name="inventory.stockQuantity"
@@ -84,7 +75,7 @@ export function InventoryFields({ form }: InventoryFieldsProps) {
             <Input
               type="number"
               {...field}
-              value={form.watch("inventory.quantity") ?? 0}
+              value={form.watch('inventory.quantity') ?? 0}
               onKeyDown={handleKeyPress}
               disabled
             />
@@ -93,5 +84,5 @@ export function InventoryFields({ form }: InventoryFieldsProps) {
         )}
       />
     </div>
-  );
+  )
 }

@@ -19,8 +19,8 @@ async function connectToDB() {
     return globalWithMongoose.mongoose.conn
   }
 
-  if (!process.env.MONGODB_URL) {
-    throw new Error('Please define the MONGODB_URL environment variable')
+  if (!process.env.DATABASE_URL) {
+    throw new Error('Please define the DATABASE_URL environment variable')
   }
 
   const opts = {
@@ -31,7 +31,7 @@ async function connectToDB() {
     minPoolSize: 1,
   }
 
-  const promise = mongoose.connect(process.env.MONGODB_URL, opts).catch(error => {
+  const promise = mongoose.connect(process.env.DATABASE_URL, opts).catch(error => {
     console.error('Failed to connect to MongoDB', error)
     throw error
   })

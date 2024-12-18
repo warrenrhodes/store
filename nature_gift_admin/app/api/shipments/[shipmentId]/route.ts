@@ -1,88 +1,80 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs";
+import { NextRequest, NextResponse } from 'next/server'
+import { shipmentSchema } from '@/lib/validations/shipment'
+import { prisma } from '@naturegift/models'
+import { auth } from '@clerk/nextjs/server'
 
-import { connectToDB } from "@/lib/mongoDB";
-import Shipment from "@/lib/models/Shipment";
-import { shipmentSchema } from "@/lib/validations/shipment";
+export const GET = async (req: NextRequest, props: { params: Promise<{ shipmentId: string }> }) => {
+  const params = await props.params
 
-export const GET = async (
-  req: NextRequest,
-  { params }: { params: { shipmentId: string } }
-) => {
   try {
-    await connectToDB();
-
-    const shipment = await Shipment.findById(params.shipmentId);
-
+    const shipment = await prisma.shipment.findUnique({
+      where: {
+        id: params.shipmentId,
+      },
+    })
     if (!shipment) {
-      return new NextResponse(
-        JSON.stringify({ message: "Shipment not found" }),
-        {
-          status: 500,
-        }
-      );
+      return new NextResponse('Shipment not found', { status: 404 })
     }
 
-    return NextResponse.json(shipment, { status: 200 });
+    return NextResponse.json(shipment, { status: 200 })
   } catch (err) {
-    console.log("[shipmentId_GET]", err);
-    return new NextResponse("Internal error", { status: 500 });
+    console.error('[shipmentId_GET]', err)
+    return new NextResponse('Internal error', { status: 500 })
   }
-};
+}
 
 export const POST = async (
   req: NextRequest,
-  { params }: { params: { reviewId: string } }
+  props: { params: Promise<{ shipmentId: string }> },
 ) => {
+  const params = await props.params
   try {
-    const { userId } = auth();
+    const { userId } = await auth()
 
     if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    await connectToDB();
+    const json = await req.json()
+    const body = shipmentSchema.parse(json)
 
-    let shipment = await Shipment.findById(params.reviewId);
+    const shipment = await prisma.shipment.update({
+      where: {
+        id: params.shipmentId,
+      },
+      data: body,
+    })
 
-    if (!shipment) {
-      return new NextResponse("Shipment not found", { status: 404 });
-    }
-
-    const json = await req.json();
-    const body = shipmentSchema.parse(json);
-
-    shipment = await Shipment.findByIdAndUpdate(params.reviewId, body, {
-      new: true,
-    });
-
-    return NextResponse.json(shipment, { status: 200 });
+    return NextResponse.json(shipment, { status: 200 })
   } catch (err) {
-    console.log("[shipmentId_POST]", err);
-    return new NextResponse("Internal error", { status: 500 });
+    console.error('[shipmentId_POST]', err)
+    return new NextResponse('Internal error', { status: 500 })
   }
-};
+}
 
 export const DELETE = async (
   req: NextRequest,
-  { params }: { params: { shipmentId: string } }
+  props: { params: Promise<{ shipmentId: string }> },
 ) => {
+  const params = await props.params
   try {
-    const { userId } = auth();
+    const { userId } = await auth()
 
     if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    await connectToDB();
+    await prisma.shipment.delete({
+      where: {
+        id: params.shipmentId,
+      },
+    })
 
-    await Shipment.findByIdAndDelete(params.shipmentId);
-
-    return new NextResponse("Shipment is deleted", { status: 200 });
+    return new NextResponse('Shipment deleted successfully', { status: 200 })
   } catch (err) {
-    console.log("[shipmentId_DELETE]", err);
-    return new NextResponse("Internal error", { status: 500 });
+    console.error('[shipmentId_DELETE]', err)
+    return new NextResponse('Internal error', { status: 500 })
   }
-};
+}
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'

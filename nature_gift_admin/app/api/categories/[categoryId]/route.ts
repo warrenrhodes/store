@@ -1,96 +1,122 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs";
+import { categorySchema } from '@/lib/validations/category'
+import { auth } from '@clerk/nextjs/server'
+import { prisma } from '@naturegift/models'
+import { NextRequest, NextResponse } from 'next/server'
 
-import { connectToDB } from "@/lib/mongoDB";
-import Category from "@/lib/models/Category";
-import Product from "@/lib/models/Product";
-import { categorySchema } from "@/lib/validations/category";
-import Media from "@/lib/models/Media";
-
-export const GET = async (
-  req: NextRequest,
-  { params }: { params: { categoryId: string } }
-) => {
+export const GET = async (req: NextRequest, props: { params: Promise<{ categoryId: string }> }) => {
+  const params = await props.params
   try {
-    await connectToDB();
-    const category = await Category.findById(params.categoryId)
-      .lean()
-      .populate({ path: "parent", model: Category })
-      .populate({ path: "image", model: Media })
-      .sort({ createdAt: "desc" });
+    const category = await prisma.category.findUnique({
+      where: {
+        id: params.categoryId,
+      },
+      include: {
+        parent: true,
+        image: true,
+      },
+    })
 
     if (!category) {
-      return new NextResponse(
-        JSON.stringify({ message: "Category not found" }),
-        { status: 501 }
-      );
+      return new NextResponse('Category not found', { status: 404 })
     }
 
-    return NextResponse.json(category, { status: 200 });
-  } catch (err) {
-    console.log("[categoryId_GET]", err);
-    return new NextResponse("Internal error", { status: 500 });
+    return NextResponse.json(category)
+  } catch (error) {
+    console.error('[CATEGORY_GET]', error)
+    return new NextResponse('Internal error', { status: 500 })
   }
-};
+}
 
-export const PUT = async (
-  req: NextRequest,
-  { params }: { params: { categoryId: string } }
-) => {
+export const PUT = async (req: NextRequest, props: { params: Promise<{ categoryId: string }> }) => {
+  const params = await props.params
   try {
-    const { userId } = auth();
+    const { userId } = await auth()
 
     if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    await connectToDB();
+    const json = await req.json()
+    const body = categorySchema.partial().parse(json)
 
-    let category = await Category.findById(params.categoryId);
+    const category = await prisma.category.update({
+      where: {
+        id: params.categoryId,
+      },
+      data: {
+        name: body.name,
+        slug: body.slug,
+        description: body.description,
+        featured: body.featured,
+        ...(body.seoMetadata && {
+          seoMetadata: {
+            seoTitle: body.seoMetadata.seoTitle,
+            seoDescription: body.seoMetadata.seoDescription,
+            keywords: body.seoMetadata.keywords || [],
+          },
+        }),
+        ...(body.imageId && {
+          image: {
+            connect: {
+              id: body.imageId,
+            },
+          },
+        }),
+        ...(body.parentId && {
+          parent: {
+            connect: {
+              id: body.parentId,
+            },
+          },
+        }),
+      },
+    })
 
-    if (!category) {
-      return new NextResponse("Category not found", { status: 404 });
-    }
-
-    const json = await req.json();
-    const body = categorySchema.partial().parse(json);
-
-    category = await Category.findByIdAndUpdate(params.categoryId, body, {
-      new: true,
-    }).lean();
-
-    return NextResponse.json(category, { status: 200 });
-  } catch (err) {
-    console.log("[categoryId_POST]", err);
-    return new NextResponse("Internal error", { status: 500 });
+    return NextResponse.json(category)
+  } catch (error) {
+    console.error('[CATEGORY_PUT]', error)
+    return new NextResponse('Internal error', { status: 500 })
   }
-};
+}
 
 export const DELETE = async (
   req: NextRequest,
-  { params }: { params: { categoryId: string } }
+  props: { params: Promise<{ categoryId: string }> },
 ) => {
+  const params = await props.params
   try {
-    const { userId } = auth();
+    const { userId } = await auth()
 
     if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    await connectToDB();
+    // First disconnect all products from this category
+    await prisma.categoriesOnProducts.deleteMany({
+      where: {
+        categoryId: params.categoryId,
+      },
+    })
 
-    await Category.findByIdAndDelete(params.categoryId);
+    // First disconnect all products from this category
+    await prisma.categoriesOnBlogs.deleteMany({
+      where: {
+        categoryId: params.categoryId,
+      },
+    })
 
-    await Product.updateMany(
-      { categories: params.categoryId },
-      { $pull: { categories: params.categoryId } }
-    );
+    // Then delete the category
+    await prisma.category.delete({
+      where: {
+        id: params.categoryId,
+      },
+    })
 
-    return new NextResponse("Category is deleted", { status: 200 });
-  } catch (err) {
-    console.log("[categoryId_DELETE]", err);
-    return new NextResponse("Internal error", { status: 500 });
+    return new NextResponse(null, { status: 204 })
+  } catch (error) {
+    console.error('[CATEGORY_DELETE]', error)
+    return new NextResponse('Internal error', { status: 500 })
   }
-};
+}
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'

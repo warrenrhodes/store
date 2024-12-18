@@ -1,15 +1,15 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import { Plus } from "lucide-react";
+import Link from 'next/link'
+import { Plus } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
-import { ICategory } from "@/lib/models/Category";
-import { DataTable } from "../custom-ui/DataTable";
-import { categoryColumns } from "./Column";
+import { Button } from '@/components/ui/button'
+import { DataTable } from '../custom-ui/DataTable'
+import { categoryColumns } from './Column'
+import { Prisma } from '@naturegift/models'
 
 interface CategoryListProps {
-  categories: ICategory[];
+  categories: Prisma.CategoryGetPayload<{}>[]
 }
 
 export function CategoryList({ categories }: CategoryListProps) {
@@ -26,5 +26,5 @@ export function CategoryList({ categories }: CategoryListProps) {
       </div>
       <DataTable columns={categoryColumns} data={categories} searchKey="name" />
     </div>
-  );
+  )
 }

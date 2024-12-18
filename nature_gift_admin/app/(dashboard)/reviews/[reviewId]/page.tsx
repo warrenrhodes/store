@@ -1,28 +1,9 @@
-import ReviewForm from "@/components/reviews/ReviewFrom";
-import { getProducts } from "@/lib/actions/actions";
-import { notFound } from "next/navigation";
+import ReviewForm from '@/components/reviews/ReviewFrom'
+import { getProducts, getReviewById } from '@/lib/actions/actions'
 
-async function getReview(reviewId: string) {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/reviews/${reviewId}`
-  );
-
-  if (!response.ok) {
-    notFound();
-  }
-
-  return response.json();
-}
-
-export default async function EditReviewPage({
-  params,
-}: {
-  params: { reviewId: string };
-}) {
-  const [review, products] = await Promise.all([
-    getReview(params.reviewId),
-    getProducts(),
-  ]);
+export default async function EditReviewPage(props: { params: Promise<{ reviewId: string }> }) {
+  const params = await props.params
+  const [review, products] = await Promise.all([getReviewById(params.reviewId), getProducts()])
 
   return (
     <div className="container py-10">
@@ -32,7 +13,7 @@ export default async function EditReviewPage({
       </div>
       <ReviewForm initialData={review} products={products} />
     </div>
-  );
+  )
 }
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'

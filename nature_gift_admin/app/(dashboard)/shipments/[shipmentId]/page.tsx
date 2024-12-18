@@ -1,24 +1,28 @@
-import ShipmentForm from "@/components/shipments/ShipmentForm";
-import { notFound } from "next/navigation";
+import ShipmentForm from '@/components/shipments/ShipmentForm'
+import { auth } from '@clerk/nextjs/server'
+import { notFound } from 'next/navigation'
 
 async function getShipment(shipmentId: string) {
+  const { getToken } = await auth()
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/shipments/${shipmentId}`
-  );
+    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/shipments/${shipmentId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${await getToken()}`,
+      },
+    },
+  )
 
   if (!response.ok) {
-    notFound();
+    notFound()
   }
 
-  return response.json();
+  return response.json()
 }
 
-export default async function EditShipmentPage({
-  params,
-}: {
-  params: { shipmentId: string };
-}) {
-  const [shipment] = await Promise.all([getShipment(params.shipmentId)]);
+export default async function EditShipmentPage(props: { params: Promise<{ shipmentId: string }> }) {
+  const params = await props.params
+  const [shipment] = await Promise.all([getShipment(params.shipmentId)])
 
   return (
     <div className="container py-10">
@@ -28,7 +32,7 @@ export default async function EditShipmentPage({
       </div>
       <ShipmentForm initialData={shipment} />
     </div>
-  );
+  )
 }
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'

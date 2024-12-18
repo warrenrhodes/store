@@ -1,39 +1,38 @@
-import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs";
-import { connectToDB } from "@/lib/mongoDB";
-import { Promotion } from "@/lib/models/Promotions";
-import { promotionSchema } from "@/lib/validations/promotions";
+import { promotionSchema } from '@/lib/validations/promotions'
+import { auth } from '@clerk/nextjs/server'
+import { prisma } from '@naturegift/models'
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET(req: Request) {
+export const GET = async (req: NextRequest) => {
   try {
-    await connectToDB();
-    const { searchParams } = new URL(req.url);
-    const status = searchParams.get("status");
-    const query = status ? { status } : {};
+    const { userId } = await auth()
 
-    const promotions = await Promotion.find(query)
-      .sort({ priority: -1, createdAt: -1 })
-      .lean();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-    return NextResponse.json(promotions);
+    const promotions = await prisma.promotion.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+    })
+
+    return NextResponse.json(promotions)
   } catch (error) {
-    console.error("Failed to fetch promotions:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch promotions" },
-      { status: 500 }
-    );
+    console.error('[PROMOTIONS_GET]', error)
+    return new NextResponse('Internal error', { status: 500 })
   }
 }
 
 export async function POST(req: Request) {
   try {
-    await connectToDB();
-    const { userId } = auth();
+    const { userId } = await auth()
+
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const json = await req.json();
+    const json = await req.json()
     const body = promotionSchema.parse({
       ...json,
       metadata: {
@@ -41,17 +40,19 @@ export async function POST(req: Request) {
         createdBy: userId,
         updatedBy: userId,
       },
-    });
+    })
 
-    const promotion = await Promotion.create(body);
-    return NextResponse.json(promotion);
+    const promotion = await prisma.promotion.create({
+      data: body,
+    })
+
+    return NextResponse.json(promotion)
   } catch (error) {
-    console.error("Failed to create promotion:", error);
-    return NextResponse.json(
-      { error: "Failed to create promotion" },
-      { status: 500 }
-    );
+    console.error('[PROMOTIONS_POST]', error)
+    return NextResponse.json({ error: 'Failed to create promotion' }, { status: 500 })
+  } finally {
+    await prisma.$disconnect()
   }
 }
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'

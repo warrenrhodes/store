@@ -1,52 +1,50 @@
-"use client";
+'use client'
 
-import { IOrder } from "@/lib/models/Order";
-import { ColumnDef } from "@tanstack/react-table";
-import Link from "next/link";
-import { Badge } from "../ui/badge";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { priceFormatted } from "@/lib/utils/utils";
+import { ColumnDef } from '@tanstack/react-table'
+import Link from 'next/link'
+import { Badge } from '../ui/badge'
+import { cn } from '@/lib/utils'
+import { format } from 'date-fns'
+import { priceFormatted } from '@/lib/utils/utils'
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Eye } from "lucide-react";
-import { Separator } from "../ui/separator";
-import { Button } from "../ui/button";
+} from '@/components/ui/alert-dialog'
+import { Eye } from 'lucide-react'
+import { Separator } from '../ui/separator'
+import { Button } from '../ui/button'
+import { Prisma } from '@naturegift/models'
+import { useEffect, useState } from 'react'
+import { getOrderItemsOfOrder, getProductId } from '@/lib/actions/actions'
 
-export const columns: ColumnDef<IOrder>[] = [
+export const columns: ColumnDef<Prisma.OrderGetPayload<{}>>[] = [
   {
-    accessorKey: "_id",
-    header: "Order",
+    accessorKey: '_id',
+    header: 'Order',
     cell: ({ row }) => {
       return (
-        <Link href={`/orders/${row.original._id}`} className="hover:text-red-1">
-          {row.original._id}
+        <Link href={`/orders/${row.original.id}`} className="hover:text-red-1">
+          {row.original.id}
         </Link>
-      );
+      )
     },
   },
   {
-    accessorKey: "status",
-    header: "Status",
+    accessorKey: 'status',
+    header: 'Status',
     cell: ({ row }) => (
       <div>
         <Badge
           className={cn({
-            "bg-green-500 ": row.original.status === "ACCEPTED",
-            "bg-gray-500": row.original.status === "PENDING",
-            "bg-blue-500": row.original.status === "COMPLETED",
-            "bg-red-500":
-              row.original.status === "CANCELED" ||
-              row.original.status === "REJECTED",
+            'bg-green-500 ': row.original.status === 'ACCEPTED',
+            'bg-gray-500': row.original.status === 'PENDING',
+            'bg-blue-500': row.original.status === 'COMPLETED',
+            'bg-red-500': row.original.status === 'CANCELED' || row.original.status === 'REJECTED',
           })}
         >
           {row.original.status}
@@ -55,44 +53,59 @@ export const columns: ColumnDef<IOrder>[] = [
     ),
   },
   {
-    accessorKey: "deliveryInfo",
-    header: "Delivery Date",
+    accessorKey: 'deliveryInfo',
+    header: 'Delivery Date',
     cell: ({ row }) => (
       <div>
-        {format(row.original.deliveryInfo.deliveryDate, "PPP")}{" "}
+        {format(row.original.deliveryInfo.deliveryDate, 'PPP')}{' '}
         {row.original.deliveryInfo.deliveryTime}
       </div>
     ),
   },
   {
-    accessorKey: "orderPrices",
-    header: "Total (FCFA)",
-    cell: ({ row }) => (
-      <div>{priceFormatted(row.original.orderPrices.total)}</div>
-    ),
+    accessorKey: 'orderPrices',
+    header: 'Total (FCFA)',
+    cell: ({ row }) => <div>{priceFormatted(row.original.orderPrices.total)}</div>,
   },
   {
-    accessorKey: "createdAt",
-    header: "Created At",
-    cell: ({ row }) => (
-      <div>{format(row.original.createdAt || new Date(), "PPP")}</div>
-    ),
+    accessorKey: 'createdAt',
+    header: 'Created At',
+    cell: ({ row }) => <div>{format(row.original.createdAt || new Date(), 'PPP')}</div>,
   },
   {
-    id: "actions",
+    id: 'actions',
     enableHiding: false,
     cell: ({ row }) => {
-      const order = row.original;
+      const order = row.original
       return (
         <div>
           <OrderView order={order} />
         </div>
-      );
+      )
     },
   },
-];
+]
 
-const OrderView = ({ order }: { order: IOrder }) => {
+const OrderView = ({ order }: { order: Prisma.OrderGetPayload<{}> }) => {
+  const [orderItems, setOrderItems] = useState<Prisma.OrderItemGetPayload<{}>[]>([])
+
+  const fetchOrderItems = async () => {
+    try {
+      const orderItems = await getOrderItemsOfOrder({ orderId: order.id })
+      setOrderItems(orderItems)
+    } catch (error) {
+      console.error(`Failed to fetch orderItems of orderId ${order.id}:`, error)
+    }
+  }
+
+  useEffect(() => {
+    fetchOrderItems()
+  }, [])
+
+  if (orderItems.length === 0) {
+    return null
+  }
+
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -102,9 +115,7 @@ const OrderView = ({ order }: { order: IOrder }) => {
       </AlertDialogTrigger>
       <AlertDialogContent className=" text-grey-1 ">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-red-1">
-            Order Detail
-          </AlertDialogTitle>
+          <AlertDialogTitle className="text-red-1">Order Detail</AlertDialogTitle>
           <div className="flex flex-col gap-4 max-h-[50vh] overflow-y-scroll">
             <div className="flex gap-3">
               <span className="text-muted-foreground">Full Name: </span>
@@ -128,8 +139,7 @@ const OrderView = ({ order }: { order: IOrder }) => {
             <div className="flex gap-3">
               <span className="text-muted-foreground">Delivery Date: </span>
               <p>
-                {format(order.deliveryInfo.deliveryDate, "PPP")}{" "}
-                {order.deliveryInfo.deliveryTime}
+                {format(order.deliveryInfo.deliveryDate, 'PPP')} {order.deliveryInfo.deliveryTime}
               </p>
             </div>
             {order.deliveryInfo.city && (
@@ -140,11 +150,7 @@ const OrderView = ({ order }: { order: IOrder }) => {
             )}
             <div className="flex gap-3">
               <span className="text-muted-foreground">Delivery Method: </span>
-              <p>
-                {order.deliveryInfo.deliveryMethod === "DELIVERY"
-                  ? "Delivery"
-                  : "Expedition"}
-              </p>
+              <p>{order.deliveryInfo.deliveryMethod === 'DELIVERY' ? 'Delivery' : 'Expedition'}</p>
             </div>
             <div className="flex gap-3">
               <span className="text-muted-foreground">Delivery Location: </span>
@@ -157,21 +163,8 @@ const OrderView = ({ order }: { order: IOrder }) => {
               <span className="text-muted-foreground">Items: </span>
             </div>
             <div className="flex flex-col gap-3 ml-5">
-              {order.items.map((item) => (
-                <div key={item.product._id}>
-                  <div className="flex gap-3">
-                    <span className="text-muted-foreground">Name: </span>
-                    <p> {item.product.title}</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <span className="text-muted-foreground">Count: </span>
-                    <p> {item.quantity}</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <span className="text-muted-foreground">Price: </span>
-                    <p> {item.price}</p>
-                  </div>
-                </div>
+              {orderItems.map(item => (
+                <OrderItem item={item} />
               ))}
             </div>
             <Separator className="my-3" />
@@ -179,7 +172,7 @@ const OrderView = ({ order }: { order: IOrder }) => {
               <span className="text-muted-foreground">Promotions: </span>
             </div>
             <div className="flex flex-col gap-3 ml-5">
-              {order.promotions.map((item) => (
+              {order.promotions.map(item => (
                 <div key={item.promotionId}>
                   <div className="flex gap-3">
                     <span className="text-muted-foreground">Promo Code: </span>
@@ -212,5 +205,41 @@ const OrderView = ({ order }: { order: IOrder }) => {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  );
-};
+  )
+}
+
+const OrderItem = ({ item }: { item: Prisma.OrderItemGetPayload<{}> }) => {
+  const [product, setProduct] = useState<Prisma.ProductGetPayload<{}>>()
+
+  const fetchProduct = async () => {
+    try {
+      const product = await getProductId(item.productId)
+      product && setProduct(product)
+    } catch (error) {
+      console.error(`Failed to fetch product of item ${item.id}:`, error)
+    }
+  }
+
+  useEffect(() => {
+    fetchProduct()
+  }, [])
+
+  return (
+    <div key={item.productId}>
+      {product && (
+        <div className="flex gap-3">
+          <span className="text-muted-foreground">Name: </span>
+          <p> {product.title}</p>
+        </div>
+      )}
+      <div className="flex gap-3">
+        <span className="text-muted-foreground">Count: </span>
+        <p> {item.quantity}</p>
+      </div>
+      <div className="flex gap-3">
+        <span className="text-muted-foreground">Price: </span>
+        <p> {item.price}</p>
+      </div>
+    </div>
+  )
+}

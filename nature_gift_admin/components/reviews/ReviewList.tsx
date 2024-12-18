@@ -1,15 +1,15 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import { Plus } from "lucide-react";
+import Link from 'next/link'
+import { Plus } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
-import { DataTable } from "../custom-ui/DataTable";
-import { reviewColumns } from "./ReviewColumns";
-import { IReview } from "@/lib/models/Reviews";
+import { Button } from '@/components/ui/button'
+import { DataTable } from '../custom-ui/DataTable'
+import { reviewColumns } from './ReviewColumns'
+import { Prisma } from '@naturegift/models'
 
 interface ReviewListProps {
-  reviews: IReview[];
+  reviews: Prisma.ReviewGetPayload<{}>[]
 }
 
 export function ReviewList({ reviews }: ReviewListProps) {
@@ -26,5 +26,5 @@ export function ReviewList({ reviews }: ReviewListProps) {
       </div>
       <DataTable columns={reviewColumns} data={reviews} searchKey="userName" />
     </div>
-  );
+  )
 }

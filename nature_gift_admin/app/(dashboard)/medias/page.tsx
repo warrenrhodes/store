@@ -1,41 +1,44 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react'
 
-import { DataTable } from "@/components/custom-ui/DataTable";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { mediColumns } from "@/components/medias/MediasColumns";
+import { DataTable } from '@/components/custom-ui/DataTable'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import { mediColumns } from '@/components/medias/MediasColumns'
 
-import Image from "next/image";
-import { Loader, SimpleLoader } from "@/components/custom-ui/Loader";
-import { XCircle } from "lucide-react";
-import router from "next/router";
-import DialogBox from "@/components/custom-ui/CustomDialogue";
-import { useToast } from "@/hooks/use-toast";
+import Image from 'next/image'
+import { Loader, SimpleLoader } from '@/components/custom-ui/Loader'
+import { Plus, XCircle } from 'lucide-react'
+import DialogBox from '@/components/custom-ui/CustomDialogue'
+import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@clerk/nextjs'
 
 const Medias = () => {
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [medias, setMedia] = useState([]);
+  const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [medias, setMedia] = useState([])
+  const { getToken } = useAuth()
 
   const getMedias = async () => {
     try {
-      const res = await fetch("/api/media", {
-        method: "GET",
-      });
-      const data = await res.json();
-      setMedia(data);
-      setLoading(false);
+      const res = await fetch('/api/media', {
+        headers: {
+          Authorization: `Bearer ${await getToken()}`,
+        },
+      })
+      const data = await res.json()
+      setMedia(data)
+      setLoading(false)
     } catch (err) {
-      console.log("[media_GET]", err);
-      setLoading(false);
+      console.log('[media_GET]', err)
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    getMedias();
-  }, []);
+    getMedias()
+  }, [])
 
   return loading ? (
     <Loader />
@@ -43,8 +46,9 @@ const Medias = () => {
     <div className="px-10 py-5">
       <div className="flex items-center justify-between">
         <p className="text-heading2-bold">Medias</p>
-        <Button variant="outline" onClick={() => setOpen(true)}>
-          Add Medias
+        <Button onClick={() => setOpen(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Add Media
         </Button>
       </div>
       <Separator className="bg-muted my-4" />
@@ -53,68 +57,65 @@ const Medias = () => {
         <AddMedia />
       </DialogBox>
     </div>
-  );
-};
+  )
+}
 
 const AddMedia = () => {
-  const { toast } = useToast();
-  const [files, setFiles] = useState<File[]>([]);
-  const [uploading, setUploading] = useState(false);
+  const { toast } = useToast()
+  const [files, setFiles] = useState<File[]>([])
+  const [uploading, setUploading] = useState(false)
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    setFiles([...files, file]);
-  };
+    const file = event.target.files?.[0]
+    if (!file) return
+    setFiles([...files, file])
+  }
 
   const updateFile = async (file: File) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    await fetch("/api/media", {
-      method: "POST",
+    const formData = new FormData()
+    formData.append('files', file)
+
+    await fetch('/api/media/upload', {
+      method: 'POST',
       body: formData,
-    });
-  };
+    })
+  }
 
   const handleUpload = async () => {
-    const updatesPromises = [];
-    setUploading(true);
+    const updatesPromises = []
+    setUploading(true)
     for (const file of files) {
-      updatesPromises.push(updateFile(file));
+      updatesPromises.push(updateFile(file))
     }
-    await Promise.allSettled(updatesPromises).then((results) => {
-      let isValidRequest: boolean = true;
+    await Promise.allSettled(updatesPromises).then(results => {
+      let isValidRequest: boolean = true
       results.forEach((result, index) => {
-        if (result.status === "rejected") {
-          isValidRequest = false;
+        if (result.status === 'rejected') {
+          isValidRequest = false
         }
-      });
+      })
       if (!isValidRequest) {
         toast({
-          variant: "destructive",
-          description: "An error occurred. Please try again.",
-        });
-        return;
+          variant: 'destructive',
+          description: 'An error occurred. Please try again.',
+        })
+        return
       }
-      window.location.href = "/medias";
-      router.reload();
-    });
-    setUploading(false);
-  };
+      window.location.href = '/medias'
+    })
+    setUploading(false)
+  }
 
   const handleDeleteFile = (index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
-  };
+    setFiles(prev => prev.filter((_, i) => i !== index))
+  }
 
   return (
     <div>
       <div className="grid grid-cols-4 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-7">
         {files.map((file, index) => (
-          <div
-            key={index}
-            className="bg-gray-100 rounded-lg overflow-hidden relative"
-          >
-            {file.type.startsWith("image/") ? (
+          <div key={index} className="bg-gray-100 rounded-lg overflow-hidden relative">
+            {file.type.startsWith('image/') ? (
               <Image
                 src={URL.createObjectURL(file)}
                 alt={file.name}
@@ -122,7 +123,7 @@ const AddMedia = () => {
                 height={300}
                 className="w-full h-40 object-cover"
               />
-            ) : file.type.startsWith("video/") ? (
+            ) : file.type.startsWith('video/') ? (
               <video
                 className="w-full h-40 object-cover"
                 controls
@@ -152,17 +153,13 @@ const AddMedia = () => {
         {uploading ? (
           <SimpleLoader />
         ) : (
-          <Button
-            variant="default"
-            onClick={handleUpload}
-            disabled={files.length < 1}
-          >
+          <Button variant="default" onClick={handleUpload} disabled={files.length < 1}>
             Save
           </Button>
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Medias;
+export default Medias

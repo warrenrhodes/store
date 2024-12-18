@@ -1,88 +1,164 @@
-import { auth } from "@clerk/nextjs";
-import { NextRequest, NextResponse } from "next/server";
-
-import { connectToDB } from "@/lib/mongoDB";
-import Media from "@/lib/models/Media";
-import Category from "@/lib/models/Category";
-import { productSchema } from "@/lib/validations/product";
-import Product from "@/lib/models/Product";
-import Review from "@/lib/models/Reviews";
+import { productSchema } from '@/lib/validations/product'
+import { auth, reverificationErrorResponse } from '@clerk/nextjs/server'
+import { prisma } from '@naturegift/models'
+import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: Request) {
   try {
-    const { userId } = auth();
+    const { userId } = await auth()
+
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const json = await req.json();
-    const body = productSchema.parse(json);
+    const json = await req.json()
+    const body = productSchema.parse(json)
 
-    await connectToDB();
+    const product = await prisma.product.create({
+      data: {
+        title: body.title,
+        slug: body.slug,
+        description: body.description,
+        isFeature: body.isFeature,
+        isNewProduct: body.isNewProduct,
+        tags: body.tags || [],
+        price: body.price,
+        features: body.features || [],
+        status: body.status,
+        visibility: body.visibility,
+        inventory: body.inventory,
+        blogUrl: body.blogUrl,
+        partnerId: userId,
+        metadata: body.metadata,
+        ...(body.media?.length > 0 && {
+          media: {
+            create: body.media.map(mediaId => ({
+              media: { connect: { id: mediaId } },
+            })),
+          },
+        }),
+        ...(body.categoryIds?.length > 0 && {
+          categories: {
+            create: body.categoryIds.map(categoryId => ({
+              category: { connect: { id: categoryId } },
+            })),
+          },
+        }),
+      },
+      include: {
+        media: {
+          include: {
+            media: {
+              select: {
+                id: true,
+                url: true,
+                type: true,
+              },
+            },
+          },
+        },
+        categories: {
+          include: {
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        },
+      },
+    })
 
-    const newProduct = await Product.create({ ...body, parternId: userId });
-
-    return NextResponse.json(newProduct, { status: 201 });
-  } catch (err) {
-    const error = err as any;
-    console.error("[products_POST]", error);
-
-    if (error.name === "ZodError") {
-      return NextResponse.json(
-        { error: "Invalid product data", details: error.errors },
-        { status: 400 }
-      );
-    }
-
-    if (error.code === 11000) {
-      return NextResponse.json(
-        { error: "Product with this slug already exists" },
-        { status: 409 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: "Failed to create product", details: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json(product, { status: 201 })
+  } catch (error) {
+    console.error('[PRODUCTS_POST]', error)
+    return new NextResponse('Internal error', { status: 500 })
   }
 }
 
 export const GET = async (req: NextRequest) => {
   try {
-    await connectToDB();
+    const { userId, has } = await auth()
 
-    const products = await Product.find()
-      .lean()
-      .sort({ createdAt: "desc" })
-      .populate({ path: "categories", model: Category })
-      .populate({ path: "media", model: Media })
-      .populate({ path: "reviews", model: Review });
-
-    return NextResponse.json(products, { status: 200 });
-  } catch (err) {
-    const error = err as any;
-    console.error("[products_POST]", error);
-
-    if (error.name === "ZodError") {
-      return NextResponse.json(
-        { error: "Invalid product data", details: error.errors },
-        { status: 400 }
-      );
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (error.code === 11000) {
-      return NextResponse.json(
-        { error: "Product with this slug already exists" },
-        { status: 409 }
-      );
+    if (!has({ reverification: 'strict' })) {
+      return reverificationErrorResponse('strict')
     }
+
+    const { searchParams } = new URL(req.url)
+    const status = searchParams.get('status') as 'draft' | 'published' | 'archived' | null
+    const featured = searchParams.get('featured') === 'true'
+    const tag = searchParams.get('tag')
+    const limit = parseInt(searchParams.get('limit') || '10')
+    const page = parseInt(searchParams.get('page') || '1')
+    const skip = (page - 1) * limit
+
+    const where = {
+      ...(status && { status }),
+      ...(featured && { isFeature: true }),
+      ...(tag && { tags: { has: tag } }),
+    }
+
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        skip,
+        include: {
+          media: {
+            include: {
+              media: {
+                select: {
+                  id: true,
+                  url: true,
+                  type: true,
+                },
+              },
+            },
+          },
+          categories: {
+            include: {
+              category: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                },
+              },
+            },
+          },
+          reviews: {
+            select: {
+              rating: true,
+            },
+          },
+        },
+      }),
+      prisma.product.count({ where }),
+    ])
 
     return NextResponse.json(
-      { error: "Failed to create product", details: error.message },
-      { status: 500 }
-    );
+      {
+        products,
+        pagination: {
+          total,
+          pages: Math.ceil(total / limit),
+          page,
+          limit,
+        },
+      },
+      { status: 200 },
+    )
+  } catch (error) {
+    console.error('[PRODUCTS_GET]', error)
+    return new NextResponse('Internal error', { status: 500 })
   }
-};
+}
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'

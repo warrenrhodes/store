@@ -1,14 +1,14 @@
-"use client";
-import Link from "next/link";
-import { Plus } from "lucide-react";
+'use client'
+import Link from 'next/link'
+import { Plus } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
-import { DataTable } from "../custom-ui/DataTable";
-import { promotionsColumns } from "./PromotionsColumn";
-import { IPromotion } from "@/lib/models/Promotions";
+import { Button } from '@/components/ui/button'
+import { DataTable } from '../custom-ui/DataTable'
+import { promotionsColumns } from './PromotionsColumn'
+import { Prisma } from '@naturegift/models'
 
 interface PromotionListProps {
-  promotions: IPromotion[];
+  promotions: Prisma.PromotionGetPayload<{}>[]
 }
 
 export function PromotionsList({ promotions }: PromotionListProps) {
@@ -28,11 +28,11 @@ export function PromotionsList({ promotions }: PromotionListProps) {
         data={promotions}
         searchKey="name"
         filterButton={{
-          label: "Status",
-          columnKey: "status",
-          values: ["ACTIVE", "DRAFT", "EXPIRED", "DISABLED"],
+          label: 'Status',
+          columnKey: 'status',
+          values: ['ACTIVE', 'DRAFT', 'EXPIRED', 'DISABLED'],
         }}
       />
     </div>
-  );
+  )
 }

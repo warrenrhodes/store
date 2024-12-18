@@ -1,47 +1,39 @@
-"use client";
+'use client'
 
-import { useFieldArray, UseFormReturn } from "react-hook-form";
-import { Plus, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { useFieldArray, UseFormReturn } from 'react-hook-form'
+import { Plus, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { PromotionSchemaType } from "@/lib/validations/promotions";
-import { IProduct } from "@/lib/models/Product";
-import MultiText from "@/components/custom-ui/MultiText";
+} from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
+import { PromotionSchemaType } from '@/lib/validations/promotions'
+import MultiText from '@/components/custom-ui/MultiText'
+import { Prisma } from '@naturegift/models'
 
 interface ConditionFieldsProps {
-  form: UseFormReturn<PromotionSchemaType>;
-  products: IProduct[];
+  form: UseFormReturn<PromotionSchemaType>
+  products: Prisma.ProductGetPayload<{}>[]
 }
 
 export function ConditionFields({ form, products }: ConditionFieldsProps) {
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "conditions",
-  });
+    name: 'conditions',
+  })
 
   const handleKeyPress = (
-    e:
-      | React.KeyboardEvent<HTMLInputElement>
-      | React.KeyboardEvent<HTMLTextAreaElement>
+    e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
   ) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
+    if (e.key === 'Enter') {
+      e.preventDefault()
     }
-  };
+  }
 
   return (
     <div className="space-y-4">
@@ -51,7 +43,7 @@ export function ConditionFields({ form, products }: ConditionFieldsProps) {
           type="button"
           variant="outline"
           size="sm"
-          onClick={() => append({ type: "MINIMUM_QUANTITY", value: 2 })}
+          onClick={() => append({ type: 'MINIMUM_QUANTITY', value: '2' })}
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Condition
@@ -67,9 +59,10 @@ export function ConditionFields({ form, products }: ConditionFieldsProps) {
               <FormItem className="flex-1">
                 <FormControl>
                   <Select
-                    onValueChange={(e) => {
-                      form.setValue(`conditions.${index}.value`, "");
-                      field.onChange(e);
+                    onValueChange={e => {
+                      form.setValue(`conditions.${index}.value`, '')
+                      form.setValue(`actions`, [])
+                      field.onChange(e)
                     }}
                     defaultValue={field.value}
                   >
@@ -77,15 +70,11 @@ export function ConditionFields({ form, products }: ConditionFieldsProps) {
                       <SelectValue placeholder="Select condition type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="MINIMUM_QUANTITY">
-                        Minimum Quantity
-                      </SelectItem>
-                      <SelectItem value="SPECIFIC_PRODUCTS">
-                        Specific Products
-                      </SelectItem>
-                      <SelectItem value="DELIVERY_METHOD">
-                        Delivery Method
-                      </SelectItem>
+                      <SelectItem value="MINIMUM_QUANTITY">Minimum Quantity</SelectItem>
+                      {products.length > 0 && (
+                        <SelectItem value="SPECIFIC_PRODUCTS">Specific Products</SelectItem>
+                      )}
+                      <SelectItem value="DELIVERY_METHOD">Delivery Method</SelectItem>
                       <SelectItem value="LOCATION">Location</SelectItem>
                     </SelectContent>
                   </Select>
@@ -101,19 +90,12 @@ export function ConditionFields({ form, products }: ConditionFieldsProps) {
             render={({ field }) => (
               <FormItem className="flex-1">
                 <FormControl>
-                  {form.watch(`conditions.${index}.type`) ===
-                  "MINIMUM_QUANTITY" ? (
-                    <Input
-                      {...field}
-                      type="number"
-                      min={0}
-                      onKeyDown={handleKeyPress}
-                    />
-                  ) : form.watch(`conditions.${index}.type`) ===
-                    "DELIVERY_METHOD" ? (
+                  {form.watch(`conditions.${index}.type`) === 'MINIMUM_QUANTITY' ? (
+                    <Input {...field} type="number" min={0} onKeyDown={handleKeyPress} />
+                  ) : form.watch(`conditions.${index}.type`) === 'DELIVERY_METHOD' ? (
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={(field.value || "") as string}
+                      defaultValue={(field.value || '') as string}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select delivery method" />
@@ -123,7 +105,7 @@ export function ConditionFields({ form, products }: ConditionFieldsProps) {
                         <SelectItem value="PICKUP">Pickup</SelectItem>
                       </SelectContent>
                     </Select>
-                  ) : form.watch(`conditions.${index}.type`) === "LOCATION" ? (
+                  ) : form.watch(`conditions.${index}.type`) === 'LOCATION' ? (
                     <MultiText
                       placeholder="Locations"
                       value={
@@ -133,34 +115,30 @@ export function ConditionFields({ form, products }: ConditionFieldsProps) {
                             : [field.value as string]
                           : []
                       }
-                      onChange={(tag) =>
+                      onChange={tag =>
                         field.onChange([
-                          ...(field.value ? (field.value as string[]) : []),
+                          ...(field.value ? (JSON.parse(field.value) as string[]) : []),
                           tag,
                         ])
                       }
-                      onRemove={(tagToRemove) =>
+                      onRemove={tagToRemove =>
                         field.onChange([
-                          ...(field.value
-                            ? (field.value as string[])
-                            : []
-                          ).filter((tag) => tag !== tagToRemove),
+                          ...(field.value ? (JSON.parse(field.value) as string[]) : []).filter(
+                            tag => tag !== tagToRemove,
+                          ),
                         ])
                       }
                     />
-                  ) : form.watch(`conditions.${index}.type`) ===
-                      "SPECIFIC_PRODUCTS" && products.length > 0 ? (
-                    <Select
-                      onValueChange={field.onChange}
-                      value={(field.value || "") as string}
-                    >
+                  ) : form.watch(`conditions.${index}.type`) === 'SPECIFIC_PRODUCTS' &&
+                    products.length > 0 ? (
+                    <Select onValueChange={field.onChange} value={(field.value || '') as string}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a product" />
                       </SelectTrigger>
 
                       <SelectContent>
-                        {products.map((product) => (
-                          <SelectItem key={product._id} value={product._id}>
+                        {products.map(product => (
+                          <SelectItem key={product.id} value={product.id}>
                             {product.title}
                           </SelectItem>
                         ))}
@@ -175,16 +153,11 @@ export function ConditionFields({ form, products }: ConditionFieldsProps) {
             )}
           />
 
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => remove(index)}
-          >
+          <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
       ))}
     </div>
-  );
+  )
 }

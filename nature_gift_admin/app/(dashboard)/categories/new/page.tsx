@@ -1,9 +1,8 @@
-import { CategoryForm } from "@/components/categories/CategoryForm";
-import { getCategories } from "@/lib/actions/actions";
+import { CategoryForm } from '@/components/categories/CategoryForm'
+import { getCategories } from '@/lib/actions/actions'
 
 export default async function NewCategoryPage() {
-  const categories = await getCategories();
-  console.log("categories", categories);
+  const categories = await getCategories()
   return (
     <div className="container py-10">
       <div className="mb-8">
@@ -12,7 +11,7 @@ export default async function NewCategoryPage() {
       </div>
       <CategoryForm categories={categories} />
     </div>
-  );
+  )
 }
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'

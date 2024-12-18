@@ -1,16 +1,16 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import { Plus } from "lucide-react";
+import Link from 'next/link'
+import { Plus } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 
-import { DataTable } from "../custom-ui/DataTable";
-import { productColumns } from "./ProductColumns";
-import { IProduct } from "@/lib/models/Product";
+import { DataTable } from '../custom-ui/DataTable'
+import { productColumns } from './ProductColumns'
+import { Prisma } from '@naturegift/models'
 
 interface ProductListProps {
-  products: IProduct[];
+  products: Prisma.ProductGetPayload<{}>[]
 }
 
 export function ProductList({ products }: ProductListProps) {
@@ -28,5 +28,5 @@ export function ProductList({ products }: ProductListProps) {
 
       <DataTable columns={productColumns} data={products} searchKey="title" />
     </div>
-  );
+  )
 }

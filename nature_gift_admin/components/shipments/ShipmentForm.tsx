@@ -1,10 +1,10 @@
-"use client";
+'use client'
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useRouter } from 'next/navigation'
+import { useForm } from 'react-hook-form'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -12,44 +12,27 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import { Input } from "@/components/ui/input";
-import { ChangeEvent, useEffect, useState } from "react";
-import Delete from "../custom-ui/Delete";
-import { Camera, Loader2, Trash2, X } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Checkbox } from "../ui/checkbox";
-import { Label } from "../ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { uploadImages } from "@/lib/actions/actions";
-import { IProduct } from "@/lib/models/Product";
-import { useToast } from "@/hooks/use-toast";
-import { reviewSchema, ReviewSchemaType } from "@/lib/validations/reviews";
-import { IReview } from "@/lib/models/Reviews";
-import { IShipment } from "@/lib/models/Shipment";
-import { shipmentSchema, ShipmentSchemaType } from "@/lib/validations/shipment";
-import MultiText from "../custom-ui/MultiText";
-import { Switch } from "../ui/switch";
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { toast } from '@/hooks/use-toast'
+import { shipmentSchema, ShipmentSchemaType } from '@/lib/validations/shipment'
+import { Prisma } from '@naturegift/models'
+import { Loader2, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import MultiText from '../custom-ui/MultiText'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import { Switch } from '../ui/switch'
+import { SubmitButton } from './components/SubmitButton'
 
 interface ShipmentFormProps {
-  initialData?: IShipment | null;
-  shipments?: IShipment[];
+  initialData?: Prisma.ShipmentGetPayload<{}> | null
+  shipments?: Prisma.ShipmentGetPayload<{}>[]
 }
 
-const ShipmentForm: React.FC<ShipmentFormProps> = ({
-  initialData,
-  shipments,
-}) => {
-  const router = useRouter();
-  const { toast } = useToast();
-  const [isLoading, setLoading] = useState(false);
+const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) => {
+  const router = useRouter()
+  const [isLoading, setLoading] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const form = useForm<ShipmentSchemaType>({
     resolver: zodResolver(shipmentSchema),
@@ -59,62 +42,82 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({
         }
       : {
           locations: [],
-          method: "DELIVERY",
+          method: 'DELIVERY',
           isActive: false,
           cost: 0,
         },
-  });
+  })
 
   const handleKeyPress = (
-    e:
-      | React.KeyboardEvent<HTMLInputElement>
-      | React.KeyboardEvent<HTMLTextAreaElement>
+    e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
   ) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
+    if (e.key === 'Enter') {
+      e.preventDefault()
     }
-  };
+  }
 
   const onSubmit = async (values: ShipmentSchemaType) => {
     try {
-      setLoading(true);
-      const url = initialData
-        ? `/api/shipments/${initialData._id}`
-        : "/api/shipments";
+      setLoading(true)
+      const url = initialData ? `/api/shipments/${initialData.id}` : '/api/shipments'
       const res = await fetch(url, {
-        method: "POST",
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(values),
-      });
-      if (res.ok) {
-        setLoading(false);
-        toast({
-          description: `shipments ${initialData ? "updated" : "created"}`,
-          variant: "success",
-        });
-        window.location.href = "/shipments";
-        router.push("/shipments");
-      } else {
-        setLoading(false);
-        toast({
-          description: "Something went wrong! Please try again.",
-          variant: "destructive",
-        });
-      }
-    } catch (err) {
-      console.log("[shipments_POST]", err);
-      toast({
-        description: "Something went wrong! Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
+      })
 
-  const onDelete = async (): Promise<boolean> => {
-    const res = await fetch(`/api/shipments/${initialData?._id}`, {
-      method: "DELETE",
-    });
-    return res.ok;
-  };
+      if (!res.ok) {
+        throw new Error(await res.text())
+      }
+
+      toast({
+        description: `Shipment ${initialData ? 'updated' : 'created'} successfully`,
+        variant: 'success',
+      })
+
+      router.refresh() // Refresh the page data
+      router.push('/shipments')
+    } catch (err) {
+      console.error('[shipments_POST]', err)
+      toast({
+        description: err instanceof Error ? err.message : 'Something went wrong! Please try again.',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const onDelete = async () => {
+    try {
+      setIsDeleting(true)
+      const res = await fetch(`/api/shipments/${initialData?.id}`, {
+        method: 'DELETE',
+      })
+
+      if (!res.ok) {
+        throw new Error(await res.text())
+      }
+
+      toast({
+        description: 'Shipment deleted successfully',
+        variant: 'success',
+      })
+
+      router.refresh() // Refresh the page data
+      router.push('/shipments')
+    } catch (err) {
+      console.error('[shipments_DELETE]', err)
+      toast({
+        description: err instanceof Error ? err.message : 'Failed to delete shipment',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   return (
     <div className="p-10">
@@ -122,14 +125,11 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
             control={form.control}
-            name={"method"}
+            name={'method'}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Method</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select Method" />
@@ -152,17 +152,28 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({
                 <FormLabel>Locations</FormLabel>
                 <FormControl>
                   <MultiText
-                    placeholder="Locations"
+                    placeholder="Ex: Yaounde-Mendong, Yaounde-Odza"
                     value={field.value || []}
-                    onChange={(tag) =>
+                    onChange={tag => {
+                      if (
+                        shipments
+                          ?.filter(shipment => shipment.method === form.watch('method'))
+                          .map(e => e.locations)
+                          .flat()
+                          .map(location => location.toLowerCase())
+                          .includes(tag.toLowerCase())
+                      ) {
+                        toast({
+                          title: 'Error',
+                          description: `${tag} already exists in ${form.watch('method')} method`,
+                          variant: 'destructive',
+                        })
+                        return
+                      }
                       field.onChange([...(field.value || []), tag])
-                    }
-                    onRemove={(tagToRemove) =>
-                      field.onChange([
-                        ...(field.value || []).filter(
-                          (tag) => tag !== tagToRemove
-                        ),
-                      ])
+                    }}
+                    onRemove={tagToRemove =>
+                      field.onChange([...(field.value || []).filter(tag => tag !== tagToRemove)])
                     }
                   />
                 </FormControl>
@@ -182,9 +193,7 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({
                     step="0.01"
                     {...field}
                     onKeyDown={handleKeyPress}
-                    onChange={(e) =>
-                      field.onChange(parseFloat(e.target.value || "0"))
-                    }
+                    onChange={e => field.onChange(parseFloat(e.target.value || '0'))}
                   />
                 </FormControl>
                 <FormMessage />
@@ -198,10 +207,7 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({
               <FormItem className="space-y-0 flex gap-3 items-center">
                 <FormLabel className="mt-0">Is Active</FormLabel>
                 <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
+                  <Switch checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -209,29 +215,32 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({
           />
 
           <div className="flex justify-between">
-            <Button
-              disabled={isLoading}
-              onClick={() => onSubmit(form.getValues())}
-            >
-              {isLoading && <Loader2 className="animate-spin" />}
-              {initialData ? "Update" : "Create"} Shipment
-            </Button>
+            <SubmitButton
+              isLoading={isLoading}
+              label={initialData ? 'Update Shipment' : 'Create Shipment'}
+            />
             {initialData && (
               <Button
-                type="button"
+                onClick={e => {
+                  e.preventDefault()
+                  onDelete()
+                }}
+                disabled={isDeleting || isLoading}
                 variant="destructive"
-                disabled={isLoading}
-                onClick={() => onDelete()}
               >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete Product
+                {isDeleting ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4 mr-2" />
+                )}
+                Delete Shipment
               </Button>
             )}
           </div>
         </form>
       </Form>
     </div>
-  );
-};
+  )
+}
 
-export default ShipmentForm;
+export default ShipmentForm

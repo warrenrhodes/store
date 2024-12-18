@@ -1,29 +1,28 @@
-import { ICategory } from "@/lib/models/Category";
-import { ColumnDef } from "@tanstack/react-table";
-import { Checkbox } from "../ui/checkbox";
-import { Button } from "../ui/button";
-import Delete from "../custom-ui/Delete";
-import { ArrowUpDown, Edit } from "lucide-react";
-import { Badge } from "../ui/badge";
-import Link from "next/link";
+import { ColumnDef } from '@tanstack/react-table'
+import { Checkbox } from '../ui/checkbox'
+import { Button } from '../ui/button'
+import Delete from '../custom-ui/Delete'
+import { ArrowUpDown, Edit } from 'lucide-react'
+import { Badge } from '../ui/badge'
+import Link from 'next/link'
+import { Prisma } from '@naturegift/models'
 
-export const categoryColumns: ColumnDef<ICategory>[] = [
+export const categoryColumns: ColumnDef<Prisma.CategoryGetPayload<{}>>[] = [
   {
-    id: "select",
+    id: 'select',
     header: ({ table }) => (
       <Checkbox
         checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
+          table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')
         }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
       />
     ),
     cell: ({ row }) => (
       <Checkbox
         checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        onCheckedChange={value => row.toggleSelected(!!value)}
         aria-label="Select row"
       />
     ),
@@ -31,49 +30,45 @@ export const categoryColumns: ColumnDef<ICategory>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "name",
+    accessorKey: 'name',
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
           Name
           <ArrowUpDown />
         </Button>
-      );
+      )
     },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("name")}</div>,
+    cell: ({ row }) => <div className="lowercase">{row.getValue('name')}</div>,
   },
   {
-    accessorKey: "description",
-    header: "Description",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("description")}</div>
-    ),
+    accessorKey: 'description',
+    header: 'Description',
+    cell: ({ row }) => <div className="capitalize">{row.getValue('description')}</div>,
   },
   {
-    accessorKey: "featured",
-    header: "Featured",
-    cell: ({ row }) => (
-      <div>{row.original.featured && <Badge>Featured</Badge>}</div>
-    ),
+    accessorKey: 'featured',
+    header: 'Featured',
+    cell: ({ row }) => <div>{row.original.featured && <Badge>Featured</Badge>}</div>,
   },
   {
-    id: "actions",
-    header: "Actions",
+    id: 'actions',
+    header: 'Actions',
     cell: ({ row }) => {
-      const category = row.original;
+      const category = row.original
       const onDelete = async (): Promise<boolean> => {
-        const res = await fetch(`/api/categories/${category._id}`, {
-          method: "DELETE",
-        });
-        return res.ok;
-      };
+        const res = await fetch(`/api/categories/${category.id}`, {
+          method: 'DELETE',
+        })
+        return res.ok
+      }
 
       return (
         <div>
-          <Link href={`/categories/${category._id}`}>
+          <Link href={`/categories/${category.id}`}>
             <div className="flex gap-3 items-center">
               <Edit className="w-4 h-4" />
               Edit
@@ -83,7 +78,7 @@ export const categoryColumns: ColumnDef<ICategory>[] = [
             <Delete item="categories" handleDelete={onDelete} />
           </div>
         </div>
-      );
+      )
     },
   },
-];
+]

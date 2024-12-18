@@ -1,30 +1,22 @@
-"use client";
+'use client'
 
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { ProductSchemaType } from "@/lib/validations/product";
-import { UseFormReturn } from "react-hook-form";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { ProductSchemaType } from '@/lib/validations/product'
+import { UseFormReturn } from 'react-hook-form'
 
 interface MetadataFieldsProps {
-  form: UseFormReturn<ProductSchemaType>;
+  form: UseFormReturn<ProductSchemaType>
 }
 
 const handleKeyPress = (
-  e:
-    | React.KeyboardEvent<HTMLInputElement>
-    | React.KeyboardEvent<HTMLTextAreaElement>
+  e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
 ) => {
-  if (e.key === "Enter") {
-    e.preventDefault();
+  if (e.key === 'Enter') {
+    e.preventDefault()
   }
-};
+}
 
 export function MetadataFields({ form }: MetadataFieldsProps) {
   return (
@@ -66,12 +58,10 @@ export function MetadataFields({ form }: MetadataFieldsProps) {
             <FormControl>
               <Input
                 {...field}
-                value={field.value?.join(", ") || ""}
+                value={field.value?.join(', ') || ''}
                 onKeyDown={handleKeyPress}
-                onChange={(e) =>
-                  field.onChange(
-                    e.target.value.split(",").map((keyword) => keyword.trim())
-                  )
+                onChange={e =>
+                  field.onChange(e.target.value.split(',').map(keyword => keyword.trim()))
                 }
               />
             </FormControl>
@@ -80,5 +70,5 @@ export function MetadataFields({ form }: MetadataFieldsProps) {
         )}
       />
     </div>
-  );
+  )
 }

@@ -1,55 +1,51 @@
-import MultiSelect from "@/components/custom-ui/MultiSelect";
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { ICategory } from "@/lib/models/Category";
-import { ProductSchemaType } from "@/lib/validations/product";
-import { UseFormReturn } from "react-hook-form";
+import MultiSelect from '@/components/custom-ui/MultiSelect'
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
+import { ProductSchemaType } from '@/lib/validations/product'
+import { Prisma } from '@naturegift/models'
+import { AlertTriangle } from 'lucide-react'
+import { UseFormReturn } from 'react-hook-form'
 
 interface CategoriesFieldsProps {
-  form: UseFormReturn<ProductSchemaType>;
-  categories: ICategory[];
+  form: UseFormReturn<ProductSchemaType>
+  categories: Prisma.CategoryGetPayload<{}>[]
 }
-export const CategoriesForm: React.FC<CategoriesFieldsProps> = ({
-  form,
-  categories,
-}) => {
+export const CategoriesForm: React.FC<CategoriesFieldsProps> = ({ form, categories }) => {
   return (
     <FormField
       control={form.control}
-      name="categories"
+      name="categoryIds"
       render={({ field }) => (
         <FormItem>
           <FormLabel>Categories*</FormLabel>
           <FormControl>
-            <MultiSelect
-              placeholder="Search categories"
-              selectedValues={(field.value || []).map((value) => {
-                return {
-                  value,
-                  label: categories.find((category) => {
-                    return category._id === value;
-                  })?.name as string,
-                };
-              })}
-              values={categories.map((category) => {
-                return {
-                  value: category._id,
-                  label: category.name,
-                };
-              })}
-              onChange={(values) =>
-                field.onChange([...values.map((value) => value.value)])
-              }
-            />
+            {categories.length > 0 ? (
+              <MultiSelect
+                placeholder="Search categories"
+                selectedValues={(field.value || []).map(value => {
+                  return {
+                    value,
+                    label: categories.find(category => {
+                      return category.id === value
+                    })?.name as string,
+                  }
+                })}
+                values={categories.map(category => {
+                  return {
+                    value: category.id,
+                    label: category.name,
+                  }
+                })}
+                onChange={values => field.onChange([...values.map(value => value.value)])}
+              />
+            ) : (
+              <div className="text-red-500 flex items-center gap-3 justify-center">
+                <AlertTriangle /> Adds least of one category before create a product
+              </div>
+            )}
           </FormControl>
           <FormMessage className="text-red-1" />
         </FormItem>
       )}
     />
-  );
-};
+  )
+}

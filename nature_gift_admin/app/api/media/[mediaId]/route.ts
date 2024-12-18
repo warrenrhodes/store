@@ -1,65 +1,84 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs";
-import fs from "fs";
-import path from "path";
+import { auth } from '@clerk/nextjs/server'
+import { prisma } from '@naturegift/models'
+import fs from 'fs'
+import { NextRequest, NextResponse } from 'next/server'
+import path from 'path'
 
-import { connectToDB } from "@/lib/mongoDB";
-import Media from "@/lib/models/Media";
-import Product from "@/lib/models/Product";
-
-export const DELETE = async (
-  req: NextRequest,
-  { params }: { params: { mediaId: string } }
-) => {
+export const DELETE = async (req: NextRequest, props: { params: Promise<{ mediaId: string }> }) => {
+  const params = await props.params
   try {
-    const { userId } = auth();
+    const { userId } = await auth()
 
     if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    await connectToDB();
-    const media = await Media.findById(params.mediaId);
+    const media = await prisma.media.findUnique({
+      where: {
+        id: params.mediaId,
+      },
+    })
 
     if (!media) {
-      return new NextResponse(JSON.stringify({ message: "Media not found" }), {
+      return new NextResponse(JSON.stringify({ message: 'Media not found' }), {
         status: 404,
-      });
+      })
     }
 
-    await Media.findByIdAndDelete(params.mediaId);
-    const userDir = path.join(process.cwd(), "tmp", userId);
+    // Delete media and update products in a transaction
+    await prisma.$transaction(
+      async (tx: {
+        media: { delete: (arg0: { where: { id: string } }) => any }
+        mediasOnProducts: { deleteMany: (arg0: { where: { mediaId: string } }) => any }
+      }) => {
+        // Delete the media
+        await tx.media.delete({
+          where: {
+            id: params.mediaId,
+          },
+        })
+
+        // Update products that reference this media
+        await tx.mediasOnProducts.deleteMany({
+          where: {
+            mediaId: params.mediaId,
+          },
+        })
+      },
+    )
+
+    const userDir = path.join(process.cwd(), 'tmp', userId)
     if (!fs.existsSync(userDir)) {
-      return new NextResponse("Internal error", { status: 500 });
+      return new NextResponse('Internal error', { status: 500 })
     }
 
-    await Product.updateMany(
-      { media: media._id },
-      { $pull: { media: media._id } }
-    );
+    // Deletes the local file
+    const filePath = path.join(process.cwd(), 'tmp', userId, media.fileName)
+    fs.unlinkSync(filePath)
 
-    // Deletes the local file.
-    const filePath = path.join(process.cwd(), "tmp", userId, media.fileName);
-    fs.unlinkSync(filePath);
-
-    return new NextResponse("Media is deleted", { status: 200 });
+    return new NextResponse('Media is deleted', { status: 200 })
   } catch (err) {
-    console.log("[mediaId_DELETE]", err);
-    return new NextResponse("Internal error", { status: 500 });
+    console.log('[mediaId_DELETE]', err)
+    return new NextResponse('Internal error', { status: 500 })
+  } finally {
+    await prisma.$disconnect()
   }
-};
+}
 
-export const GET = async (
-  req: NextRequest,
-  { params }: { params: { mediaId: string } }
-) => {
+export const GET = async (req: NextRequest, props: { params: Promise<{ mediaId: string }> }) => {
+  const params = await props.params
   try {
-    await connectToDB();
-    const media = await Media.findById(params.mediaId);
+    const media = await prisma.media.findUnique({
+      where: {
+        id: params.mediaId,
+      },
+    })
 
-    return NextResponse.json({ mediaUrl: media?.url }, { status: 200 });
+    return NextResponse.json({ mediaUrl: media?.url }, { status: 200 })
   } catch (err) {
-    console.log("[mediaId_GET]", err);
-    return new NextResponse("Internal error", { status: 500 });
+    console.log('[mediaId_GET]', err)
+    return new NextResponse('Internal error', { status: 500 })
+  } finally {
+    await prisma.$disconnect()
   }
-};
+}

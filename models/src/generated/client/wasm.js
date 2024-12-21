@@ -117,7 +117,8 @@ exports.Prisma.MediaScalarFieldEnum = {
   type: 'type',
   updatedAt: 'updatedAt',
   url: 'url',
-  blurDataUrl: 'blurDataUrl'
+  blurDataUrl: 'blurDataUrl',
+  creatorId: 'creatorId'
 };
 
 exports.Prisma.ShipmentScalarFieldEnum = {
@@ -127,7 +128,8 @@ exports.Prisma.ShipmentScalarFieldEnum = {
   cost: 'cost',
   locations: 'locations',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  creatorId: 'creatorId'
 };
 
 exports.Prisma.CategoryScalarFieldEnum = {
@@ -138,6 +140,7 @@ exports.Prisma.CategoryScalarFieldEnum = {
   imageId: 'imageId',
   featured: 'featured',
   parentId: 'parentId',
+  creatorId: 'creatorId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -152,7 +155,8 @@ exports.Prisma.PromotionScalarFieldEnum = {
   status: 'status',
   priority: 'priority',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  creatorId: 'creatorId'
 };
 
 exports.Prisma.CommentScalarFieldEnum = {
@@ -169,6 +173,7 @@ exports.Prisma.BlogScalarFieldEnum = {
   status: 'status',
   publishedAt: 'publishedAt',
   layout: 'layout',
+  creatorId: 'creatorId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -185,7 +190,8 @@ exports.Prisma.ProductScalarFieldEnum = {
   blogUrl: 'blogUrl',
   partnerId: 'partnerId',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  creatorId: 'creatorId'
 };
 
 exports.Prisma.ReviewScalarFieldEnum = {
@@ -199,7 +205,8 @@ exports.Prisma.ReviewScalarFieldEnum = {
   notHelpful: 'notHelpful',
   verify: 'verify',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  creatorId: 'creatorId'
 };
 
 exports.Prisma.OrderItemScalarFieldEnum = {

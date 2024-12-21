@@ -32,7 +32,7 @@ export default function Blogs({ blogs }: { blogs: IBlog[] }) {
       filtered = blogs.filter(blog => blog.tags?.some(tag => filters.tags.includes(tag)))
     }
     setFilteredBlogs(filtered)
-  }, [filters])
+  }, [blogs, filters])
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

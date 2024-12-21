@@ -34,7 +34,7 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
   const [isLoading, setIsLoading] = useState(false)
   const orderSummary = useRef<OrderSummaryType>()
   const currentStepIndex = steps.findIndex(step => step.id === currentStep)
-  const { user, loading, updateUserInfo } = useCurrentUser()
+  const { user } = useCurrentUser()
 
   const handleStepSubmit = (stepId: string, data: DeliveryFormData) => {
     setFormData(data)
@@ -138,7 +138,7 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
         <ShoppingBag className="w-16 h-16 mx-auto text-muted-foreground" />
         <h2 className="mt-4 text-xl font-semibold">Your cart is empty</h2>
         <p className="mt-2 text-muted-foreground">
-          Looks like you haven't added any items to your cart yet
+          {" Looks like you haven't added any items to your cart yet"}
         </p>
         <Button asChild className="mt-8">
           <Link href="/shop">Start Shopping</Link>

@@ -10,28 +10,27 @@ export interface Filters {
   colors: string[]
   tags: string[]
 }
-const productWithRelations = Prisma.validator<Prisma.ProductDefaultArgs>()({
+
+export type IProduct = Prisma.ProductGetPayload<{
   include: {
     categories: {
       include: {
-        category: true,
-      },
-    },
+        category: true
+      }
+    }
     media: {
       include: {
-        media: true,
-      },
-    },
-    reviews: true,
-  },
-})
-
-export type IProduct = Prisma.ProductGetPayload<typeof productWithRelations>
+        media: true
+      }
+    }
+    reviews: true
+  }
+}>
 
 export const fetchProductsByQuery = async ({
   query,
 }: {
-  query: Partial<{ [key in keyof Prisma.ProductGetPayload<{}>]: string }>
+  query: Partial<{ [key in keyof Prisma.ProductGetPayload<object>]: string }>
 }): Promise<IProduct[] | null> => {
   try {
     const products = await prisma.product.findMany({
@@ -183,7 +182,7 @@ export async function getProducts(): Promise<IProduct[]> {
 }
 
 export async function getCategoriesOnProduct(): Promise<
-  Prisma.CategoriesOnProductsGetPayload<{}>[]
+  Prisma.CategoriesOnProductsGetPayload<object>[]
 > {
   try {
     const categories = await prisma.categoriesOnProducts.findMany()
@@ -194,15 +193,24 @@ export async function getCategoriesOnProduct(): Promise<
   }
 }
 
-export async function getProductId(id: string): Promise<Prisma.ProductGetPayload<{}> | null> {
+export async function getProductId(id: string): Promise<IProduct | null> {
   try {
     const product = await prisma.product.findUnique({
       where: {
         id,
       },
       include: {
-        categories: true,
-        media: true,
+        categories: {
+          include: {
+            category: true,
+          },
+        },
+        media: {
+          include: {
+            media: true,
+          },
+        },
+        reviews: true,
       },
     })
     return product

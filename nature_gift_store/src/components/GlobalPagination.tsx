@@ -34,7 +34,7 @@ export const GlobalPagination = <T,>({ items, itemsPerPage, children }: Paginati
         <div className="max-w-md mx-auto">
           <h3 className="text-xl font-medium mb-2">No resources found</h3>
           <p className="text-muted-foreground mb-6">
-            Try adjusting your filter criteria to find what you're looking for.
+            {" Try adjusting your filter criteria to find what you're looking for."}
           </p>
         </div>
       </motion.div>

@@ -1,21 +1,21 @@
-"use client";
+'use client'
 
-import * as React from "react";
+import * as React from 'react'
 import {
   BaggageClaim,
   BookOpenTextIcon,
   CarTaxiFrontIcon,
-  Edit3Icon,
   Gift,
   LayoutDashboard,
+  LogOut,
   LucideImage,
   Shapes,
   ShoppingBag,
   Stars,
   Tag,
   UsersRound,
-} from "lucide-react";
-import { useUser } from "@clerk/nextjs";
+} from 'lucide-react'
+import { useClerk, useUser } from '@clerk/nextjs'
 import {
   Sidebar,
   SidebarContent,
@@ -24,68 +24,81 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import { NavMain } from "./NavMain";
-import { NavUser } from "./NavUser";
+} from '@/components/ui/sidebar'
+import { NavMain } from './NavMain'
+import { NavUser } from './NavUser'
+import { useRouter } from 'next/navigation'
 
 const data = {
   navMain: [
     {
-      title: "Dashboard",
-      url: "/",
+      title: 'Dashboard',
+      url: '/',
       icon: LayoutDashboard,
       isActive: true,
     },
     {
-      title: "Categories",
-      url: "/categories",
+      title: 'Categories',
+      url: '/categories',
       icon: Shapes,
     },
     {
-      url: "/products",
+      url: '/products',
       icon: Tag,
-      title: "Products",
+      title: 'Products',
     },
     {
-      url: "/promotions",
+      url: '/promotions',
       icon: Gift,
-      title: "Promotions",
+      title: 'Promotions',
     },
     {
-      url: "/medias",
+      url: '/medias',
       icon: LucideImage,
-      title: "Medias",
+      title: 'Medias',
     },
     {
-      url: "/orders",
+      url: '/orders',
       icon: ShoppingBag,
-      title: "Orders",
+      title: 'Orders',
     },
     {
-      url: "/customers",
+      url: '/customers',
       icon: UsersRound,
-      title: "Customers",
+      title: 'Customers',
     },
     {
-      url: "/blogs",
+      url: '/blogs',
       icon: BookOpenTextIcon,
-      title: "Blogs",
+      title: 'Blogs',
     },
     {
-      url: "/reviews",
+      url: '/reviews',
       icon: Stars,
-      title: "Reviews",
+      title: 'Reviews',
     },
     {
-      url: "/shipments",
+      url: '/shipments',
       icon: CarTaxiFrontIcon,
-      title: "Shipments",
+      title: 'Shipments',
     },
   ],
-};
+}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { isSignedIn, user } = useUser();
+  const { isSignedIn, user } = useUser()
+  const clerk = useClerk()
+  const router = useRouter()
+
+  const handleSignOut = React.useCallback(async () => {
+    try {
+      await clerk.signOut()
+      router.push('/')
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
+  }, [clerk, router])
+
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -97,9 +110,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <BaggageClaim className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">
-                    {"Nature's Gift"}
-                  </span>
+                  <span className="truncate font-semibold">{"Nature's Gift"}</span>
                   <span className="truncate text-xs">Enterprise</span>
                 </div>
               </a>
@@ -120,7 +131,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             }}
           />
         )}
+        {isSignedIn && (
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild className="cursor-pointer">
+                <button onClick={handleSignOut}>
+                  <div className="flex items-center gap-3">
+                    <LogOut className="h-4 w-4" />
+                    <span>Sign Out</span>
+                  </div>
+                </button>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        )}
       </SidebarFooter>
     </Sidebar>
-  );
+  )
 }

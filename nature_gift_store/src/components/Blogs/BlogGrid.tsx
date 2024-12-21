@@ -39,17 +39,15 @@ interface BlogGridProps {
 
 export function BlogGrid({ blogs }: BlogGridProps) {
   return (
-    <GlobalPagination
-      items={blogs}
-      itemsPerPage={6}
-      children={blogList => (
+    <GlobalPagination items={blogs} itemsPerPage={6}>
+      {blogList => (
         <motion.section
           variants={containerVariants}
           initial="hidden"
           animate="visible"
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
-          {blogList.map((blog, index) => (
+          {blogList.map(blog => (
             <motion.div key={`${`${blog.id}`}`} variants={itemVariants}>
               <Link href={`/blogs/${blog.slug}`}>
                 <Card className="h-full group">
@@ -114,6 +112,6 @@ export function BlogGrid({ blogs }: BlogGridProps) {
           ))}
         </motion.section>
       )}
-    />
+    </GlobalPagination>
   )
 }

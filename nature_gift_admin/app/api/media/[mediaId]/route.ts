@@ -1,3 +1,4 @@
+import { getUserByClerkId } from '@/lib/actions/actions'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'
 import fs from 'fs'
@@ -8,14 +9,19 @@ export const DELETE = async (req: NextRequest, props: { params: Promise<{ mediaI
   const params = await props.params
   try {
     const { userId } = await auth()
-
     if (!userId) {
+      return new NextResponse('Unauthorized', { status: 403 })
+    }
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const media = await prisma.media.findUnique({
       where: {
         id: params.mediaId,
+        creatorId: _currentUser.id,
       },
     })
 
@@ -68,9 +74,20 @@ export const DELETE = async (req: NextRequest, props: { params: Promise<{ mediaI
 export const GET = async (req: NextRequest, props: { params: Promise<{ mediaId: string }> }) => {
   const params = await props.params
   try {
+    const { userId } = await auth()
+    if (!userId) {
+      return new NextResponse('Unauthorized', { status: 403 })
+    }
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const media = await prisma.media.findUnique({
       where: {
         id: params.mediaId,
+        creatorId: _currentUser.id,
       },
     })
 

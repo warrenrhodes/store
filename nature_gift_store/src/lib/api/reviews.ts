@@ -1,12 +1,10 @@
 import { prisma, Prisma } from '@naturegift/models'
 
-const reviewWithRelations = Prisma.validator<Prisma.ReviewDefaultArgs>()({
+export type IReview = Prisma.ReviewGetPayload<{
   include: {
-    product: true,
-  },
-})
-
-export type IReview = Prisma.ReviewGetPayload<typeof reviewWithRelations>
+    product: true
+  }
+}>
 
 export async function getReviews(): Promise<IReview[]> {
   try {

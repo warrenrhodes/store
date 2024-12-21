@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { format, subDays } from 'date-fns'
 import useEmblaCarousel from 'embla-carousel-react'
 import { EmblaCarouselType, EmblaEventType, EmblaOptionsType } from 'embla-carousel'
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useMemo } from 'react'
 import { IBlog } from '@/lib/api/blogs'
 import { NextButton, PrevButton, usePrevNextButtons } from './EmblaCarouselArrowButtons'
 import { DotButton, useDotButton } from './EmblaCarouselDotButton'
@@ -19,19 +19,16 @@ import { FAKE_BLUR } from '@/lib/utils/constants'
 interface FeaturedBlogCarouselProps {
   blogs: IBlog[]
 }
+
 const OPTIONS: EmblaOptionsType = { dragFree: true, loop: true }
 const TWEEN_FACTOR_BASE = 0.2
-type PropType = {
-  slides: number[]
-  options?: EmblaOptionsType
-}
 
 export function FeaturedBlogCarousel({ blogs }: FeaturedBlogCarouselProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel(OPTIONS)
   const tweenFactor = useRef(0)
   const tweenNodes = useRef<HTMLElement[]>([])
 
-  const { selectedIndex, scrollSnaps, onDotButtonClick } = useDotButton(emblaApi)
+  const { selectedIndex, onDotButtonClick } = useDotButton(emblaApi)
 
   const { prevBtnDisabled, nextBtnDisabled, onPrevButtonClick, onNextButtonClick } =
     usePrevNextButtons(emblaApi)
@@ -48,12 +45,10 @@ export function FeaturedBlogCarousel({ blogs }: FeaturedBlogCarouselProps) {
 
   const tweenParallax = useCallback((emblaApi: EmblaCarouselType, eventName?: EmblaEventType) => {
     const engine = emblaApi.internalEngine()
-    const scrollProgress = emblaApi.scrollProgress()
     const slidesInView = emblaApi.slidesInView()
     const isScrollEvent = eventName === 'scroll'
 
     emblaApi.scrollSnapList().forEach((scrollSnap, snapIndex) => {
-      let diffToTarget = scrollSnap - scrollProgress
       const slidesInSnap = engine.slideRegistry[snapIndex]
 
       slidesInSnap.forEach(slideIndex => {
@@ -67,18 +62,12 @@ export function FeaturedBlogCarousel({ blogs }: FeaturedBlogCarouselProps) {
               const sign = Math.sign(target)
 
               if (sign === -1) {
-                diffToTarget = scrollSnap - (1 + scrollProgress)
               }
               if (sign === 1) {
-                diffToTarget = scrollSnap + (1 - scrollProgress)
               }
             }
           })
         }
-
-        // const translate = diffToTarget * (-1 * tweenFactor.current) * 100
-        // const tweenNode = tweenNodes.current[slideIndex]
-        // tweenNode.style.transform = `translateX(${translate}%)`
       })
     })
   }, [])
@@ -86,103 +75,117 @@ export function FeaturedBlogCarousel({ blogs }: FeaturedBlogCarouselProps) {
   useEffect(() => {
     if (!emblaApi) return
 
-    setTweenNodes(emblaApi)
-    setTweenFactor(emblaApi)
-    tweenParallax(emblaApi)
+    const setupCarousel = () => {
+      setTweenNodes(emblaApi)
+      setTweenFactor(emblaApi)
+      tweenParallax(emblaApi)
+    }
 
-    emblaApi
-      .on('reInit', setTweenNodes)
-      .on('reInit', setTweenFactor)
-      .on('reInit', tweenParallax)
-      .on('scroll', tweenParallax)
-      .on('slideFocus', tweenParallax)
-  }, [emblaApi, tweenParallax])
+    setupCarousel()
+
+    const cleanup = () => {
+      emblaApi
+        .off('reInit', setupCarousel)
+        .off('scroll', tweenParallax)
+        .off('slideFocus', tweenParallax)
+    }
+
+    emblaApi.on('reInit', setupCarousel).on('scroll', tweenParallax).on('slideFocus', tweenParallax)
+
+    return cleanup
+  }, [emblaApi, setTweenFactor, setTweenNodes, tweenParallax])
+
+  const renderBlogCards = useMemo(() => {
+    return blogs.map(blog => (
+      <div key={`${blog.id}`} className="relative flex-[0_0_100%] min-w-0">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="relative aspect-[2/1] overflow-hidden"
+        >
+          <div className="relative aspect-[16/9] overflow-hidden rounded-t-lg">
+            <Image
+              src={blog.metadata.coverImageURL || ''}
+              alt={blog.title}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              placeholder="blur"
+              blurDataURL={blog.metadata.blurDataUrl || FAKE_BLUR}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          </div>
+
+          <div className="relative h-full flex flex-col justify-end p-8">
+            <div className="flex flex-wrap gap-2 mb-4">
+              {blog.categories.slice(0, 3).map(category => (
+                <Badge key={category.id as string} variant="secondary">
+                  {category.category.name}
+                </Badge>
+              ))}
+            </div>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4">
+              {blog.title}
+            </h2>
+            <p className="text-lg text-white/80 mb-6 max-w-3xl">{blog.content.excerpt}</p>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
+              <div className="flex items-center gap-2">
+                <Avatar>
+                  <AvatarImage
+                    src={blog.metadata.author.avatar || undefined}
+                    alt={blog.metadata.author.name}
+                  />
+                  <AvatarFallback>
+                    {blog.metadata.author.name
+                      .split(' ')
+                      .map((n: string) => n[0])
+                      .join('')}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-white font-medium">{blog.metadata.author.name}</span>
+              </div>
+              <div className="flex items-center gap-4 text-sm text-white/80">
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  <span>{format(blog.publishedAt || subDays(new Date(), 4), 'PPP')}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
+                  <span>{blog.metadata.readingTime} min read</span>
+                </div>
+              </div>
+            </div>
+            <Button asChild className="absolute top-8 right-8" variant="secondary">
+              <Link href={`/blogs/${blog.slug}`}>
+                Read More
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    ))
+  }, [blogs])
+
+  const renderDotButtons = useMemo(() => {
+    return blogs.map((_, index) => (
+      <DotButton
+        key={index}
+        onClick={() => onDotButtonClick(index)}
+        className={`w-2 h-2 rounded-full transition-colors ${
+          index === selectedIndex ? 'bg-white' : 'bg-white/50'
+        }`}
+      />
+    ))
+  }, [blogs.length, selectedIndex, onDotButtonClick])
 
   return (
     <div className="relative">
       <div className="overflow-hidden rounded-lg" ref={emblaRef}>
-        <div className="flex">
-          {blogs.map(blog => (
-            <div key={`${blog.id}`} className="relative flex-[0_0_100%] min-w-0">
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="relative aspect-[2/1] overflow-hidden"
-              >
-                <div className="relative aspect-[16/9] overflow-hidden rounded-t-lg">
-                  <Image
-                    src={blog.metadata.coverImageURL || ''}
-                    alt={blog.title}
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    placeholder="blur"
-                    blurDataURL={blog.metadata.blurDataUrl || FAKE_BLUR}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  />
-                </div>
-
-                <div className="relative h-full flex flex-col justify-end p-8">
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {blog.categories.slice(0, 3).map(category => (
-                      <Badge key={category.id as string} variant="secondary">
-                        {category.category.name}
-                      </Badge>
-                    ))}
-                  </div>
-                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4">
-                    {blog.title}
-                  </h2>
-                  <p className="text-lg text-white/80 mb-6 max-w-3xl">{blog.content.excerpt}</p>
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
-                    <div className="flex items-center gap-2">
-                      <Avatar>
-                        <AvatarImage
-                          src={blog.metadata.author.avatar || undefined}
-                          alt={blog.metadata.author.name}
-                        />
-                        <AvatarFallback>
-                          {blog.metadata.author.name
-                            .split(' ')
-                            .map((n: string) => n[0])
-                            .join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-white font-medium">{blog.metadata.author.name}</span>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-white/80">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        <span>{format(blog.publishedAt || subDays(new Date(), 4), 'PPP')}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        <span>{blog.metadata.readingTime} min read</span>
-                      </div>
-                    </div>
-                  </div>
-                  <Button asChild className="absolute top-8 right-8" variant="secondary">
-                    <Link href={`/blogs/${blog.slug}`}>
-                      Read More
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </motion.div>
-            </div>
-          ))}
-        </div>
+        <div className="flex">{renderBlogCards}</div>
       </div>
 
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-        {blogs.map((_, index) => (
-          <DotButton
-            key={index}
-            onClick={() => onDotButtonClick(index)}
-            className={`w-2 h-2 rounded-full transition-colors ${
-              index === selectedIndex ? 'bg-white' : 'bg-white/50'
-            }`}
-          />
-        ))}
+        {renderDotButtons}
       </div>
       {blogs.length > 1 && (
         <PrevButton

@@ -10,7 +10,7 @@ interface ProductSizeButtonProps {
 }
 
 const ProductSizeButton: FC<ProductSizeButtonProps> = ({ disabled, size }) => {
-  const [isDisabled, setIsDisabled] = useState(disabled)
+  const [isDisabled] = useState(disabled)
   const [selected, setSelected] = useState(false)
 
   return (

@@ -1,3 +1,4 @@
+import { getUserByClerkId } from '@/lib/actions/actions'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'
 import fs from 'fs/promises'
@@ -9,6 +10,11 @@ export async function GET(request: Request) {
     const { userId } = await auth()
 
     if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -24,6 +30,7 @@ export async function GET(request: Request) {
       await prisma.media.deleteMany({
         where: {
           fileName: name,
+          creatorId: _currentUser.id,
         },
       })
       await fs.unlink(path.join(uploadsDir, name))

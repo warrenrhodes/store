@@ -92,8 +92,8 @@ export class PromotionCalculator {
   }
 
   public calculate(): OrderSummary {
-    let subtotal = this.cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
-    let shipping = this.deliveryInfo?.cost || 0
+    const subtotal = this.cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    const shipping = this.deliveryInfo?.cost || 0
     let totalDiscount = 0
     const appliedPromotions: OrderSummary['appliedPromotions'] = []
 

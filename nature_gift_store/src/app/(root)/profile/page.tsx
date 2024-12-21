@@ -15,6 +15,8 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { priceFormatted } from '@/lib/utils/utils'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import Image from 'next/image'
+import { FAKE_BLUR } from '@/lib/utils/constants'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -97,11 +99,22 @@ function TabsWrapper() {
                   <CardContent>
                     {order.items.map(item => (
                       <div key={item.id} className="flex items-center gap-4 mb-4">
-                        <img
-                          src={item.product.media[0].media.url}
-                          alt={item.product.title}
-                          className="w-16 h-16 object-cover rounded-md"
-                        />
+                        <div className="relative aspect-square w-24 rounded-lg overflow-hidden">
+                          <Image
+                            src={item.product.media[0].media.url}
+                            fill
+                            alt={item.product.title}
+                            className="object-cover w-full h-full"
+                            onError={() => console.log('Image not found')}
+                            placeholder="blur"
+                            blurDataURL={item.product.media[0].media.blurDataUrl || FAKE_BLUR}
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          />
+                          {item.product.isFeature && (
+                            <Badge className="absolute top-1 left-1">Feature</Badge>
+                          )}
+                        </div>
+
                         <div>
                           <h4 className="font-medium">{item.product.title}</h4>
                           <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>

@@ -5,17 +5,6 @@ import { motion } from 'framer-motion'
 import { ProductCard } from '../ProductCard'
 import { IProduct } from '@/lib/api/products'
 
-const itemVariants = {
-  hidden: { opacity: 0, x: -20 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: {
-      duration: 0.5,
-    },
-  },
-}
-
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {

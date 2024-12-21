@@ -14,8 +14,7 @@ export interface OrderSummary {
     type: string
   }>
 }
-const ordersWithRelations = Prisma.validator<Prisma.OrderDefaultArgs>()({})
-export type IOrder = Prisma.OrderGetPayload<typeof ordersWithRelations>
+export type IOrder = Prisma.OrderGetPayload<object>
 export type IDeliveryInfo = IOrder['deliveryInfo'] & { cost: number }
 
 export const createOrder = async (params: {

@@ -1,3 +1,4 @@
+import { getUserByClerkId } from '@/lib/actions/actions'
 import { categorySchema } from '@/lib/validations/category'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'
@@ -6,9 +7,20 @@ import { NextRequest, NextResponse } from 'next/server'
 export const GET = async (req: NextRequest, props: { params: Promise<{ categoryId: string }> }) => {
   const params = await props.params
   try {
+    const { userId } = await auth()
+    if (!userId) {
+      return new NextResponse('Unauthorized', { status: 403 })
+    }
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const category = await prisma.category.findUnique({
       where: {
         id: params.categoryId,
+        creatorId: _currentUser.id,
       },
       include: {
         parent: true,
@@ -91,6 +103,11 @@ export const DELETE = async (
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     // First disconnect all products from this category
     await prisma.categoriesOnProducts.deleteMany({
       where: {
@@ -109,6 +126,7 @@ export const DELETE = async (
     await prisma.category.delete({
       where: {
         id: params.categoryId,
+        creatorId: _currentUser.id,
       },
     })
 

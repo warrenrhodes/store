@@ -1,78 +1,84 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { shipmentSchema } from '@/lib/validations/shipment'
-import { prisma } from '@naturegift/models'
+import { getUserByClerkId } from '@/lib/actions/actions'
 import { auth } from '@clerk/nextjs/server'
+import { prisma } from '@naturegift/models'
+import { NextRequest, NextResponse } from 'next/server'
 
-export const GET = async (req: NextRequest, props: { params: Promise<{ shipmentId: string }> }) => {
-  const params = await props.params
-
+export const GET = async (req: NextRequest, { params }: { params: { shipmentId: string } }) => {
   try {
+    const { userId } = await auth()
+    if (!userId) {
+      return new NextResponse('Unauthorized', { status: 403 })
+    }
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const shipment = await prisma.shipment.findUnique({
       where: {
         id: params.shipmentId,
+        creatorId: _currentUser.id,
       },
     })
-    if (!shipment) {
-      return new NextResponse('Shipment not found', { status: 404 })
-    }
 
-    return NextResponse.json(shipment, { status: 200 })
-  } catch (err) {
-    console.error('[shipmentId_GET]', err)
+    return NextResponse.json(shipment)
+  } catch (error) {
+    console.error('[SHIPMENT_GET]', error)
     return new NextResponse('Internal error', { status: 500 })
   }
 }
 
-export const POST = async (
-  req: NextRequest,
-  props: { params: Promise<{ shipmentId: string }> },
-) => {
-  const params = await props.params
+export const PATCH = async (req: NextRequest, { params }: { params: { shipmentId: string } }) => {
   try {
     const { userId } = await auth()
-
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 })
+      return new NextResponse('Unauthorized', { status: 403 })
+    }
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const json = await req.json()
-    const body = shipmentSchema.parse(json)
-
     const shipment = await prisma.shipment.update({
       where: {
         id: params.shipmentId,
+        creatorId: _currentUser.id,
       },
-      data: body,
+      data: json,
     })
 
-    return NextResponse.json(shipment, { status: 200 })
-  } catch (err) {
-    console.error('[shipmentId_POST]', err)
+    return NextResponse.json(shipment)
+  } catch (error) {
+    console.error('[SHIPMENT_PATCH]', error)
     return new NextResponse('Internal error', { status: 500 })
   }
 }
 
-export const DELETE = async (
-  req: NextRequest,
-  props: { params: Promise<{ shipmentId: string }> },
-) => {
-  const params = await props.params
+export const DELETE = async (req: NextRequest, { params }: { params: { shipmentId: string } }) => {
   try {
     const { userId } = await auth()
-
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 })
+      return new NextResponse('Unauthorized', { status: 403 })
+    }
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     await prisma.shipment.delete({
       where: {
         id: params.shipmentId,
+        creatorId: _currentUser.id,
       },
     })
 
-    return new NextResponse('Shipment deleted successfully', { status: 200 })
-  } catch (err) {
-    console.error('[shipmentId_DELETE]', err)
+    return new NextResponse(null, { status: 204 })
+  } catch (error) {
+    console.error('[SHIPMENT_DELETE]', error)
     return new NextResponse('Internal error', { status: 500 })
   }
 }

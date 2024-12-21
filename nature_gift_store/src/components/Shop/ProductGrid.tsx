@@ -36,7 +36,7 @@ export function ProductGrid({ products, loading, clearFilters }: ProductGridProp
         <div className="max-w-md mx-auto">
           <h3 className="text-xl font-medium mb-2">No products found</h3>
           <p className="text-muted-foreground mb-6">
-            Try adjusting your search or filter criteria to find what you're looking for.
+            {"Try adjusting your search or filter criteria to find what you're looking for."}
           </p>
           <Button onClick={clearFilters} variant="outline" className="gap-2">
             <FilterX className="h-4 w-4" />
@@ -48,10 +48,8 @@ export function ProductGrid({ products, loading, clearFilters }: ProductGridProp
   }
 
   return (
-    <GlobalPagination
-      items={products}
-      itemsPerPage={9}
-      children={productList => (
+    <GlobalPagination items={products} itemsPerPage={9}>
+      {productList => (
         <motion.div
           layout
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 overflow-hidden"
@@ -63,6 +61,6 @@ export function ProductGrid({ products, loading, clearFilters }: ProductGridProp
           </AnimatePresence>
         </motion.div>
       )}
-    />
+    </GlobalPagination>
   )
 }

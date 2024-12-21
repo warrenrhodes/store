@@ -1,13 +1,18 @@
+import { getUserByClerkId } from '@/lib/actions/actions'
 import { productSchema } from '@/lib/validations/product'
-import { auth, reverificationErrorResponse } from '@clerk/nextjs/server'
+import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'
 import { NextRequest, NextResponse } from 'next/server'
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const { userId } = await auth()
-
     if (!userId) {
+      return new NextResponse('Unauthorized', { status: 403 })
+    }
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -44,6 +49,7 @@ export async function POST(req: Request) {
             })),
           },
         }),
+        creatorId: _currentUser.id,
       },
       include: {
         media: {
@@ -80,14 +86,14 @@ export async function POST(req: Request) {
 
 export const GET = async (req: NextRequest) => {
   try {
-    const { userId, has } = await auth()
-
+    const { userId } = await auth()
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return new NextResponse('Unauthorized', { status: 403 })
     }
 
-    if (!has({ reverification: 'strict' })) {
-      return reverificationErrorResponse('strict')
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { searchParams } = new URL(req.url)
@@ -102,6 +108,7 @@ export const GET = async (req: NextRequest) => {
       ...(status && { status }),
       ...(featured && { isFeature: true }),
       ...(tag && { tags: { has: tag } }),
+      creatorId: _currentUser.id,
     }
 
     const [products, total] = await Promise.all([

@@ -3724,6 +3724,7 @@ export namespace Prisma {
     updatedAt: Date | null
     url: string | null
     blurDataUrl: string | null
+    creatorId: string | null
   }
 
   export type MediaMaxAggregateOutputType = {
@@ -3734,6 +3735,7 @@ export namespace Prisma {
     updatedAt: Date | null
     url: string | null
     blurDataUrl: string | null
+    creatorId: string | null
   }
 
   export type MediaCountAggregateOutputType = {
@@ -3744,6 +3746,7 @@ export namespace Prisma {
     updatedAt: number
     url: number
     blurDataUrl: number
+    creatorId: number
     _all: number
   }
 
@@ -3756,6 +3759,7 @@ export namespace Prisma {
     updatedAt?: true
     url?: true
     blurDataUrl?: true
+    creatorId?: true
   }
 
   export type MediaMaxAggregateInputType = {
@@ -3766,6 +3770,7 @@ export namespace Prisma {
     updatedAt?: true
     url?: true
     blurDataUrl?: true
+    creatorId?: true
   }
 
   export type MediaCountAggregateInputType = {
@@ -3776,6 +3781,7 @@ export namespace Prisma {
     updatedAt?: true
     url?: true
     blurDataUrl?: true
+    creatorId?: true
     _all?: true
   }
 
@@ -3859,6 +3865,7 @@ export namespace Prisma {
     updatedAt: Date
     url: string
     blurDataUrl: string | null
+    creatorId: string
     _count: MediaCountAggregateOutputType | null
     _min: MediaMinAggregateOutputType | null
     _max: MediaMaxAggregateOutputType | null
@@ -3886,6 +3893,7 @@ export namespace Prisma {
     updatedAt?: boolean
     url?: boolean
     blurDataUrl?: boolean
+    creatorId?: boolean
     products?: boolean | Media$productsArgs<ExtArgs>
     categories?: boolean | Media$categoriesArgs<ExtArgs>
     _count?: boolean | MediaCountOutputTypeDefaultArgs<ExtArgs>
@@ -3900,6 +3908,7 @@ export namespace Prisma {
     updatedAt?: boolean
     url?: boolean
     blurDataUrl?: boolean
+    creatorId?: boolean
   }
 
   export type MediaInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3922,6 +3931,7 @@ export namespace Prisma {
       updatedAt: Date
       url: string
       blurDataUrl: string | null
+      creatorId: string
     }, ExtArgs["result"]["media"]>
     composites: {}
   }
@@ -4323,6 +4333,7 @@ export namespace Prisma {
     readonly updatedAt: FieldRef<"Media", 'DateTime'>
     readonly url: FieldRef<"Media", 'String'>
     readonly blurDataUrl: FieldRef<"Media", 'String'>
+    readonly creatorId: FieldRef<"Media", 'String'>
   }
     
 
@@ -4730,6 +4741,7 @@ export namespace Prisma {
     cost: number | null
     createdAt: Date | null
     updatedAt: Date | null
+    creatorId: string | null
   }
 
   export type ShipmentMaxAggregateOutputType = {
@@ -4739,6 +4751,7 @@ export namespace Prisma {
     cost: number | null
     createdAt: Date | null
     updatedAt: Date | null
+    creatorId: string | null
   }
 
   export type ShipmentCountAggregateOutputType = {
@@ -4749,6 +4762,7 @@ export namespace Prisma {
     locations: number
     createdAt: number
     updatedAt: number
+    creatorId: number
     _all: number
   }
 
@@ -4768,6 +4782,7 @@ export namespace Prisma {
     cost?: true
     createdAt?: true
     updatedAt?: true
+    creatorId?: true
   }
 
   export type ShipmentMaxAggregateInputType = {
@@ -4777,6 +4792,7 @@ export namespace Prisma {
     cost?: true
     createdAt?: true
     updatedAt?: true
+    creatorId?: true
   }
 
   export type ShipmentCountAggregateInputType = {
@@ -4787,6 +4803,7 @@ export namespace Prisma {
     locations?: true
     createdAt?: true
     updatedAt?: true
+    creatorId?: true
     _all?: true
   }
 
@@ -4884,6 +4901,7 @@ export namespace Prisma {
     locations: string[]
     createdAt: Date
     updatedAt: Date
+    creatorId: string
     _count: ShipmentCountAggregateOutputType | null
     _avg: ShipmentAvgAggregateOutputType | null
     _sum: ShipmentSumAggregateOutputType | null
@@ -4913,6 +4931,7 @@ export namespace Prisma {
     locations?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    creatorId?: boolean
   }, ExtArgs["result"]["shipment"]>
 
 
@@ -4924,6 +4943,7 @@ export namespace Prisma {
     locations?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    creatorId?: boolean
   }
 
 
@@ -4938,6 +4958,7 @@ export namespace Prisma {
       locations: string[]
       createdAt: Date
       updatedAt: Date
+      creatorId: string
     }, ExtArgs["result"]["shipment"]>
     composites: {}
   }
@@ -5337,6 +5358,7 @@ export namespace Prisma {
     readonly locations: FieldRef<"Shipment", 'String[]'>
     readonly createdAt: FieldRef<"Shipment", 'DateTime'>
     readonly updatedAt: FieldRef<"Shipment", 'DateTime'>
+    readonly creatorId: FieldRef<"Shipment", 'String'>
   }
     
 
@@ -5655,6 +5677,7 @@ export namespace Prisma {
     imageId: string | null
     featured: boolean | null
     parentId: string | null
+    creatorId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -5667,6 +5690,7 @@ export namespace Prisma {
     imageId: string | null
     featured: boolean | null
     parentId: string | null
+    creatorId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -5679,6 +5703,7 @@ export namespace Prisma {
     imageId: number
     featured: number
     parentId: number
+    creatorId: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -5693,6 +5718,7 @@ export namespace Prisma {
     imageId?: true
     featured?: true
     parentId?: true
+    creatorId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -5705,6 +5731,7 @@ export namespace Prisma {
     imageId?: true
     featured?: true
     parentId?: true
+    creatorId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -5717,6 +5744,7 @@ export namespace Prisma {
     imageId?: true
     featured?: true
     parentId?: true
+    creatorId?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -5802,6 +5830,7 @@ export namespace Prisma {
     imageId: string | null
     featured: boolean
     parentId: string | null
+    creatorId: string
     createdAt: Date
     updatedAt: Date
     _count: CategoryCountAggregateOutputType | null
@@ -5832,6 +5861,7 @@ export namespace Prisma {
     featured?: boolean
     parentId?: boolean
     seoMetadata?: boolean | SeoMetadataDefaultArgs<ExtArgs>
+    creatorId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     image?: boolean | Category$imageArgs<ExtArgs>
@@ -5851,6 +5881,7 @@ export namespace Prisma {
     imageId?: boolean
     featured?: boolean
     parentId?: boolean
+    creatorId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -5881,6 +5912,7 @@ export namespace Prisma {
       imageId: string | null
       featured: boolean
       parentId: string | null
+      creatorId: string
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["category"]>
@@ -6289,6 +6321,7 @@ export namespace Prisma {
     readonly imageId: FieldRef<"Category", 'String'>
     readonly featured: FieldRef<"Category", 'Boolean'>
     readonly parentId: FieldRef<"Category", 'String'>
+    readonly creatorId: FieldRef<"Category", 'String'>
     readonly createdAt: FieldRef<"Category", 'DateTime'>
     readonly updatedAt: FieldRef<"Category", 'DateTime'>
   }
@@ -6752,6 +6785,7 @@ export namespace Prisma {
     priority: number | null
     createdAt: Date | null
     updatedAt: Date | null
+    creatorId: string | null
   }
 
   export type PromotionMaxAggregateOutputType = {
@@ -6765,6 +6799,7 @@ export namespace Prisma {
     priority: number | null
     createdAt: Date | null
     updatedAt: Date | null
+    creatorId: string | null
   }
 
   export type PromotionCountAggregateOutputType = {
@@ -6778,6 +6813,7 @@ export namespace Prisma {
     priority: number
     createdAt: number
     updatedAt: number
+    creatorId: number
     _all: number
   }
 
@@ -6801,6 +6837,7 @@ export namespace Prisma {
     priority?: true
     createdAt?: true
     updatedAt?: true
+    creatorId?: true
   }
 
   export type PromotionMaxAggregateInputType = {
@@ -6814,6 +6851,7 @@ export namespace Prisma {
     priority?: true
     createdAt?: true
     updatedAt?: true
+    creatorId?: true
   }
 
   export type PromotionCountAggregateInputType = {
@@ -6827,6 +6865,7 @@ export namespace Prisma {
     priority?: true
     createdAt?: true
     updatedAt?: true
+    creatorId?: true
     _all?: true
   }
 
@@ -6927,6 +6966,7 @@ export namespace Prisma {
     priority: number
     createdAt: Date
     updatedAt: Date
+    creatorId: string
     _count: PromotionCountAggregateOutputType | null
     _avg: PromotionAvgAggregateOutputType | null
     _sum: PromotionSumAggregateOutputType | null
@@ -6963,6 +7003,7 @@ export namespace Prisma {
     metadata?: boolean | MetadataDefaultArgs<ExtArgs>
     createdAt?: boolean
     updatedAt?: boolean
+    creatorId?: boolean
   }, ExtArgs["result"]["promotion"]>
 
 
@@ -6977,6 +7018,7 @@ export namespace Prisma {
     priority?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    creatorId?: boolean
   }
 
   export type PromotionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -6995,6 +7037,7 @@ export namespace Prisma {
       priority: number
       createdAt: Date
       updatedAt: Date
+      creatorId: string
     }, ExtArgs["result"]["promotion"]>
     composites: {
       conditions: Prisma.$PromotionConditionPayload[]
@@ -7402,6 +7445,7 @@ export namespace Prisma {
     readonly priority: FieldRef<"Promotion", 'Int'>
     readonly createdAt: FieldRef<"Promotion", 'DateTime'>
     readonly updatedAt: FieldRef<"Promotion", 'DateTime'>
+    readonly creatorId: FieldRef<"Promotion", 'String'>
   }
     
 
@@ -8666,6 +8710,7 @@ export namespace Prisma {
     status: $Enums.BlogStatus | null
     publishedAt: Date | null
     layout: $Enums.BlogLayout | null
+    creatorId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -8677,6 +8722,7 @@ export namespace Prisma {
     status: $Enums.BlogStatus | null
     publishedAt: Date | null
     layout: $Enums.BlogLayout | null
+    creatorId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -8689,6 +8735,7 @@ export namespace Prisma {
     status: number
     publishedAt: number
     layout: number
+    creatorId: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -8702,6 +8749,7 @@ export namespace Prisma {
     status?: true
     publishedAt?: true
     layout?: true
+    creatorId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -8713,6 +8761,7 @@ export namespace Prisma {
     status?: true
     publishedAt?: true
     layout?: true
+    creatorId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -8725,6 +8774,7 @@ export namespace Prisma {
     status?: true
     publishedAt?: true
     layout?: true
+    creatorId?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -8810,6 +8860,7 @@ export namespace Prisma {
     status: $Enums.BlogStatus
     publishedAt: Date | null
     layout: $Enums.BlogLayout
+    creatorId: string
     createdAt: Date
     updatedAt: Date
     _count: BlogCountAggregateOutputType | null
@@ -8842,6 +8893,7 @@ export namespace Prisma {
     publishedAt?: boolean
     customFields?: boolean | CustomFieldsDefaultArgs<ExtArgs>
     layout?: boolean
+    creatorId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     categories?: boolean | Blog$categoriesArgs<ExtArgs>
@@ -8858,6 +8910,7 @@ export namespace Prisma {
     status?: boolean
     publishedAt?: boolean
     layout?: boolean
+    creatorId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -8882,6 +8935,7 @@ export namespace Prisma {
       status: $Enums.BlogStatus
       publishedAt: Date | null
       layout: $Enums.BlogLayout
+      creatorId: string
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["blog"]>
@@ -9289,6 +9343,7 @@ export namespace Prisma {
     readonly status: FieldRef<"Blog", 'BlogStatus'>
     readonly publishedAt: FieldRef<"Blog", 'DateTime'>
     readonly layout: FieldRef<"Blog", 'BlogLayout'>
+    readonly creatorId: FieldRef<"Blog", 'String'>
     readonly createdAt: FieldRef<"Blog", 'DateTime'>
     readonly updatedAt: FieldRef<"Blog", 'DateTime'>
   }
@@ -9693,6 +9748,7 @@ export namespace Prisma {
     partnerId: string | null
     createdAt: Date | null
     updatedAt: Date | null
+    creatorId: string | null
   }
 
   export type ProductMaxAggregateOutputType = {
@@ -9707,6 +9763,7 @@ export namespace Prisma {
     partnerId: string | null
     createdAt: Date | null
     updatedAt: Date | null
+    creatorId: string | null
   }
 
   export type ProductCountAggregateOutputType = {
@@ -9722,6 +9779,7 @@ export namespace Prisma {
     partnerId: number
     createdAt: number
     updatedAt: number
+    creatorId: number
     _all: number
   }
 
@@ -9738,6 +9796,7 @@ export namespace Prisma {
     partnerId?: true
     createdAt?: true
     updatedAt?: true
+    creatorId?: true
   }
 
   export type ProductMaxAggregateInputType = {
@@ -9752,6 +9811,7 @@ export namespace Prisma {
     partnerId?: true
     createdAt?: true
     updatedAt?: true
+    creatorId?: true
   }
 
   export type ProductCountAggregateInputType = {
@@ -9767,6 +9827,7 @@ export namespace Prisma {
     partnerId?: true
     createdAt?: true
     updatedAt?: true
+    creatorId?: true
     _all?: true
   }
 
@@ -9855,6 +9916,7 @@ export namespace Prisma {
     partnerId: string
     createdAt: Date
     updatedAt: Date
+    creatorId: string
     _count: ProductCountAggregateOutputType | null
     _min: ProductMinAggregateOutputType | null
     _max: ProductMaxAggregateOutputType | null
@@ -9892,6 +9954,7 @@ export namespace Prisma {
     metadata?: boolean | ProductSeoMetadataDefaultArgs<ExtArgs>
     createdAt?: boolean
     updatedAt?: boolean
+    creatorId?: boolean
     media?: boolean | Product$mediaArgs<ExtArgs>
     reviews?: boolean | Product$reviewsArgs<ExtArgs>
     categories?: boolean | Product$categoriesArgs<ExtArgs>
@@ -9914,6 +9977,7 @@ export namespace Prisma {
     partnerId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    creatorId?: boolean
   }
 
   export type ProductInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -9947,6 +10011,7 @@ export namespace Prisma {
       partnerId: string
       createdAt: Date
       updatedAt: Date
+      creatorId: string
     }, ExtArgs["result"]["product"]>
     composites: {
       description: Prisma.$ProductDescriptionPayload
@@ -10362,6 +10427,7 @@ export namespace Prisma {
     readonly partnerId: FieldRef<"Product", 'String'>
     readonly createdAt: FieldRef<"Product", 'DateTime'>
     readonly updatedAt: FieldRef<"Product", 'DateTime'>
+    readonly creatorId: FieldRef<"Product", 'String'>
   }
     
 
@@ -10838,6 +10904,7 @@ export namespace Prisma {
     verify: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
+    creatorId: string | null
   }
 
   export type ReviewMaxAggregateOutputType = {
@@ -10852,6 +10919,7 @@ export namespace Prisma {
     verify: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
+    creatorId: string | null
   }
 
   export type ReviewCountAggregateOutputType = {
@@ -10866,6 +10934,7 @@ export namespace Prisma {
     verify: number
     createdAt: number
     updatedAt: number
+    creatorId: number
     _all: number
   }
 
@@ -10894,6 +10963,7 @@ export namespace Prisma {
     verify?: true
     createdAt?: true
     updatedAt?: true
+    creatorId?: true
   }
 
   export type ReviewMaxAggregateInputType = {
@@ -10908,6 +10978,7 @@ export namespace Prisma {
     verify?: true
     createdAt?: true
     updatedAt?: true
+    creatorId?: true
   }
 
   export type ReviewCountAggregateInputType = {
@@ -10922,6 +10993,7 @@ export namespace Prisma {
     verify?: true
     createdAt?: true
     updatedAt?: true
+    creatorId?: true
     _all?: true
   }
 
@@ -11023,6 +11095,7 @@ export namespace Prisma {
     verify: boolean
     createdAt: Date
     updatedAt: Date
+    creatorId: string
     _count: ReviewCountAggregateOutputType | null
     _avg: ReviewAvgAggregateOutputType | null
     _sum: ReviewSumAggregateOutputType | null
@@ -11056,6 +11129,7 @@ export namespace Prisma {
     verify?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    creatorId?: boolean
     product?: boolean | ProductDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["review"]>
 
@@ -11072,6 +11146,7 @@ export namespace Prisma {
     verify?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    creatorId?: boolean
   }
 
   export type ReviewInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -11095,6 +11170,7 @@ export namespace Prisma {
       verify: boolean
       createdAt: Date
       updatedAt: Date
+      creatorId: string
     }, ExtArgs["result"]["review"]>
     composites: {}
   }
@@ -11499,6 +11575,7 @@ export namespace Prisma {
     readonly verify: FieldRef<"Review", 'Boolean'>
     readonly createdAt: FieldRef<"Review", 'DateTime'>
     readonly updatedAt: FieldRef<"Review", 'DateTime'>
+    readonly creatorId: FieldRef<"Review", 'String'>
   }
     
 
@@ -18492,7 +18569,8 @@ export namespace Prisma {
     type: 'type',
     updatedAt: 'updatedAt',
     url: 'url',
-    blurDataUrl: 'blurDataUrl'
+    blurDataUrl: 'blurDataUrl',
+    creatorId: 'creatorId'
   };
 
   export type MediaScalarFieldEnum = (typeof MediaScalarFieldEnum)[keyof typeof MediaScalarFieldEnum]
@@ -18505,7 +18583,8 @@ export namespace Prisma {
     cost: 'cost',
     locations: 'locations',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    creatorId: 'creatorId'
   };
 
   export type ShipmentScalarFieldEnum = (typeof ShipmentScalarFieldEnum)[keyof typeof ShipmentScalarFieldEnum]
@@ -18519,6 +18598,7 @@ export namespace Prisma {
     imageId: 'imageId',
     featured: 'featured',
     parentId: 'parentId',
+    creatorId: 'creatorId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -18536,7 +18616,8 @@ export namespace Prisma {
     status: 'status',
     priority: 'priority',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    creatorId: 'creatorId'
   };
 
   export type PromotionScalarFieldEnum = (typeof PromotionScalarFieldEnum)[keyof typeof PromotionScalarFieldEnum]
@@ -18559,6 +18640,7 @@ export namespace Prisma {
     status: 'status',
     publishedAt: 'publishedAt',
     layout: 'layout',
+    creatorId: 'creatorId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -18578,7 +18660,8 @@ export namespace Prisma {
     blogUrl: 'blogUrl',
     partnerId: 'partnerId',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    creatorId: 'creatorId'
   };
 
   export type ProductScalarFieldEnum = (typeof ProductScalarFieldEnum)[keyof typeof ProductScalarFieldEnum]
@@ -18595,7 +18678,8 @@ export namespace Prisma {
     notHelpful: 'notHelpful',
     verify: 'verify',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    creatorId: 'creatorId'
   };
 
   export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
@@ -18930,6 +19014,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Media"> | Date | string
     url?: StringFilter<"Media"> | string
     blurDataUrl?: StringNullableFilter<"Media"> | string | null
+    creatorId?: StringFilter<"Media"> | string
     products?: MediasOnProductsListRelationFilter
     categories?: CategoryListRelationFilter
   }
@@ -18942,6 +19027,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     url?: SortOrder
     blurDataUrl?: SortOrder
+    creatorId?: SortOrder
     products?: MediasOnProductsOrderByRelationAggregateInput
     categories?: CategoryOrderByRelationAggregateInput
   }
@@ -18957,6 +19043,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Media"> | Date | string
     url?: StringFilter<"Media"> | string
     blurDataUrl?: StringNullableFilter<"Media"> | string | null
+    creatorId?: StringFilter<"Media"> | string
     products?: MediasOnProductsListRelationFilter
     categories?: CategoryListRelationFilter
   }, "id" | "fileName">
@@ -18969,6 +19056,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     url?: SortOrder
     blurDataUrl?: SortOrder
+    creatorId?: SortOrder
     _count?: MediaCountOrderByAggregateInput
     _max?: MediaMaxOrderByAggregateInput
     _min?: MediaMinOrderByAggregateInput
@@ -18985,6 +19073,7 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"Media"> | Date | string
     url?: StringWithAggregatesFilter<"Media"> | string
     blurDataUrl?: StringNullableWithAggregatesFilter<"Media"> | string | null
+    creatorId?: StringWithAggregatesFilter<"Media"> | string
   }
 
   export type ShipmentWhereInput = {
@@ -18998,6 +19087,7 @@ export namespace Prisma {
     locations?: StringNullableListFilter<"Shipment">
     createdAt?: DateTimeFilter<"Shipment"> | Date | string
     updatedAt?: DateTimeFilter<"Shipment"> | Date | string
+    creatorId?: StringFilter<"Shipment"> | string
   }
 
   export type ShipmentOrderByWithRelationInput = {
@@ -19008,6 +19098,7 @@ export namespace Prisma {
     locations?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    creatorId?: SortOrder
   }
 
   export type ShipmentWhereUniqueInput = Prisma.AtLeast<{
@@ -19021,6 +19112,7 @@ export namespace Prisma {
     locations?: StringNullableListFilter<"Shipment">
     createdAt?: DateTimeFilter<"Shipment"> | Date | string
     updatedAt?: DateTimeFilter<"Shipment"> | Date | string
+    creatorId?: StringFilter<"Shipment"> | string
   }, "id">
 
   export type ShipmentOrderByWithAggregationInput = {
@@ -19031,6 +19123,7 @@ export namespace Prisma {
     locations?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    creatorId?: SortOrder
     _count?: ShipmentCountOrderByAggregateInput
     _avg?: ShipmentAvgOrderByAggregateInput
     _max?: ShipmentMaxOrderByAggregateInput
@@ -19049,6 +19142,7 @@ export namespace Prisma {
     locations?: StringNullableListFilter<"Shipment">
     createdAt?: DateTimeWithAggregatesFilter<"Shipment"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Shipment"> | Date | string
+    creatorId?: StringWithAggregatesFilter<"Shipment"> | string
   }
 
   export type CategoryWhereInput = {
@@ -19063,6 +19157,7 @@ export namespace Prisma {
     featured?: BoolFilter<"Category"> | boolean
     parentId?: StringNullableFilter<"Category"> | string | null
     seoMetadata?: XOR<SeoMetadataNullableCompositeFilter, SeoMetadataObjectEqualityInput> | null
+    creatorId?: StringFilter<"Category"> | string
     createdAt?: DateTimeFilter<"Category"> | Date | string
     updatedAt?: DateTimeFilter<"Category"> | Date | string
     image?: XOR<MediaNullableScalarRelationFilter, MediaWhereInput> | null
@@ -19081,6 +19176,7 @@ export namespace Prisma {
     featured?: SortOrder
     parentId?: SortOrder
     seoMetadata?: SeoMetadataOrderByInput
+    creatorId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     image?: MediaOrderByWithRelationInput
@@ -19102,6 +19198,7 @@ export namespace Prisma {
     featured?: BoolFilter<"Category"> | boolean
     parentId?: StringNullableFilter<"Category"> | string | null
     seoMetadata?: XOR<SeoMetadataNullableCompositeFilter, SeoMetadataObjectEqualityInput> | null
+    creatorId?: StringFilter<"Category"> | string
     createdAt?: DateTimeFilter<"Category"> | Date | string
     updatedAt?: DateTimeFilter<"Category"> | Date | string
     image?: XOR<MediaNullableScalarRelationFilter, MediaWhereInput> | null
@@ -19119,6 +19216,7 @@ export namespace Prisma {
     imageId?: SortOrder
     featured?: SortOrder
     parentId?: SortOrder
+    creatorId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: CategoryCountOrderByAggregateInput
@@ -19137,6 +19235,7 @@ export namespace Prisma {
     imageId?: StringNullableWithAggregatesFilter<"Category"> | string | null
     featured?: BoolWithAggregatesFilter<"Category"> | boolean
     parentId?: StringNullableWithAggregatesFilter<"Category"> | string | null
+    creatorId?: StringWithAggregatesFilter<"Category"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Category"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Category"> | Date | string
   }
@@ -19159,6 +19258,7 @@ export namespace Prisma {
     metadata?: XOR<MetadataCompositeFilter, MetadataObjectEqualityInput>
     createdAt?: DateTimeFilter<"Promotion"> | Date | string
     updatedAt?: DateTimeFilter<"Promotion"> | Date | string
+    creatorId?: StringFilter<"Promotion"> | string
   }
 
   export type PromotionOrderByWithRelationInput = {
@@ -19176,6 +19276,7 @@ export namespace Prisma {
     metadata?: MetadataOrderByInput
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    creatorId?: SortOrder
   }
 
   export type PromotionWhereUniqueInput = Prisma.AtLeast<{
@@ -19196,6 +19297,7 @@ export namespace Prisma {
     metadata?: XOR<MetadataCompositeFilter, MetadataObjectEqualityInput>
     createdAt?: DateTimeFilter<"Promotion"> | Date | string
     updatedAt?: DateTimeFilter<"Promotion"> | Date | string
+    creatorId?: StringFilter<"Promotion"> | string
   }, "id" | "code">
 
   export type PromotionOrderByWithAggregationInput = {
@@ -19209,6 +19311,7 @@ export namespace Prisma {
     priority?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    creatorId?: SortOrder
     _count?: PromotionCountOrderByAggregateInput
     _avg?: PromotionAvgOrderByAggregateInput
     _max?: PromotionMaxOrderByAggregateInput
@@ -19230,6 +19333,7 @@ export namespace Prisma {
     priority?: IntWithAggregatesFilter<"Promotion"> | number
     createdAt?: DateTimeWithAggregatesFilter<"Promotion"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Promotion"> | Date | string
+    creatorId?: StringWithAggregatesFilter<"Promotion"> | string
   }
 
   export type CommentWhereInput = {
@@ -19291,6 +19395,7 @@ export namespace Prisma {
     publishedAt?: DateTimeNullableFilter<"Blog"> | Date | string | null
     customFields?: CustomFieldsCompositeListFilter | CustomFieldsObjectEqualityInput[]
     layout?: EnumBlogLayoutFilter<"Blog"> | $Enums.BlogLayout
+    creatorId?: StringFilter<"Blog"> | string
     createdAt?: DateTimeFilter<"Blog"> | Date | string
     updatedAt?: DateTimeFilter<"Blog"> | Date | string
     categories?: CategoriesOnBlogsListRelationFilter
@@ -19308,6 +19413,7 @@ export namespace Prisma {
     publishedAt?: SortOrder
     customFields?: CustomFieldsOrderByCompositeAggregateInput
     layout?: SortOrder
+    creatorId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     categories?: CategoriesOnBlogsOrderByRelationAggregateInput
@@ -19328,6 +19434,7 @@ export namespace Prisma {
     publishedAt?: DateTimeNullableFilter<"Blog"> | Date | string | null
     customFields?: CustomFieldsCompositeListFilter | CustomFieldsObjectEqualityInput[]
     layout?: EnumBlogLayoutFilter<"Blog"> | $Enums.BlogLayout
+    creatorId?: StringFilter<"Blog"> | string
     createdAt?: DateTimeFilter<"Blog"> | Date | string
     updatedAt?: DateTimeFilter<"Blog"> | Date | string
     categories?: CategoriesOnBlogsListRelationFilter
@@ -19342,6 +19449,7 @@ export namespace Prisma {
     status?: SortOrder
     publishedAt?: SortOrder
     layout?: SortOrder
+    creatorId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: BlogCountOrderByAggregateInput
@@ -19360,6 +19468,7 @@ export namespace Prisma {
     status?: EnumBlogStatusWithAggregatesFilter<"Blog"> | $Enums.BlogStatus
     publishedAt?: DateTimeNullableWithAggregatesFilter<"Blog"> | Date | string | null
     layout?: EnumBlogLayoutWithAggregatesFilter<"Blog"> | $Enums.BlogLayout
+    creatorId?: StringWithAggregatesFilter<"Blog"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Blog"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Blog"> | Date | string
   }
@@ -19385,6 +19494,7 @@ export namespace Prisma {
     metadata?: XOR<ProductSeoMetadataCompositeFilter, ProductSeoMetadataObjectEqualityInput>
     createdAt?: DateTimeFilter<"Product"> | Date | string
     updatedAt?: DateTimeFilter<"Product"> | Date | string
+    creatorId?: StringFilter<"Product"> | string
     media?: MediasOnProductsListRelationFilter
     reviews?: ReviewListRelationFilter
     categories?: CategoriesOnProductsListRelationFilter
@@ -19410,6 +19520,7 @@ export namespace Prisma {
     metadata?: ProductSeoMetadataOrderByInput
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    creatorId?: SortOrder
     media?: MediasOnProductsOrderByRelationAggregateInput
     reviews?: ReviewOrderByRelationAggregateInput
     categories?: CategoriesOnProductsOrderByRelationAggregateInput
@@ -19438,6 +19549,7 @@ export namespace Prisma {
     metadata?: XOR<ProductSeoMetadataCompositeFilter, ProductSeoMetadataObjectEqualityInput>
     createdAt?: DateTimeFilter<"Product"> | Date | string
     updatedAt?: DateTimeFilter<"Product"> | Date | string
+    creatorId?: StringFilter<"Product"> | string
     media?: MediasOnProductsListRelationFilter
     reviews?: ReviewListRelationFilter
     categories?: CategoriesOnProductsListRelationFilter
@@ -19458,6 +19570,7 @@ export namespace Prisma {
     partnerId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    creatorId?: SortOrder
     _count?: ProductCountOrderByAggregateInput
     _max?: ProductMaxOrderByAggregateInput
     _min?: ProductMinOrderByAggregateInput
@@ -19479,6 +19592,7 @@ export namespace Prisma {
     partnerId?: StringWithAggregatesFilter<"Product"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Product"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Product"> | Date | string
+    creatorId?: StringWithAggregatesFilter<"Product"> | string
   }
 
   export type ReviewWhereInput = {
@@ -19496,6 +19610,7 @@ export namespace Prisma {
     verify?: BoolFilter<"Review"> | boolean
     createdAt?: DateTimeFilter<"Review"> | Date | string
     updatedAt?: DateTimeFilter<"Review"> | Date | string
+    creatorId?: StringFilter<"Review"> | string
     product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
   }
 
@@ -19511,6 +19626,7 @@ export namespace Prisma {
     verify?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    creatorId?: SortOrder
     product?: ProductOrderByWithRelationInput
   }
 
@@ -19529,6 +19645,7 @@ export namespace Prisma {
     verify?: BoolFilter<"Review"> | boolean
     createdAt?: DateTimeFilter<"Review"> | Date | string
     updatedAt?: DateTimeFilter<"Review"> | Date | string
+    creatorId?: StringFilter<"Review"> | string
     product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
   }, "id">
 
@@ -19544,6 +19661,7 @@ export namespace Prisma {
     verify?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    creatorId?: SortOrder
     _count?: ReviewCountOrderByAggregateInput
     _avg?: ReviewAvgOrderByAggregateInput
     _max?: ReviewMaxOrderByAggregateInput
@@ -19566,6 +19684,7 @@ export namespace Prisma {
     verify?: BoolWithAggregatesFilter<"Review"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"Review"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Review"> | Date | string
+    creatorId?: StringWithAggregatesFilter<"Review"> | string
   }
 
   export type OrderItemWhereInput = {
@@ -20001,6 +20120,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     url: string
     blurDataUrl?: string | null
+    creatorId: string
     products?: MediasOnProductsCreateNestedManyWithoutMediaInput
     categories?: CategoryCreateNestedManyWithoutImageInput
   }
@@ -20013,6 +20133,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     url: string
     blurDataUrl?: string | null
+    creatorId: string
     products?: MediasOnProductsUncheckedCreateNestedManyWithoutMediaInput
     categories?: CategoryUncheckedCreateNestedManyWithoutImageInput
   }
@@ -20024,6 +20145,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     url?: StringFieldUpdateOperationsInput | string
     blurDataUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     products?: MediasOnProductsUpdateManyWithoutMediaNestedInput
     categories?: CategoryUpdateManyWithoutImageNestedInput
   }
@@ -20035,6 +20157,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     url?: StringFieldUpdateOperationsInput | string
     blurDataUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     products?: MediasOnProductsUncheckedUpdateManyWithoutMediaNestedInput
     categories?: CategoryUncheckedUpdateManyWithoutImageNestedInput
   }
@@ -20047,6 +20170,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     url: string
     blurDataUrl?: string | null
+    creatorId: string
   }
 
   export type MediaUpdateManyMutationInput = {
@@ -20056,6 +20180,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     url?: StringFieldUpdateOperationsInput | string
     blurDataUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    creatorId?: StringFieldUpdateOperationsInput | string
   }
 
   export type MediaUncheckedUpdateManyInput = {
@@ -20065,6 +20190,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     url?: StringFieldUpdateOperationsInput | string
     blurDataUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    creatorId?: StringFieldUpdateOperationsInput | string
   }
 
   export type ShipmentCreateInput = {
@@ -20075,6 +20201,7 @@ export namespace Prisma {
     locations?: ShipmentCreatelocationsInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
   }
 
   export type ShipmentUncheckedCreateInput = {
@@ -20085,6 +20212,7 @@ export namespace Prisma {
     locations?: ShipmentCreatelocationsInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
   }
 
   export type ShipmentUpdateInput = {
@@ -20094,6 +20222,7 @@ export namespace Prisma {
     locations?: ShipmentUpdatelocationsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
   }
 
   export type ShipmentUncheckedUpdateInput = {
@@ -20103,6 +20232,7 @@ export namespace Prisma {
     locations?: ShipmentUpdatelocationsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
   }
 
   export type ShipmentCreateManyInput = {
@@ -20113,6 +20243,7 @@ export namespace Prisma {
     locations?: ShipmentCreatelocationsInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
   }
 
   export type ShipmentUpdateManyMutationInput = {
@@ -20122,6 +20253,7 @@ export namespace Prisma {
     locations?: ShipmentUpdatelocationsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
   }
 
   export type ShipmentUncheckedUpdateManyInput = {
@@ -20131,6 +20263,7 @@ export namespace Prisma {
     locations?: ShipmentUpdatelocationsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
   }
 
   export type CategoryCreateInput = {
@@ -20140,6 +20273,7 @@ export namespace Prisma {
     description?: string | null
     featured?: boolean
     seoMetadata?: XOR<SeoMetadataNullableCreateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     image?: MediaCreateNestedOneWithoutCategoriesInput
@@ -20158,6 +20292,7 @@ export namespace Prisma {
     featured?: boolean
     parentId?: string | null
     seoMetadata?: XOR<SeoMetadataNullableCreateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     children?: CategoryUncheckedCreateNestedManyWithoutParentInput
@@ -20171,6 +20306,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     featured?: BoolFieldUpdateOperationsInput | boolean
     seoMetadata?: XOR<SeoMetadataNullableUpdateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: MediaUpdateOneWithoutCategoriesNestedInput
@@ -20188,6 +20324,7 @@ export namespace Prisma {
     featured?: BoolFieldUpdateOperationsInput | boolean
     parentId?: NullableStringFieldUpdateOperationsInput | string | null
     seoMetadata?: XOR<SeoMetadataNullableUpdateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     children?: CategoryUncheckedUpdateManyWithoutParentNestedInput
@@ -20204,6 +20341,7 @@ export namespace Prisma {
     featured?: boolean
     parentId?: string | null
     seoMetadata?: XOR<SeoMetadataNullableCreateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -20214,6 +20352,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     featured?: BoolFieldUpdateOperationsInput | boolean
     seoMetadata?: XOR<SeoMetadataNullableUpdateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -20226,6 +20365,7 @@ export namespace Prisma {
     featured?: BoolFieldUpdateOperationsInput | boolean
     parentId?: NullableStringFieldUpdateOperationsInput | string | null
     seoMetadata?: XOR<SeoMetadataNullableUpdateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -20245,6 +20385,7 @@ export namespace Prisma {
     metadata: XOR<MetadataCreateEnvelopeInput, MetadataCreateInput>
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
   }
 
   export type PromotionUncheckedCreateInput = {
@@ -20262,6 +20403,7 @@ export namespace Prisma {
     metadata: XOR<MetadataCreateEnvelopeInput, MetadataCreateInput>
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
   }
 
   export type PromotionUpdateInput = {
@@ -20278,6 +20420,7 @@ export namespace Prisma {
     metadata?: XOR<MetadataUpdateEnvelopeInput, MetadataCreateInput>
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
   }
 
   export type PromotionUncheckedUpdateInput = {
@@ -20294,6 +20437,7 @@ export namespace Prisma {
     metadata?: XOR<MetadataUpdateEnvelopeInput, MetadataCreateInput>
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
   }
 
   export type PromotionCreateManyInput = {
@@ -20311,6 +20455,7 @@ export namespace Prisma {
     metadata: XOR<MetadataCreateEnvelopeInput, MetadataCreateInput>
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
   }
 
   export type PromotionUpdateManyMutationInput = {
@@ -20327,6 +20472,7 @@ export namespace Prisma {
     metadata?: XOR<MetadataUpdateEnvelopeInput, MetadataCreateInput>
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
   }
 
   export type PromotionUncheckedUpdateManyInput = {
@@ -20343,6 +20489,7 @@ export namespace Prisma {
     metadata?: XOR<MetadataUpdateEnvelopeInput, MetadataCreateInput>
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
   }
 
   export type CommentCreateInput = {
@@ -20393,6 +20540,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     customFields?: XOR<CustomFieldsListCreateEnvelopeInput, CustomFieldsCreateInput> | CustomFieldsCreateInput[]
     layout?: $Enums.BlogLayout
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     categories?: CategoriesOnBlogsCreateNestedManyWithoutBlogInput
@@ -20410,6 +20558,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     customFields?: XOR<CustomFieldsListCreateEnvelopeInput, CustomFieldsCreateInput> | CustomFieldsCreateInput[]
     layout?: $Enums.BlogLayout
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     categories?: CategoriesOnBlogsUncheckedCreateNestedManyWithoutBlogInput
@@ -20426,6 +20575,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     customFields?: XOR<CustomFieldsListUpdateEnvelopeInput, CustomFieldsCreateInput> | CustomFieldsCreateInput[]
     layout?: EnumBlogLayoutFieldUpdateOperationsInput | $Enums.BlogLayout
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: CategoriesOnBlogsUpdateManyWithoutBlogNestedInput
@@ -20442,6 +20592,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     customFields?: XOR<CustomFieldsListUpdateEnvelopeInput, CustomFieldsCreateInput> | CustomFieldsCreateInput[]
     layout?: EnumBlogLayoutFieldUpdateOperationsInput | $Enums.BlogLayout
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: CategoriesOnBlogsUncheckedUpdateManyWithoutBlogNestedInput
@@ -20459,6 +20610,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     customFields?: XOR<CustomFieldsListCreateEnvelopeInput, CustomFieldsCreateInput> | CustomFieldsCreateInput[]
     layout?: $Enums.BlogLayout
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -20473,6 +20625,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     customFields?: XOR<CustomFieldsListUpdateEnvelopeInput, CustomFieldsCreateInput> | CustomFieldsCreateInput[]
     layout?: EnumBlogLayoutFieldUpdateOperationsInput | $Enums.BlogLayout
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -20487,6 +20640,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     customFields?: XOR<CustomFieldsListUpdateEnvelopeInput, CustomFieldsCreateInput> | CustomFieldsCreateInput[]
     layout?: EnumBlogLayoutFieldUpdateOperationsInput | $Enums.BlogLayout
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -20509,6 +20663,7 @@ export namespace Prisma {
     metadata: XOR<ProductSeoMetadataCreateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
     media?: MediasOnProductsCreateNestedManyWithoutProductInput
     reviews?: ReviewCreateNestedManyWithoutProductInput
     categories?: CategoriesOnProductsCreateNestedManyWithoutProductInput
@@ -20534,6 +20689,7 @@ export namespace Prisma {
     metadata: XOR<ProductSeoMetadataCreateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
     media?: MediasOnProductsUncheckedCreateNestedManyWithoutProductInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
     categories?: CategoriesOnProductsUncheckedCreateNestedManyWithoutProductInput
@@ -20558,6 +20714,7 @@ export namespace Prisma {
     metadata?: XOR<ProductSeoMetadataUpdateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
     media?: MediasOnProductsUpdateManyWithoutProductNestedInput
     reviews?: ReviewUpdateManyWithoutProductNestedInput
     categories?: CategoriesOnProductsUpdateManyWithoutProductNestedInput
@@ -20582,6 +20739,7 @@ export namespace Prisma {
     metadata?: XOR<ProductSeoMetadataUpdateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
     media?: MediasOnProductsUncheckedUpdateManyWithoutProductNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
     categories?: CategoriesOnProductsUncheckedUpdateManyWithoutProductNestedInput
@@ -20607,6 +20765,7 @@ export namespace Prisma {
     metadata: XOR<ProductSeoMetadataCreateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
   }
 
   export type ProductUpdateManyMutationInput = {
@@ -20626,6 +20785,7 @@ export namespace Prisma {
     metadata?: XOR<ProductSeoMetadataUpdateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
   }
 
   export type ProductUncheckedUpdateManyInput = {
@@ -20645,6 +20805,7 @@ export namespace Prisma {
     metadata?: XOR<ProductSeoMetadataUpdateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
   }
 
   export type ReviewCreateInput = {
@@ -20658,6 +20819,7 @@ export namespace Prisma {
     verify?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
     product: ProductCreateNestedOneWithoutReviewsInput
   }
 
@@ -20673,6 +20835,7 @@ export namespace Prisma {
     verify?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
   }
 
   export type ReviewUpdateInput = {
@@ -20685,6 +20848,7 @@ export namespace Prisma {
     verify?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
     product?: ProductUpdateOneRequiredWithoutReviewsNestedInput
   }
 
@@ -20699,6 +20863,7 @@ export namespace Prisma {
     verify?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
   }
 
   export type ReviewCreateManyInput = {
@@ -20713,6 +20878,7 @@ export namespace Prisma {
     verify?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
   }
 
   export type ReviewUpdateManyMutationInput = {
@@ -20725,6 +20891,7 @@ export namespace Prisma {
     verify?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
   }
 
   export type ReviewUncheckedUpdateManyInput = {
@@ -20738,6 +20905,7 @@ export namespace Prisma {
     verify?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
   }
 
   export type OrderItemCreateInput = {
@@ -21210,6 +21378,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     url?: SortOrder
     blurDataUrl?: SortOrder
+    creatorId?: SortOrder
   }
 
   export type MediaMaxOrderByAggregateInput = {
@@ -21220,6 +21389,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     url?: SortOrder
     blurDataUrl?: SortOrder
+    creatorId?: SortOrder
   }
 
   export type MediaMinOrderByAggregateInput = {
@@ -21230,6 +21400,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     url?: SortOrder
     blurDataUrl?: SortOrder
+    creatorId?: SortOrder
   }
 
   export type StringWithAggregatesFilter<$PrismaModel = never> = {
@@ -21332,6 +21503,7 @@ export namespace Prisma {
     locations?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    creatorId?: SortOrder
   }
 
   export type ShipmentAvgOrderByAggregateInput = {
@@ -21345,6 +21517,7 @@ export namespace Prisma {
     cost?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    creatorId?: SortOrder
   }
 
   export type ShipmentMinOrderByAggregateInput = {
@@ -21354,6 +21527,7 @@ export namespace Prisma {
     cost?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    creatorId?: SortOrder
   }
 
   export type ShipmentSumOrderByAggregateInput = {
@@ -21451,6 +21625,7 @@ export namespace Prisma {
     imageId?: SortOrder
     featured?: SortOrder
     parentId?: SortOrder
+    creatorId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -21463,6 +21638,7 @@ export namespace Prisma {
     imageId?: SortOrder
     featured?: SortOrder
     parentId?: SortOrder
+    creatorId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -21475,6 +21651,7 @@ export namespace Prisma {
     imageId?: SortOrder
     featured?: SortOrder
     parentId?: SortOrder
+    creatorId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -21580,6 +21757,7 @@ export namespace Prisma {
     priority?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    creatorId?: SortOrder
   }
 
   export type PromotionAvgOrderByAggregateInput = {
@@ -21597,6 +21775,7 @@ export namespace Prisma {
     priority?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    creatorId?: SortOrder
   }
 
   export type PromotionMinOrderByAggregateInput = {
@@ -21610,6 +21789,7 @@ export namespace Prisma {
     priority?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    creatorId?: SortOrder
   }
 
   export type PromotionSumOrderByAggregateInput = {
@@ -21773,6 +21953,7 @@ export namespace Prisma {
     status?: SortOrder
     publishedAt?: SortOrder
     layout?: SortOrder
+    creatorId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -21784,6 +21965,7 @@ export namespace Prisma {
     status?: SortOrder
     publishedAt?: SortOrder
     layout?: SortOrder
+    creatorId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -21795,6 +21977,7 @@ export namespace Prisma {
     status?: SortOrder
     publishedAt?: SortOrder
     layout?: SortOrder
+    creatorId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -21975,6 +22158,7 @@ export namespace Prisma {
     partnerId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    creatorId?: SortOrder
   }
 
   export type ProductMaxOrderByAggregateInput = {
@@ -21989,6 +22173,7 @@ export namespace Prisma {
     partnerId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    creatorId?: SortOrder
   }
 
   export type ProductMinOrderByAggregateInput = {
@@ -22003,6 +22188,7 @@ export namespace Prisma {
     partnerId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    creatorId?: SortOrder
   }
 
   export type EnumProductStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -22032,6 +22218,7 @@ export namespace Prisma {
     verify?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    creatorId?: SortOrder
   }
 
   export type ReviewAvgOrderByAggregateInput = {
@@ -22052,6 +22239,7 @@ export namespace Prisma {
     verify?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    creatorId?: SortOrder
   }
 
   export type ReviewMinOrderByAggregateInput = {
@@ -22066,6 +22254,7 @@ export namespace Prisma {
     verify?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    creatorId?: SortOrder
   }
 
   export type ReviewSumOrderByAggregateInput = {
@@ -24136,6 +24325,7 @@ export namespace Prisma {
     description?: string | null
     featured?: boolean
     seoMetadata?: XOR<SeoMetadataNullableCreateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     parent?: CategoryCreateNestedOneWithoutChildrenInput
@@ -24152,6 +24342,7 @@ export namespace Prisma {
     featured?: boolean
     parentId?: string | null
     seoMetadata?: XOR<SeoMetadataNullableCreateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     children?: CategoryUncheckedCreateNestedManyWithoutParentInput
@@ -24221,6 +24412,7 @@ export namespace Prisma {
     imageId?: StringNullableFilter<"Category"> | string | null
     featured?: BoolFilter<"Category"> | boolean
     parentId?: StringNullableFilter<"Category"> | string | null
+    creatorId?: StringFilter<"Category"> | string
     createdAt?: DateTimeFilter<"Category"> | Date | string
     updatedAt?: DateTimeFilter<"Category"> | Date | string
   }
@@ -24237,6 +24429,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     url: string
     blurDataUrl?: string | null
+    creatorId: string
     products?: MediasOnProductsCreateNestedManyWithoutMediaInput
   }
 
@@ -24248,6 +24441,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     url: string
     blurDataUrl?: string | null
+    creatorId: string
     products?: MediasOnProductsUncheckedCreateNestedManyWithoutMediaInput
   }
 
@@ -24263,6 +24457,7 @@ export namespace Prisma {
     description?: string | null
     featured?: boolean
     seoMetadata?: XOR<SeoMetadataNullableCreateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     image?: MediaCreateNestedOneWithoutCategoriesInput
@@ -24280,6 +24475,7 @@ export namespace Prisma {
     featured?: boolean
     parentId?: string | null
     seoMetadata?: XOR<SeoMetadataNullableCreateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     blogs?: CategoriesOnBlogsUncheckedCreateNestedManyWithoutCategoryInput
@@ -24298,6 +24494,7 @@ export namespace Prisma {
     description?: string | null
     featured?: boolean
     seoMetadata?: XOR<SeoMetadataNullableCreateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     image?: MediaCreateNestedOneWithoutCategoriesInput
@@ -24314,6 +24511,7 @@ export namespace Prisma {
     imageId?: string | null
     featured?: boolean
     seoMetadata?: XOR<SeoMetadataNullableCreateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     children?: CategoryUncheckedCreateNestedManyWithoutParentInput
@@ -24395,6 +24593,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     url?: StringFieldUpdateOperationsInput | string
     blurDataUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     products?: MediasOnProductsUpdateManyWithoutMediaNestedInput
   }
 
@@ -24405,6 +24604,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     url?: StringFieldUpdateOperationsInput | string
     blurDataUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     products?: MediasOnProductsUncheckedUpdateManyWithoutMediaNestedInput
   }
 
@@ -24425,6 +24625,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     featured?: BoolFieldUpdateOperationsInput | boolean
     seoMetadata?: XOR<SeoMetadataNullableUpdateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: MediaUpdateOneWithoutCategoriesNestedInput
@@ -24441,6 +24642,7 @@ export namespace Prisma {
     featured?: BoolFieldUpdateOperationsInput | boolean
     parentId?: NullableStringFieldUpdateOperationsInput | string | null
     seoMetadata?: XOR<SeoMetadataNullableUpdateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     blogs?: CategoriesOnBlogsUncheckedUpdateManyWithoutCategoryNestedInput
@@ -24555,6 +24757,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     customFields?: XOR<CustomFieldsListCreateEnvelopeInput, CustomFieldsCreateInput> | CustomFieldsCreateInput[]
     layout?: $Enums.BlogLayout
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     categories?: CategoriesOnBlogsCreateNestedManyWithoutBlogInput
@@ -24571,6 +24774,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     customFields?: XOR<CustomFieldsListCreateEnvelopeInput, CustomFieldsCreateInput> | CustomFieldsCreateInput[]
     layout?: $Enums.BlogLayout
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     categories?: CategoriesOnBlogsUncheckedCreateNestedManyWithoutBlogInput
@@ -24602,6 +24806,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     customFields?: XOR<CustomFieldsListUpdateEnvelopeInput, CustomFieldsCreateInput> | CustomFieldsCreateInput[]
     layout?: EnumBlogLayoutFieldUpdateOperationsInput | $Enums.BlogLayout
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: CategoriesOnBlogsUpdateManyWithoutBlogNestedInput
@@ -24617,6 +24822,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     customFields?: XOR<CustomFieldsListUpdateEnvelopeInput, CustomFieldsCreateInput> | CustomFieldsCreateInput[]
     layout?: EnumBlogLayoutFieldUpdateOperationsInput | $Enums.BlogLayout
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: CategoriesOnBlogsUncheckedUpdateManyWithoutBlogNestedInput
@@ -24775,6 +24981,7 @@ export namespace Prisma {
     verify?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
   }
 
   export type ReviewUncheckedCreateWithoutProductInput = {
@@ -24788,6 +24995,7 @@ export namespace Prisma {
     verify?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
   }
 
   export type ReviewCreateOrConnectWithoutProductInput = {
@@ -24948,6 +25156,7 @@ export namespace Prisma {
     verify?: BoolFilter<"Review"> | boolean
     createdAt?: DateTimeFilter<"Review"> | Date | string
     updatedAt?: DateTimeFilter<"Review"> | Date | string
+    creatorId?: StringFilter<"Review"> | string
   }
 
   export type CategoriesOnProductsUpsertWithWhereUniqueWithoutProductInput = {
@@ -25039,6 +25248,7 @@ export namespace Prisma {
     metadata: XOR<ProductSeoMetadataCreateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
     media?: MediasOnProductsCreateNestedManyWithoutProductInput
     categories?: CategoriesOnProductsCreateNestedManyWithoutProductInput
     OrderItem?: OrderItemCreateNestedManyWithoutProductInput
@@ -25063,6 +25273,7 @@ export namespace Prisma {
     metadata: XOR<ProductSeoMetadataCreateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
     media?: MediasOnProductsUncheckedCreateNestedManyWithoutProductInput
     categories?: CategoriesOnProductsUncheckedCreateNestedManyWithoutProductInput
     OrderItem?: OrderItemUncheckedCreateNestedManyWithoutProductInput
@@ -25102,6 +25313,7 @@ export namespace Prisma {
     metadata?: XOR<ProductSeoMetadataUpdateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
     media?: MediasOnProductsUpdateManyWithoutProductNestedInput
     categories?: CategoriesOnProductsUpdateManyWithoutProductNestedInput
     OrderItem?: OrderItemUpdateManyWithoutProductNestedInput
@@ -25125,6 +25337,7 @@ export namespace Prisma {
     metadata?: XOR<ProductSeoMetadataUpdateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
     media?: MediasOnProductsUncheckedUpdateManyWithoutProductNestedInput
     categories?: CategoriesOnProductsUncheckedUpdateManyWithoutProductNestedInput
     OrderItem?: OrderItemUncheckedUpdateManyWithoutProductNestedInput
@@ -25178,6 +25391,7 @@ export namespace Prisma {
     metadata: XOR<ProductSeoMetadataCreateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
     media?: MediasOnProductsCreateNestedManyWithoutProductInput
     reviews?: ReviewCreateNestedManyWithoutProductInput
     categories?: CategoriesOnProductsCreateNestedManyWithoutProductInput
@@ -25202,6 +25416,7 @@ export namespace Prisma {
     metadata: XOR<ProductSeoMetadataCreateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
     media?: MediasOnProductsUncheckedCreateNestedManyWithoutProductInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
     categories?: CategoriesOnProductsUncheckedCreateNestedManyWithoutProductInput
@@ -25274,6 +25489,7 @@ export namespace Prisma {
     metadata?: XOR<ProductSeoMetadataUpdateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
     media?: MediasOnProductsUpdateManyWithoutProductNestedInput
     reviews?: ReviewUpdateManyWithoutProductNestedInput
     categories?: CategoriesOnProductsUpdateManyWithoutProductNestedInput
@@ -25297,6 +25513,7 @@ export namespace Prisma {
     metadata?: XOR<ProductSeoMetadataUpdateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
     media?: MediasOnProductsUncheckedUpdateManyWithoutProductNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
     categories?: CategoriesOnProductsUncheckedUpdateManyWithoutProductNestedInput
@@ -25545,6 +25762,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     customFields?: XOR<CustomFieldsListCreateEnvelopeInput, CustomFieldsCreateInput> | CustomFieldsCreateInput[]
     layout?: $Enums.BlogLayout
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     comments?: CommentCreateNestedManyWithoutBlogInput
@@ -25561,6 +25779,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     customFields?: XOR<CustomFieldsListCreateEnvelopeInput, CustomFieldsCreateInput> | CustomFieldsCreateInput[]
     layout?: $Enums.BlogLayout
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     comments?: CommentUncheckedCreateNestedManyWithoutBlogInput
@@ -25578,6 +25797,7 @@ export namespace Prisma {
     description?: string | null
     featured?: boolean
     seoMetadata?: XOR<SeoMetadataNullableCreateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     image?: MediaCreateNestedOneWithoutCategoriesInput
@@ -25595,6 +25815,7 @@ export namespace Prisma {
     featured?: boolean
     parentId?: string | null
     seoMetadata?: XOR<SeoMetadataNullableCreateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     children?: CategoryUncheckedCreateNestedManyWithoutParentInput
@@ -25627,6 +25848,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     customFields?: XOR<CustomFieldsListUpdateEnvelopeInput, CustomFieldsCreateInput> | CustomFieldsCreateInput[]
     layout?: EnumBlogLayoutFieldUpdateOperationsInput | $Enums.BlogLayout
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     comments?: CommentUpdateManyWithoutBlogNestedInput
@@ -25642,6 +25864,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     customFields?: XOR<CustomFieldsListUpdateEnvelopeInput, CustomFieldsCreateInput> | CustomFieldsCreateInput[]
     layout?: EnumBlogLayoutFieldUpdateOperationsInput | $Enums.BlogLayout
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     comments?: CommentUncheckedUpdateManyWithoutBlogNestedInput
@@ -25664,6 +25887,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     featured?: BoolFieldUpdateOperationsInput | boolean
     seoMetadata?: XOR<SeoMetadataNullableUpdateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: MediaUpdateOneWithoutCategoriesNestedInput
@@ -25680,6 +25904,7 @@ export namespace Prisma {
     featured?: BoolFieldUpdateOperationsInput | boolean
     parentId?: NullableStringFieldUpdateOperationsInput | string | null
     seoMetadata?: XOR<SeoMetadataNullableUpdateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     children?: CategoryUncheckedUpdateManyWithoutParentNestedInput
@@ -25704,6 +25929,7 @@ export namespace Prisma {
     metadata: XOR<ProductSeoMetadataCreateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
     media?: MediasOnProductsCreateNestedManyWithoutProductInput
     reviews?: ReviewCreateNestedManyWithoutProductInput
     OrderItem?: OrderItemCreateNestedManyWithoutProductInput
@@ -25728,6 +25954,7 @@ export namespace Prisma {
     metadata: XOR<ProductSeoMetadataCreateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
     media?: MediasOnProductsUncheckedCreateNestedManyWithoutProductInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
     OrderItem?: OrderItemUncheckedCreateNestedManyWithoutProductInput
@@ -25746,6 +25973,7 @@ export namespace Prisma {
     description?: string | null
     featured?: boolean
     seoMetadata?: XOR<SeoMetadataNullableCreateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     image?: MediaCreateNestedOneWithoutCategoriesInput
@@ -25763,6 +25991,7 @@ export namespace Prisma {
     featured?: boolean
     parentId?: string | null
     seoMetadata?: XOR<SeoMetadataNullableCreateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
     children?: CategoryUncheckedCreateNestedManyWithoutParentInput
@@ -25802,6 +26031,7 @@ export namespace Prisma {
     metadata?: XOR<ProductSeoMetadataUpdateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
     media?: MediasOnProductsUpdateManyWithoutProductNestedInput
     reviews?: ReviewUpdateManyWithoutProductNestedInput
     OrderItem?: OrderItemUpdateManyWithoutProductNestedInput
@@ -25825,6 +26055,7 @@ export namespace Prisma {
     metadata?: XOR<ProductSeoMetadataUpdateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
     media?: MediasOnProductsUncheckedUpdateManyWithoutProductNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
     OrderItem?: OrderItemUncheckedUpdateManyWithoutProductNestedInput
@@ -25848,6 +26079,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     featured?: BoolFieldUpdateOperationsInput | boolean
     seoMetadata?: XOR<SeoMetadataNullableUpdateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: MediaUpdateOneWithoutCategoriesNestedInput
@@ -25864,6 +26096,7 @@ export namespace Prisma {
     featured?: BoolFieldUpdateOperationsInput | boolean
     parentId?: NullableStringFieldUpdateOperationsInput | string | null
     seoMetadata?: XOR<SeoMetadataNullableUpdateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     children?: CategoryUncheckedUpdateManyWithoutParentNestedInput
@@ -25888,6 +26121,7 @@ export namespace Prisma {
     metadata: XOR<ProductSeoMetadataCreateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
     reviews?: ReviewCreateNestedManyWithoutProductInput
     categories?: CategoriesOnProductsCreateNestedManyWithoutProductInput
     OrderItem?: OrderItemCreateNestedManyWithoutProductInput
@@ -25912,6 +26146,7 @@ export namespace Prisma {
     metadata: XOR<ProductSeoMetadataCreateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
     reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
     categories?: CategoriesOnProductsUncheckedCreateNestedManyWithoutProductInput
     OrderItem?: OrderItemUncheckedCreateNestedManyWithoutProductInput
@@ -25931,6 +26166,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     url: string
     blurDataUrl?: string | null
+    creatorId: string
     categories?: CategoryCreateNestedManyWithoutImageInput
   }
 
@@ -25942,6 +26178,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     url: string
     blurDataUrl?: string | null
+    creatorId: string
     categories?: CategoryUncheckedCreateNestedManyWithoutImageInput
   }
 
@@ -25978,6 +26215,7 @@ export namespace Prisma {
     metadata?: XOR<ProductSeoMetadataUpdateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
     reviews?: ReviewUpdateManyWithoutProductNestedInput
     categories?: CategoriesOnProductsUpdateManyWithoutProductNestedInput
     OrderItem?: OrderItemUpdateManyWithoutProductNestedInput
@@ -26001,6 +26239,7 @@ export namespace Prisma {
     metadata?: XOR<ProductSeoMetadataUpdateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
     reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
     categories?: CategoriesOnProductsUncheckedUpdateManyWithoutProductNestedInput
     OrderItem?: OrderItemUncheckedUpdateManyWithoutProductNestedInput
@@ -26025,6 +26264,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     url?: StringFieldUpdateOperationsInput | string
     blurDataUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     categories?: CategoryUpdateManyWithoutImageNestedInput
   }
 
@@ -26035,6 +26275,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     url?: StringFieldUpdateOperationsInput | string
     blurDataUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     categories?: CategoryUncheckedUpdateManyWithoutImageNestedInput
   }
 
@@ -26056,6 +26297,7 @@ export namespace Prisma {
     metadata: XOR<ProductSeoMetadataCreateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
     media?: MediasOnProductsCreateNestedManyWithoutProductInput
     reviews?: ReviewCreateNestedManyWithoutProductInput
     categories?: CategoriesOnProductsCreateNestedManyWithoutProductInput
@@ -26080,6 +26322,7 @@ export namespace Prisma {
     metadata: XOR<ProductSeoMetadataCreateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
     media?: MediasOnProductsUncheckedCreateNestedManyWithoutProductInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
     categories?: CategoriesOnProductsUncheckedCreateNestedManyWithoutProductInput
@@ -26146,6 +26389,7 @@ export namespace Prisma {
     metadata?: XOR<ProductSeoMetadataUpdateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
     media?: MediasOnProductsUpdateManyWithoutProductNestedInput
     reviews?: ReviewUpdateManyWithoutProductNestedInput
     categories?: CategoriesOnProductsUpdateManyWithoutProductNestedInput
@@ -26169,6 +26413,7 @@ export namespace Prisma {
     metadata?: XOR<ProductSeoMetadataUpdateEnvelopeInput, ProductSeoMetadataCreateInput>
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
     media?: MediasOnProductsUncheckedUpdateManyWithoutProductNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
     categories?: CategoriesOnProductsUncheckedUpdateManyWithoutProductNestedInput
@@ -26285,6 +26530,7 @@ export namespace Prisma {
     featured?: boolean
     parentId?: string | null
     seoMetadata?: XOR<SeoMetadataNullableCreateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -26310,6 +26556,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     featured?: BoolFieldUpdateOperationsInput | boolean
     seoMetadata?: XOR<SeoMetadataNullableUpdateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     parent?: CategoryUpdateOneWithoutChildrenNestedInput
@@ -26325,6 +26572,7 @@ export namespace Prisma {
     featured?: BoolFieldUpdateOperationsInput | boolean
     parentId?: NullableStringFieldUpdateOperationsInput | string | null
     seoMetadata?: XOR<SeoMetadataNullableUpdateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     children?: CategoryUncheckedUpdateManyWithoutParentNestedInput
@@ -26339,6 +26587,7 @@ export namespace Prisma {
     featured?: BoolFieldUpdateOperationsInput | boolean
     parentId?: NullableStringFieldUpdateOperationsInput | string | null
     seoMetadata?: XOR<SeoMetadataNullableUpdateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -26351,6 +26600,7 @@ export namespace Prisma {
     imageId?: string | null
     featured?: boolean
     seoMetadata?: XOR<SeoMetadataNullableCreateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -26379,6 +26629,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     featured?: BoolFieldUpdateOperationsInput | boolean
     seoMetadata?: XOR<SeoMetadataNullableUpdateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: MediaUpdateOneWithoutCategoriesNestedInput
@@ -26394,6 +26645,7 @@ export namespace Prisma {
     imageId?: NullableStringFieldUpdateOperationsInput | string | null
     featured?: BoolFieldUpdateOperationsInput | boolean
     seoMetadata?: XOR<SeoMetadataNullableUpdateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     children?: CategoryUncheckedUpdateManyWithoutParentNestedInput
@@ -26408,6 +26660,7 @@ export namespace Prisma {
     imageId?: NullableStringFieldUpdateOperationsInput | string | null
     featured?: BoolFieldUpdateOperationsInput | boolean
     seoMetadata?: XOR<SeoMetadataNullableUpdateEnvelopeInput, SeoMetadataCreateInput> | null
+    creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -26541,6 +26794,7 @@ export namespace Prisma {
     verify?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    creatorId: string
   }
 
   export type CategoriesOnProductsCreateManyProductInput = {
@@ -26613,6 +26867,7 @@ export namespace Prisma {
     verify?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
   }
 
   export type ReviewUncheckedUpdateWithoutProductInput = {
@@ -26625,6 +26880,7 @@ export namespace Prisma {
     verify?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
   }
 
   export type ReviewUncheckedUpdateManyWithoutProductInput = {
@@ -26637,6 +26893,7 @@ export namespace Prisma {
     verify?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creatorId?: StringFieldUpdateOperationsInput | string
   }
 
   export type CategoriesOnProductsUpdateWithoutProductInput = {

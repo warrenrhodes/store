@@ -13,7 +13,6 @@ import { IBlog } from '@/lib/api/blogs'
 
 export function BlogFilters({
   categories,
-  tags,
   blogs,
 }: {
   categories: string[]

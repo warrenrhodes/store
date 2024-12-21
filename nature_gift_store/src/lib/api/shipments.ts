@@ -1,6 +1,6 @@
 import { Prisma, prisma } from '@naturegift/models'
 
-export type IShipment = Prisma.ShipmentGetPayload<{}>
+export type IShipment = Prisma.ShipmentGetPayload<object>
 
 export async function getShipments(): Promise<IShipment[]> {
   try {

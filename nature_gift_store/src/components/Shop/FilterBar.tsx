@@ -24,7 +24,6 @@ interface FilterBarProps {
   minPrice: number
   maxPrice: number
   categories: ICategory[]
-  tags: string[]
 }
 
 export function FilterBar({
@@ -35,7 +34,6 @@ export function FilterBar({
   minPrice,
   maxPrice,
   categories,
-  tags,
 }: FilterBarProps) {
   return (
     <div className="bg-card rounded-xl shadow-lg p-6 mb-8">
@@ -101,7 +99,6 @@ export function FilterBar({
                   minPrice={minPrice}
                   maxPrice={maxPrice}
                   categories={categories}
-                  tags={tags}
                 />
               </SheetContent>
             </Sheet>

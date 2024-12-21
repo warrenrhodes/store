@@ -11,7 +11,7 @@ export const GET = async () => {
     if (!userId || !clerkUser) {
       return new NextResponse(JSON.stringify({ message: 'Unauthorized' }), { status: 401 })
     }
-    let user = await prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: {
         clerkId: userId,
       },

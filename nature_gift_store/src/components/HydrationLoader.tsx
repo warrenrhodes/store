@@ -1,4 +1,3 @@
-import React from 'react'
 import { motion } from 'framer-motion'
 
 const HydrationLoader = () => {
@@ -76,7 +75,7 @@ const HydrationLoader = () => {
 
         {/* Loading Indicators */}
         <div className="flex justify-center space-x-4 mb-6">
-          {['Products', 'Prices', 'Recommendations', 'Deals', 'Inventory'].map((item, i) => (
+          {['Products', 'Prices', 'Recommendations', 'Deals', 'Inventory'].map(item => (
             <motion.div
               key={item}
               variants={loadingItemsVariants}

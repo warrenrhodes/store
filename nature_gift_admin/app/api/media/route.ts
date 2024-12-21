@@ -1,5 +1,6 @@
+import { getUserByClerkId } from '@/lib/actions/actions'
 import { normalizeFileName } from '@/lib/utils/normalize_file_name'
-import { auth, reverificationErrorResponse } from '@clerk/nextjs/server'
+import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'
 import { MediaType } from '@naturegift/models/generated/client'
 import fs from 'fs'
@@ -12,16 +13,16 @@ export const config = {
   },
 }
 
-export const POST = async (req: Request) => {
+export const POST = async (req: NextRequest) => {
   try {
-    const { userId, has } = await auth()
-
+    const { userId } = await auth()
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return new NextResponse('Unauthorized', { status: 403 })
     }
 
-    if (!has({ reverification: 'strict' })) {
-      return reverificationErrorResponse('strict')
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const formData = await req.formData()
@@ -51,6 +52,7 @@ export const POST = async (req: Request) => {
         type: convertFile.type.startsWith('image/') ? MediaType.IMAGE : MediaType.VIDEO,
         fileName: fileName,
         url: `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/tmp/${userId}/${fileName}`,
+        creatorId: _currentUser.id,
       },
     })
 
@@ -66,12 +68,19 @@ export const POST = async (req: Request) => {
 export const GET = async (req: NextRequest) => {
   try {
     const { userId } = await auth()
-
     if (!userId) {
+      return new NextResponse('Unauthorized', { status: 403 })
+    }
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const media = await prisma.media.findMany({
+      where: {
+        creatorId: _currentUser.id,
+      },
       orderBy: {
         createdAt: 'desc',
       },

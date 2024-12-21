@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion'
 import { Tag, Timer } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { toast } from '@/hooks/use-toast'
 import { getDetailedExpiresIn } from '@/lib/utils/utils'
 import { IPromotion } from '@/lib/api/promotions'
 
@@ -31,10 +30,6 @@ const itemVariants = {
 export function ActivePromotions({ activePromotions }: { activePromotions: IPromotion[] }) {
   if (activePromotions.length === 0) {
     return <></>
-  }
-  const copyCode = (code: string) => {
-    navigator.clipboard.writeText(code)
-    toast({ description: 'Promotion code copied to clipboard!' })
   }
 
   return (

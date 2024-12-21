@@ -10,6 +10,11 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'betterlife-future.com',
+        port: '3000',
+      },
+      {
+        protocol: 'https',
         hostname: 'loremflickr.com',
       },
     ],

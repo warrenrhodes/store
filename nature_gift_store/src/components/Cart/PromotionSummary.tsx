@@ -28,7 +28,7 @@ export function PromotionSummary({ cartItems, deliveryInfo }: PromotionSummaryPr
     }
 
     updatePromotions()
-  }, [cartItems, deliveryInfo])
+  }, [calculatePromotions, cartItems, deliveryInfo])
 
   if (isCalculating) {
     return (

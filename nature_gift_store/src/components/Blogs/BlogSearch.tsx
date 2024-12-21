@@ -69,7 +69,7 @@ export function BlogSearch({ blogs }: { blogs: IBlog[] }) {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No results found for "{query}"</p>
+                <p className="text-sm text-muted-foreground">{`No results found for "${query}"`}</p>
               )}
             </div>
           </motion.div>

@@ -1,8 +1,8 @@
 import { Prisma, prisma } from '@naturegift/models'
 
-const userWithRelations = Prisma.validator<Prisma.UserDefaultArgs>()({
+export type IUser = Prisma.UserGetPayload<{
   include: {
-    productWishlist: true,
+    productWishlist: true
     order: {
       include: {
         items: {
@@ -11,20 +11,18 @@ const userWithRelations = Prisma.validator<Prisma.UserDefaultArgs>()({
               include: {
                 media: {
                   include: {
-                    media: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-        user: true,
-      },
-    },
-  },
-})
-
-export type IUser = Prisma.UserGetPayload<typeof userWithRelations>
+                    media: true
+                  }
+                }
+              }
+            }
+          }
+        }
+        user: true
+      }
+    }
+  }
+}>
 
 export async function getUserByClerkId({ clerkId: clerkId }: { clerkId: string }) {
   try {

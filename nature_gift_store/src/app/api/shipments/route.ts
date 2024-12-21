@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@naturegift/models'
 
 export const dynamic = 'force-dynamic'
-export const GET = async (req: NextRequest) => {
+export const GET = async () => {
   try {
     const shipments = prisma.shipment.findMany()
 

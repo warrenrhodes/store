@@ -9,7 +9,7 @@ const Orders = async () => {
     <div className="sm:px-10 px-2 py-5">
       <p className="text-heading2-bold">Orders</p>
       <Separator className="bg-grey-1 my-5" />
-      <DataTable columns={columns} data={orders} searchKey="_id" />
+      <DataTable columns={columns} data={orders} searchKey="id" />
     </div>
   )
 }

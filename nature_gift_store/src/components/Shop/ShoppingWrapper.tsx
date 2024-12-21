@@ -25,7 +25,7 @@ export const ShoppingWrapper = ({
   categories: ICategory[]
 }) => {
   const { filters, MAX_PRICE, MIN_PRICE, setFilters, clearFilters } = useFilter()
-  const [pageData, setPageData] = useState<ProductPageData>({
+  const [pageData] = useState<ProductPageData>({
     categories: categories,
     products: productList,
     tags: Array.from(new Set(productList.map(product => product.tags?.flat() || []).flat())),
@@ -40,7 +40,7 @@ export const ShoppingWrapper = ({
     if (filters.priceRange[0] > MIN_PRICE || filters.priceRange[1] < MAX_PRICE) count++
     if (filters.search) count++
     setActiveFilters(count)
-  }, [filters])
+  }, [MAX_PRICE, MIN_PRICE, filters])
 
   useEffect(() => {
     let filtered = [...(pageData?.products || [])]
@@ -98,7 +98,6 @@ export const ShoppingWrapper = ({
           minPrice={MIN_PRICE}
           maxPrice={MAX_PRICE}
           categories={pageData?.categories || []}
-          tags={pageData?.tags || []}
         />
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <aside className="lg:col-span-1 sticky top-8 max-lg:hidden">
@@ -108,7 +107,6 @@ export const ShoppingWrapper = ({
               minPrice={MIN_PRICE}
               maxPrice={MAX_PRICE}
               categories={pageData?.categories || []}
-              tags={pageData?.tags || []}
             />
           </aside>
           <div className="lg:col-span-3 space-y-6">

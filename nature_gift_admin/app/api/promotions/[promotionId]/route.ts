@@ -1,29 +1,30 @@
+import { getUserByClerkId } from '@/lib/actions/actions'
 import { promotionSchema } from '@/lib/validations/promotions'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'
 import { NextRequest, NextResponse } from 'next/server'
 
-export const GET = async (
-  req: NextRequest,
-  props: { params: Promise<{ promotionId: string }> },
-) => {
-  const { userId } = await auth()
-
-  if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  const params = await props.params
+export const GET = async (req: NextRequest, { params }: { params: { promotionId: string } }) => {
   try {
+    const { userId } = await auth()
+    if (!userId) {
+      return new NextResponse('Unauthorized', { status: 403 })
+    }
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const promotion = await prisma.promotion.findUnique({
       where: {
         id: params.promotionId,
+        creatorId: _currentUser.id,
+      },
+      include: {
+        products: true,
       },
     })
-
-    if (!promotion) {
-      return new NextResponse('Promotion not found', { status: 404 })
-    }
 
     return NextResponse.json(promotion)
   } catch (error) {
@@ -32,12 +33,15 @@ export const GET = async (
   }
 }
 
-export async function PATCH(req: Request, props: { params: Promise<{ promotionId: string }> }) {
-  const params = await props.params
+export const PATCH = async (req: NextRequest, { params }: { params: { promotionId: string } }) => {
   try {
     const { userId } = await auth()
-
     if (!userId) {
+      return new NextResponse('Unauthorized', { status: 403 })
+    }
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -47,12 +51,9 @@ export async function PATCH(req: Request, props: { params: Promise<{ promotionId
     const promotion = await prisma.promotion.update({
       where: {
         id: params.promotionId,
+        creatorId: _currentUser.id,
       },
-      data: {
-        ...body,
-        ...(body.startDate && { startDate: new Date(body.startDate) }),
-        ...(body.endDate && { endDate: new Date(body.endDate) }),
-      },
+      data: body,
     })
 
     return NextResponse.json(promotion)
@@ -62,27 +63,29 @@ export async function PATCH(req: Request, props: { params: Promise<{ promotionId
   }
 }
 
-export async function DELETE(req: Request, props: { params: Promise<{ promotionId: string }> }) {
-  const params = await props.params
+export const DELETE = async (req: NextRequest, { params }: { params: { promotionId: string } }) => {
   try {
     const { userId } = await auth()
-
     if (!userId) {
+      return new NextResponse('Unauthorized', { status: 403 })
+    }
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     await prisma.promotion.delete({
       where: {
         id: params.promotionId,
+        creatorId: _currentUser.id,
       },
     })
 
-    return NextResponse.json({ message: 'Promotion deleted successfully' })
+    return new NextResponse(null, { status: 204 })
   } catch (error) {
     console.error('[PROMOTION_DELETE]', error)
     return new NextResponse('Internal error', { status: 500 })
-  } finally {
-    await prisma.$disconnect()
   }
 }
 

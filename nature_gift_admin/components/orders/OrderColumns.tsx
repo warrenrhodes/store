@@ -1,30 +1,26 @@
 'use client'
 
 import { ColumnDef } from '@tanstack/react-table'
-import Link from 'next/link'
-import { Badge } from '../ui/badge'
 import { cn } from '@/lib/utils'
-import { format } from 'date-fns'
 import { priceFormatted } from '@/lib/utils/utils'
+import { Link, Badge, Eye } from 'lucide-react'
+import { format } from 'date-fns'
+import { IOrder } from '@/lib/actions/actions'
 import {
   AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import { Eye } from 'lucide-react'
-import { Separator } from '../ui/separator'
+  AlertDialogContent,
+  AlertDialogTitle,
+  AlertDialogCancel,
+} from '@radix-ui/react-alert-dialog'
+import { Separator } from '@radix-ui/react-separator'
+import { AlertDialogHeader, AlertDialogFooter } from '../ui/alert-dialog'
 import { Button } from '../ui/button'
-import { Prisma } from '@naturegift/models'
-import { useEffect, useState } from 'react'
-import { getOrderItemsOfOrder, getProductId } from '@/lib/actions/actions'
 
-export const columns: ColumnDef<Prisma.OrderGetPayload<{}>>[] = [
+type Items = IOrder['items'][0]
+export const columns: ColumnDef<IOrder>[] = [
   {
-    accessorKey: '_id',
+    accessorKey: 'id',
     header: 'Order',
     cell: ({ row }) => {
       return (
@@ -72,40 +68,21 @@ export const columns: ColumnDef<Prisma.OrderGetPayload<{}>>[] = [
     header: 'Created At',
     cell: ({ row }) => <div>{format(row.original.createdAt || new Date(), 'PPP')}</div>,
   },
-  {
-    id: 'actions',
-    enableHiding: false,
-    cell: ({ row }) => {
-      const order = row.original
-      return (
-        <div>
-          <OrderView order={order} />
-        </div>
-      )
-    },
-  },
+  // {
+  //   id: 'actions',
+  //   enableHiding: false,
+  //   cell: ({ row }) => {
+  //     const order = row.original
+  //     return (
+  //       <div>
+  //         <OrderView order={order} />
+  //       </div>
+  //     )
+  //   },
+  // },
 ]
 
-const OrderView = ({ order }: { order: Prisma.OrderGetPayload<{}> }) => {
-  const [orderItems, setOrderItems] = useState<Prisma.OrderItemGetPayload<{}>[]>([])
-
-  const fetchOrderItems = async () => {
-    try {
-      const orderItems = await getOrderItemsOfOrder({ orderId: order.id })
-      setOrderItems(orderItems)
-    } catch (error) {
-      console.error(`Failed to fetch orderItems of orderId ${order.id}:`, error)
-    }
-  }
-
-  useEffect(() => {
-    fetchOrderItems()
-  }, [])
-
-  if (orderItems.length === 0) {
-    return null
-  }
-
+const OrderView = ({ order }: { order: IOrder }) => {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -163,7 +140,7 @@ const OrderView = ({ order }: { order: Prisma.OrderGetPayload<{}> }) => {
               <span className="text-muted-foreground">Items: </span>
             </div>
             <div className="flex flex-col gap-3 ml-5">
-              {orderItems.map(item => (
+              {order.items.map(item => (
                 <OrderItem item={item} />
               ))}
             </div>
@@ -208,22 +185,8 @@ const OrderView = ({ order }: { order: Prisma.OrderGetPayload<{}> }) => {
   )
 }
 
-const OrderItem = ({ item }: { item: Prisma.OrderItemGetPayload<{}> }) => {
-  const [product, setProduct] = useState<Prisma.ProductGetPayload<{}>>()
-
-  const fetchProduct = async () => {
-    try {
-      const product = await getProductId(item.productId)
-      product && setProduct(product)
-    } catch (error) {
-      console.error(`Failed to fetch product of item ${item.id}:`, error)
-    }
-  }
-
-  useEffect(() => {
-    fetchProduct()
-  }, [])
-
+const OrderItem = ({ item }: { item: Items }) => {
+  const product = item.product
   return (
     <div key={item.productId}>
       {product && (

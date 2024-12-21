@@ -1,11 +1,12 @@
-// import mongoose from 'mongoose'
-// import { seedDatabase } from '../lib/seedDatabase'
-// import { connectToDB } from '../lib/mongoDB'
-import '../envConfig'
 import { connectToDB } from '../lib/mongoDB'
+import { env } from '../envConfig'
 import { faker } from '@faker-js/faker'
 import { prisma } from '@naturegift/models'
 
+// Verify env is loaded
+console.log('Database URL exists:', !!env.DATABASE_URL)
+
+const creatorId = '676401e855b3332c5701717c'
 export async function getBlurDataUrl(imageUrl: string) {
   try {
     const res = await fetch(imageUrl)
@@ -21,22 +22,20 @@ export async function getBlurDataUrl(imageUrl: string) {
   }
 }
 
-  /**
-   * Main entry point for seeding the database with sample data.
-   *
-   * 1. Connects to the database using {@link connectToDB}.
-   * 2. Runs the type-safe seeding function using {@link seedDatabase}.
-   * 3. Closes the database connection and exits the process with a status code
-   *    depending on whether the seeding was successful or not.
-   *
-   * @throws {Error} If the seeding fails, an error is thrown with a message
-   *                 describing the failure.
-   */
+/**
+ * Main entry point for seeding the database with sample data.
+ *
+ * 1. Connects to the database using {@link connectToDB}.
+ * 2. Runs the type-safe seeding function using {@link seedDatabase}.
+ * 3. Closes the database connection and exits the process with a status code
+ *    depending on whether the seeding was successful or not.
+ *
+ * @throws {Error} If the seeding fails, an error is thrown with a message
+ * describing the failure.
+ */
 async function runSeed() {
   try {
     console.log('Starting database seeding...')
-
-    // Connect to database
     await connectToDB()
 
     // Run seed function
@@ -73,38 +72,43 @@ async function seedDatabase() {
     await prisma.categoriesOnProducts.deleteMany()
     await prisma.mediasOnProducts.deleteMany()
 
-    // Delete main tables
+    // Then delete dependent tables
+    await prisma.comment.deleteMany()
+    await prisma.review.deleteMany()
+    await prisma.wishlist.deleteMany()
+
+    // Handle self-referential relationship in Category
+    // First set all parentId to null
+    await prisma.category.updateMany({
+      data: { parentId: null },
+    })
+    // Then delete all categories
+    await prisma.category.deleteMany()
+
+    // Finally delete main tables
     await prisma.blog.deleteMany()
     await prisma.product.deleteMany()
     await prisma.media.deleteMany()
     await prisma.promotion.deleteMany()
     await prisma.shipment.deleteMany()
-    await prisma.$transaction(async tx => {
-      await tx.category.updateMany({
-        data: {
-          parentId: null,
-        },
-      })
-      await tx.category.deleteMany()
-    })
 
     // Seed Media first
     const mediaRecords = await Promise.all(
       Array(20)
         .fill(null)
-        .map(async () =>
-         { 
+        .map(async () => {
           const image = faker.image.urlLoremFlickr()
-          
+
           return prisma.media.create({
             data: {
               fileName: faker.system.fileName(),
+              creatorId: creatorId,
               url: image,
               type: Math.random() > 0.5 ? 'IMAGE' : 'VIDEO',
               blurDataUrl: await getBlurDataUrl(image),
             },
-          })}
-        ),
+          })
+        }),
     )
 
     // Seed Categories with sequential creation
@@ -112,6 +116,7 @@ async function seedDatabase() {
     for (let i = 0; i < 10; i++) {
       const category = await prisma.category.create({
         data: {
+          creatorId: creatorId,
           name: faker.commerce.department(),
           slug: faker.helpers.slugify(faker.commerce.department()),
           description: faker.commerce.productDescription(),
@@ -158,6 +163,7 @@ async function seedDatabase() {
 
           return prisma.product.create({
             data: {
+              creatorId: creatorId,
               title: faker.commerce.productName(),
               slug: faker.helpers.slugify(faker.commerce.productName()),
               description: {
@@ -220,6 +226,7 @@ async function seedDatabase() {
 
           return prisma.blog.create({
             data: {
+              creatorId: creatorId,
               slug: faker.helpers.slugify(faker.lorem.words(3)),
               title: faker.lorem.words(5),
               content: {
@@ -282,6 +289,7 @@ async function seedDatabase() {
         .map(() =>
           prisma.promotion.create({
             data: {
+              creatorId: creatorId,
               code: faker.string.alphanumeric(8).toUpperCase(),
               name: faker.commerce.productName(),
               description: faker.lorem.sentence(),
@@ -318,6 +326,7 @@ async function seedDatabase() {
         .map(() =>
           prisma.shipment.create({
             data: {
+              creatorId: creatorId,
               method: faker.helpers.arrayElement(['DELIVERY', 'EXPEDITION']),
               cost: parseFloat(faker.commerce.price()),
               locations: [faker.location.city(), faker.location.city()],

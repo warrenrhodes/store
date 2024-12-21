@@ -10,6 +10,7 @@ import {
   Lock,
   Truck,
 } from 'lucide-react'
+import Link from 'next/link'
 
 const Footer = () => {
   const currentYear = new Date().getFullYear()
@@ -43,19 +44,19 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <Link href="/shop" className="hover:text-white transition-colors">
                   Shop
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
-                  Track Order
-                </a>
+                <Link href="/blogs" className="hover:text-white transition-colors">
+                  Blogs
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
-                  Returns Policy
-                </a>
+                <Link href="/profile?tab=orders" className="hover:text-white transition-colors">
+                  Orders
+                </Link>
               </li>
               <li>
                 <a href="#" className="hover:text-white transition-colors">
@@ -83,22 +84,6 @@ const Footer = () => {
               </li>
             </ul>
           </div>
-
-          {/* Newsletter */}
-          {/* <div className="space-y-4">
-            <h3 className="text-xl font-bold text-white">Newsletter</h3>
-            <p className="text-sm">Subscribe to receive updates and exclusive offers!</p>
-            <form className="space-y-2">
-              <input
-                type="email"
-                placeholder="Your email address"
-                className="w-full px-4 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:border-blue-500"
-              />
-              <button className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors">
-                Subscribe
-              </button>
-            </form>
-          </div> */}
         </div>
 
         {/* Trust Badges */}
@@ -128,7 +113,9 @@ const Footer = () => {
       <div className="border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="text-sm">© {currentYear} Nature's Gift. All rights reserved.</div>
+            <div className="text-sm">
+              © {currentYear} {"Nature's Gift. All rights reserved."}
+            </div>
             <div className="flex space-x-4 text-sm">
               <a href="#" className="hover:text-white transition-colors">
                 Privacy Policy

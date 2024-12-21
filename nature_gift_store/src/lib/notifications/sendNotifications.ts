@@ -24,6 +24,7 @@ export const sendEmailNotifications = async ({
 
     return true
   } catch (error) {
+    console.log('error in sendEmailNotifications', error)
     return false
   }
 }
@@ -51,6 +52,7 @@ export const sendSmsNotifications = async ({
 
     return true
   } catch (error) {
+    console.log('error in sendSmsNotifications', error)
     return false
   }
 }

@@ -1,3 +1,4 @@
+import { getUserByClerkId } from '@/lib/actions/actions'
 import { generateSlug } from '@/lib/utils/slugify'
 import { blogSchema } from '@/lib/validations/blog'
 import { auth, currentUser } from '@clerk/nextjs/server'
@@ -6,7 +7,20 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export const GET = async (req: NextRequest) => {
   try {
+    const { userId } = await auth()
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const categories = await prisma.blog.findMany({
+      where: {
+        creatorId: _currentUser.id,
+      },
       include: {
         categories: {
           include: {
@@ -39,7 +53,10 @@ export async function POST(req: Request) {
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     const user = await currentUser()
     const userName =
       user?.firstName && user?.lastName
@@ -63,6 +80,7 @@ export async function POST(req: Request) {
 
     const blog = await prisma.blog.create({
       data: {
+        creatorId: _currentUser.id,
         title: body.title,
         slug: body.slug,
         content: body.content,

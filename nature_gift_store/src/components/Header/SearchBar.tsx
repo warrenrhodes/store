@@ -31,7 +31,7 @@ export function SearchBar() {
   useEffect(() => {
     if (products.length > 0) return
     fetchData()
-  }, [fetchData])
+  }, [fetchData, products.length])
   if (products.length === 0) return null
 
   const productsFiltered = products.filter(product =>
@@ -71,13 +71,13 @@ export function SearchBar() {
           >
             <div className="p-4">
               {productsFiltered.length > 0 ? (
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 max-h-[400px] overflow-y-scroll">
                   {productsFiltered.map(e => (
                     <ItemResult product={e} key={e.id} />
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No results found for "{query}"</p>
+                <p className="text-sm text-muted-foreground">{`No results found for "${query}"`}</p>
               )}
             </div>
           </motion.div>
@@ -135,7 +135,6 @@ const ItemResult = ({ product }: { product: IProduct }) => {
                     }}
                   >
                     <ShoppingCart className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
-                    Add to Cart
                   </Button>
                 </div>
                 <div className="text-right">

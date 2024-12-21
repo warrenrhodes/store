@@ -24,7 +24,6 @@ interface FilterSidebarProps {
 }
 
 export function FilterSidebar({
-  isOpen,
   onClose,
   categories,
   filters,

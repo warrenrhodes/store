@@ -6,7 +6,11 @@ import { useCallback, useState } from 'react'
 import { useEffect } from 'react'
 import { Prisma } from '@/prisma-models'
 
-export function PromotionBanner({ promotions }: { promotions: Prisma.PromotionGetPayload<{}>[] }) {
+export function PromotionBanner({
+  promotions,
+}: {
+  promotions: Prisma.PromotionGetPayload<object>[]
+}) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [opacity, setOpacity] = useState(1)
 
@@ -16,7 +20,7 @@ export function PromotionBanner({ promotions }: { promotions: Prisma.PromotionGe
       setCurrentIndex(prevIndex => (prevIndex + 1) % promotions.length)
       setOpacity(1)
     }, 300)
-  }, [])
+  }, [promotions.length])
 
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -24,7 +28,7 @@ export function PromotionBanner({ promotions }: { promotions: Prisma.PromotionGe
       interval = setInterval(goToNext, 7000)
     }
     return () => clearInterval(interval)
-  }, [goToNext])
+  }, [goToNext, promotions.length])
 
   if (promotions.length === 0) return null
 

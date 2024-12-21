@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   try {
-    const { userId, changes, currentItems } = await request.json()
+    const { userId, currentItems } = await request.json()
 
     // Update wishlist in database
     await prisma.user.update({

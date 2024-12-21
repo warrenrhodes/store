@@ -1,11 +1,10 @@
 import { prisma, Prisma } from '@naturegift/models'
 
-const categoriesWithRelations = Prisma.validator<Prisma.CategoryDefaultArgs>()({
+export type ICategory = Prisma.CategoryGetPayload<{
   include: {
-    image: true,
-  },
-})
-export type ICategory = Prisma.CategoryGetPayload<typeof categoriesWithRelations>
+    image: true
+  }
+}>
 
 export async function getCategories(): Promise<ICategory[]> {
   try {
@@ -26,7 +25,7 @@ export async function getCategories(): Promise<ICategory[]> {
 
 export async function getCategoriesOfProduct(
   productId: string,
-): Promise<Prisma.CategoriesOnProductsGetPayload<{}>[]> {
+): Promise<Prisma.CategoriesOnProductsGetPayload<object>[]> {
   try {
     const categories = await prisma.categoriesOnProducts.findMany({
       where: {
@@ -59,7 +58,7 @@ export async function getCategoryById(categoryId: string): Promise<ICategory | n
 
 export async function getCategoriesOfBlog(
   blogId: string,
-): Promise<Prisma.CategoriesOnBlogsGetPayload<{}>[]> {
+): Promise<Prisma.CategoriesOnBlogsGetPayload<object>[]> {
   try {
     const categories = await prisma.categoriesOnBlogs.findMany({
       where: {

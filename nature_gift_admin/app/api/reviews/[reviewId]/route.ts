@@ -2,13 +2,26 @@ import { NextRequest, NextResponse } from 'next/server'
 import { reviewSchema } from '@/lib/validations/reviews'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'
+import { getUserByClerkId } from '@/lib/actions/actions'
 
 export const GET = async (req: NextRequest, props: { params: Promise<{ reviewId: string }> }) => {
   const params = await props.params
   try {
+    const { userId } = await auth()
+
+    if (!userId) {
+      return new NextResponse('Unauthorized', { status: 403 })
+    }
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const review = await prisma.review.findUnique({
       where: {
         id: params.reviewId,
+        creatorId: _currentUser.id,
       },
       include: {
         product: true,
@@ -35,12 +48,18 @@ export const POST = async (req: NextRequest, props: { params: Promise<{ reviewId
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const json = await req.json()
     const body = reviewSchema.parse(json)
 
     const review = await prisma.review.update({
       where: {
         id: params.reviewId,
+        creatorId: _currentUser.id,
       },
       data: {
         userName: body.userName,
@@ -65,7 +84,10 @@ export const POST = async (req: NextRequest, props: { params: Promise<{ reviewId
   }
 }
 
-export const DELETE = async (req: NextRequest, props: { params: Promise<{ reviewId: string }> }) => {
+export const DELETE = async (
+  req: NextRequest,
+  props: { params: Promise<{ reviewId: string }> },
+) => {
   const params = await props.params
   try {
     const { userId } = await auth()

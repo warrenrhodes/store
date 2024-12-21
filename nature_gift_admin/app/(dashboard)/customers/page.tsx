@@ -6,7 +6,9 @@ import { prisma } from '@naturegift/models'
 
 export default async function Customers() {
   const { userId } = await auth()
-  const customers = await prisma.user.findMany({
+  const customers = await (
+    await prisma
+  ).user.findMany({
     where: {
       NOT: {
         clerkId: userId,

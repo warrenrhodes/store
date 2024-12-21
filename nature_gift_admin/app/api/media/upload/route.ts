@@ -1,3 +1,4 @@
+import { getUserByClerkId } from '@/lib/actions/actions'
 import { normalizeFileName } from '@/lib/utils/normalize_file_name'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'
@@ -18,6 +19,11 @@ export async function POST(request: Request) {
     const { userId } = await auth()
 
     if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -56,6 +62,7 @@ export async function POST(request: Request) {
             fileName: fileName,
             url: mediaUrl,
             blurDataUrl: base64,
+            creatorId: _currentUser.id,
           },
         })
 

@@ -1,4 +1,5 @@
 import ShipmentForm from '@/components/shipments/ShipmentForm'
+import { getShipmentById } from '@/lib/actions/actions'
 import { auth } from '@clerk/nextjs/server'
 import { notFound } from 'next/navigation'
 
@@ -22,7 +23,7 @@ async function getShipment(shipmentId: string) {
 
 export default async function EditShipmentPage(props: { params: Promise<{ shipmentId: string }> }) {
   const params = await props.params
-  const [shipment] = await Promise.all([getShipment(params.shipmentId)])
+  const [shipment] = await Promise.all([getShipmentById(params.shipmentId)])
 
   return (
     <div className="container py-10">

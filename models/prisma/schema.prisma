@@ -1,6 +1,7 @@
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/client"
+  previewFeatures = ["tracing"]
 }
 
 datasource db {
@@ -25,6 +26,7 @@ model Media {
   updatedAt   DateTime           @updatedAt
   url         String
   blurDataUrl String?
+  creatorId   String
 }
 
 // --------------------------------shipment model------------------------------------
@@ -42,6 +44,7 @@ model Shipment {
   locations String[]
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
+  creatorId String
 }
 
 // --------------------------------categories model------------------------------------
@@ -66,6 +69,7 @@ model Category {
   blogs       CategoriesOnBlogs[]
   products    CategoriesOnProducts[]
   seoMetadata SeoMetadata?
+  creatorId   String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -132,6 +136,7 @@ model Promotion {
   metadata    Metadata
   createdAt   DateTime             @default(now())
   updatedAt   DateTime             @updatedAt
+  creatorId   String
 
   @@index([status], map: "status_1")
   @@index([startDate, endDate], map: "startDate_1_endDate_1")
@@ -205,6 +210,7 @@ model Blog {
   customFields CustomFields[]
   layout       BlogLayout          @default(DEFAULT)
   comments     Comment[]
+  creatorId    String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -282,6 +288,7 @@ model Product {
   updatedAt    DateTime               @updatedAt
   OrderItem    OrderItem[]
   userWishlist Wishlist[]
+  creatorId    String
 }
 
 // --------------------------------review model------------------------------------
@@ -299,6 +306,7 @@ model Review {
   verify     Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  creatorId  String
 }
 
 // --------------------------------order model------------------------------------

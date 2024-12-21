@@ -1,3 +1,4 @@
+import { getUserByClerkId } from '@/lib/actions/actions'
 import { promotionSchema } from '@/lib/validations/promotions'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'
@@ -11,9 +12,17 @@ export const GET = async (req: NextRequest) => {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const promotions = await prisma.promotion.findMany({
-      orderBy: {
-        createdAt: 'desc',
+      where: {
+        creatorId: _currentUser.id,
+      },
+      include: {
+        products: true,
       },
     })
 
@@ -24,7 +33,7 @@ export const GET = async (req: NextRequest) => {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const { userId } = await auth()
 
@@ -32,18 +41,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const json = await req.json()
-    const body = promotionSchema.parse({
-      ...json,
-      metadata: {
-        ...json.metadata,
-        createdBy: userId,
-        updatedBy: userId,
-      },
-    })
+    const body = promotionSchema.parse(json)
 
     const promotion = await prisma.promotion.create({
-      data: body,
+      data: {
+        ...body,
+        creatorId: _currentUser.id,
+      },
     })
 
     return NextResponse.json(promotion)

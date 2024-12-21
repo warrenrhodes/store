@@ -43,7 +43,6 @@ export async function GET(request: NextRequest, props: { params: Promise<{ path:
   }
 }
 
-// You might also want to handle HEAD requests
 export async function HEAD(request: NextRequest, props: { params: Promise<{ path: string[] }> }) {
   const params = await props.params
   try {

@@ -1,19 +1,5 @@
 import { ShipmentList } from '@/components/shipments/ShipmentList'
-import { Prisma, prisma } from '@naturegift/models'
-
-async function getShipments(): Promise<Prisma.ShipmentGetPayload<{}>[]> {
-  try {
-    const shipments = prisma.shipment.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-    })
-    return shipments
-  } catch (error) {
-    console.error('Failed to fetch shipments:', error)
-    return []
-  }
-}
+import { getShipments } from '@/lib/actions/actions'
 
 export default async function ShipmentsPage() {
   const shipments = await getShipments()

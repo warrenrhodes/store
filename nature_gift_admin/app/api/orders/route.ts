@@ -1,24 +1,48 @@
-import { auth, reverificationErrorResponse } from '@clerk/nextjs/server'
+import { getUserByClerkId } from '@/lib/actions/actions'
+import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(req: NextRequest) {
   try {
-    const { userId, has } = await auth()
+    const { userId } = await auth()
 
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (!has({ reverification: 'strict' })) {
-      return reverificationErrorResponse('strict')
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const orders = await prisma.order.findMany({
-      include: {
+      where: {
         items: {
+          some: {
+            product: {
+              partnerId: _currentUser.id,
+            },
+          },
+        },
+      },
+      include: {
+        user: true,
+        items: {
+          where: {
+            product: {
+              partnerId: _currentUser.id,
+            },
+          },
           include: {
-            product: true,
+            product: {
+              select: {
+                id: true,
+                title: true,
+                price: true,
+                partnerId: true,
+              },
+            },
           },
         },
       },
@@ -43,55 +67,3 @@ export async function GET(req: NextRequest) {
     await prisma.$disconnect()
   }
 }
-
-export async function POST(req: Request) {
-  try {
-    const body = await req.json()
-    const { items, ...orderData } = body
-
-    if (
-      !items ||
-      !orderData.deliveryInfo.address ||
-      !orderData.deliveryInfo.deliveryDate ||
-      !orderData.deliveryInfo.deliveryTime ||
-      !orderData.deliveryInfo.city ||
-      !orderData.userData.fullName ||
-      !orderData.userData.phone ||
-      !orderData.orderPrices.totalAmount
-    ) {
-      return new NextResponse(
-        'Missing required fields.[address, deliveryDate, deliveryTime, city, fullName, phone, totalAmount]',
-        { status: 400 },
-      )
-    }
-
-    const order = await prisma.order.create({
-      data: {
-        ...orderData,
-        items: {
-          create: items.map((item: any) => ({
-            quantity: item.quantity,
-            product: {
-              connect: { id: item.productId },
-            },
-          })),
-        },
-      },
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-      },
-    })
-
-    return NextResponse.json(order, { status: 201 })
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to create order' }, { status: 500 })
-  } finally {
-    await prisma.$disconnect()
-  }
-}
-
-export const dynamic = 'force-dynamic'

@@ -1,16 +1,14 @@
 import { prisma, Prisma } from '@naturegift/models'
 
-const blogWithRelations = Prisma.validator<Prisma.BlogDefaultArgs>()({
+export type IBlog = Prisma.BlogGetPayload<{
   include: {
     categories: {
       include: {
-        category: true,
-      },
-    },
-  },
-})
-
-export type IBlog = Prisma.BlogGetPayload<typeof blogWithRelations>
+        category: true
+      }
+    }
+  }
+}>
 export const fetchBlogBySlug = async (slug: string): Promise<IBlog | null> => {
   try {
     const blog = await prisma.blog.findUnique({

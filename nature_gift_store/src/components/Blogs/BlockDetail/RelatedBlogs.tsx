@@ -10,33 +10,6 @@ import Link from 'next/link'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import Image from 'next/image'
 
-const blogs = [
-  {
-    id: '2',
-    title: 'Understanding Smart Health Monitoring',
-    excerpt: 'A deep dive into modern health tracking technologies and their impact.',
-    image: 'https://images.unsplash.com/photo-1576671081837-49000212a370',
-    author: 'Tech Expert',
-    date: 'March 12, 2024',
-  },
-  {
-    id: '3',
-    title: 'The Role of AI in Personal Health',
-    excerpt: 'How artificial intelligence is transforming personal health management.',
-    image: 'https://images.unsplash.com/photo-1557428894-56bcc97113fe',
-    author: 'AI Researcher',
-    date: 'March 10, 2024',
-  },
-  {
-    id: '4',
-    title: 'Next-Gen Fitness Technology',
-    excerpt: 'Exploring the latest innovations in fitness tracking and analysis.',
-    image: 'https://images.unsplash.com/photo-1510017803434-a899398421b3',
-    author: 'Fitness Tech Analyst',
-    date: 'March 8, 2024',
-  },
-]
-
 interface RelatedBlogsProps {
   relatedBlogs: IBlog[]
 }

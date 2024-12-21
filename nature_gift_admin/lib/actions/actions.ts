@@ -1,5 +1,24 @@
 import { Prisma, prisma } from '@naturegift/models'
 import { connectToDB } from '../mongoDB'
+import { currentUser, auth } from '@clerk/nextjs/server'
+
+export type IOrder = Prisma.OrderGetPayload<{
+  include: {
+    items: {
+      include: {
+        product: {
+          include: {
+            media: {
+              include: {
+                media: true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}>
 
 export const getTotalSales = async () => {
   const orders = await getOrders()
@@ -15,11 +34,12 @@ export const getTotalCustomers = async () => {
   // const totalCustomers = customers.length;
   return 0
 }
+
 export const getSalesPerMonth = async () => {
   const orders = await getOrders()
 
   const salesPerMonth = orders.reduce<Record<number, number>>((acc, order) => {
-    const monthIndex = new Date(order.createdAt).getMonth() // 0 for January --> 11 for December
+    const monthIndex = new Date(order.createdAt).getMonth()
     acc[monthIndex] = (acc[monthIndex] || 0) + order.orderPrices.total
     return acc
   }, {})
@@ -61,7 +81,16 @@ export const uploadImages = async (files: File[]): Promise<string | null> => {
 
 export async function getProducts(): Promise<Prisma.ProductGetPayload<{}>[]> {
   try {
+    const { userId } = await auth()
+    if (!userId) return []
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) return []
+
     const products = await prisma.product.findMany({
+      where: {
+        creatorId: _currentUser.id,
+      },
       orderBy: {
         createdAt: 'desc',
       },
@@ -77,7 +106,19 @@ export async function getCategoriesOnProduct(): Promise<
   Prisma.CategoriesOnProductsGetPayload<{}>[]
 > {
   try {
-    const categories = await prisma.categoriesOnProducts.findMany()
+    const { userId } = await auth()
+    if (!userId) return []
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) return []
+
+    const categories = await prisma.categoriesOnProducts.findMany({
+      where: {
+        product: {
+          creatorId: _currentUser.id,
+        },
+      },
+    })
     return categories
   } catch (error) {
     console.error('Failed to fetch categories:', error)
@@ -87,9 +128,16 @@ export async function getCategoriesOnProduct(): Promise<
 
 export async function getProductId(id: string): Promise<Prisma.ProductGetPayload<{}> | null> {
   try {
+    const { userId } = await auth()
+    if (!userId) return null
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) return null
+
     const product = await prisma.product.findUnique({
       where: {
         id,
+        creatorId: _currentUser.id,
       },
     })
     return product
@@ -101,7 +149,17 @@ export async function getProductId(id: string): Promise<Prisma.ProductGetPayload
 
 export async function getCategories(): Promise<Prisma.CategoryGetPayload<{}>[]> {
   try {
-    const categories = await prisma.category.findMany()
+    const { userId } = await auth()
+    if (!userId) return []
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) return []
+
+    const categories = await prisma.category.findMany({
+      where: {
+        creatorId: _currentUser.id,
+      },
+    })
     return categories
   } catch (error) {
     console.error('Failed to fetch categories:', error)
@@ -113,9 +171,18 @@ export async function getCategoriesOfProduct(
   productId: string,
 ): Promise<Prisma.CategoriesOnProductsGetPayload<{}>[]> {
   try {
+    const { userId } = await auth()
+    if (!userId) return []
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) return []
+
     const categories = await prisma.categoriesOnProducts.findMany({
       where: {
         productId,
+        product: {
+          creatorId: _currentUser.id,
+        },
       },
     })
     return categories
@@ -129,9 +196,16 @@ export async function getCategoryById(
   categoryId: string,
 ): Promise<Prisma.CategoryGetPayload<{}> | null> {
   try {
+    const { userId } = await auth()
+    if (!userId) return null
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) return null
+
     const category = await prisma.category.findUnique({
       where: {
         id: categoryId,
+        creatorId: _currentUser.id,
       },
     })
     return category
@@ -145,9 +219,18 @@ export async function getCategoriesOfBlog(
   blogId: string,
 ): Promise<Prisma.CategoriesOnBlogsGetPayload<{}>[]> {
   try {
+    const { userId } = await auth()
+    if (!userId) return []
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) return []
+
     const categories = await prisma.categoriesOnBlogs.findMany({
       where: {
         blogId,
+        blog: {
+          creatorId: _currentUser.id,
+        },
       },
     })
     return categories
@@ -159,9 +242,16 @@ export async function getCategoriesOfBlog(
 
 export async function getBlogById(blogId: string): Promise<Prisma.BlogGetPayload<{}> | null> {
   try {
+    const { userId } = await auth()
+    if (!userId) return null
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) return null
+
     const blogPost = await prisma.blog.findUnique({
       where: {
         id: blogId,
+        creatorId: _currentUser.id,
       },
     })
     return blogPost
@@ -173,7 +263,16 @@ export async function getBlogById(blogId: string): Promise<Prisma.BlogGetPayload
 
 export async function getBlogs(): Promise<Prisma.BlogGetPayload<{}>[]> {
   try {
+    const { userId } = await auth()
+    if (!userId) return []
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) return []
+
     const blogs = await prisma.blog.findMany({
+      where: {
+        creatorId: _currentUser.id,
+      },
       orderBy: {
         createdAt: 'desc',
       },
@@ -187,7 +286,17 @@ export async function getBlogs(): Promise<Prisma.BlogGetPayload<{}>[]> {
 
 export async function getMedias(): Promise<Prisma.MediaGetPayload<{}>[]> {
   try {
-    const medias = await prisma.media.findMany()
+    const { userId } = await auth()
+    if (!userId) return []
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) return []
+
+    const medias = await prisma.media.findMany({
+      where: {
+        creatorId: _currentUser.id,
+      },
+    })
     return medias
   } catch (error) {
     console.error('Failed to fetch medias:', error)
@@ -197,7 +306,16 @@ export async function getMedias(): Promise<Prisma.MediaGetPayload<{}>[]> {
 
 export async function getReviews(): Promise<Prisma.ReviewGetPayload<{}>[]> {
   try {
+    const { userId } = await auth()
+    if (!userId) return []
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) return []
+
     const reviews = await prisma.review.findMany({
+      where: {
+        creatorId: _currentUser.id,
+      },
       orderBy: {
         createdAt: 'desc',
       },
@@ -211,9 +329,16 @@ export async function getReviews(): Promise<Prisma.ReviewGetPayload<{}>[]> {
 
 export async function getReviewById(reviewId: string): Promise<Prisma.ReviewGetPayload<{}> | null> {
   try {
+    const { userId } = await auth()
+    if (!userId) return null
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) return null
+
     const review = await prisma.review.findUnique({
       where: {
         id: reviewId,
+        creatorId: _currentUser.id,
       },
     })
     return review
@@ -222,14 +347,54 @@ export async function getReviewById(reviewId: string): Promise<Prisma.ReviewGetP
     return null
   }
 }
-export async function getOrders(): Promise<Prisma.OrderGetPayload<{}>[]> {
+
+export async function getOrders(): Promise<IOrder[]> {
   try {
+    const { userId } = await auth()
+    if (!userId) return []
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) return []
+
     const orders = await prisma.order.findMany({
-      orderBy: {
-        createdAt: 'desc',
+      where: {
+        items: {
+          some: {
+            product: {
+              partnerId: _currentUser.id,
+            },
+          },
+        },
       },
       include: {
-        items: true,
+        user: true,
+        items: {
+          where: {
+            product: {
+              partnerId: _currentUser.id,
+            },
+          },
+          include: {
+            product: {
+              select: {
+                id: true,
+                title: true,
+                price: true,
+                partnerId: true,
+              },
+              include: {
+                media: {
+                  include: {
+                    media: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     })
     return orders
@@ -243,9 +408,22 @@ export async function getOrderItemsOfOrder(params: {
   orderId: string
 }): Promise<Prisma.OrderItemGetPayload<{}>[]> {
   try {
+    const { userId } = await auth()
+    if (!userId) return []
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) return []
+
     const orderItems = await prisma.orderItem.findMany({
       where: {
         orderId: params.orderId,
+        items: {
+          some: {
+            product: {
+              partnerId: _currentUser.id,
+            },
+          },
+        },
       },
     })
     return orderItems
@@ -254,13 +432,23 @@ export async function getOrderItemsOfOrder(params: {
     return []
   }
 }
+
 export async function getMediasOfProduct(
   productId: string,
 ): Promise<Prisma.MediasOnProductsGetPayload<{}>[]> {
   try {
+    const { userId } = await auth()
+    if (!userId) return []
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) return []
+
     const medias = await prisma.mediasOnProducts.findMany({
       where: {
         productId,
+        product: {
+          creatorId: _currentUser.id,
+        },
       },
     })
     return medias
@@ -272,7 +460,16 @@ export async function getMediasOfProduct(
 
 export async function getPromotions(): Promise<Prisma.PromotionGetPayload<{}>[]> {
   try {
+    const { userId } = await auth()
+    if (!userId) return []
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) return []
+
     const promotions = await prisma.promotion.findMany({
+      where: {
+        creatorId: _currentUser.id,
+      },
       orderBy: {
         createdAt: 'desc',
       },
@@ -288,14 +485,106 @@ export async function getPromotionById(
   promotionId: string,
 ): Promise<Prisma.PromotionGetPayload<{}> | null> {
   try {
+    const { userId } = await auth()
+    if (!userId) return null
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) return null
+
     const promotion = await prisma.promotion.findUnique({
       where: {
         id: promotionId,
+        creatorId: _currentUser.id,
       },
     })
     return promotion
   } catch (error) {
     console.error('Failed to fetch promotion:', error)
+    return null
+  }
+}
+export async function getShipments(): Promise<Prisma.ShipmentGetPayload<{}>[]> {
+  try {
+    const { userId } = await auth()
+    if (!userId) return []
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) return []
+    const shipments = prisma.shipment.findMany({
+      where: {
+        creatorId: _currentUser.id,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    })
+    return shipments
+  } catch (error) {
+    console.error('Failed to fetch shipments:', error)
+    return []
+  }
+}
+
+export async function getShipmentById(
+  shipmentById: string,
+): Promise<Prisma.ShipmentGetPayload<{}> | null> {
+  try {
+    const { userId } = await auth()
+    if (!userId) return null
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) return null
+
+    const shipment = await prisma.shipment.findUnique({
+      where: {
+        id: shipmentById,
+        creatorId: _currentUser.id,
+      },
+    })
+    return shipment
+  } catch (error) {
+    console.error('Failed to fetch shipment:', error)
+    return null
+  }
+}
+
+export async function getUserByClerkId(clerkId: string): Promise<Prisma.UserGetPayload<{}> | null> {
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        clerkId: clerkId,
+      },
+    })
+    return user || createNewUser()
+  } catch (error) {
+    console.error('Failed to fetch promotion:', error)
+    return createNewUser()
+  }
+}
+
+export async function createNewUser(): Promise<Prisma.UserGetPayload<{}> | null> {
+  try {
+    const clerkUser = await currentUser()
+
+    if (!clerkUser) {
+      return null
+    }
+
+    const newUser = await prisma.user.upsert({
+      where: { clerkId: clerkUser.id },
+      update: {},
+      create: {
+        clerkId: clerkUser.id,
+        email: clerkUser.primaryEmailAddress?.emailAddress,
+        fullName: `${clerkUser.firstName} ${clerkUser.lastName}`.trim(),
+        phone: clerkUser.primaryPhoneNumber?.phoneNumber,
+        avatar: clerkUser.imageUrl,
+        isAnonymous: false,
+      },
+    })
+    return newUser
+  } catch (error) {
+    console.error('Failed to create new user:', error)
     return null
   }
 }

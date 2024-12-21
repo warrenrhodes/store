@@ -21,13 +21,25 @@ import { getPromotions } from '@/lib/api/promotions'
 export default function Home() {
   return (
     <main>
-      <Loader loading={<HeroLoading />} children={<HeroSection />} />
-      <Loader loading={<CategoryLoading />} children={<Categories />} />
-      <Loader loading={<ProductsLoading />} children={<FeaturedProductsLoader />} />
-      <Loader loading={<PromotionLoading />} children={<PromotionBannerLoader />} />
-      <Loader loading={<ProductsLoading />} children={<NewArrivalsLoader />} />
+      <Loader loading={<HeroLoading />}>
+        <HeroSection />
+      </Loader>
+      <Loader loading={<CategoryLoading />}>
+        <Categories />
+      </Loader>
+      <Loader loading={<ProductsLoading />}>
+        <FeaturedProductsLoader />
+      </Loader>
+      <Loader loading={<PromotionLoading />}>
+        <PromotionBannerLoader />
+      </Loader>
+      <Loader loading={<ProductsLoading />}>
+        <NewArrivalsLoader />
+      </Loader>
       <BrandValues />
-      <Loader loading={<BlogsLoading />} children={<FeaturedBlogsLoader />} />
+      <Loader loading={<BlogsLoading />}>
+        <FeaturedBlogsLoader />
+      </Loader>
     </main>
   )
 }

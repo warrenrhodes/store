@@ -14,7 +14,6 @@ interface FilterOptionsProps {
   minPrice: number
   maxPrice: number
   categories: ICategory[]
-  tags: string[]
 }
 
 export function FilterOptions({
@@ -23,7 +22,6 @@ export function FilterOptions({
   minPrice,
   maxPrice,
   categories,
-  tags,
 }: FilterOptionsProps) {
   return (
     <div className="mt-8 space-y-6">

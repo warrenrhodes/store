@@ -1,18 +1,50 @@
-import { connectToDB } from '@/lib/mongoDB'
+import { getUserByClerkId } from '@/lib/actions/actions'
+import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(req: NextRequest, props: { params: Promise<{ orderId: string }> }) {
   const params = await props.params
   try {
-    await connectToDB()
+    const { userId } = await auth()
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
     const orderDetails = await prisma.order.findUnique({
-      where: { id: params.orderId },
-      include: {
+      where: {
+        id: params.orderId,
         items: {
+          some: {
+            product: {
+              partnerId: _currentUser.id,
+            },
+          },
+        },
+      },
+      include: {
+        user: true,
+        items: {
+          where: {
+            product: {
+              partnerId: _currentUser.id,
+            },
+          },
           include: {
-            product: true,
+            product: {
+              select: {
+                id: true,
+                title: true,
+                price: true,
+                partnerId: true,
+              },
+            },
           },
         },
       },

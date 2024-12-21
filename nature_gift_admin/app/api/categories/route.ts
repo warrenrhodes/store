@@ -1,3 +1,4 @@
+import { getUserByClerkId } from '@/lib/actions/actions'
 import { categorySchema } from '@/lib/validations/category'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'
@@ -9,6 +10,11 @@ export const POST = async (req: NextRequest) => {
 
     if (!userId) {
       return new NextResponse('Unauthorized', { status: 403 })
+    }
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const json = await req.json()
@@ -30,6 +36,7 @@ export const POST = async (req: NextRequest) => {
         slug: body.slug,
         description: body.description,
         featured: body.featured,
+        creatorId: _currentUser.id,
         ...(body.seoMetadata && {
           seoMetadata: {
             seoTitle: body.seoMetadata.seoTitle,
@@ -65,7 +72,21 @@ export const POST = async (req: NextRequest) => {
 
 export const GET = async (req: NextRequest) => {
   try {
+    const { userId } = await auth()
+    if (!userId) {
+      return new NextResponse('Unauthorized', { status: 403 })
+    }
+    console.log('user', userId)
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    console.log('_currentUser', _currentUser)
     const categories = await prisma.category.findMany({
+      where: {
+        creatorId: _currentUser.id,
+      },
       include: {
         parent: true,
         image: true,

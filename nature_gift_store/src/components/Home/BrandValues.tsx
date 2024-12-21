@@ -65,7 +65,7 @@ export function BrandValues() {
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900">Why Choose Us</h2>
           <p className="mt-4 text-lg text-gray-600">
-            We're committed to providing the best shopping experience
+            {"We're committed to providing the best shopping experience"}
           </p>
         </div>
         <motion.div

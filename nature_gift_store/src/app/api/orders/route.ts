@@ -1,60 +1,92 @@
-import Order from '@/lib/models/order'
-import { connectToDB } from '@/lib/mongoDB'
 import { sendEmailNotifications, sendSmsNotifications } from '@/lib/notifications/sendNotifications'
+import { prisma } from '@naturegift/models'
 import { format } from 'date-fns'
 import { NextRequest, NextResponse } from 'next/server'
 
 /// Request to create new order.
 export const POST = async (req: NextRequest) => {
-  const order = await req.json()
+  const { order, cartItems, user } = await req.json()
 
   try {
-    await connectToDB()
-    const newOrder = await Order.create({ ...order })
-    await newOrder.save()
+    const newOrder = await prisma.order.create({
+      data: {
+        deliveryInfo: order.deliveryInfo,
+        userData: order.userData,
+        status: 'PENDING',
+        orderPrices: order.orderPrices,
+        items: {
+          create: cartItems.map((item: any) => ({
+            product: {
+              connect: { id: item.product.id },
+            },
+            quantity: item.quantity,
+            price: item.price,
+          })),
+        },
+        promotions: order.promotions,
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+      },
+    })
 
     if (!newOrder) {
-      return NextResponse.json('Failed to create order', { status: 500 })
+      return NextResponse.json({ error: 'Failed to create order' }, { status: 500 })
     }
-  } catch (err) {
-    console.log('[ORDERS_POST]', err)
-    return new NextResponse('Internal Server Error', { status: 500 })
-  } finally {
-    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.split(',')
-    const adminPhone = process.env.NEXT_PUBLIC_ADMIN_PHONE_NUMBER?.split(',')
-    if (!adminEmail) return new NextResponse('Order created', { status: 200 })
 
-    await Promise.all(
-      adminEmail.map(async email => {
-        return await sendEmailNotifications({
-          email: email,
-          notificationId: 'new_product',
-          data: {
-            user_name: order.userData.fullName,
-            user_number: order.userData.phone,
-            selected_products: order.items
-              .map((item: { product: { title: any } }) => item.product.title)
-              .join(', '),
-            delivery_address: order.deliveryInfo.address,
-            delivery_location: order.deliveryInfo.location,
-            delivery_date: `${format(order.deliveryInfo.deliveryDate, 'PPP')} ${order.deliveryInfo.deliveryTime}`,
-          },
-        })
-      }),
-    )
-    if (!adminPhone) return new NextResponse('Order created', { status: 200 })
+    // Send notifications
+    const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.split(',') || []
+    const adminPhones = process.env.NEXT_PUBLIC_ADMIN_PHONE_NUMBER?.split(',') || []
 
-    await Promise.all(
-      adminPhone.map(async phone => {
-        return await sendSmsNotifications({
-          phoneNumber: phone,
-          notificationId: 'new_product',
-          data: {
-            comment: `Go to ${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}/orders`,
-          },
-        })
-      }),
-    )
-    return new NextResponse('Order created', { status: 200 })
+    if (adminEmails.length > 0) {
+      const notificationData = {
+        user_name: order.userData.fullName,
+        user_number: order.userData.phone,
+        selected_products: cartItems.map((item: any) => item.product.title).join(', '),
+        delivery_address: order.deliveryInfo.address,
+        delivery_location: order.deliveryInfo.location,
+        delivery_date: `${format(order.deliveryInfo.deliveryDate, 'PPP')} ${order.deliveryInfo.deliveryTime}`,
+      }
+
+      try {
+        await Promise.all(
+          adminEmails.map(email =>
+            sendEmailNotifications({
+              email,
+              notificationId: 'new_product',
+              data: notificationData,
+            }),
+          ),
+        )
+      } catch (error) {
+        console.error('Failed to send email notifications:', error)
+      }
+    }
+
+    // SMS notifications commented out for now
+    if (adminPhones.length > 0) {
+      try {
+        await Promise.all(
+          adminPhones.map(phone =>
+            sendSmsNotifications({
+              phoneNumber: phone,
+              notificationId: 'new_product',
+              data: {
+                comment: `Go to ${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}/orders`,
+              },
+            }),
+          ),
+        )
+      } catch (error) {
+        console.error('Failed to send SMS notifications:', error)
+      }
+    }
+
+    return NextResponse.json(newOrder, { status: 201 })
+  } catch (error) {
+    console.error('[ORDERS_POST]', error)
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }

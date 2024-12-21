@@ -14,7 +14,7 @@ import {
   PromotionLoading,
 } from '@/components/Loading'
 import { fetchAllBlogs } from '@/lib/api/blogs'
-import { getCategories as fetchAllCategories } from '@/lib/api/categories'
+import { getCategories } from '@/lib/api/categories'
 import { fetchProductsByQuery } from '@/lib/api/products'
 import { getPromotions } from '@/lib/api/promotions'
 
@@ -33,8 +33,8 @@ export default function Home() {
 }
 
 async function Categories() {
-  const categories = (await fetchAllCategories()) || []
-  const filteredCategories = categories.filter(category => category.parent === null)
+  const categories = (await getCategories()) || []
+  const filteredCategories = categories.filter(category => category.parentId === null)
   return <CategoryShowcase categories={filteredCategories} />
 }
 
@@ -46,7 +46,7 @@ async function FeaturedProductsLoader() {
       },
     })) || []
 
-  return <FeaturedProducts products={featuredProducts} />
+  return <FeaturedProducts products={featuredProducts.slice(0, 6)} />
 }
 
 async function PromotionBannerLoader() {
@@ -63,7 +63,7 @@ async function NewArrivalsLoader() {
       },
     })) || []
 
-  return <NewArrivals products={newArrivals} />
+  return <NewArrivals products={newArrivals.slice(0, 6)} />
 }
 
 async function FeaturedBlogsLoader() {

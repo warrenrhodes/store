@@ -120,7 +120,7 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
   }
 
   return (
-    <div className="p-10">
+    <div className="sm:p-10">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField

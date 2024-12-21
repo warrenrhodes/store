@@ -4,7 +4,7 @@ import { getBlogs } from '@/lib/actions/actions'
 export default async function BlogPage() {
   const blogs = await getBlogs()
   return (
-    <div className="container py-10">
+    <div className="py-10">
       <BlogList blogs={blogs} />
     </div>
   )

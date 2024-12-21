@@ -6,9 +6,10 @@ import { Minus, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { CartItem as CartItemType } from '@/lib/models/Cart'
 import { getRegularPrice, priceFormatted } from '@/lib/utils/utils'
 import Image from 'next/image'
+import { CartItem as CartItemType } from '@/hooks/useCart'
+import { FAKE_BLUR } from '@/lib/utils/constants'
 
 interface CartItemProps {
   item: CartItemType
@@ -38,7 +39,7 @@ export function CartItem({ item, increaseQuantity, decreaseQuantity, onRemove }:
             <div className="text-center">
               <p className="mb-4">Remove this item?</p>
               <div className="flex gap-2 justify-center">
-                <Button variant="destructive" onClick={() => onRemove(item.product._id as string)}>
+                <Button variant="destructive" onClick={() => onRemove(item.product.id as string)}>
                   Remove
                 </Button>
                 <Button variant="outline" onClick={() => setIsRemoving(false)}>
@@ -52,11 +53,14 @@ export function CartItem({ item, increaseQuantity, decreaseQuantity, onRemove }:
           <div className="flex gap-4">
             <div className="relative aspect-square w-24 rounded-lg overflow-hidden">
               <Image
-                src={item.product.media[0].url}
+                src={item.product.media[0].media.url}
                 fill
                 alt={item.product.title}
                 className="object-cover w-full h-full"
                 onError={() => console.log('Image not found')}
+                placeholder="blur"
+                blurDataURL={item.product.media[0].media.blurDataUrl || FAKE_BLUR}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
               {item.product.isFeature && <Badge className="absolute top-1 left-1">Feature</Badge>}
             </div>
@@ -75,7 +79,7 @@ export function CartItem({ item, increaseQuantity, decreaseQuantity, onRemove }:
                     variant="outline"
                     size="icon"
                     onClick={() =>
-                      decreaseQuantity(item.product._id, Math.max(1, item.quantity - 1))
+                      decreaseQuantity(item.product.id, Math.max(1, item.quantity - 1))
                     }
                     disabled={item.quantity <= 1}
                   >
@@ -85,7 +89,7 @@ export function CartItem({ item, increaseQuantity, decreaseQuantity, onRemove }:
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => increaseQuantity(item.product._id, item.quantity + 1)}
+                    onClick={() => increaseQuantity(item.product.id, item.quantity + 1)}
                     disabled={item.quantity >= (item.product.inventory.stockQuantity || 0)}
                   >
                     <Plus className="w-4 h-4" />

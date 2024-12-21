@@ -1,5 +1,5 @@
 // @refresh reset
-import { IBlog } from '@/lib/models/Blog'
+import { IBlog } from '@/lib/api/blogs'
 import { FeaturedBlogCarousel } from '../BlogFeatured'
 
 export function FeaturedBlogs({ blogs }: { blogs: IBlog[] }) {

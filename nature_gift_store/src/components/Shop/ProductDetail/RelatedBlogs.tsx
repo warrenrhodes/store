@@ -4,9 +4,11 @@ import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
-import { IBlog } from '@/lib/models/Blog'
 import { format, subDays } from 'date-fns'
 import Link from 'next/link'
+import { IBlog } from '@/lib/api/blogs'
+import Image from 'next/image'
+import { FAKE_BLUR } from '@/lib/utils/constants'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -45,13 +47,18 @@ export function RelatedBlogs({ relatedBlogs }: { relatedBlogs: IBlog[] }) {
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
       >
         {relatedBlogs.slice(0, 3).map(blog => (
-          <motion.div key={`${blog._id}`} variants={itemVariants}>
+          <motion.div key={`${blog.id}`} variants={itemVariants}>
             <Card className="group h-full flex flex-col">
               <CardHeader className="p-0">
                 <div className="relative aspect-video overflow-hidden rounded-t-lg">
-                  <div
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-                    style={{ backgroundImage: `url(${blog.metadata.coverImage?.url})` }}
+                  <Image
+                    src={blog.metadata.coverImageURL || ''}
+                    alt={blog.title}
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    placeholder="blur"
+                    blurDataURL={blog.metadata.blurDataUrl || FAKE_BLUR}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                 </div>
               </CardHeader>

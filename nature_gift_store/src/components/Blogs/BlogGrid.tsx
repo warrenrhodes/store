@@ -6,9 +6,11 @@ import { Calendar, Clock } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { IBlog } from '@/lib/models/Blog'
 import { format, subDays } from 'date-fns'
 import { GlobalPagination } from '../GlobalPagination'
+import { IBlog } from '@/lib/api/blogs'
+import { FAKE_BLUR } from '@/lib/utils/constants'
+import Image from 'next/image'
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -39,7 +41,7 @@ export function BlogGrid({ blogs }: BlogGridProps) {
   return (
     <GlobalPagination
       items={blogs}
-      itemsPerPage={2}
+      itemsPerPage={6}
       children={blogList => (
         <motion.section
           variants={containerVariants}
@@ -48,22 +50,27 @@ export function BlogGrid({ blogs }: BlogGridProps) {
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
           {blogList.map((blog, index) => (
-            <motion.div key={`${`${blog._id}`}`} variants={itemVariants}>
+            <motion.div key={`${`${blog.id}`}`} variants={itemVariants}>
               <Link href={`/blogs/${blog.slug}`}>
                 <Card className="h-full group">
                   <CardHeader className="p-0">
                     <div className="relative aspect-[16/9] overflow-hidden rounded-t-lg">
-                      <div
-                        className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-                        style={{ backgroundImage: `url(${blog.metadata.coverImage})` }}
+                      <Image
+                        src={blog.metadata.coverImageURL || ''}
+                        alt={blog.title}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        placeholder="blur"
+                        blurDataURL={blog.metadata.blurDataUrl || FAKE_BLUR}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       />
                     </div>
                   </CardHeader>
                   <CardContent className="p-6">
                     <div className="flex flex-wrap gap-2 mb-4">
                       {blog.categories.slice(0, 3).map(category => (
-                        <Badge key={`${category._id}`} variant="outline">
-                          {category.name}
+                        <Badge key={`${category.id}`} variant="outline">
+                          {category.category.name}
                         </Badge>
                       ))}
                     </div>
@@ -88,7 +95,7 @@ export function BlogGrid({ blogs }: BlogGridProps) {
                     <div className="flex items-center gap-2">
                       <Avatar className="h-8 w-8">
                         <AvatarImage
-                          src={blog.metadata.author.avatar}
+                          src={blog.metadata.author.avatar || undefined}
                           alt={blog.metadata.author.name}
                         />
                         <AvatarFallback>

@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
 import { Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
@@ -9,8 +8,8 @@ import { FeaturedBlogCarousel } from '../BlogFeatured'
 import { BlogFilters } from './BlogFilters'
 import { BlogGrid } from './BlogGrid'
 import { BlogSearch } from './BlogSearch'
-import { IBlog } from '@/lib/models/Blog'
-import useBlogFilter from '@/hooks/use-blog-filter'
+import useBlogFilter from '@/hooks/useBlogFilter'
+import { IBlog } from '@/lib/api/blogs'
 
 export default function Blogs({ blogs }: { blogs: IBlog[] }) {
   const { filters } = useBlogFilter()
@@ -25,7 +24,7 @@ export default function Blogs({ blogs }: { blogs: IBlog[] }) {
     }
     if (filters.categories.length > 0) {
       filtered = blogs.filter(blog =>
-        blog.categories.some(category => filters.categories.includes(category.name)),
+        blog.categories.some(category => filters.categories.includes(category.category.name)),
       )
     }
 
@@ -53,7 +52,9 @@ export default function Blogs({ blogs }: { blogs: IBlog[] }) {
               blogs={blogs}
               categories={Array.from(
                 new Set(
-                  blogs.map(blog => blog.categories.map(category => category.name).flat()).flat(),
+                  blogs
+                    .map(blog => blog.categories.map(category => category.category.name).flat())
+                    .flat(),
                 ),
               )}
               tags={Array.from(new Set(blogs.map(blog => blog.tags).flat()))}
@@ -76,7 +77,9 @@ export default function Blogs({ blogs }: { blogs: IBlog[] }) {
                     categories={Array.from(
                       new Set(
                         blogs
-                          .map(blog => blog.categories.map(category => category.name).flat())
+                          .map(blog =>
+                            blog.categories.map(category => category.category.name).flat(),
+                          )
                           .flat(),
                       ),
                     )}

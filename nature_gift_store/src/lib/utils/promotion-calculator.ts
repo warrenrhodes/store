@@ -1,7 +1,9 @@
-import { CartItem } from '../models/Cart'
-import { IDeliveryInfo } from '../models/order'
-import { OrderSummary } from '../models/orderSummary'
-import { IPromotion, IPromotionAction, IPromotionCondition } from '../models/Promotions'
+import { CartItem } from '@/hooks/useCart'
+import { IDeliveryInfo, OrderSummary } from '../api/orders'
+import { IPromotion } from '../api/promotions'
+
+type IPromotionCondition = IPromotion['conditions'][0]
+type IPromotionAction = IPromotion['actions'][0]
 
 export class PromotionCalculator {
   private cart: CartItem[]
@@ -24,24 +26,25 @@ export class PromotionCalculator {
   }
 
   private checkCondition(condition: IPromotionCondition): boolean {
+    const conditionValue = JSON.parse(condition.value)
     switch (condition.type) {
       case 'MINIMUM_QUANTITY':
         const totalQuantity = this.cart.reduce((sum, item) => sum + item.quantity, 0)
-        return totalQuantity >= Number(condition.value)
+        return totalQuantity >= Number(conditionValue)
 
       case 'SPECIFIC_PRODUCTS':
-        const productIds = Array.isArray(condition.value) ? condition.value : [condition.value]
-        return this.cart.some(item => productIds.includes(item.product._id))
+        const productIds = Array.isArray(conditionValue) ? conditionValue : [conditionValue]
+        return this.cart.some(item => productIds.includes(item.product.id))
 
       case 'DELIVERY_METHOD':
-        return this.deliveryInfo?.deliveryMethod === condition.value
+        return this.deliveryInfo?.deliveryMethod === conditionValue
 
       case 'LOCATION':
         return !this.deliveryInfo?.location
           ? false
-          : Array.isArray(condition.value)
-            ? condition.value.includes(this.deliveryInfo.location)
-            : [condition.value].includes(this.deliveryInfo.location)
+          : Array.isArray(conditionValue)
+            ? conditionValue.includes(this.deliveryInfo.location)
+            : [conditionValue].includes(this.deliveryInfo.location)
 
       default:
         return false
@@ -49,30 +52,31 @@ export class PromotionCalculator {
   }
 
   private calculateActionValue(action: IPromotionAction): number {
+    const actionValue = JSON.parse(action.value)
     const subtotal = this.cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
     switch (action.type) {
       case 'PERCENTAGE_DISCOUNT':
-        const percentage = Number(action.value)
+        const percentage = Number(actionValue)
         const percentageDiscount = (subtotal * percentage) / 100
         return action.maxDiscount
           ? Math.min(percentageDiscount, action.maxDiscount)
           : percentageDiscount
 
       case 'FIXED_DISCOUNT':
-        return Number(action.value)
+        return Number(actionValue)
 
       case 'FREE_SHIPPING':
         return this.deliveryInfo?.cost || 0
 
       case 'FREE_PRODUCT':
         // Find the product in cart and return its value
-        const freeProductId = action.value.toString()
-        const freeProduct = this.cart.find(item => item.product._id === freeProductId)
+        const freeProductId = actionValue.toString()
+        const freeProduct = this.cart.find(item => item.product.id === freeProductId)
         return freeProduct ? freeProduct.price : 0
 
       case 'BUY_X_GET_Y':
-        const [buyQty, getQty] = action.value.toString().split(',').map(Number)
+        const [buyQty, getQty] = actionValue.toString().split(',').map(Number)
         const eligibleItems = this.cart
           .filter(item => item.quantity >= buyQty)
           .sort((a, b) => a.price - b.price)
@@ -107,7 +111,7 @@ export class PromotionCalculator {
         if (discountAmount > 0) {
           totalDiscount += discountAmount
           appliedPromotions.push({
-            id: promotion._id,
+            id: promotion.id,
             code: promotion.code,
             discountAmount,
             type: action.type,

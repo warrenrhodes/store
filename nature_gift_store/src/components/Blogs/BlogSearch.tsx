@@ -1,14 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, X } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { IBlog } from '@/lib/models/Blog'
 import { motion } from 'framer-motion'
 import { AnimatePresence } from 'framer-motion'
 import { Card, CardContent } from '../ui/card'
 import Link from 'next/link'
+import { IBlog } from '@/lib/api/blogs'
 
 export function BlogSearch({ blogs }: { blogs: IBlog[] }) {
   const [query, setQuery] = useState('')
@@ -49,6 +48,7 @@ export function BlogSearch({ blogs }: { blogs: IBlog[] }) {
                 <div className="flex flex-col gap-2 max-h-96 overflow-y-scroll">
                   {blogsFiltered.map(e => (
                     <motion.div
+                      key={e.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}

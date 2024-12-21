@@ -1,9 +1,9 @@
 import { fetchAllBlogs } from '@/lib/api/blogs'
-import { fetchAllProducts } from '@/lib/api/products'
+import { getProducts } from '@/lib/api/products'
 import { MetadataRoute } from 'next'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const products = await fetchAllProducts()
+  const products = await getProducts()
   const blogs = await fetchAllBlogs()
 
   const postEntries: MetadataRoute.Sitemap =

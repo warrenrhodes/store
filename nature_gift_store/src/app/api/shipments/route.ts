@@ -1,17 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@naturegift/models'
 
-import Shipment from '@/lib/models/Shipment'
-import { connectToDB } from '@/lib/mongoDB'
 export const dynamic = 'force-dynamic'
 export const GET = async (req: NextRequest) => {
   try {
-    await connectToDB()
-    const shipments = await Shipment.find().sort({ createdAt: 'desc' })
+    const shipments = prisma.shipment.findMany()
 
     if (!shipments) {
-      return new NextResponse('shipments not found', { status: 500 })
+      return NextResponse.json([], { status: 200 })
     }
-
+    console.log('shipments', shipments)
     return NextResponse.json(shipments, { status: 200 })
   } catch (err) {
     console.log('[shipments_GET]', err)

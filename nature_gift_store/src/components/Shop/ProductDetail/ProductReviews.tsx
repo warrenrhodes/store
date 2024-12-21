@@ -1,16 +1,14 @@
 'use client'
 
-import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Star, ThumbsUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
-import { IProduct } from '@/lib/models/Product'
 import { cn, getReviewAverage } from '@/lib/utils/utils'
 import { formatDistance } from 'date-fns'
-import { subDays } from 'date-fns'
+import { IProduct } from '@/lib/api/products'
 
 export function ProductReviews({ product }: { product: IProduct }) {
   const { reviews } = product
@@ -80,7 +78,7 @@ export function ProductReviews({ product }: { product: IProduct }) {
       <div className="space-y-6">
         {reviews.map(review => (
           <motion.div
-            key={`${review._id}`}
+            key={`${review.id}`}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -88,7 +86,7 @@ export function ProductReviews({ product }: { product: IProduct }) {
           >
             <div className="flex items-start gap-4">
               <Avatar>
-                <AvatarImage src={review.imageUrl} alt={review.userName} />
+                <AvatarImage src={review.imageUrl || undefined} alt={review.userName} />
                 <AvatarFallback>
                   {review.userName
                     .split(' ')

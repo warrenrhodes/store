@@ -4,10 +4,10 @@ import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
-import { IProduct } from '@/lib/models/Product'
 import { Price } from '../Price'
 import Link from 'next/link'
 import { cn } from '@/lib/utils/utils'
+import { IProduct } from '@/lib/api/products'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -60,13 +60,13 @@ export function NewArrivals({ products }: { products: IProduct[] }) {
           className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
         >
           {products.map(product => (
-            <motion.div key={`${product._id}`} variants={itemVariants}>
+            <motion.div key={`${product.id}`} variants={itemVariants}>
               <Card className="group cursor-pointer h-full overflow-hidden">
                 <CardHeader className="p-0">
                   <div className="relative aspect-[4/5] overflow-hidden">
                     <div
                       className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-                      style={{ backgroundImage: `url(${product.media[0].url})` }}
+                      style={{ backgroundImage: `url(${product.media[0].media.url})` }}
                     />
                   </div>
                 </CardHeader>

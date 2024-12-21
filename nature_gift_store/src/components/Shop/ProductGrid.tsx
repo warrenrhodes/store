@@ -3,9 +3,9 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { FilterX } from 'lucide-react'
-import { IProduct } from '@/lib/models/Product'
 import { ProductCard } from '../ProductCard'
 import { GlobalPagination } from '../GlobalPagination'
+import { IProduct } from '@/lib/api/products'
 
 interface ProductGridProps {
   products: IProduct[]
@@ -52,10 +52,13 @@ export function ProductGrid({ products, loading, clearFilters }: ProductGridProp
       items={products}
       itemsPerPage={9}
       children={productList => (
-        <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <motion.div
+          layout
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 overflow-hidden"
+        >
           <AnimatePresence>
             {productList.map(product => (
-              <ProductCard key={`${product._id}`} product={product} />
+              <ProductCard key={`${product.id}`} product={product} />
             ))}
           </AnimatePresence>
         </motion.div>

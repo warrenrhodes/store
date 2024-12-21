@@ -5,7 +5,7 @@ export default async function Products() {
   const products = await getProducts()
 
   return (
-    <div className="px-10 py-5">
+    <div className="sm:px-10 px-2 py-5">
       <ProductList products={products} />
     </div>
   )

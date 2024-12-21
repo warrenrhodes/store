@@ -5,12 +5,11 @@ import { FilterBar } from '@/components/Shop/FilterBar'
 import { ProductGrid } from '@/components/Shop/ProductGrid'
 import { ProductHero } from '@/components/Shop/ProductHero'
 import { ShoppingCartButton } from '@/components/Shop/ShoppingCartButton'
-import GeneralCTAComponent from '@/components/Cta/GeneralCta'
 import { getPrice } from '@/lib/utils/utils'
-import { Filters, IProduct } from '@/lib/models/Product'
-import { ICategory } from '@/lib/models/Category'
 import { FilterOptions } from '@/components/Shop/FilterOptions'
-import useFilter from '@/hooks/use-filter'
+import useFilter from '@/hooks/useFilter'
+import { IProduct } from '@/lib/api/products'
+import { ICategory } from '@/lib/api/categories'
 
 interface ProductPageData {
   categories: ICategory[]
@@ -57,7 +56,7 @@ export const ShoppingWrapper = ({
 
     if (filters.categories.length > 0) {
       filtered = filtered.filter(product =>
-        product.categories.some(cat => filters.categories.includes(cat._id)),
+        product.categories.some(cat => filters.categories.includes(cat.categoryId)),
       )
     }
 
@@ -119,7 +118,6 @@ export const ShoppingWrapper = ({
       </main>
 
       <ShoppingCartButton />
-      <GeneralCTAComponent />
     </div>
   )
 }

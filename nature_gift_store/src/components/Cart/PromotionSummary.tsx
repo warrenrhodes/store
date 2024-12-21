@@ -4,13 +4,11 @@ import { useEffect, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { usePromotionCalculator } from '@/hooks/use-promotion-calculator'
-import { CartItem, CartShipment } from '@/lib/models/Cart'
-import { IShipment } from '@/lib/models/Shipment'
-import { OrderSummary } from '@/lib/models/orderSummary'
+import { usePromotionCalculator } from '@/hooks/usePromotionCalculator'
 import { priceFormatted } from '@/lib/utils/utils'
 import { Tag } from 'lucide-react'
-import { IDeliveryInfo } from '@/lib/models/order'
+import { IDeliveryInfo, OrderSummary } from '@/lib/api/orders'
+import { CartItem } from '@/hooks/useCart'
 
 interface PromotionSummaryProps {
   cartItems: CartItem[]

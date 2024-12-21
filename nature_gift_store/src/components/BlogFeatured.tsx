@@ -2,59 +2,130 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, Calendar, Clock } from 'lucide-react'
+import { ArrowRight, Calendar, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { IBlog } from '@/lib/models/Blog'
 import { format, subDays } from 'date-fns'
-import { useState } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
-import { useCallback } from 'react'
+import { EmblaCarouselType, EmblaEventType, EmblaOptionsType } from 'embla-carousel'
+import { useCallback, useEffect, useRef } from 'react'
+import { IBlog } from '@/lib/api/blogs'
+import { NextButton, PrevButton, usePrevNextButtons } from './EmblaCarouselArrowButtons'
+import { DotButton, useDotButton } from './EmblaCarouselDotButton'
+import Image from 'next/image'
+import { FAKE_BLUR } from '@/lib/utils/constants'
 
 interface FeaturedBlogCarouselProps {
   blogs: IBlog[]
 }
+const OPTIONS: EmblaOptionsType = { dragFree: true, loop: true }
+const TWEEN_FACTOR_BASE = 0.2
+type PropType = {
+  slides: number[]
+  options?: EmblaOptionsType
+}
 
 export function FeaturedBlogCarousel({ blogs }: FeaturedBlogCarouselProps) {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
-  const [selectedIndex, setSelectedIndex] = useState(0)
+  const [emblaRef, emblaApi] = useEmblaCarousel(OPTIONS)
+  const tweenFactor = useRef(0)
+  const tweenNodes = useRef<HTMLElement[]>([])
 
-  const scrollPrev = useCallback(() => {
-    if (emblaApi) emblaApi.scrollPrev()
-  }, [emblaApi])
+  const { selectedIndex, scrollSnaps, onDotButtonClick } = useDotButton(emblaApi)
 
-  const scrollNext = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext()
-  }, [emblaApi])
+  const { prevBtnDisabled, nextBtnDisabled, onPrevButtonClick, onNextButtonClick } =
+    usePrevNextButtons(emblaApi)
 
-  const onSelect = useCallback(() => {
+  const setTweenNodes = useCallback((emblaApi: EmblaCarouselType): void => {
+    tweenNodes.current = emblaApi.slideNodes().map(slideNode => {
+      return slideNode.querySelector('.embla__parallax__layer') as HTMLElement
+    })
+  }, [])
+
+  const setTweenFactor = useCallback((emblaApi: EmblaCarouselType) => {
+    tweenFactor.current = TWEEN_FACTOR_BASE * emblaApi.scrollSnapList().length
+  }, [])
+
+  const tweenParallax = useCallback((emblaApi: EmblaCarouselType, eventName?: EmblaEventType) => {
+    const engine = emblaApi.internalEngine()
+    const scrollProgress = emblaApi.scrollProgress()
+    const slidesInView = emblaApi.slidesInView()
+    const isScrollEvent = eventName === 'scroll'
+
+    emblaApi.scrollSnapList().forEach((scrollSnap, snapIndex) => {
+      let diffToTarget = scrollSnap - scrollProgress
+      const slidesInSnap = engine.slideRegistry[snapIndex]
+
+      slidesInSnap.forEach(slideIndex => {
+        if (isScrollEvent && !slidesInView.includes(slideIndex)) return
+
+        if (engine.options.loop) {
+          engine.slideLooper.loopPoints.forEach(loopItem => {
+            const target = loopItem.target()
+
+            if (slideIndex === loopItem.index && target !== 0) {
+              const sign = Math.sign(target)
+
+              if (sign === -1) {
+                diffToTarget = scrollSnap - (1 + scrollProgress)
+              }
+              if (sign === 1) {
+                diffToTarget = scrollSnap + (1 - scrollProgress)
+              }
+            }
+          })
+        }
+
+        // const translate = diffToTarget * (-1 * tweenFactor.current) * 100
+        // const tweenNode = tweenNodes.current[slideIndex]
+        // tweenNode.style.transform = `translateX(${translate}%)`
+      })
+    })
+  }, [])
+
+  useEffect(() => {
     if (!emblaApi) return
-    setSelectedIndex(emblaApi.selectedScrollSnap())
-  }, [emblaApi])
+
+    setTweenNodes(emblaApi)
+    setTweenFactor(emblaApi)
+    tweenParallax(emblaApi)
+
+    emblaApi
+      .on('reInit', setTweenNodes)
+      .on('reInit', setTweenFactor)
+      .on('reInit', tweenParallax)
+      .on('scroll', tweenParallax)
+      .on('slideFocus', tweenParallax)
+  }, [emblaApi, tweenParallax])
 
   return (
     <div className="relative">
       <div className="overflow-hidden rounded-lg" ref={emblaRef}>
         <div className="flex">
           {blogs.map(blog => (
-            <div key={`${blog._id}`} className="relative flex-[0_0_100%] min-w-0">
+            <div key={`${blog.id}`} className="relative flex-[0_0_100%] min-w-0">
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="relative aspect-[2/1] overflow-hidden"
               >
-                <div
-                  className="absolute inset-0 bg-cover bg-center"
-                  style={{ backgroundImage: `url(${blog.metadata.coverImage})` }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/20" />
+                <div className="relative aspect-[16/9] overflow-hidden rounded-t-lg">
+                  <Image
+                    src={blog.metadata.coverImageURL || ''}
+                    alt={blog.title}
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    placeholder="blur"
+                    blurDataURL={blog.metadata.blurDataUrl || FAKE_BLUR}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  />
                 </div>
+
                 <div className="relative h-full flex flex-col justify-end p-8">
                   <div className="flex flex-wrap gap-2 mb-4">
                     {blog.categories.slice(0, 3).map(category => (
-                      <Badge key={category._id as string} variant="secondary">
-                        {category.name}
+                      <Badge key={category.id as string} variant="secondary">
+                        {category.category.name}
                       </Badge>
                     ))}
                   </div>
@@ -66,7 +137,7 @@ export function FeaturedBlogCarousel({ blogs }: FeaturedBlogCarouselProps) {
                     <div className="flex items-center gap-2">
                       <Avatar>
                         <AvatarImage
-                          src={blog.metadata.author.avatar}
+                          src={blog.metadata.author.avatar || undefined}
                           alt={blog.metadata.author.name}
                         />
                         <AvatarFallback>
@@ -104,34 +175,28 @@ export function FeaturedBlogCarousel({ blogs }: FeaturedBlogCarouselProps) {
 
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
         {blogs.map((_, index) => (
-          <button
+          <DotButton
             key={index}
+            onClick={() => onDotButtonClick(index)}
             className={`w-2 h-2 rounded-full transition-colors ${
               index === selectedIndex ? 'bg-white' : 'bg-white/50'
             }`}
-            onClick={() => emblaApi?.scrollTo(index)}
           />
         ))}
       </div>
       {blogs.length > 1 && (
-        <Button
-          variant="outline"
-          size="icon"
+        <PrevButton
+          onClick={onPrevButtonClick}
+          disabled={prevBtnDisabled}
           className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm hover:bg-white"
-          onClick={scrollPrev}
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
+        />
       )}
       {blogs.length > 1 && (
-        <Button
-          variant="outline"
-          size="icon"
+        <NextButton
+          onClick={onNextButtonClick}
+          disabled={nextBtnDisabled}
           className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm hover:bg-white"
-          onClick={scrollNext}
-        >
-          <ArrowRight className="h-4 w-4" />
-        </Button>
+        />
       )}
     </div>
   )

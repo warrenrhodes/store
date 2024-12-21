@@ -43,7 +43,7 @@ const Medias = () => {
   return loading ? (
     <Loader />
   ) : (
-    <div className="px-10 py-5">
+    <div className="sm:px-10 px-2 py-5">
       <div className="flex items-center justify-between">
         <p className="text-heading2-bold">Medias</p>
         <Button onClick={() => setOpen(true)}>

@@ -38,6 +38,12 @@ export async function POST(request: Request) {
 
         // Save to your public directory
         await writeFile(fileDirectory, buffer)
+        const mediaUrl = `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/tmp/${userId}/${fileName}`
+
+        const { getPlaiceholder } = await import('plaiceholder')
+        const { base64 } = !file.type.startsWith('image/')
+          ? { base64: null }
+          : await getPlaiceholder(buffer)
 
         // Save to your media collection in the database using Prisma
         const media = await prisma.media.upsert({
@@ -48,7 +54,8 @@ export async function POST(request: Request) {
           create: {
             type: file.type.startsWith('image/') ? MediaType.IMAGE : MediaType.VIDEO,
             fileName: fileName,
-            url: `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/tmp/${userId}/${fileName}`,
+            url: mediaUrl,
+            blurDataUrl: base64,
           },
         })
 

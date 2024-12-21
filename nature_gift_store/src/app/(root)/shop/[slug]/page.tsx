@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props) {
     keywords: product?.tags,
     openGraph: {
       images: product?.media.map(m => ({
-        url: m.url,
+        url: m.media.url,
       })),
     },
   }
@@ -59,9 +59,6 @@ export default async function ProductDetailPage(props: Props) {
           <Loader loading={<ProductsLoading />}>
             <FeaturedProductsLoader slug={slug} />
           </Loader>
-          <Loader loading={<ProductsLoading />}>
-            <FeaturedProductsLoader slug={slug} />
-          </Loader>
           <Loader loading={<HeroLoading />}>
             <FeaturedProductReviewLoader slug={slug} />
           </Loader>
@@ -79,13 +76,9 @@ export default async function ProductDetailPage(props: Props) {
 }
 
 async function ActivePromotionsLoader() {
-  const activePromotions = (await getPromotions()) || []
+  const activePromotions = await getPromotions()
 
-  return (
-    <ActivePromotions
-      activePromotions={activePromotions?.filter(p => p.actions.length > 0) || []}
-    />
-  )
+  return <ActivePromotions activePromotions={activePromotions} />
 }
 async function FeaturedProductLoader({ slug }: { slug: string }) {
   const product = await fetchProductBySlug({ slug: slug })
@@ -121,7 +114,7 @@ async function RelatedProductLoader({ slug }: { slug: string }) {
 async function RelatedBlogLoader({ slug }: { slug: string }) {
   const product = await fetchProductBySlug({ slug: slug })
   const relatedBlogs = await fetchBlogsByQuery({
-    query: { categories: product?.categories.map(c => c._id).join(',') },
+    query: { categories: product?.categories.map(c => c.categoryId).join(',') },
   })
   if (!relatedBlogs) return null
   return <RelatedBlogs relatedBlogs={relatedBlogs || []} />

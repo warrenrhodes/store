@@ -1,9 +1,13 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import mongoose, { Schema, Model, Document } from 'mongoose'
-import { IProduct } from '../models/Product'
-import { IReview } from '../models/Reviews'
-import { differenceInWeeks, differenceInDays, differenceInHours } from 'date-fns'
+import {
+  differenceInDays,
+  differenceInYears,
+  differenceInMonths,
+  differenceInHours,
+  format,
+} from 'date-fns'
+import { IProduct } from '../api/products'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -21,21 +25,7 @@ export const getPrice = (product: IProduct): number => {
   return product.price.regular
 }
 
-// Singleton pattern to prevent model redefinition
-export function getOrCreateModel<T extends Document>(
-  modelName: string,
-  schema: Schema<T>,
-): Model<T> {
-  // Check if the model already exists
-  if (mongoose.models[modelName]) {
-    return mongoose.models[modelName] as Model<T>
-  }
-
-  // If not, create and return the model
-  return mongoose.model<T>(modelName, schema)
-}
-
-export const getReviewAverage = (reviews: IReview[]) => {
+export const getReviewAverage = (reviews: IProduct['reviews']) => {
   if (reviews.length === 0) {
     return 0
   }
@@ -62,18 +52,28 @@ export const getPercentageDiscount = (regularPrice: number, salePrice: number) =
 
 export function getDetailedExpiresIn(endDate: Date): string {
   const startDate = new Date()
-  const weeks = differenceInWeeks(endDate, startDate)
-  if (weeks > 0) {
-    return `${weeks} week${weeks !== 1 ? 's' : ''}`
+  const daysDiff = differenceInDays(endDate, startDate)
+  const hoursDiff = differenceInHours(endDate, startDate)
+  const monthsDiff = differenceInMonths(endDate, startDate)
+  const yearsDiff = differenceInYears(endDate, startDate)
+
+  if (hoursDiff < 24) {
+    return `expired in ${hoursDiff} hour${hoursDiff !== 1 ? 's' : ''}`
   }
 
-  const days = differenceInDays(endDate, startDate)
-  if (days > 0) {
-    return `${days} day${days !== 1 ? 's' : ''}`
+  if (daysDiff < 7) {
+    return `expired in ${daysDiff} day${daysDiff !== 1 ? 's' : ''}`
   }
 
-  const hours = differenceInHours(endDate, startDate)
-  return `${hours} hour${hours !== 1 ? 's' : ''}`
+  if (monthsDiff < 1) {
+    return `expired on ${format(endDate, 'MMM dd, yyyy')}`
+  }
+
+  if (yearsDiff < 1) {
+    return `expired in ${monthsDiff} month${monthsDiff !== 1 ? 's' : ''}`
+  }
+
+  return `expired in ${yearsDiff} year${yearsDiff !== 1 ? 's' : ''}`
 }
 
 export const canDisplayPromoPrice = (product: IProduct) => {

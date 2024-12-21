@@ -3,8 +3,8 @@
 import { motion } from 'framer-motion'
 import { icons } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { IProduct } from '@/lib/models/Product'
 import * as LucideIcons from 'lucide-react'
+import { IProduct } from '@/lib/api/products'
 
 const iconNames = Object.keys(LucideIcons).filter(
   name => name !== 'createLucideIcon' && name !== 'default',
@@ -74,7 +74,7 @@ export function FeaturesForProducts({ product }: { product: IProduct }) {
                         <p className="text-muted-foreground line-clamp-2">{description.content}</p>
                       ) : (
                         <div
-                          className="prose prose-slate prose-sm sm:prose text-center leading-relaxed text-gray-400 line-clamp-2"
+                          className="prose prose-slate prose-sm sm:prose text-muted-foreground leading-relaxed"
                           dangerouslySetInnerHTML={{
                             __html: product.description.content,
                           }}

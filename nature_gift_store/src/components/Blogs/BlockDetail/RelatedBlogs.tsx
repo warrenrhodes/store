@@ -4,9 +4,11 @@ import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
-import { useEffect, useState } from 'react'
-import { IBlog } from '@/lib/models/Blog'
 import { format, subDays } from 'date-fns'
+import { IBlog } from '@/lib/api/blogs'
+import Link from 'next/link'
+import { FAKE_BLUR } from '@/lib/utils/constants'
+import Image from 'next/image'
 
 const blogs = [
   {
@@ -47,17 +49,22 @@ export function RelatedBlogs({ relatedBlogs }: RelatedBlogsProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {relatedBlogs.map(blog => (
           <motion.div
-            key={`${blog._id}`}
+            key={`${blog.id}`}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
             <Card className="h-full flex flex-col">
               <CardHeader className="p-0">
-                <div className="relative aspect-video overflow-hidden rounded-t-lg">
-                  <div
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-300 hover:scale-105"
-                    style={{ backgroundImage: `url(${blog.metadata.coverImage?.url})` }}
+                <div className="relative aspect-[16/9] overflow-hidden rounded-t-lg">
+                  <Image
+                    src={blog.metadata.coverImageURL || ''}
+                    alt={blog.title}
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    placeholder="blur"
+                    blurDataURL={blog.metadata.blurDataUrl || FAKE_BLUR}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                 </div>
               </CardHeader>
@@ -70,9 +77,11 @@ export function RelatedBlogs({ relatedBlogs }: RelatedBlogsProps) {
                 <p className="text-muted-foreground text-sm line-clamp-2">{blog.content.excerpt}</p>
               </CardContent>
               <CardFooter className="p-6 pt-0">
-                <Button variant="ghost" className="w-full group">
-                  Read More
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                <Button variant="ghost" className="w-full group" asChild>
+                  <Link href={`/blogs/${blog.slug}`}>
+                    Read More
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />{' '}
+                  </Link>
                 </Button>
               </CardFooter>
             </Card>

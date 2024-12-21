@@ -1,8 +1,8 @@
+'use client'
+
 import Link from 'next/link'
-import React, { useState } from 'react'
-import { Menu, Package, X, XIcon } from 'lucide-react'
-import Image from 'next/image'
-import Logo from '../Logo/Logo'
+import { useState } from 'react'
+import { Menu, Package, X } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet'
 import { usePathname } from 'next/navigation'
 import { Button } from '../ui/button'
@@ -63,10 +63,7 @@ export function MobileNav() {
                 }`}
                 onClick={() => setOpen(false)}
               >
-                <span className="relative">
-                  {item.title}
-                 
-                </span>
+                <span className="relative">{item.title}</span>
               </Link>
             ))}
           </nav>

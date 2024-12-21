@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { Promotion } from '@/lib/models/Promotions'
 import { PromotionCalculator } from '@/lib/utils/promotion-calculator'
+import { prisma } from '@naturegift/models'
 
 export async function POST(req: Request) {
   try {
@@ -13,14 +13,21 @@ export async function POST(req: Request) {
 
     const { cart, shipping } = await req.json()
 
-    const promotions = await Promotion.find({
-      status: 'ACTIVE',
-      startDate: { $lte: new Date() },
-      endDate: { $gte: new Date() },
-      ...query,
+    const promotions = await prisma.promotion.findMany({
+      where: {
+        status: 'ACTIVE',
+        startDate: {
+          lte: new Date(),
+        },
+        endDate: {
+          gte: new Date(),
+        },
+        ...query,
+      },
+      orderBy: {
+        priority: 'desc',
+      },
     })
-      .sort({ priority: -1 })
-      .lean()
 
     const calculator = new PromotionCalculator(cart, shipping, promotions)
 

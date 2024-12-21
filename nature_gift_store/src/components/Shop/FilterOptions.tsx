@@ -1,15 +1,12 @@
 'use client'
-import { Button } from '@/components/ui/button'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ICategory } from '@/lib/models/Category'
 import { cn, priceFormatted } from '@/lib/utils/utils'
-import { useEffect, useRef, useState } from 'react'
-import { Badge } from '../ui/badge'
 import { Slider } from '@/components/ui/slider'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion'
 import { Separator } from '../ui/separator'
 import { Checkbox } from '../ui/checkbox'
-import { Filters } from '@/lib/models/Product'
+import { ICategory } from '@/lib/api/categories'
+import { Filters } from '@/lib/api/products'
 
 interface FilterOptionsProps {
   filters: Filters
@@ -68,22 +65,22 @@ export function FilterOptions({
               <AccordionContent>
                 <div className="space-y-4 pt-2">
                   {categories.map(category => (
-                    <div key={`${category._id}`} className="flex items-center space-x-2">
+                    <div key={`${category.id}`} className="flex items-center space-x-2">
                       <Checkbox
-                        id={`${category._id}`}
-                        checked={filters.categories.includes(category._id)}
+                        id={`${category.id}`}
+                        checked={filters.categories.includes(category.id)}
                         onCheckedChange={e =>
                           setFilters({
                             ...filters,
                             categories:
                               e === false
-                                ? filters.categories.filter(c => c !== category._id)
-                                : [...filters.categories, category._id],
+                                ? filters.categories.filter(c => c !== category.id)
+                                : [...filters.categories, category.id],
                           })
                         }
                       />
                       <label
-                        htmlFor={`${category._id}`}
+                        htmlFor={`${category.id}`}
                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1"
                       >
                         {category.name}
@@ -94,7 +91,7 @@ export function FilterOptions({
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem
+            {/* <AccordionItem
               value="tags"
               className={cn({
                 hidden: tags.length === 0,
@@ -124,12 +121,12 @@ export function FilterOptions({
                       >
                         {tag}
                       </label>
-                      {/* <span className="text-sm text-muted-foreground">({category.count})</span> */}
+                      <span className="text-sm text-muted-foreground">({category.count})</span>
                     </div>
                   ))}
                 </div>
               </AccordionContent>
-            </AccordionItem>
+            </AccordionItem> */}
           </Accordion>
         </motion.div>
       </AnimatePresence>

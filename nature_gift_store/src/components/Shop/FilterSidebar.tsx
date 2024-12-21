@@ -6,7 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
-import { ICategory } from '@/lib/models/Category'
+import { ICategory } from '@/lib/api/categories'
 
 interface FilterSidebarProps {
   isOpen: boolean
@@ -76,15 +76,13 @@ export function FilterSidebar({
         <ScrollArea className="h-[300px] pr-4">
           <div className="space-y-3">
             {categories.map(category => (
-              <div key={`${category._id}`} className="flex items-center space-x-2">
+              <div key={`${category.id}`} className="flex items-center space-x-2">
                 <Checkbox
-                  id={`${category._id}`}
-                  checked={filters.categories.includes(category._id)}
-                  onCheckedChange={checked =>
-                    handleCategoryChange(category._id, checked as boolean)
-                  }
+                  id={`${category.id}`}
+                  checked={filters.categories.includes(category.id)}
+                  onCheckedChange={checked => handleCategoryChange(category.id, checked as boolean)}
                 />
-                <Label htmlFor={`${category._id}`} className="text-sm">
+                <Label htmlFor={`${category.id}`} className="text-sm">
                   {category.name}
                 </Label>
               </div>

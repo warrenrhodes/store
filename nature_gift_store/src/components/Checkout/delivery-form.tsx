@@ -2,10 +2,9 @@
 
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { motion } from 'framer-motion'
 import { ArrowRight, Calendar, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { addDays, format, isBefore, isToday } from 'date-fns'
+import { addDays, differenceInHours, format, isBefore, isToday } from 'date-fns'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import {
   Form,
@@ -25,21 +24,22 @@ import {
 } from '@/components/ui/select'
 import { DeliveryFormData, deliverySchema } from '@/lib/utils/validation-form'
 import { useTemporalUser } from '@/hooks/useTemporalUser'
-import { IShipment } from '@/lib/models/Shipment'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { cn } from '@/lib/utils/utils'
-import { useCart } from '@/hooks/useCart'
+import { useCartDeliveryInfo } from '@/hooks/useCart'
+import { IShipment } from '@/lib/api/shipments'
 
 interface DeliveryFormProps {
   onSubmit: (data: DeliveryFormData) => void
   shipment: IShipment[]
   initialData?: DeliveryFormData
 }
-
+const TIME_IN_HOUR_BEFORE_DELIVERY = 3
+const MAX_DELIVERY_HOURS = 18
+const TODAY = new Date()
 export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: DeliveryFormProps) {
-  const today = Date.now()
-  const cart = useCart()
-  const maxDate = addDays(today, 7)
+  const cartDeliveryInfo = useCartDeliveryInfo()
+  const maxDate = addDays(TODAY, 7)
   const { temporalUser } = useTemporalUser()
   const form = useForm<DeliveryFormData>({
     resolver: zodResolver(deliverySchema),
@@ -54,7 +54,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
       city: temporalUser?.city || '',
       shipping: {
         method: 'DELIVERY',
-        location: cart.cartShipment?.location || '',
+        location: '',
       },
     },
   })
@@ -81,26 +81,32 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
     return shipments.find(item => item.locations.includes(location))?.cost
   }
 
-  const deliveriesLocation = Array.from(
-    new Set(
-      shipments
-        .filter(shipment => shipment.method === 'DELIVERY')
-        .map(e => e.locations)
-        .flat(),
-    ),
-  )
-  const expeditionLocation = Array.from(
-    new Set(
-      shipments
-        .filter(shipment => shipment.method === 'EXPEDITION')
-        .map(e => e.locations)
-        .flat(),
-    ),
-  )
+  const deliveriesLocation =
+    shipments.length > 0
+      ? Array.from(
+          new Set(
+            shipments
+              .filter(shipment => shipment.method === 'DELIVERY')
+              .map(e => e.locations)
+              .flat(),
+          ),
+        )
+      : []
+  const expeditionLocation =
+    shipments.length > 0
+      ? Array.from(
+          new Set(
+            shipments
+              .filter(shipment => shipment.method === 'EXPEDITION')
+              .map(e => e.locations)
+              .flat(),
+          ),
+        )
+      : []
 
   const handleLocationChange = (location: string) => {
     if (!location) {
-      cart.setShipment(undefined)
+      cartDeliveryInfo.setShipment(undefined)
       return
     }
     const shipment = shipments.find(
@@ -110,8 +116,8 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
     if (!shipment) {
       return
     }
-    cart.setShipment({
-      ...cart.cartShipment,
+    cartDeliveryInfo.setShipment({
+      ...cartDeliveryInfo.cartDeliveryInfo,
       deliveryMethod: form.watch('shipping.method'),
       cost: shipment.cost,
       location: location,
@@ -165,12 +171,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
                 <FormItem>
                   <FormLabel>Email (Optional)</FormLabel>
                   <FormControl>
-                    <Input
-                      type="email"
-                      {...field}
-                      defaultValue={field.value || ''}
-                      onKeyDown={handleKeyPress}
-                    />
+                    <Input type="email" {...field} onKeyDown={handleKeyPress} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -208,7 +209,15 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
                           field.onChange(date)
                           form.setValue('deliveryTime', '')
                         }}
-                        disabled={date => isBefore(date, today) || isBefore(maxDate, date)}
+                        disabled={date => {
+                          if (
+                            isToday(date) &&
+                            differenceInHours(date.setHours(MAX_DELIVERY_HOURS), TODAY) <
+                              TIME_IN_HOUR_BEFORE_DELIVERY
+                          )
+                            return true
+                          return isBefore(date, TODAY) || isBefore(maxDate, date)
+                        }}
                         initialFocus
                       />
                     </PopoverContent>
@@ -322,44 +331,46 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="shipping.location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Location</FormLabel>
-                  <Select
-                    onValueChange={e => {
-                      field.onChange(e)
-                      handleLocationChange(e)
-                    }}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select location" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {(form.watch('shipping.method') === 'DELIVERY'
-                        ? deliveriesLocation
-                        : expeditionLocation
-                      ).map(location => (
-                        <SelectItem key={location} value={location}>
-                          {location}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {getShipmentCostByLocation(form.watch('shipping.location')) && (
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Shipping cost: {getShipmentCostByLocation(form.watch('shipping.location'))}
-                    </p>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {shipments.length > 0 && (
+              <FormField
+                control={form.control}
+                name="shipping.location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Location</FormLabel>
+                    <Select
+                      onValueChange={e => {
+                        field.onChange(e)
+                        handleLocationChange(e)
+                      }}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select location" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {(form.watch('shipping.method') === 'DELIVERY'
+                          ? deliveriesLocation
+                          : expeditionLocation
+                        ).map(location => (
+                          <SelectItem key={location} value={location}>
+                            {location}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {getShipmentCostByLocation(form.watch('shipping.location')) && (
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Shipping cost: {getShipmentCostByLocation(form.watch('shipping.location'))}
+                      </p>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </div>
           <FormField
             control={form.control}

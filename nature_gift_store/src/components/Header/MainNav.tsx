@@ -1,14 +1,9 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
 
-import Logo from '../Logo/Logo'
-import { usePathname, useRouter } from 'next/navigation'
-import { Package, Search } from 'lucide-react'
-import { useCart } from '@/hooks/useCart'
-import { CartSidebar } from '../Cart/CartSidebar'
+import { usePathname } from 'next/navigation'
+import { Package } from 'lucide-react'
 import { cn } from '@/lib/utils/utils'
 import { motion } from 'framer-motion'
 import { navItems } from '@/lib/utils/navItems'

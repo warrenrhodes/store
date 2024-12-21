@@ -33,10 +33,10 @@ import { generateSlug } from '@/lib/utils/slugify'
 import { blogSchema, BlogSchemaType } from '@/lib/validations/blog'
 import { Prisma } from '@naturegift/models'
 import { FileType } from '../accordion/CustomAccordionItem'
-import CustomRichTextEditor from '../accordion/CustomRichText'
 import { MediaIdentity, FileUploader } from '../custom-ui/FileUploader'
 import MultiSelect from '../custom-ui/MultiSelect'
 import MultiText from '../custom-ui/MultiText'
+import { ContentEditor } from '../custom-ui/ContentEditor'
 
 interface BlogFormProps {
   initialData?: Prisma.BlogGetPayload<{}> | null
@@ -134,7 +134,7 @@ export function BlogForm({ initialData, categories, categoriesOnBlog }: BlogForm
   }
 
   return (
-    <div className="p-10">
+    <div className="sm:p-10">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -179,18 +179,11 @@ export function BlogForm({ initialData, categories, categoriesOnBlog }: BlogForm
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="content.content"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Content</FormLabel>
-                <FormControl>
-                  <CustomRichTextEditor content={field.value} onSave={field.onChange} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+          <ContentEditor
+            label="Content"
+            form={form}
+            contentTypeFieldKey="content.type"
+            contentFieldKey="content.content"
           />
           <FormField
             control={form.control}
@@ -205,7 +198,7 @@ export function BlogForm({ initialData, categories, categoriesOnBlog }: BlogForm
                       setContent={(value: string[]) => field.onChange(value[0])}
                       fileType={FileType.IMAGE}
                       maxFiles={1}
-                      targetType={MediaIdentity.ID}
+                      targetType={MediaIdentity.URL}
                     />
                   </div>
                 </FormControl>
@@ -408,14 +401,6 @@ export function BlogForm({ initialData, categories, categoriesOnBlog }: BlogForm
             <Button disabled={isLoading || categories.length < 1}>
               {isLoading && <Loader2 className="animate-spin" />}
               {initialData ? 'Update' : 'Create'} Blog
-            </Button>
-            <Button
-              onClick={() => {
-                console.log(form.formState.isValid)
-                console.log(form.formState.errors)
-              }}
-            >
-              dsf
             </Button>
 
             {initialData && (

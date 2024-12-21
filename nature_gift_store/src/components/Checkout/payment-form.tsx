@@ -2,7 +2,6 @@
 
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {

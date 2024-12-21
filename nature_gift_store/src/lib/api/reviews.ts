@@ -1,10 +1,43 @@
-import { IReview } from '../models/Reviews'
+import { prisma, Prisma } from '@naturegift/models'
 
-export const getReviewByProductId = async (productId: string): Promise<IReview[] | null> => {
-  const reviews = await fetch(
-    `${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}/api/reviews?productId=${productId}`,
-  )
+const reviewWithRelations = Prisma.validator<Prisma.ReviewDefaultArgs>()({
+  include: {
+    product: true,
+  },
+})
 
-  if (!reviews.ok) return null
-  return await reviews.json()
+export type IReview = Prisma.ReviewGetPayload<typeof reviewWithRelations>
+
+export async function getReviews(): Promise<IReview[]> {
+  try {
+    const reviews = await prisma.review.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        product: true,
+      },
+    })
+    return reviews
+  } catch (error) {
+    console.error('Failed to fetch reviews:', error)
+    return []
+  }
+}
+
+export async function getReviewByProductId(productId: string): Promise<IReview[]> {
+  try {
+    const review = await prisma.review.findMany({
+      where: {
+        productId: productId,
+      },
+      include: {
+        product: true,
+      },
+    })
+    return review
+  } catch (error) {
+    console.error('Failed to fetch review:', error)
+    return []
+  }
 }

@@ -2,10 +2,12 @@
 
 import { motion } from 'framer-motion'
 import { Card, CardContent } from '@/components/ui/card'
-import { ICategory } from '@/lib/models/Category'
 import { Badge } from '../ui/badge'
-import useFilter from '@/hooks/use-filter'
+import useFilter from '@/hooks/useFilter'
 import { useRouter } from 'next/navigation'
+import { ICategory } from '@/lib/api/categories'
+import Image from 'next/image'
+import { FAKE_BLUR } from '@/lib/utils/constants'
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -50,14 +52,14 @@ export function CategoryShowcase({ categories }: { categories: ICategory[] }) {
           className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
         >
           {categories.map(category => (
-            <motion.div key={`${category._id}`} variants={itemVariants}>
+            <motion.div key={`${category.id}`} variants={itemVariants}>
               <div
                 className="cursor-pointer"
                 onClick={() => {
                   clearFilters()
                   setFilters({
                     ...filters,
-                    categories: [category._id],
+                    categories: [category.id],
                   })
                   router.push(`/shop`)
                 }}
@@ -65,10 +67,16 @@ export function CategoryShowcase({ categories }: { categories: ICategory[] }) {
                 <Card className="group overflow-hidden">
                   <CardContent className="p-0">
                     <div className="relative aspect-[4/5]">
-                      <div
-                        className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-                        style={{ backgroundImage: `url(${category.image?.url})` }}
-                      >
+                      <div style={{ backgroundImage: `url(${category.image?.url})` }}>
+                        <Image
+                          src={category.image?.url || ''}
+                          alt={category.name}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          placeholder="blur"
+                          blurDataURL={category.image?.blurDataUrl || FAKE_BLUR}
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        />
                         <div className="absolute inset-0 bg-black/50 transition-opacity duration-300 group-hover:bg-black/60" />
                       </div>
                       {category.featured && (

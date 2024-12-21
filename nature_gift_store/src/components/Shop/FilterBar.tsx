@@ -13,8 +13,8 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Search, SlidersHorizontal, FilterX } from 'lucide-react'
 import { FilterOptions } from './FilterOptions'
-import { ICategory } from '@/lib/models/Category'
-import { Filters, SortOption } from '@/lib/models/Product'
+import { ICategory } from '@/lib/api/categories'
+import { Filters, SortOption } from '@/lib/api/products'
 
 interface FilterBarProps {
   filters: Filters

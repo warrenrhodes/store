@@ -1,4 +1,4 @@
-import { IProduct } from '@/lib/models/Product'
+import { IProduct } from '@/lib/api/products'
 import { canDisplayPromoPrice, priceFormatted } from '@/lib/utils/utils'
 
 /**

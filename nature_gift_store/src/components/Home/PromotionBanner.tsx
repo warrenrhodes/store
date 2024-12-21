@@ -4,9 +4,9 @@ import { motion } from 'framer-motion'
 import { Zap } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useEffect } from 'react'
-import { IPromotion } from '@/lib/models/Promotions'
+import { Prisma } from '@/prisma-models'
 
-export function PromotionBanner({ promotions }: { promotions: IPromotion[] }) {
+export function PromotionBanner({ promotions }: { promotions: Prisma.PromotionGetPayload<{}>[] }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [opacity, setOpacity] = useState(1)
 
@@ -31,7 +31,7 @@ export function PromotionBanner({ promotions }: { promotions: IPromotion[] }) {
   const currentPromotion = promotions[currentIndex]
 
   return (
-    <section className="bg-primary" key={`${currentPromotion._id}`}>
+    <section className="bg-primary" key={`${currentPromotion.id}`}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}

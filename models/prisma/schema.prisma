@@ -16,14 +16,15 @@ enum MediaType {
 }
 
 model Media {
-  id         String             @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt  DateTime           @default(now())
-  fileName   String             @unique(map: "fileName_1")
-  products   MediasOnProducts[]
-  categories Category[]
-  type       MediaType
-  updatedAt  DateTime           @updatedAt
-  url        String
+  id          String             @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt   DateTime           @default(now())
+  fileName    String             @unique(map: "fileName_1")
+  products    MediasOnProducts[]
+  categories  Category[]
+  type        MediaType
+  updatedAt   DateTime           @updatedAt
+  url         String
+  blurDataUrl String?
 }
 
 // --------------------------------shipment model------------------------------------
@@ -175,6 +176,7 @@ type BlogMetadata {
   author        BlogAuthor
   readingTime   Int?
   coverImageURL String?
+  blurDataUrl   String?
   featured      Boolean    @default(false)
 }
 
@@ -279,6 +281,7 @@ model Product {
   createdAt    DateTime               @default(now())
   updatedAt    DateTime               @updatedAt
   OrderItem    OrderItem[]
+  userWishlist Wishlist[]
 }
 
 // --------------------------------review model------------------------------------
@@ -362,6 +365,20 @@ model Order {
   status       OrderStatus      @default(PENDING)
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
+  user         User             @relation(fields: [userId], references: [id])
+  userId       String           @db.ObjectId
+}
+
+model User {
+  id              String     @id @default(auto()) @map("_id") @db.ObjectId
+  clerkId         String?    @unique
+  email           String?    @unique
+  fullName        String?
+  avatar          String?
+  phone           String?
+  isAnonymous     Boolean    @default(true)
+  productWishlist Wishlist[]
+  order           Order[]
 }
 
 //------------------ Relation schema --------------------------------
@@ -402,4 +419,16 @@ model MediasOnProducts {
   assignedAt DateTime @default(now())
 
   @@unique([productId, mediaId])
+}
+
+model Wishlist {
+  id String @id @default(cuid()) @map("_id")
+
+  product    Product  @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  productId  String   @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  userId     String   @db.ObjectId
+  assignedAt DateTime @default(now())
+
+  @@unique([productId, userId])
 }

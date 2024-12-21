@@ -2,13 +2,12 @@
 
 import { motion } from 'framer-motion'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
 
 interface BlogAuthorProps {
   author: {
     name: string
-    avatar?: string
-    bio?: string
+    avatar?: string | null
+    bio?: string | null
   }
 }
 
@@ -20,7 +19,7 @@ export function BlogAuthor({ author }: BlogAuthorProps) {
       className="flex items-start gap-4"
     >
       <Avatar className="w-12 h-12">
-        <AvatarImage src={author.avatar} alt={author.name} />
+        <AvatarImage src={author.avatar ?? undefined} alt={author.name} />
         <AvatarFallback>
           {author.name
             .split(' ')

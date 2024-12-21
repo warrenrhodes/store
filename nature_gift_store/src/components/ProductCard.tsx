@@ -4,70 +4,76 @@ import { motion } from 'framer-motion'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Heart, ShoppingCart, Star } from 'lucide-react'
-import { getRegularPrice, getReviewAverage } from '@/lib/utils/utils'
-import { IProduct } from '@/lib/models/Product'
+import { cn, getRegularPrice, getReviewAverage } from '@/lib/utils/utils'
 import { useCart } from '@/hooks/useCart'
 import { Button } from './ui/button'
 import { Price } from './Price'
 import Link from 'next/link'
+import { IProduct } from '@/lib/api/products'
+import Image from 'next/image'
+import { FAKE_BLUR } from '@/lib/utils/constants'
+import { useWishlist } from '@/hooks/useWishlist'
 
 interface ProductCardProps {
   product: IProduct
 }
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5,
-    },
-  },
-}
-
 export function ProductCard({ product }: ProductCardProps) {
   const cart = useCart()
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 },
-  }
+  const { isInWishlist, toggleWishlist } = useWishlist()
 
   return (
-    <motion.div key={`${product._id}`}>
+    <motion.div key={`${product.id}`}>
       <Card className="group h-full flex flex-col overflow-hidden">
         <CardHeader className="p-0">
-          <Link href={`/shop/${product.slug}`}>
-            <div className="relative aspect-square overflow-hidden rounded-t-lg">
-              <div
-                className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-                style={{ backgroundImage: `url(${product.media[0].url})` }}
-              />
-              {product.isNewProduct && <Badge className="absolute top-4 left-4">New</Badge>}
-              {product.inventory.stockQuantity && product.inventory.stockQuantity <= 10 && (
-                <Badge variant="destructive" className="absolute top-4 right-4">
-                  Low Stock
-                </Badge>
+          <div className="relative">
+            <Link href={`/shop/${product.slug}`}>
+              <div className="relative aspect-square overflow-hidden rounded-t-lg">
+                <Image
+                  src={product.media[0].media.url}
+                  alt={product.title}
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  placeholder="blur"
+                  blurDataURL={product.media[0].media.blurDataUrl || FAKE_BLUR}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
+                {product.isNewProduct && <Badge className="absolute top-4 left-4">New</Badge>}
+                {product.inventory.stockQuantity && product.inventory.stockQuantity <= 10 && (
+                  <Badge variant="destructive" className="absolute bottom-4 right-4 ring-1">
+                    Low Stock
+                  </Badge>
+                )}
+              </div>
+            </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                'absolute top-4 right-4 backdrop-blur-sm z-50',
+                isInWishlist(product.id)
+                  ? 'bg-red-500/80 hover:bg-red-500 text-white hover:text-white'
+                  : 'bg-white/80 hover:bg-white',
               )}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm hover:bg-white"
-              >
-                <Heart className="h-5 w-5" />
-              </Button>
-            </div>
-          </Link>
+              onClick={e => {
+                e.preventDefault()
+                e.stopPropagation()
+                toggleWishlist(product.id)
+              }}
+            >
+              <Heart className="h-5 w-5" />
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent className="flex-1 p-6">
-          <div className="flex items-center justify-between mb-2">
-            {product.categories.slice(0, 1).map(category => (
-              <Badge variant="outline" key={`${category._id}`}>
-                {category.name}
+        <CardContent className="flex-1 p-2">
+          <div className="flex items-center mb-2 gap-2">
+            {product.categories.slice(0, 3).map(category => (
+              <Badge variant="outline" key={`${category.category.id}`}>
+                {category.category.name}
               </Badge>
             ))}
 
-            {getReviewAverage(product.reviews || []) > 0 && (
+            {getReviewAverage(product.reviews) > 0 && (
               <div className="flex items-center gap-1">
                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                 <span className="text-sm font-medium">
@@ -87,7 +93,7 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
           <Price product={product} />
         </CardContent>
-        <CardFooter className="p-6">
+        <CardFooter className="w-full p-2">
           <Button
             className="w-full group"
             onClick={() => {

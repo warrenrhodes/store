@@ -1,5 +1,4 @@
 import BlogDetail from '@/components/Blogs/BlockDetail/BlockDetail'
-import GeneralCTAComponent from '@/components/Cta/GeneralCta'
 import { fetchBlogBySlug, fetchRelatedBlogs } from '@/lib/api/blogs'
 import { notFound } from 'next/navigation'
 
@@ -15,7 +14,7 @@ export async function generateMetadata({ params }: Props) {
     openGraph: {
       images: [
         {
-          url: blog?.metadata.coverImage,
+          url: blog?.metadata.coverImageURL,
         },
       ],
     },
@@ -34,7 +33,6 @@ export default async function BlogDetailPage(props: Props) {
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <BlogDetail blog={blog} relatedBlogs={relatedBlogs || []} />
-        <GeneralCTAComponent />
       </div>
     </div>
   )

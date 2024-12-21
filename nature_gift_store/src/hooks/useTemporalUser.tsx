@@ -1,6 +1,13 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { TemporalUser } from '../lib/types'
+
+export type TemporalUser = {
+  fullName: string
+  phone: string
+  email?: string
+  address: string
+  city?: string
+}
 
 interface TemporalUserData {
   temporalUser: TemporalUser | null

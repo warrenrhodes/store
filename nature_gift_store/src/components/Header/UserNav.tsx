@@ -11,10 +11,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useUser } from '@clerk/nextjs'
+import { useClerk } from '@clerk/nextjs'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
+import Link from 'next/link'
 
 export function UserNav() {
-  const { isSignedIn } = useUser()
+  const clerk = useClerk()
+  const { user } = useCurrentUser()
 
   return (
     <DropdownMenu>
@@ -24,22 +27,32 @@ export function UserNav() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end">
-        {isSignedIn ? (
+        {!user?.isAnonymous ? (
           <>
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuLabel>
+              <Link className="flex flex-col" href="/profile?tabs=info">
+                <span>My Account</span>
+                <span className="text-muted-foreground">{user?.fullName}</span>
+              </Link>
+            </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Orders</DropdownMenuItem>
-              <DropdownMenuItem>Wishlist</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
+              {/* <DropdownMenuItem ownMenuItem>Profile</DropdownMenuItem> */}
+              <DropdownMenuItem>
+                <Link href="/cart">Cart</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Link href="/profile?tabs=orders">Orders</Link>
+              </DropdownMenuItem>
+              {/* <DropdownMenuItem>Wishlist</DropdownMenuItem> */}
+              {/* <DropdownMenuItem>Settings</DropdownMenuItem> */}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Log out</DropdownMenuItem>
+            <DropdownMenuItem onClick={async () => await clerk.signOut()}>Log out</DropdownMenuItem>
           </>
         ) : (
           <>
-            <DropdownMenuItem>Sign in</DropdownMenuItem>
+            <DropdownMenuItem onClick={async () => clerk.openSignIn({})}>Sign in</DropdownMenuItem>
             <DropdownMenuItem>Create account</DropdownMenuItem>
           </>
         )}

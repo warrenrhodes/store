@@ -5,7 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Expand } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { IProduct } from '@/lib/models/Product'
+import { IProduct } from '@/lib/api/products'
+import { FAKE_BLUR } from '@/lib/utils/constants'
+import Image from 'next/image'
 
 export function ProductGallery({ product }: { product: IProduct }) {
   const { media } = product
@@ -23,10 +25,14 @@ export function ProductGallery({ product }: { product: IProduct }) {
             transition={{ duration: 0.3 }}
             className="absolute inset-0"
           >
-            <img
-              src={media[currentImage].url}
-              alt={media[currentImage].fileName}
-              className="object-cover w-full h-full"
+            <Image
+              src={product.media[0].media.url}
+              alt={product.title}
+              fill
+              className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+              placeholder="blur"
+              blurDataURL={product.media[0].media.blurDataUrl || FAKE_BLUR}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </motion.div>
         </AnimatePresence>
@@ -72,7 +78,15 @@ export function ProductGallery({ product }: { product: IProduct }) {
               currentImage === index ? 'ring-2 ring-primary' : 'ring-1 ring-border'
             }`}
           >
-            <img src={value.url} alt={value.fileName} className="object-cover w-full h-full" />
+            <Image
+              src={value.media.url}
+              alt={value.media.fileName}
+              fill
+              className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+              placeholder="blur"
+              blurDataURL={value.media.blurDataUrl || FAKE_BLUR}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
           </motion.button>
         ))}
       </div>

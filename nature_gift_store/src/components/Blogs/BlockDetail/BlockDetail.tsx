@@ -1,16 +1,16 @@
 'use client'
 import { Separator } from '@radix-ui/react-separator'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Calendar, Clock, User, Tag } from 'lucide-react'
+import { Calendar, Clock, User, Tag, ArrowLeft } from 'lucide-react'
 import { BlogAuthor } from './BlogAuthor'
-import { BlogComments } from './BlogComments'
 import { RelatedBlogs } from './RelatedBlogs'
-import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
-import { IBlog } from '@/lib/models/Blog'
 import { format, subDays } from 'date-fns'
-import { Button } from '@/components/ui/button'
 import Image from 'next/image'
+import { IBlog } from '@/lib/api/blogs'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import { FAKE_BLUR } from '@/lib/utils/constants'
 
 const BlogDetail = ({ blog, relatedBlogs }: { blog: IBlog; relatedBlogs: IBlog[] }) => {
   return (
@@ -19,24 +19,27 @@ const BlogDetail = ({ blog, relatedBlogs }: { blog: IBlog; relatedBlogs: IBlog[]
       animate={{ opacity: 1, y: 0 }}
       className="space-y-8"
     >
-      {/* <Button variant="ghost" asChild>
+      <Button variant="ghost" asChild>
         <Link href="/blogs" className="flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" />
           Back to Blogs
         </Link>
-      </Button> */}
+      </Button>
 
       <div className="space-y-4">
         {blog.metadata.featured && <Badge className="mb-4">Featured Article</Badge>}
         <h1 className="text-5xl font-bold tracking-tight">{blog.title}</h1>
         <p className="text-muted-foreground">{blog.content.excerpt}</p>
-        {blog.metadata.coverImage && (
+        {blog.metadata.coverImageURL && (
           <div className="relative aspect-video overflow-hidden rounded-lg ">
             <Image
-              src={blog.metadata.coverImage.url}
+              src={blog.metadata.coverImageURL}
               alt={blog.title}
               fill
               className="object-cover"
+              placeholder="blur"
+              blurDataURL={blog.metadata.blurDataUrl || FAKE_BLUR}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </div>
         )}
@@ -58,8 +61,8 @@ const BlogDetail = ({ blog, relatedBlogs }: { blog: IBlog; relatedBlogs: IBlog[]
         </div>
         <div className="flex flex-wrap gap-2">
           {blog.categories.map(category => (
-            <Badge key={`${category._id}`} variant="outline">
-              {category.name}
+            <Badge key={`${category.id}`} variant="outline">
+              {category.category.name}
             </Badge>
           ))}
         </div>
@@ -71,7 +74,7 @@ const BlogDetail = ({ blog, relatedBlogs }: { blog: IBlog; relatedBlogs: IBlog[]
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
           className="prose prose-lg max-w-none"
-          dangerouslySetInnerHTML={{ __html: blog.content }}
+          dangerouslySetInnerHTML={{ __html: blog.content.content }}
         />
       )}
 
@@ -100,11 +103,11 @@ const BlogDetail = ({ blog, relatedBlogs }: { blog: IBlog; relatedBlogs: IBlog[]
 
       <Separator />
 
-      {blog.comments && <BlogComments />}
+      {/* {blog.co && <BlogComments />} */}
 
       <Separator />
 
-      {relatedBlogs.length > 0 && <RelatedBlogs relatedBlogs={relatedBlogs} />}
+      {relatedBlogs.length > 0 && <RelatedBlogs relatedBlogs={relatedBlogs.slice(0, 5)} />}
     </motion.div>
   )
 }

@@ -6,13 +6,13 @@ import { Search, ShoppingCart } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '../ui/card'
-import { IProduct } from '@/lib/models/Product'
 import { Badge } from '../ui/badge'
 import { useCart } from '@/hooks/useCart'
 import { priceFormatted, getRegularPrice } from '@/lib/utils/utils'
 import Image from 'next/image'
-import { fetchAllProducts } from '@/lib/api/products'
 import Link from 'next/link'
+import { IProduct } from '@/lib/api/products'
+import { FAKE_BLUR } from '@/lib/utils/constants'
 
 export function SearchBar() {
   const [query, setQuery] = useState('')
@@ -20,10 +20,12 @@ export function SearchBar() {
   const [products, setProducts] = useState<IProduct[]>([])
 
   const fetchData = useCallback(async () => {
-    const newProducts = await fetchAllProducts()
-    if (!newProducts || newProducts.length === 0) return
+    const result = await fetch('/api/products')
+    if (!result.ok) {
+      return
+    }
 
-    setProducts(newProducts)
+    setProducts(await result.json())
   }, [])
 
   useEffect(() => {
@@ -71,7 +73,7 @@ export function SearchBar() {
               {productsFiltered.length > 0 ? (
                 <div className="flex flex-col gap-2">
                   {productsFiltered.map(e => (
-                    <ItemResult product={e} key={e._id} />
+                    <ItemResult product={e} key={e.id} />
                   ))}
                 </div>
               ) : (
@@ -102,11 +104,14 @@ const ItemResult = ({ product }: { product: IProduct }) => {
             <Link href={`/shop/${product.slug}`}>
               <div className="relative aspect-square w-24 rounded-lg overflow-hidden">
                 <Image
-                  src={product.media[0].url}
+                  src={product.media[0].media.url}
                   fill
                   alt={product.title}
                   className="object-cover w-full h-full"
                   onError={() => console.log('Image not found')}
+                  placeholder="blur"
+                  blurDataURL={product.media[0].media.blurDataUrl || FAKE_BLUR}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
                 {product.isFeature && <Badge className="absolute top-1 left-1">Feature</Badge>}
               </div>

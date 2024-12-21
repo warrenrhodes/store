@@ -1,9 +1,9 @@
 import { ShoppingWrapper } from '@/components/Shop/ShoppingWrapper'
 import { getCategories } from '@/lib/api/categories'
-import { fetchAllProducts } from '@/lib/api/products'
+import { getProducts } from '@/lib/api/products'
 export default async function ProductsPage() {
   const categories = await getCategories()
-  const products = await fetchAllProducts()
+  const products = await getProducts()
 
   return <ShoppingWrapper productList={products || []} categories={categories || []} />
 }

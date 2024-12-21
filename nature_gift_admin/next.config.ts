@@ -8,6 +8,10 @@ const nextConfig = {
         port: '3000',
         pathname: '/tmp/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'loremflickr.com',
+      },
     ],
   },
   async rewrites() {

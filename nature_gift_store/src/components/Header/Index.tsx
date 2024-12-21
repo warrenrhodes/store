@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { motion, useScroll } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils/utils'
 import { MainNav } from './MainNav'
 import { MobileNav } from './NavMobile'
@@ -10,16 +9,6 @@ import { UserNav } from './UserNav'
 import { CartSidebar } from '../Cart/CartSidebar'
 
 export function Header() {
-  const [isClient, setIsClient] = useState(false)
-
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  if (!isClient) {
-    return null
-  }
-
   return (
     <motion.header
       className={cn(

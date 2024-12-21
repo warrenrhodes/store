@@ -1,29 +1,28 @@
 'use client'
 
-import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Heart, Minus, Plus, Share2, ShoppingCart, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
 import { Separator } from '@/components/ui/separator'
-import { IProduct } from '@/lib/models/Product'
 import { Price } from '@/components/Price'
 import { getPercentageDiscount, getRegularPrice, getReviewAverage } from '@/lib/utils/utils'
 import { useCart } from '@/hooks/useCart'
 import { useCartSideBar } from '@/hooks/useCart'
 import { useRouter } from 'next/navigation'
+import { IProduct } from '@/lib/api/products'
 
 export function ProductInfo({ product }: { product: IProduct }) {
   const { title, features, description, price } = product
   const cart = useCart()
   const router = useRouter()
   const cartSideBar = useCartSideBar()
-  const cartItem = cart.cartItems.find(item => item.product._id === product._id)
+  const cartItem = cart.cartItems.find(item => item.product.id === product.id)
   const handleClickDecrement = () => {
     if (!cartItem) return
     if (1 >= cartItem.quantity) return
-    cart.decreaseQuantity(cartItem.product._id)
+    cart.decreaseQuantity(cartItem.product.id)
   }
   const handleClickIncrement = () => {
     if (!cartItem) {
@@ -36,7 +35,7 @@ export function ProductInfo({ product }: { product: IProduct }) {
     }
 
     if (99 <= cartItem.quantity) return
-    cart.increaseQuantity(cartItem.product._id)
+    cart.increaseQuantity(cartItem.product.id)
   }
 
   const percentageDiscount = price.sale ? getPercentageDiscount(price.regular, price.sale) : 0
@@ -44,6 +43,13 @@ export function ProductInfo({ product }: { product: IProduct }) {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">{title}</h1>
+        <div className="space-x-1">
+          {product.tags?.slice(0, 3).map(tag => (
+            <span key={tag} className="inline-block text-xs text-muted-foreground">
+              #{tag}
+            </span>
+          ))}
+        </div>
         <div className="flex items-center gap-4 mt-2">
           <div className="flex items-center">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -78,7 +84,7 @@ export function ProductInfo({ product }: { product: IProduct }) {
         <p className="text-muted-foreground line-clamp-2">{description.content}</p>
       ) : (
         <div
-          className="prose prose-slate prose-sm sm:prose text-center leading-relaxed text-gray-400 line-clamp-2"
+          className="prose prose-slate prose-sm sm:prose leading-relaxed text-gray-400 line-clamp-2"
           dangerouslySetInnerHTML={{
             __html: product.description.content,
           }}
@@ -86,22 +92,6 @@ export function ProductInfo({ product }: { product: IProduct }) {
       )}
 
       <div className="space-y-4">
-        {/* <div className="space-y-2">
-          <label className="text-sm font-medium">Size</label>
-          <Select defaultValue={product.sizes[1]}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {product.sizes.map(size => (
-                <SelectItem key={size} value={size}>
-                  {size}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div> */}
-
         <div className="space-y-2">
           <label className="text-sm font-medium">Quantity</label>
           <div className="nc-NcInputNumber__content flex w-[104px] items-center justify-between sm:w-28 mt-5">
@@ -143,7 +133,6 @@ export function ProductInfo({ product }: { product: IProduct }) {
               if (!cartItem) {
                 handleClickIncrement()
               }
-              console.log('buy now')
               setTimeout(() => {
                 router.push('/cart')
               }, 1000)

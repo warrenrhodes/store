@@ -1,7 +1,7 @@
 'use client'
 import { motion } from 'framer-motion'
-import { IProduct } from '@/lib/models/Product'
 import { ProductCard } from '@/components/ProductCard'
+import { IProduct } from '@/lib/api/products'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -29,7 +29,7 @@ export function RelatedProducts({ relatedProducts }: { relatedProducts: IProduct
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
       >
         {relatedProducts.map(product => (
-          <ProductCard key={`${product._id}`} product={product} />
+          <ProductCard key={`${product.id}`} product={product} />
         ))}
       </motion.div>
     </section>

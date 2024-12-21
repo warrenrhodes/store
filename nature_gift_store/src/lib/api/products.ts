@@ -1,60 +1,213 @@
-import { IProduct } from '../models/Product'
-import { prismaClient } from '@/prisma-models'
+import { prisma, Prisma } from '@naturegift/models'
+
+export type SortOption = 'newest' | 'price-asc' | 'price-desc' | 'rating'
+
+export interface Filters {
+  search: string
+  categories: string[]
+  priceRange: [number, number]
+  sortBy: SortOption
+  colors: string[]
+  tags: string[]
+}
+const productWithRelations = Prisma.validator<Prisma.ProductDefaultArgs>()({
+  include: {
+    categories: {
+      include: {
+        category: true,
+      },
+    },
+    media: {
+      include: {
+        media: true,
+      },
+    },
+    reviews: true,
+  },
+})
+
+export type IProduct = Prisma.ProductGetPayload<typeof productWithRelations>
 
 export const fetchProductsByQuery = async ({
   query,
 }: {
-  query: Partial<{ [key in keyof IProduct]: string }>
+  query: Partial<{ [key in keyof Prisma.ProductGetPayload<{}>]: string }>
 }): Promise<IProduct[] | null> => {
-  const searchParams = new URLSearchParams()
-  for (const [key, value] of Object.entries(query)) {
-    if (value !== undefined) {
-      searchParams.append(key, value)
-    }
-  }
-
-  const featuresProducts = await fetch(
-    `${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}/api/products/filter${query ? '?' + searchParams.toString() : ''}`,
-  )
-
-  if (!featuresProducts.ok) return null
-
-  return await featuresProducts.json()
-}
-
-export const fetchAllProducts = async (): Promise<IProduct[] | null> => {
   try {
-    const allUsers = await prismaClient.product.findMany()
-
-    return allUsers
+    const products = await prisma.product.findMany({
+      where: {
+        visibility: true,
+        status: 'published',
+        ...Object.entries(query).reduce((acc, [key, value]) => {
+          if (value !== undefined) {
+            acc[key] = value === 'true' ? true : value === 'false' ? false : value
+          }
+          return acc
+        }, {} as any),
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        categories: {
+          include: {
+            category: true,
+          },
+        },
+        media: {
+          include: {
+            media: true,
+          },
+        },
+        reviews: true,
+      },
+    })
+    return products
   } catch (error) {
-    console.log(error)
-
+    console.error('Failed to fetch products by query:', error)
     return null
   }
-  // const result = await fetch(`${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}/api/products`)
-  // if (!result.ok) return null
-  // return await result.json()
 }
 
 export const fetchProductBySlug = async ({ slug }: { slug: string }): Promise<IProduct | null> => {
-  const result = await fetch(`${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}/api/products/${slug}`)
-  if (!result.ok) return null
-  return await result.json()
+  try {
+    const product = await prisma.product.findUnique({
+      where: { slug },
+      include: {
+        categories: {
+          include: {
+            category: true,
+          },
+        },
+        media: {
+          include: {
+            media: true,
+          },
+        },
+        reviews: true,
+      },
+    })
+    return product
+  } catch (error) {
+    console.error('Failed to fetch product by slug:', error)
+    return null
+  }
 }
 
-export const getSearchedProducts = async (query: string) => {
-  const searchedProducts = await fetch(
-    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/search/${query}`,
-  )
-  return await searchedProducts.json()
+export const fetchRelatedProducts = async (slug: string): Promise<IProduct[]> => {
+  try {
+    // First get the product categories
+    const product = await prisma.product.findUnique({
+      where: { slug },
+      include: {
+        categories: true,
+        media: true,
+      },
+    })
+    if (!product) return []
+
+    // Then find products with similar categories
+    const relatedProducts = await prisma.product.findMany({
+      where: {
+        visibility: true,
+        status: 'published',
+        slug: { not: slug },
+        OR: [
+          {
+            categories: {
+              some: {
+                categoryId: {
+                  in: product.categories.map(c => c.categoryId),
+                },
+              },
+            },
+          },
+          {
+            tags: {
+              hasSome: product.tags,
+            },
+          },
+        ],
+      },
+      include: {
+        categories: {
+          include: {
+            category: true,
+          },
+        },
+        media: {
+          include: {
+            media: true,
+          },
+        },
+        reviews: true,
+      },
+      take: 4, // Limit to 4 related products
+    })
+    return relatedProducts
+  } catch (error) {
+    console.error('Failed to fetch related products:', error)
+    return []
+  }
 }
 
-export const fetchRelatedProducts = async (slug: string): Promise<IProduct[] | null> => {
-  const relatedBlogs = await fetch(
-    `${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}/api/products/${slug}/related`,
-  )
+export async function getProducts(): Promise<IProduct[]> {
+  try {
+    const products = await prisma.product.findMany({
+      where: {
+        visibility: true,
+        status: 'published',
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        categories: {
+          include: {
+            category: true,
+          },
+        },
+        media: {
+          include: {
+            media: true,
+          },
+        },
+        reviews: true,
+      },
+    })
+    return products
+  } catch (error) {
+    console.error('Failed to fetch products:', error)
+    return []
+  }
+}
 
-  if (!relatedBlogs.ok) return null
-  return await relatedBlogs.json()
+export async function getCategoriesOnProduct(): Promise<
+  Prisma.CategoriesOnProductsGetPayload<{}>[]
+> {
+  try {
+    const categories = await prisma.categoriesOnProducts.findMany()
+    return categories
+  } catch (error) {
+    console.error('Failed to fetch categories:', error)
+    return []
+  }
+}
+
+export async function getProductId(id: string): Promise<Prisma.ProductGetPayload<{}> | null> {
+  try {
+    const product = await prisma.product.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        categories: true,
+        media: true,
+      },
+    })
+    return product
+  } catch (error) {
+    console.error('Failed to fetch product:', error)
+    return null
+  }
 }

@@ -1,20 +1,15 @@
 'use client'
 
-import { useState } from 'react'
-import { Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-import useBlogFilter from '@/hooks/use-blog-filter'
+import useBlogFilter from '@/hooks/useBlogFilter'
 import { Checkbox } from '../ui/checkbox'
-import { ICategory } from '@/lib/models/Category'
-import { IBlog } from '@/lib/models/Blog'
+import { IBlog } from '@/lib/api/blogs'
 
 export function BlogFilters({
   categories,
@@ -67,7 +62,12 @@ export function BlogFilters({
                     </label>
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    ({blogs.filter(c => c.categories.map(e => e.name).includes(category)).length})
+                    (
+                    {
+                      blogs.filter(c => c.categories.map(e => e.category.name).includes(category))
+                        .length
+                    }
+                    )
                   </span>
                 </div>
               ))}
@@ -75,7 +75,7 @@ export function BlogFilters({
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="tags">
+        {/* <AccordionItem value="tags">
           <AccordionTrigger>Tags</AccordionTrigger>
           <AccordionContent>
             <div className="grid grid-cols-2 gap-2 pt-2">
@@ -109,7 +109,7 @@ export function BlogFilters({
               ))}
             </div>
           </AccordionContent>
-        </AccordionItem>
+        </AccordionItem> */}
       </Accordion>
     </div>
   )

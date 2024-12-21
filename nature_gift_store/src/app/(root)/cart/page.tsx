@@ -7,12 +7,12 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { CartItem } from '@/components/Cart/CartItem'
 import { PromotionSummary } from '@/components/Cart/PromotionSummary'
-import { useCart } from '@/hooks/useCart'
+import { useCart, useCartDeliveryInfo } from '@/hooks/useCart'
 import { useShallow } from 'zustand/react/shallow'
 
 export default function CartPage() {
   const cartItems = useCart(e => e.cartItems)
-  const cartShipment = useCart(e => e.cartShipment)
+  const { cartDeliveryInfo } = useCartDeliveryInfo()
   const { decreaseQuantity, increaseQuantity, removeCartItem } = useCart(
     useShallow(s => ({
       increaseQuantity: s.increaseQuantity,
@@ -44,7 +44,7 @@ export default function CartPage() {
               <ShoppingBag className="w-16 h-16 mx-auto text-muted-foreground" />
               <h2 className="mt-4 text-xl font-semibold">Your cart is empty</h2>
               <p className="mt-2 text-muted-foreground">
-                Looks like you haven't added any items to your cart yet
+                {"Looks like you haven't added any items to your cart yet"}
               </p>
               <Button asChild className="mt-8">
                 <Link href="/shop">Start Shopping</Link>
@@ -57,7 +57,7 @@ export default function CartPage() {
                   <AnimatePresence initial={false}>
                     {cartItems.map(item => (
                       <CartItem
-                        key={`${item.product._id}`}
+                        key={`${item.product.id}`}
                         item={item}
                         increaseQuantity={increaseQuantity}
                         decreaseQuantity={decreaseQuantity}
@@ -69,7 +69,7 @@ export default function CartPage() {
               </div>
 
               <div className="lg:col-span-1 space-y-6">
-                <PromotionSummary cartItems={cartItems} deliveryInfo={cartShipment} />
+                <PromotionSummary cartItems={cartItems} deliveryInfo={cartDeliveryInfo} />
                 <Separator />
                 <Button size="lg" className="w-full" asChild>
                   <Link href="/checkout">Proceed to Checkout</Link>

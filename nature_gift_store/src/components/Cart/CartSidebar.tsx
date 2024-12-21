@@ -1,11 +1,10 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { ShoppingBag, ShoppingCart, X } from 'lucide-react'
+import { ShoppingBag, ShoppingCart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
@@ -16,9 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { CartItem } from './CartItem'
 import { PromotionSummary } from './PromotionSummary'
-import { CartItem as CartItemType } from '@/lib/models/Cart'
-import { useCart, useCartSideBar } from '@/hooks/useCart'
-import Link from 'next/link'
+import { useCart, useCartDeliveryInfo, useCartSideBar } from '@/hooks/useCart'
 import { useRouter } from 'next/navigation'
 
 const sidebarVariants = {
@@ -30,7 +27,8 @@ const sidebarVariants = {
 export function CartSidebar() {
   const cart = useCart()
   const router = useRouter()
-  const { cartItems, increaseQuantity, decreaseQuantity, removeItem, cartShipment } = cart
+  const { cartItems, increaseQuantity, decreaseQuantity, removeItem } = cart
+  const { cartDeliveryInfo } = useCartDeliveryInfo()
 
   const cartSideBar = useCartSideBar()
 
@@ -50,7 +48,7 @@ export function CartSidebar() {
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-lg">
+      <SheetContent className="w-full sm:max-w-lg overflow-hidden">
         <motion.div
           variants={sidebarVariants}
           initial="hidden"
@@ -82,7 +80,7 @@ export function CartSidebar() {
                   <AnimatePresence initial={false}>
                     {cartItems.map(item => (
                       <CartItem
-                        key={`${item.product._id}`}
+                        key={`${item.product.id}`}
                         item={item}
                         increaseQuantity={increaseQuantity}
                         decreaseQuantity={decreaseQuantity}
@@ -95,7 +93,7 @@ export function CartSidebar() {
 
               <div className="pt-6 space-y-6">
                 <Separator />
-                <PromotionSummary cartItems={cartItems} deliveryInfo={cartShipment} />
+                <PromotionSummary cartItems={cartItems} deliveryInfo={cartDeliveryInfo} />
                 <Button
                   className="w-full"
                   size="lg"

@@ -1,6 +1,5 @@
 'use client'
 
-import { ContentType } from '@/lib/types'
 import { MoveDown, MoveUp, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { FileUploader } from '../custom-ui/FileUploader'
@@ -8,12 +7,19 @@ import { Button } from '../ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import CustomRichTextEditor from './CustomRichText'
 
+enum ContentType {
+  'TEXT' = 'TEXT',
+  'IMAGE' = 'IMAGE',
+  'VIDEO' = 'VIDEO',
+  'HTML' = 'HTML',
+}
+
 export enum FileType {
   'IMAGE' = 'IMAGE',
   'VIDEO' = 'VIDEO',
 }
 
-export interface ContentElement {
+interface ContentElement {
   type: ContentType
   content: string
   mediaIds: string[] | null

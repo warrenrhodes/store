@@ -228,6 +228,9 @@ export async function getOrders(): Promise<Prisma.OrderGetPayload<{}>[]> {
       orderBy: {
         createdAt: 'desc',
       },
+      include: {
+        items: true,
+      },
     })
     return orders
   } catch (error) {

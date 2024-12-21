@@ -1,15 +1,14 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { Link, Tag } from 'lucide-react'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tag } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { useCart } from '@/hooks/useCart'
+import { useCart, useCartDeliveryInfo } from '@/hooks/useCart'
 import { priceFormatted } from '@/lib/utils/utils'
-import { MutableRefObject, useMemo, useState } from 'react'
+import { MutableRefObject, useState } from 'react'
 import { useEffect } from 'react'
-import { usePromotionCalculator } from '@/hooks/use-promotion-calculator'
-import { OrderSummary as OrderSummaryType } from '@/lib/models/orderSummary'
+import { usePromotionCalculator } from '@/hooks/usePromotionCalculator'
+import { OrderSummary as OrderSummaryType } from '@/lib/api/orders'
 import { Skeleton } from '../ui/skeleton'
 import { Badge } from '../ui/badge'
 
@@ -18,14 +17,15 @@ export function OrderSummary({
 }: {
   orderSummary: MutableRefObject<OrderSummaryType | undefined>
 }) {
-  const { cartItems, cartShipment } = useCart()
+  const { cartItems } = useCart()
+  const { cartDeliveryInfo } = useCartDeliveryInfo()
 
   const [summary, setSummary] = useState<OrderSummaryType | null>(null)
   const { calculatePromotions, isCalculating, error } = usePromotionCalculator()
 
   useEffect(() => {
     async function updatePromotions() {
-      const result = await calculatePromotions(cartItems, cartShipment)
+      const result = await calculatePromotions(cartItems, cartDeliveryInfo)
       if (result) {
         orderSummary.current = result
         setSummary(result)
@@ -33,7 +33,7 @@ export function OrderSummary({
     }
 
     updatePromotions()
-  }, [cartItems, cartShipment])
+  }, [cartItems, cartDeliveryInfo])
 
   if (isCalculating) {
     return (
@@ -74,7 +74,7 @@ export function OrderSummary({
       </CardHeader>
       <CardContent className="space-y-4">
         {cartItems.map(item => (
-          <div key={`${item.product._id}`} className="flex justify-between text-sm">
+          <div key={`${item.product.id}`} className="flex justify-between text-sm">
             <span>
               {item.product.title} x {item.quantity}
             </span>

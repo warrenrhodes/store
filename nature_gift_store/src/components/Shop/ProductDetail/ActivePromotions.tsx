@@ -1,12 +1,11 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Copy, Tag, Timer } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Tag, Timer } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from '@/hooks/use-toast'
-import { IPromotion } from '@/lib/models/Promotions'
 import { getDetailedExpiresIn } from '@/lib/utils/utils'
+import { IPromotion } from '@/lib/api/promotions'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -51,7 +50,7 @@ export function ActivePromotions({ activePromotions }: { activePromotions: IProm
         {activePromotions.map(promo => {
           const expiresIn = getDetailedExpiresIn(promo.endDate)
           return (
-            <motion.div key={`${promo._id}`} variants={itemVariants} className="h-full">
+            <motion.div key={`${promo.id}`} variants={itemVariants} className="h-full">
               <Card className="h-full">
                 <CardHeader>
                   <div className="flex items-center gap-2 text-primary mb-2">

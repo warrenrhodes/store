@@ -31,7 +31,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Switch } from '../ui/switch'
 import { ToastAction } from '../ui/toast'
 import { CategoriesForm } from './product-form.tsx/Categories'
-import { ContentEditor } from './product-form.tsx/ContentEditor'
+import { ContentEditor } from '../custom-ui/ContentEditor'
 import { FeaturesForm } from './product-form.tsx/Features'
 import { InventoryFields } from './product-form.tsx/InventoryFields'
 import { MetadataFields } from './product-form.tsx/MetadataFields'

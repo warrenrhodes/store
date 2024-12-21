@@ -21,7 +21,47 @@ services:
       start_period: 15s
       retries: 10
     volumes:
-      - data:/data/db
+      - mongodb_data:/data/db
+    networks:
+      - nature-gift-network
+
+  store:
+    build:
+      context: .
+      dockerfile: ./nature_gift_store/Dockerfile
+    container_name: nature-gift-store
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://naturegift:naturegift@mongo:27017/naturegift-store?replicaSet=rs0&authSource=admin
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - nature-gift-network
+
+  admin:
+    build:
+      context: .
+      dockerfile: ./nature_gift_admin/Dockerfile
+    container_name: nature-gift-admin
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://naturegift:naturegift@mongo:27017/naturegift-store?replicaSet=rs0&authSource=admin
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - nature-gift-network
 
 volumes:
-  data: {}
+  mongodb_data: {}
+
+networks:
+  nature-gift-network:
+    driver: bridge

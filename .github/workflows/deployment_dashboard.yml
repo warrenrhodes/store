@@ -1,0 +1,67 @@
+name: Deploy Admin Dashboard
+
+on:
+  workflow_dispatch:
+
+# Ensure that only one workflow runs at a time
+concurrency:
+  group: deployment-dashboard
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 20.10.0
+
+jobs:
+  deploy-dashboard:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "yarn"
+          cache-dependency-path: "store/nature_gift_admin/yarn.lock"
+
+      - name: Install dependencies
+        run: |
+          cd store/models
+          yarn install --frozen-lockfile
+          yarn build
+          cd ../nature_gift_admin
+          yarn install --frozen-lockfile
+
+      - name: Build application
+        run: |
+          cd store/nature_gift_admin
+          yarn build
+
+      - name: Deploy to server
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+        run: |
+          # Setup SSH
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts
+
+          # Create deployment directory
+          ssh $SERVER_USER@$SERVER_HOST "mkdir -p ~/nature-gift/admin"
+
+          # Copy files
+          scp -r ./store/nature_gift_admin $SERVER_USER@$SERVER_HOST:~/nature-gift/admin/
+          scp -r ./store/models $SERVER_USER@$SERVER_HOST:~/nature-gift/admin/
+          scp ./store/Dockerfile $SERVER_USER@$SERVER_HOST:~/nature-gift/admin/
+          scp ./store/docker-compose.admin.yml $SERVER_USER@$SERVER_HOST:~/nature-gift/admin/docker-compose.yml
+
+          # Deploy
+          ssh $SERVER_USER@$SERVER_HOST "cd ~/nature-gift/admin && \
+            docker-compose down && \
+            docker-compose build && \
+            docker-compose up -d && \
+            docker ps -a"

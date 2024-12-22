@@ -12,7 +12,7 @@ const JoditEditor = dynamic(() => import('jodit-react').then(mod => mod.default)
   loading: () => <div className="h-[400px] w-full animate-pulse bg-muted" />,
 })
 
-const MAX_VIDEO_SIZE_MB = 150
+const MAX_VIDEO_SIZE_MB = 98
 const MAX_VIDEO_SIZE_BYTES = MAX_VIDEO_SIZE_MB * 1024 * 1024
 
 interface CustomRichTextProps {
@@ -82,7 +82,7 @@ const createFileInput = (accept: string): Promise<FileSelectionResult> => {
 }
 
 // Helper function to upload file
-const uploadFile = async (file: File, uploadUrl: string): Promise<UploadResponse> => {
+const uploadFile = async (file: File, uploadUrl: string): Promise<UploadResponse | null> => {
   const formData = new FormData()
   formData.append('files', file)
 
@@ -92,7 +92,8 @@ const uploadFile = async (file: File, uploadUrl: string): Promise<UploadResponse
   })
 
   if (!response.ok) {
-    throw new Error(`Upload failed with status ${response.status}`)
+    console.error(`Upload failed with status ${response.status}`)
+    return null
   }
 
   return response.json()
@@ -187,7 +188,6 @@ const CustomRichTextEditor = forwardRef<HTMLDivElement, CustomRichTextProps>(
             try {
               const { files, cleanup } = await createFileInput('video/mp4,video/webm,video/ogg')
               const file = files && files[0]
-
               if (file) {
                 try {
                   const validation = validateVideoSize(file)
@@ -204,8 +204,8 @@ const CustomRichTextEditor = forwardRef<HTMLDivElement, CustomRichTextProps>(
                     file,
                     `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/media/upload`,
                   )
-                  if (result.success && result.data.files && result.data.files[0]) {
-                    const videoUrl = result.data.files[0].url
+                  if (result?.success && result?.data.files && result?.data?.files[0]) {
+                    const videoUrl = result?.data.files[0].url
                     const fileExtension = file.name.split('.').pop() || ''
 
                     const videoHtml = `
@@ -642,13 +642,11 @@ const CustomRichTextEditor = forwardRef<HTMLDivElement, CustomRichTextProps>(
             if (!resp.success) {
               throw new Error(resp.message)
             }
+
             return resp
           },
         },
         layoutImage: 'tiles',
-        // filter: (file: string) => {
-        //   return /\.(jpg|jpeg|png|gif|webp)$/i.test(file);
-        // },
         sortBy: 'changed-desc',
         showFoldersPanel: true,
         storeLastOpenedFolder: true,

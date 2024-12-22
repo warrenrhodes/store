@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 import { priceFormatted } from '@/lib/utils/utils'
 import { Prisma } from '@naturegift/models'
 
-export const productColumns: ColumnDef<Prisma.ProductGetPayload<{}>>[] = [
+export const productColumns: ColumnDef<Prisma.ProductGetPayload<object>>[] = [
   {
     id: 'select',
     header: ({ table }) => (

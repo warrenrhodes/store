@@ -1,5 +1,5 @@
 import { BlogList } from '@/components/blogs/BlogList'
-import { getBlogs } from '@/lib/actions/actions'
+import { getBlogs } from '@/lib/actions/server'
 
 export default async function BlogPage() {
   const blogs = await getBlogs()

@@ -1,11 +1,11 @@
-import { getUserByClerkId } from '@/lib/actions/actions'
+import { getUserByClerkId } from '@/lib/actions/server'
 import { generateSlug } from '@/lib/utils/slugify'
 import { blogSchema } from '@/lib/validations/blog'
 import { auth, currentUser } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
-export const GET = async (req: NextRequest) => {
+export const GET = async () => {
   try {
     const { userId } = await auth()
 

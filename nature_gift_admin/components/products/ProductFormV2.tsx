@@ -40,10 +40,10 @@ import { VariantFields } from './product-form.tsx/Variant'
 import { Prisma } from '@naturegift/models'
 
 interface ProductFormProps {
-  initialData?: Prisma.ProductGetPayload<{}> | null
-  categories: Prisma.CategoryGetPayload<{}>[]
-  categoriesOfProduct: Prisma.CategoriesOnProductsGetPayload<{}>[]
-  mediasOfProduct: Prisma.MediasOnProductsGetPayload<{}>[]
+  initialData?: Prisma.ProductGetPayload<object> | null
+  categories: Prisma.CategoryGetPayload<object>[]
+  categoriesOfProduct: Prisma.CategoriesOnProductsGetPayload<object>[]
+  mediasOfProduct: Prisma.MediasOnProductsGetPayload<object>[]
 }
 
 export function ProductFormV2({
@@ -190,7 +190,7 @@ export function ProductFormV2({
           <FormField
             control={form.control}
             name="slug"
-            render={({ field }) => (
+            render={() => (
               <FormItem>
                 <FormLabel>Product Slug</FormLabel>
                 <FormControl>

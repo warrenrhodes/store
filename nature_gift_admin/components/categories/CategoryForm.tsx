@@ -35,8 +35,8 @@ import { MediaIdentity, FileUploader } from '../custom-ui/FileUploader'
 import { Prisma } from '@naturegift/models'
 
 interface CategoryFormProps {
-  initialData?: Prisma.CategoryGetPayload<{}>
-  categories?: Prisma.CategoryGetPayload<{}>[]
+  initialData?: Prisma.CategoryGetPayload<object>
+  categories?: Prisma.CategoryGetPayload<object>[]
 }
 
 export function CategoryForm({ initialData, categories }: CategoryFormProps) {

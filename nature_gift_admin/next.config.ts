@@ -27,6 +27,22 @@ const nextConfig = {
       },
     ]
   },
+  base: '/admin',
+  assetPrefix: '/admin',
+  // // Optional: Add custom headers
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+        ],
+      },
+    ]
+  },
   experimental: {
     turbo: {
       rules: {

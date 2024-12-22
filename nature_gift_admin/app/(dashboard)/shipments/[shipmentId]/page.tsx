@@ -1,25 +1,5 @@
 import ShipmentForm from '@/components/shipments/ShipmentForm'
-import { getShipmentById } from '@/lib/actions/actions'
-import { auth } from '@clerk/nextjs/server'
-import { notFound } from 'next/navigation'
-
-async function getShipment(shipmentId: string) {
-  const { getToken } = await auth()
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/shipments/${shipmentId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${await getToken()}`,
-      },
-    },
-  )
-
-  if (!response.ok) {
-    notFound()
-  }
-
-  return response.json()
-}
+import { getShipmentById } from '@/lib/actions/server'
 
 export default async function EditShipmentPage(props: { params: Promise<{ shipmentId: string }> }) {
   const params = await props.params

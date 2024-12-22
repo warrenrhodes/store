@@ -114,7 +114,7 @@ const validateVideoSize = (file: File): { valid: boolean; message?: string } => 
 }
 
 const CustomRichTextEditor = forwardRef<HTMLDivElement, CustomRichTextProps>(
-  function CustomRichTextEditor(props: CustomRichTextProps, ref) {
+  function CustomRichTextEditor(props: CustomRichTextProps) {
     const config = {
       showXPathInStatusbar: false,
       showCharsCounter: true,
@@ -170,7 +170,7 @@ const CustomRichTextEditor = forwardRef<HTMLDivElement, CustomRichTextProps>(
       showSelectButtonInPreview: true,
       sort: true,
       preview: true,
-      enter: 'br' as 'br',
+      enter: 'br' as const,
       zIndex: 0,
       useSplitMode: false,
       extraButtons: [
@@ -604,7 +604,7 @@ const CustomRichTextEditor = forwardRef<HTMLDivElement, CustomRichTextProps>(
         url: `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/media/upload`,
         insertImageAsBase64URI: false,
         imagesExtensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
-        filesVariableName: (i: number): string => {
+        filesVariableName: (): string => {
           return `files`
         },
         process: (resp: any) => {

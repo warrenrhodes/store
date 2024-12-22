@@ -38,8 +38,8 @@ import { ToastAction } from '../ui/toast'
 import { Prisma } from '@naturegift/models'
 
 interface PromotionFormProps {
-  initialData?: Prisma.PromotionGetPayload<{}> | null
-  products: Prisma.ProductGetPayload<{}>[]
+  initialData?: Prisma.PromotionGetPayload<object> | null
+  products: Prisma.ProductGetPayload<object>[]
 }
 
 export function PromotionFormV2({ initialData, products }: PromotionFormProps) {

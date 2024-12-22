@@ -10,7 +10,7 @@ import { productColumns } from './ProductColumns'
 import { Prisma } from '@naturegift/models'
 
 interface ProductListProps {
-  products: Prisma.ProductGetPayload<{}>[]
+  products: Prisma.ProductGetPayload<object>[]
 }
 
 export function ProductList({ products }: ProductListProps) {

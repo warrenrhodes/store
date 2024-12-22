@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { FileType } from '../accordion/CustomAccordionItem'
 import { Button } from '../ui/button'
-import { getMediaById } from '@/lib/actions/actions'
+import { getMediaById } from '@/lib/actions/client'
 import { Prisma } from '@naturegift/models'
 
 export enum MediaIdentity {
@@ -159,7 +159,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   }
   const updateFile = async (files: File[]): Promise<string[] | null> => {
     const formData = new FormData()
-    files.forEach((file, index) => {
+    files.forEach(file => {
       formData.append(`files`, file)
     })
     const result = await fetch('/api/media/upload', {
@@ -168,7 +168,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     })
     if (result.ok) {
       const data = await result.json()
-      return data.data.files.map((e: Prisma.MediaGetPayload<{}>) =>
+      return data.data.files.map((e: Prisma.MediaGetPayload<object>) =>
         targetType === MediaIdentity.ID ? e.id : e.url,
       )
     }

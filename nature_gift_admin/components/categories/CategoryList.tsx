@@ -9,7 +9,7 @@ import { categoryColumns } from './Column'
 import { Prisma } from '@naturegift/models'
 
 interface CategoryListProps {
-  categories: Prisma.CategoryGetPayload<{}>[]
+  categories: Prisma.CategoryGetPayload<object>[]
 }
 
 export function CategoryList({ categories }: CategoryListProps) {

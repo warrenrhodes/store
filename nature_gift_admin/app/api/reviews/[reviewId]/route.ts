@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { reviewSchema } from '@/lib/validations/reviews'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'
-import { getUserByClerkId } from '@/lib/actions/actions'
+import { getUserByClerkId } from '@/lib/actions/server'
 
 export const GET = async (req: NextRequest, props: { params: Promise<{ reviewId: string }> }) => {
   const params = await props.params

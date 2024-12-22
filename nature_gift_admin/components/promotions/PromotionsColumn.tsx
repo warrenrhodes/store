@@ -11,7 +11,7 @@ import Delete from '../custom-ui/Delete'
 import { cn } from '@/lib/utils'
 import { Prisma } from '@naturegift/models'
 
-export const promotionsColumns: ColumnDef<Prisma.PromotionGetPayload<{}>>[] = [
+export const promotionsColumns: ColumnDef<Prisma.PromotionGetPayload<object>>[] = [
   {
     accessorKey: 'code',
     header: 'Code',

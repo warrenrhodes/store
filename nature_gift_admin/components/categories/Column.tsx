@@ -7,7 +7,7 @@ import { Badge } from '../ui/badge'
 import Link from 'next/link'
 import { Prisma } from '@naturegift/models'
 
-export const categoryColumns: ColumnDef<Prisma.CategoryGetPayload<{}>>[] = [
+export const categoryColumns: ColumnDef<Prisma.CategoryGetPayload<object>>[] = [
   {
     id: 'select',
     header: ({ table }) => (

@@ -156,10 +156,8 @@ export function ActionFields({ form }: ActionFieldsProps) {
                           }
                         }}
                         onChange={e => {
-                          const [buyX, getY] = ((field.value || '') as string).split(',') || [
-                            '',
-                            '',
-                          ]
+                          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                          const [_, getY] = ((field.value || '') as string).split(',') || ['', '']
                           const newBuyX = parseInt(e.target.value)
                           field.onChange(`${newBuyX},${getY}`)
                         }}
@@ -172,6 +170,7 @@ export function ActionFields({ form }: ActionFieldsProps) {
                         value={((field.value || '') as string)?.split(',')[1] || ''}
                         onKeyDown={handleKeyPress}
                         onChange={e => {
+                          // eslint-disable-next-line @typescript-eslint/no-unused-vars
                           const [buyX, getY] = ((field.value || '') as string).split(',') || [
                             '',
                             '',

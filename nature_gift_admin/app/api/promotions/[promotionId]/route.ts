@@ -1,10 +1,14 @@
-import { getUserByClerkId } from '@/lib/actions/actions'
+import { getUserByClerkId } from '@/lib/actions/server'
 import { promotionSchema } from '@/lib/validations/promotions'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'
 import { NextRequest, NextResponse } from 'next/server'
 
-export const GET = async (req: NextRequest, { params }: { params: { promotionId: string } }) => {
+export const GET = async (
+  req: NextRequest,
+  props: { params: Promise<{ promotionId: string }> },
+) => {
+  const params = await props.params
   try {
     const { userId } = await auth()
     if (!userId) {
@@ -33,7 +37,11 @@ export const GET = async (req: NextRequest, { params }: { params: { promotionId:
   }
 }
 
-export const PATCH = async (req: NextRequest, { params }: { params: { promotionId: string } }) => {
+export const PATCH = async (
+  req: NextRequest,
+  props: { params: Promise<{ promotionId: string }> },
+) => {
+  const params = await props.params
   try {
     const { userId } = await auth()
     if (!userId) {
@@ -63,7 +71,11 @@ export const PATCH = async (req: NextRequest, { params }: { params: { promotionI
   }
 }
 
-export const DELETE = async (req: NextRequest, { params }: { params: { promotionId: string } }) => {
+export const DELETE = async (
+  req: NextRequest,
+  props: { params: Promise<{ promotionId: string }> },
+) => {
+  const params = await props.params
   try {
     const { userId } = await auth()
     if (!userId) {

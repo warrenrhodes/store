@@ -1,5 +1,5 @@
 import { ReviewList } from '@/components/reviews/ReviewList'
-import { getReviews } from '@/lib/actions/actions'
+import { getReviews } from '@/lib/actions/server'
 
 export default async function ReviewsPage() {
   const reviews = await getReviews()
@@ -9,3 +9,5 @@ export default async function ReviewsPage() {
     </div>
   )
 }
+
+export const dynamic = 'force-dynamic'

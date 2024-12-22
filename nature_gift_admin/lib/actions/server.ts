@@ -1,6 +1,7 @@
 import { Prisma, prisma } from '@naturegift/models'
 import { connectToDB } from '../mongoDB'
 import { currentUser, auth } from '@clerk/nextjs/server'
+import { object } from 'zod'
 
 export type IOrder = Prisma.OrderGetPayload<{
   include: {
@@ -52,34 +53,7 @@ export const getSalesPerMonth = async () => {
   return graphData
 }
 
-export const getMediaById = async (mediaId: string): Promise<string | null> => {
-  const media = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/media/${mediaId}`)
-  if (media.ok) {
-    const url = await media.json()
-    return url.mediaUrl
-  }
-  return null
-}
-
-export const uploadImages = async (files: File[]): Promise<string | null> => {
-  const formData = new FormData()
-  files.forEach((file, index) => {
-    formData.append(`files`, file)
-  })
-  const result = await fetch('/api/media/upload', {
-    method: 'POST',
-    body: formData,
-  })
-
-  if (result.ok) {
-    const data = await result.json()
-    console.log(data.files[0].file.url)
-    return data.files[0].file.url
-  }
-  return null
-}
-
-export async function getProducts(): Promise<Prisma.ProductGetPayload<{}>[]> {
+export async function getProducts(): Promise<Prisma.ProductGetPayload<object>[]> {
   try {
     const { userId } = await auth()
     if (!userId) return []
@@ -103,7 +77,7 @@ export async function getProducts(): Promise<Prisma.ProductGetPayload<{}>[]> {
 }
 
 export async function getCategoriesOnProduct(): Promise<
-  Prisma.CategoriesOnProductsGetPayload<{}>[]
+  Prisma.CategoriesOnProductsGetPayload<object>[]
 > {
   try {
     const { userId } = await auth()
@@ -126,7 +100,7 @@ export async function getCategoriesOnProduct(): Promise<
   }
 }
 
-export async function getProductId(id: string): Promise<Prisma.ProductGetPayload<{}> | null> {
+export async function getProductId(id: string): Promise<Prisma.ProductGetPayload<object> | null> {
   try {
     const { userId } = await auth()
     if (!userId) return null
@@ -147,7 +121,7 @@ export async function getProductId(id: string): Promise<Prisma.ProductGetPayload
   }
 }
 
-export async function getCategories(): Promise<Prisma.CategoryGetPayload<{}>[]> {
+export async function getCategories(): Promise<Prisma.CategoryGetPayload<object>[]> {
   try {
     const { userId } = await auth()
     if (!userId) return []
@@ -169,7 +143,7 @@ export async function getCategories(): Promise<Prisma.CategoryGetPayload<{}>[]> 
 
 export async function getCategoriesOfProduct(
   productId: string,
-): Promise<Prisma.CategoriesOnProductsGetPayload<{}>[]> {
+): Promise<Prisma.CategoriesOnProductsGetPayload<object>[]> {
   try {
     const { userId } = await auth()
     if (!userId) return []
@@ -194,7 +168,7 @@ export async function getCategoriesOfProduct(
 
 export async function getCategoryById(
   categoryId: string,
-): Promise<Prisma.CategoryGetPayload<{}> | null> {
+): Promise<Prisma.CategoryGetPayload<object> | null> {
   try {
     const { userId } = await auth()
     if (!userId) return null
@@ -217,7 +191,7 @@ export async function getCategoryById(
 
 export async function getCategoriesOfBlog(
   blogId: string,
-): Promise<Prisma.CategoriesOnBlogsGetPayload<{}>[]> {
+): Promise<Prisma.CategoriesOnBlogsGetPayload<object>[]> {
   try {
     const { userId } = await auth()
     if (!userId) return []
@@ -240,7 +214,7 @@ export async function getCategoriesOfBlog(
   }
 }
 
-export async function getBlogById(blogId: string): Promise<Prisma.BlogGetPayload<{}> | null> {
+export async function getBlogById(blogId: string): Promise<Prisma.BlogGetPayload<object> | null> {
   try {
     const { userId } = await auth()
     if (!userId) return null
@@ -261,7 +235,7 @@ export async function getBlogById(blogId: string): Promise<Prisma.BlogGetPayload
   }
 }
 
-export async function getBlogs(): Promise<Prisma.BlogGetPayload<{}>[]> {
+export async function getBlogs(): Promise<Prisma.BlogGetPayload<object>[]> {
   try {
     const { userId } = await auth()
     if (!userId) return []
@@ -284,7 +258,7 @@ export async function getBlogs(): Promise<Prisma.BlogGetPayload<{}>[]> {
   }
 }
 
-export async function getMedias(): Promise<Prisma.MediaGetPayload<{}>[]> {
+export async function getMedias(): Promise<Prisma.MediaGetPayload<object>[]> {
   try {
     const { userId } = await auth()
     if (!userId) return []
@@ -304,7 +278,7 @@ export async function getMedias(): Promise<Prisma.MediaGetPayload<{}>[]> {
   }
 }
 
-export async function getReviews(): Promise<Prisma.ReviewGetPayload<{}>[]> {
+export async function getReviews(): Promise<Prisma.ReviewGetPayload<object>[]> {
   try {
     const { userId } = await auth()
     if (!userId) return []
@@ -327,7 +301,9 @@ export async function getReviews(): Promise<Prisma.ReviewGetPayload<{}>[]> {
   }
 }
 
-export async function getReviewById(reviewId: string): Promise<Prisma.ReviewGetPayload<{}> | null> {
+export async function getReviewById(
+  reviewId: string,
+): Promise<Prisma.ReviewGetPayload<object> | null> {
   try {
     const { userId } = await auth()
     if (!userId) return null
@@ -406,7 +382,7 @@ export async function getOrders(): Promise<IOrder[]> {
 
 export async function getOrderItemsOfOrder(params: {
   orderId: string
-}): Promise<Prisma.OrderItemGetPayload<{}>[]> {
+}): Promise<Prisma.OrderItemGetPayload<object>[]> {
   try {
     const { userId } = await auth()
     if (!userId) return []
@@ -417,13 +393,6 @@ export async function getOrderItemsOfOrder(params: {
     const orderItems = await prisma.orderItem.findMany({
       where: {
         orderId: params.orderId,
-        items: {
-          some: {
-            product: {
-              partnerId: _currentUser.id,
-            },
-          },
-        },
       },
     })
     return orderItems
@@ -435,7 +404,7 @@ export async function getOrderItemsOfOrder(params: {
 
 export async function getMediasOfProduct(
   productId: string,
-): Promise<Prisma.MediasOnProductsGetPayload<{}>[]> {
+): Promise<Prisma.MediasOnProductsGetPayload<object>[]> {
   try {
     const { userId } = await auth()
     if (!userId) return []
@@ -458,7 +427,7 @@ export async function getMediasOfProduct(
   }
 }
 
-export async function getPromotions(): Promise<Prisma.PromotionGetPayload<{}>[]> {
+export async function getPromotions(): Promise<Prisma.PromotionGetPayload<object>[]> {
   try {
     const { userId } = await auth()
     if (!userId) return []
@@ -483,7 +452,7 @@ export async function getPromotions(): Promise<Prisma.PromotionGetPayload<{}>[]>
 
 export async function getPromotionById(
   promotionId: string,
-): Promise<Prisma.PromotionGetPayload<{}> | null> {
+): Promise<Prisma.PromotionGetPayload<object> | null> {
   try {
     const { userId } = await auth()
     if (!userId) return null
@@ -503,7 +472,7 @@ export async function getPromotionById(
     return null
   }
 }
-export async function getShipments(): Promise<Prisma.ShipmentGetPayload<{}>[]> {
+export async function getShipments(): Promise<Prisma.ShipmentGetPayload<object>[]> {
   try {
     const { userId } = await auth()
     if (!userId) return []
@@ -527,7 +496,7 @@ export async function getShipments(): Promise<Prisma.ShipmentGetPayload<{}>[]> {
 
 export async function getShipmentById(
   shipmentById: string,
-): Promise<Prisma.ShipmentGetPayload<{}> | null> {
+): Promise<Prisma.ShipmentGetPayload<object> | null> {
   try {
     const { userId } = await auth()
     if (!userId) return null
@@ -548,7 +517,9 @@ export async function getShipmentById(
   }
 }
 
-export async function getUserByClerkId(clerkId: string): Promise<Prisma.UserGetPayload<{}> | null> {
+export async function getUserByClerkId(
+  clerkId: string,
+): Promise<Prisma.UserGetPayload<object> | null> {
   try {
     const user = await prisma.user.findUnique({
       where: {
@@ -562,7 +533,7 @@ export async function getUserByClerkId(clerkId: string): Promise<Prisma.UserGetP
   }
 }
 
-export async function createNewUser(): Promise<Prisma.UserGetPayload<{}> | null> {
+export async function createNewUser(): Promise<Prisma.UserGetPayload<object> | null> {
   try {
     const clerkUser = await currentUser()
 
@@ -572,7 +543,7 @@ export async function createNewUser(): Promise<Prisma.UserGetPayload<{}> | null>
 
     const newUser = await prisma.user.upsert({
       where: { clerkId: clerkUser.id },
-      update: {},
+      update: object,
       create: {
         clerkId: clerkUser.id,
         email: clerkUser.primaryEmailAddress?.emailAddress,

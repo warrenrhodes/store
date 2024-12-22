@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
-import { uploadImages } from '@/lib/actions/actions'
+import { uploadImages } from '@/lib/actions/client'
 import { cn } from '@/lib/utils'
 import { reviewSchema, ReviewSchemaType } from '@/lib/validations/reviews'
 import { AlertTriangle, Camera, Loader2, Trash2, X } from 'lucide-react'
@@ -28,8 +28,8 @@ import { Textarea } from '../ui/textarea'
 import { Prisma } from '@naturegift/models'
 
 interface ReviewFormProps {
-  initialData?: Prisma.ReviewGetPayload<{}> | null
-  products: Prisma.ProductGetPayload<{}>[]
+  initialData?: Prisma.ReviewGetPayload<object> | null
+  products: Prisma.ProductGetPayload<object>[]
 }
 
 const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {

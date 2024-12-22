@@ -29,14 +29,10 @@ export async function GET(request: NextRequest, props: { params: Promise<{ path:
     })
 
     // Create and return the streaming response
-    return new NextResponse(
-      // @ts-ignore - TypeScript doesn't recognize ReadableStream from node
-      stream as unknown as ReadableStream,
-      {
-        headers,
-        status: 200,
-      },
-    )
+    return new NextResponse(stream as unknown as ReadableStream, {
+      headers,
+      status: 200,
+    })
   } catch (error) {
     console.error('Error serving image:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

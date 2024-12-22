@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 import { Badge } from '../ui/badge'
 import { Prisma } from '@naturegift/models'
 
-export const shipmentColumns: ColumnDef<Prisma.ShipmentGetPayload<{}>>[] = [
+export const shipmentColumns: ColumnDef<Prisma.ShipmentGetPayload<object>>[] = [
   {
     id: 'select',
     header: ({ table }) => (

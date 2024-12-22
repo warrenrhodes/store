@@ -1,10 +1,11 @@
-import { getUserByClerkId } from '@/lib/actions/actions'
+import { getUserByClerkId } from '@/lib/actions/server'
 import { productSchema } from '@/lib/validations/product'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'
 import { NextRequest, NextResponse } from 'next/server'
 
-export const GET = async (req: NextRequest, { params }: { params: { productId: string } }) => {
+export const GET = async (req: NextRequest, props: { params: Promise<{ productId: string }> }) => {
+  const params = await props.params
   try {
     const { userId } = await auth()
     if (!userId) {
@@ -42,7 +43,11 @@ export const GET = async (req: NextRequest, { params }: { params: { productId: s
   }
 }
 
-export const PATCH = async (req: NextRequest, { params }: { params: { productId: string } }) => {
+export const PATCH = async (
+  req: NextRequest,
+  props: { params: Promise<{ productId: string }> },
+) => {
+  const params = await props.params
   try {
     const { userId } = await auth()
 
@@ -136,7 +141,11 @@ export const PATCH = async (req: NextRequest, { params }: { params: { productId:
   }
 }
 
-export const DELETE = async (req: NextRequest, { params }: { params: { productId: string } }) => {
+export const DELETE = async (
+  req: NextRequest,
+  props: { params: Promise<{ productId: string }> },
+) => {
+  const params = await props.params
   try {
     const { userId } = await auth()
     if (!userId) {

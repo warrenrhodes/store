@@ -9,7 +9,7 @@ import { reviewColumns } from './ReviewColumns'
 import { Prisma } from '@naturegift/models'
 
 interface ReviewListProps {
-  reviews: Prisma.ReviewGetPayload<{}>[]
+  reviews: Prisma.ReviewGetPayload<object>[]
 }
 
 export function ReviewList({ reviews }: ReviewListProps) {

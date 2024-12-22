@@ -1,5 +1,5 @@
 import { PromotionsList } from '@/components/promotions/PromotionsList'
-import { getPromotions } from '@/lib/actions/actions'
+import { getPromotions } from '@/lib/actions/server'
 
 export default async function PromotionsPage() {
   const promotions = await getPromotions()

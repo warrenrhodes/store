@@ -28,6 +28,7 @@ import {
 import { NavMain } from './NavMain'
 import { NavUser } from './NavUser'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 const data = {
   navMain: [
@@ -105,7 +106,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="/">
+              <Link href="/">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                   <BaggageClaim className="size-4" />
                 </div>
@@ -113,7 +114,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <span className="truncate font-semibold">{"Nature's Gift"}</span>
                   <span className="truncate text-xs">Enterprise</span>
                 </div>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

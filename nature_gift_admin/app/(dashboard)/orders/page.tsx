@@ -1,9 +1,9 @@
 import { DataTable } from '@/components/custom-ui/DataTable'
 import { columns } from '@/components/orders/OrderColumns'
 import { Separator } from '@/components/ui/separator'
-import { getOrders } from '@/lib/actions/actions'
+import { getOrders } from '@/lib/actions/server'
 
-const Orders = async () => {
+export default async function Orders() {
   const orders = await getOrders()
   return (
     <div className="sm:px-10 px-2 py-5">
@@ -14,4 +14,4 @@ const Orders = async () => {
   )
 }
 
-export default Orders
+export const dynamic = 'force-dynamic'

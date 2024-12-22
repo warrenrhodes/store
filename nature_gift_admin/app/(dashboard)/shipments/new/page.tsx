@@ -1,5 +1,5 @@
 import ShipmentForm from '@/components/shipments/ShipmentForm'
-import { getShipments } from '@/lib/actions/actions'
+import { getShipments } from '@/lib/actions/server'
 
 export default async function NewShipmentPage() {
   const shipments = await getShipments()

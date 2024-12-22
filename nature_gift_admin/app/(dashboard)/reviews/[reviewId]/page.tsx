@@ -1,5 +1,5 @@
 import ReviewForm from '@/components/reviews/ReviewFrom'
-import { getProducts, getReviewById } from '@/lib/actions/actions'
+import { getProducts, getReviewById } from '@/lib/actions/server'
 
 export default async function EditReviewPage(props: { params: Promise<{ reviewId: string }> }) {
   const params = await props.params

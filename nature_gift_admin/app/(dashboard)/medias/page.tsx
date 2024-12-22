@@ -89,7 +89,7 @@ const AddMedia = () => {
     }
     await Promise.allSettled(updatesPromises).then(results => {
       let isValidRequest: boolean = true
-      results.forEach((result, index) => {
+      results.forEach(result => {
         if (result.status === 'rejected') {
           isValidRequest = false
         }

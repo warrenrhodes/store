@@ -6,7 +6,7 @@ import Delete from '../custom-ui/Delete'
 import Link from 'next/link'
 import { Prisma } from '@naturegift/models'
 
-export const reviewColumns: ColumnDef<Prisma.ReviewGetPayload<{}>>[] = [
+export const reviewColumns: ColumnDef<Prisma.ReviewGetPayload<object>>[] = [
   {
     id: 'select',
     header: ({ table }) => (

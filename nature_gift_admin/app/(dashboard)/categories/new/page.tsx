@@ -1,5 +1,5 @@
 import { CategoryForm } from '@/components/categories/CategoryForm'
-import { getCategories } from '@/lib/actions/actions'
+import { getCategories } from '@/lib/actions/server'
 
 export default async function NewCategoryPage() {
   const categories = await getCategories()

@@ -9,7 +9,7 @@ import { shipmentColumns } from './ShipmentColumns'
 import { Prisma } from '@naturegift/models'
 
 interface ShipmentListProps {
-  shipments: Prisma.ShipmentGetPayload<{}>[]
+  shipments: Prisma.ShipmentGetPayload<object>[]
 }
 
 export function ShipmentList({ shipments }: ShipmentListProps) {

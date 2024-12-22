@@ -39,9 +39,9 @@ import MultiText from '../custom-ui/MultiText'
 import { ContentEditor } from '../custom-ui/ContentEditor'
 
 interface BlogFormProps {
-  initialData?: Prisma.BlogGetPayload<{}> | null
-  categories: Prisma.CategoryGetPayload<{}>[]
-  categoriesOnBlog: Prisma.CategoriesOnBlogsGetPayload<{}>[]
+  initialData?: Prisma.BlogGetPayload<object> | null
+  categories: Prisma.CategoryGetPayload<object>[]
+  categoriesOnBlog: Prisma.CategoriesOnBlogsGetPayload<object>[]
 }
 
 export function BlogForm({ initialData, categories, categoriesOnBlog }: BlogFormProps) {

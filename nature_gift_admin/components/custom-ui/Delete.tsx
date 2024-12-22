@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Trash } from "lucide-react";
 
 import {
@@ -22,16 +21,13 @@ interface DeleteProps {
 }
 
 const Delete: React.FC<DeleteProps> = ({ item, handleDelete }) => {
-  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const onDelete = async () => {
     try {
-      setLoading(true);
       const result = await handleDelete();
 
       if (result) {
-        setLoading(false);
         window.location.href = `/${item}`;
         toast({ description: `${item} deleted` });
       }

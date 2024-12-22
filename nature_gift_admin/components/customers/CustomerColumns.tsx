@@ -4,7 +4,7 @@ import { ColumnDef } from '@tanstack/react-table'
 
 import { Prisma } from '@naturegift/models'
 
-export const columns: ColumnDef<Prisma.UserGetPayload<{}>>[] = [
+export const columns: ColumnDef<Prisma.UserGetPayload<object>>[] = [
   {
     accessorKey: 'clerkId',
     header: 'Clerk ID',

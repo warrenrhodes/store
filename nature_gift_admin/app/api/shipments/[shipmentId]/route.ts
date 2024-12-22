@@ -1,9 +1,10 @@
-import { getUserByClerkId } from '@/lib/actions/actions'
+import { getUserByClerkId } from '@/lib/actions/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'
 import { NextRequest, NextResponse } from 'next/server'
 
-export const GET = async (req: NextRequest, { params }: { params: { shipmentId: string } }) => {
+export const GET = async (req: NextRequest, props: { params: Promise<{ shipmentId: string }> }) => {
+  const params = await props.params
   try {
     const { userId } = await auth()
     if (!userId) {
@@ -29,7 +30,11 @@ export const GET = async (req: NextRequest, { params }: { params: { shipmentId: 
   }
 }
 
-export const PATCH = async (req: NextRequest, { params }: { params: { shipmentId: string } }) => {
+export const PATCH = async (
+  req: NextRequest,
+  props: { params: Promise<{ shipmentId: string }> },
+) => {
+  const params = await props.params
   try {
     const { userId } = await auth()
     if (!userId) {
@@ -57,7 +62,11 @@ export const PATCH = async (req: NextRequest, { params }: { params: { shipmentId
   }
 }
 
-export const DELETE = async (req: NextRequest, { params }: { params: { shipmentId: string } }) => {
+export const DELETE = async (
+  req: NextRequest,
+  props: { params: Promise<{ shipmentId: string }> },
+) => {
+  const params = await props.params
   try {
     const { userId } = await auth()
     if (!userId) {

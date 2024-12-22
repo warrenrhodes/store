@@ -1,10 +1,10 @@
-import { getUserByClerkId } from '@/lib/actions/actions'
+import { getUserByClerkId } from '@/lib/actions/server'
 import { promotionSchema } from '@/lib/validations/promotions'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'
 import { NextRequest, NextResponse } from 'next/server'
 
-export const GET = async (req: NextRequest) => {
+export const GET = async () => {
   try {
     const { userId } = await auth()
 

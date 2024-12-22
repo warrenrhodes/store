@@ -18,7 +18,7 @@ import { Prisma } from '@naturegift/models'
 
 interface ConditionFieldsProps {
   form: UseFormReturn<PromotionSchemaType>
-  products: Prisma.ProductGetPayload<{}>[]
+  products: Prisma.ProductGetPayload<object>[]
 }
 
 export function ConditionFields({ form, products }: ConditionFieldsProps) {

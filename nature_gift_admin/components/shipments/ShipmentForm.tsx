@@ -25,8 +25,8 @@ import { Switch } from '../ui/switch'
 import { SubmitButton } from './components/SubmitButton'
 
 interface ShipmentFormProps {
-  initialData?: Prisma.ShipmentGetPayload<{}> | null
-  shipments?: Prisma.ShipmentGetPayload<{}>[]
+  initialData?: Prisma.ShipmentGetPayload<object> | null
+  shipments?: Prisma.ShipmentGetPayload<object>[]
 }
 
 const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) => {

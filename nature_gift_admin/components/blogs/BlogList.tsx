@@ -8,7 +8,7 @@ import { DataTable } from '../custom-ui/DataTable'
 import { blogsColumns } from './BlogColumn'
 
 interface BlogListProps {
-  blogs: Prisma.BlogGetPayload<{}>[]
+  blogs: Prisma.BlogGetPayload<object>[]
 }
 
 export function BlogList({ blogs }: BlogListProps) {

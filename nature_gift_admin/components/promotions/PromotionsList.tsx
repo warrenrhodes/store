@@ -8,7 +8,7 @@ import { promotionsColumns } from './PromotionsColumn'
 import { Prisma } from '@naturegift/models'
 
 interface PromotionListProps {
-  promotions: Prisma.PromotionGetPayload<{}>[]
+  promotions: Prisma.PromotionGetPayload<object>[]
 }
 
 export function PromotionsList({ promotions }: PromotionListProps) {

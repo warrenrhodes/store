@@ -1,4 +1,4 @@
-import { getUserByClerkId } from '@/lib/actions/actions'
+import { getUserByClerkId } from '@/lib/actions/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'
 import fs from 'fs/promises'
@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url)
     const queryParams = new URLSearchParams(url.search)
 
-    const { action, name, path: filePath } = Object.fromEntries(queryParams)
+    const { action, name } = Object.fromEntries(queryParams)
 
     const uploadsDir = path.join(process.cwd(), 'tmp', userId)
     const files = await fs.readdir(uploadsDir)

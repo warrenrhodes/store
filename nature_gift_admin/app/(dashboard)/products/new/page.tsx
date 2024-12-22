@@ -1,5 +1,5 @@
 import { ProductFormV2 } from '@/components/products/ProductFormV2'
-import { getCategories, getCategoriesOnProduct } from '@/lib/actions/actions'
+import { getCategories, getCategoriesOnProduct } from '@/lib/actions/server'
 
 export default async function NewProductPage() {
   const [categories] = await Promise.all([getCategories(), getCategoriesOnProduct()])

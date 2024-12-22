@@ -8,7 +8,7 @@ import Delete from '../custom-ui/Delete'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 
-export const blogsColumns: ColumnDef<Prisma.BlogGetPayload<{}>>[] = [
+export const blogsColumns: ColumnDef<Prisma.BlogGetPayload<object>>[] = [
   {
     accessorKey: 'title',
     header: ({ column }) => {

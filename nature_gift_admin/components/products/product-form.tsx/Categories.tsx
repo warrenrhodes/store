@@ -7,7 +7,7 @@ import { UseFormReturn } from 'react-hook-form'
 
 interface CategoriesFieldsProps {
   form: UseFormReturn<ProductSchemaType>
-  categories: Prisma.CategoryGetPayload<{}>[]
+  categories: Prisma.CategoryGetPayload<object>[]
 }
 export const CategoriesForm: React.FC<CategoriesFieldsProps> = ({ form, categories }) => {
   return (

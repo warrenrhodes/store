@@ -1,6 +1,5 @@
 import { z } from 'zod'
 const required_error = 'This field cannot be blank'
-const invalid_type_error = 'Invalid type provided for this field'
 
 export const reviewSchema = z.object({
   productId: z.string().min(1, required_error),

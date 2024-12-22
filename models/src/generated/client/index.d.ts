@@ -3725,6 +3725,7 @@ export namespace Prisma {
     url: string | null
     blurDataUrl: string | null
     creatorId: string | null
+    cloudinaryPublicId: string | null
   }
 
   export type MediaMaxAggregateOutputType = {
@@ -3736,6 +3737,7 @@ export namespace Prisma {
     url: string | null
     blurDataUrl: string | null
     creatorId: string | null
+    cloudinaryPublicId: string | null
   }
 
   export type MediaCountAggregateOutputType = {
@@ -3747,6 +3749,7 @@ export namespace Prisma {
     url: number
     blurDataUrl: number
     creatorId: number
+    cloudinaryPublicId: number
     _all: number
   }
 
@@ -3760,6 +3763,7 @@ export namespace Prisma {
     url?: true
     blurDataUrl?: true
     creatorId?: true
+    cloudinaryPublicId?: true
   }
 
   export type MediaMaxAggregateInputType = {
@@ -3771,6 +3775,7 @@ export namespace Prisma {
     url?: true
     blurDataUrl?: true
     creatorId?: true
+    cloudinaryPublicId?: true
   }
 
   export type MediaCountAggregateInputType = {
@@ -3782,6 +3787,7 @@ export namespace Prisma {
     url?: true
     blurDataUrl?: true
     creatorId?: true
+    cloudinaryPublicId?: true
     _all?: true
   }
 
@@ -3866,6 +3872,7 @@ export namespace Prisma {
     url: string
     blurDataUrl: string | null
     creatorId: string
+    cloudinaryPublicId: string | null
     _count: MediaCountAggregateOutputType | null
     _min: MediaMinAggregateOutputType | null
     _max: MediaMaxAggregateOutputType | null
@@ -3894,6 +3901,7 @@ export namespace Prisma {
     url?: boolean
     blurDataUrl?: boolean
     creatorId?: boolean
+    cloudinaryPublicId?: boolean
     products?: boolean | Media$productsArgs<ExtArgs>
     categories?: boolean | Media$categoriesArgs<ExtArgs>
     _count?: boolean | MediaCountOutputTypeDefaultArgs<ExtArgs>
@@ -3909,6 +3917,7 @@ export namespace Prisma {
     url?: boolean
     blurDataUrl?: boolean
     creatorId?: boolean
+    cloudinaryPublicId?: boolean
   }
 
   export type MediaInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3932,6 +3941,7 @@ export namespace Prisma {
       url: string
       blurDataUrl: string | null
       creatorId: string
+      cloudinaryPublicId: string | null
     }, ExtArgs["result"]["media"]>
     composites: {}
   }
@@ -4334,6 +4344,7 @@ export namespace Prisma {
     readonly url: FieldRef<"Media", 'String'>
     readonly blurDataUrl: FieldRef<"Media", 'String'>
     readonly creatorId: FieldRef<"Media", 'String'>
+    readonly cloudinaryPublicId: FieldRef<"Media", 'String'>
   }
     
 
@@ -18570,7 +18581,8 @@ export namespace Prisma {
     updatedAt: 'updatedAt',
     url: 'url',
     blurDataUrl: 'blurDataUrl',
-    creatorId: 'creatorId'
+    creatorId: 'creatorId',
+    cloudinaryPublicId: 'cloudinaryPublicId'
   };
 
   export type MediaScalarFieldEnum = (typeof MediaScalarFieldEnum)[keyof typeof MediaScalarFieldEnum]
@@ -19015,6 +19027,7 @@ export namespace Prisma {
     url?: StringFilter<"Media"> | string
     blurDataUrl?: StringNullableFilter<"Media"> | string | null
     creatorId?: StringFilter<"Media"> | string
+    cloudinaryPublicId?: StringNullableFilter<"Media"> | string | null
     products?: MediasOnProductsListRelationFilter
     categories?: CategoryListRelationFilter
   }
@@ -19028,6 +19041,7 @@ export namespace Prisma {
     url?: SortOrder
     blurDataUrl?: SortOrder
     creatorId?: SortOrder
+    cloudinaryPublicId?: SortOrder
     products?: MediasOnProductsOrderByRelationAggregateInput
     categories?: CategoryOrderByRelationAggregateInput
   }
@@ -19044,6 +19058,7 @@ export namespace Prisma {
     url?: StringFilter<"Media"> | string
     blurDataUrl?: StringNullableFilter<"Media"> | string | null
     creatorId?: StringFilter<"Media"> | string
+    cloudinaryPublicId?: StringNullableFilter<"Media"> | string | null
     products?: MediasOnProductsListRelationFilter
     categories?: CategoryListRelationFilter
   }, "id" | "fileName">
@@ -19057,6 +19072,7 @@ export namespace Prisma {
     url?: SortOrder
     blurDataUrl?: SortOrder
     creatorId?: SortOrder
+    cloudinaryPublicId?: SortOrder
     _count?: MediaCountOrderByAggregateInput
     _max?: MediaMaxOrderByAggregateInput
     _min?: MediaMinOrderByAggregateInput
@@ -19074,6 +19090,7 @@ export namespace Prisma {
     url?: StringWithAggregatesFilter<"Media"> | string
     blurDataUrl?: StringNullableWithAggregatesFilter<"Media"> | string | null
     creatorId?: StringWithAggregatesFilter<"Media"> | string
+    cloudinaryPublicId?: StringNullableWithAggregatesFilter<"Media"> | string | null
   }
 
   export type ShipmentWhereInput = {
@@ -20121,6 +20138,7 @@ export namespace Prisma {
     url: string
     blurDataUrl?: string | null
     creatorId: string
+    cloudinaryPublicId?: string | null
     products?: MediasOnProductsCreateNestedManyWithoutMediaInput
     categories?: CategoryCreateNestedManyWithoutImageInput
   }
@@ -20134,6 +20152,7 @@ export namespace Prisma {
     url: string
     blurDataUrl?: string | null
     creatorId: string
+    cloudinaryPublicId?: string | null
     products?: MediasOnProductsUncheckedCreateNestedManyWithoutMediaInput
     categories?: CategoryUncheckedCreateNestedManyWithoutImageInput
   }
@@ -20146,6 +20165,7 @@ export namespace Prisma {
     url?: StringFieldUpdateOperationsInput | string
     blurDataUrl?: NullableStringFieldUpdateOperationsInput | string | null
     creatorId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
     products?: MediasOnProductsUpdateManyWithoutMediaNestedInput
     categories?: CategoryUpdateManyWithoutImageNestedInput
   }
@@ -20158,6 +20178,7 @@ export namespace Prisma {
     url?: StringFieldUpdateOperationsInput | string
     blurDataUrl?: NullableStringFieldUpdateOperationsInput | string | null
     creatorId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
     products?: MediasOnProductsUncheckedUpdateManyWithoutMediaNestedInput
     categories?: CategoryUncheckedUpdateManyWithoutImageNestedInput
   }
@@ -20171,6 +20192,7 @@ export namespace Prisma {
     url: string
     blurDataUrl?: string | null
     creatorId: string
+    cloudinaryPublicId?: string | null
   }
 
   export type MediaUpdateManyMutationInput = {
@@ -20181,6 +20203,7 @@ export namespace Prisma {
     url?: StringFieldUpdateOperationsInput | string
     blurDataUrl?: NullableStringFieldUpdateOperationsInput | string | null
     creatorId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type MediaUncheckedUpdateManyInput = {
@@ -20191,6 +20214,7 @@ export namespace Prisma {
     url?: StringFieldUpdateOperationsInput | string
     blurDataUrl?: NullableStringFieldUpdateOperationsInput | string | null
     creatorId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type ShipmentCreateInput = {
@@ -21379,6 +21403,7 @@ export namespace Prisma {
     url?: SortOrder
     blurDataUrl?: SortOrder
     creatorId?: SortOrder
+    cloudinaryPublicId?: SortOrder
   }
 
   export type MediaMaxOrderByAggregateInput = {
@@ -21390,6 +21415,7 @@ export namespace Prisma {
     url?: SortOrder
     blurDataUrl?: SortOrder
     creatorId?: SortOrder
+    cloudinaryPublicId?: SortOrder
   }
 
   export type MediaMinOrderByAggregateInput = {
@@ -21401,6 +21427,7 @@ export namespace Prisma {
     url?: SortOrder
     blurDataUrl?: SortOrder
     creatorId?: SortOrder
+    cloudinaryPublicId?: SortOrder
   }
 
   export type StringWithAggregatesFilter<$PrismaModel = never> = {
@@ -24430,6 +24457,7 @@ export namespace Prisma {
     url: string
     blurDataUrl?: string | null
     creatorId: string
+    cloudinaryPublicId?: string | null
     products?: MediasOnProductsCreateNestedManyWithoutMediaInput
   }
 
@@ -24442,6 +24470,7 @@ export namespace Prisma {
     url: string
     blurDataUrl?: string | null
     creatorId: string
+    cloudinaryPublicId?: string | null
     products?: MediasOnProductsUncheckedCreateNestedManyWithoutMediaInput
   }
 
@@ -24594,6 +24623,7 @@ export namespace Prisma {
     url?: StringFieldUpdateOperationsInput | string
     blurDataUrl?: NullableStringFieldUpdateOperationsInput | string | null
     creatorId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
     products?: MediasOnProductsUpdateManyWithoutMediaNestedInput
   }
 
@@ -24605,6 +24635,7 @@ export namespace Prisma {
     url?: StringFieldUpdateOperationsInput | string
     blurDataUrl?: NullableStringFieldUpdateOperationsInput | string | null
     creatorId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
     products?: MediasOnProductsUncheckedUpdateManyWithoutMediaNestedInput
   }
 
@@ -26167,6 +26198,7 @@ export namespace Prisma {
     url: string
     blurDataUrl?: string | null
     creatorId: string
+    cloudinaryPublicId?: string | null
     categories?: CategoryCreateNestedManyWithoutImageInput
   }
 
@@ -26179,6 +26211,7 @@ export namespace Prisma {
     url: string
     blurDataUrl?: string | null
     creatorId: string
+    cloudinaryPublicId?: string | null
     categories?: CategoryUncheckedCreateNestedManyWithoutImageInput
   }
 
@@ -26265,6 +26298,7 @@ export namespace Prisma {
     url?: StringFieldUpdateOperationsInput | string
     blurDataUrl?: NullableStringFieldUpdateOperationsInput | string | null
     creatorId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
     categories?: CategoryUpdateManyWithoutImageNestedInput
   }
 
@@ -26276,6 +26310,7 @@ export namespace Prisma {
     url?: StringFieldUpdateOperationsInput | string
     blurDataUrl?: NullableStringFieldUpdateOperationsInput | string | null
     creatorId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
     categories?: CategoryUncheckedUpdateManyWithoutImageNestedInput
   }
 

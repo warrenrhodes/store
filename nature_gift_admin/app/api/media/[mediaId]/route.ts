@@ -1,9 +1,8 @@
-import { getUserByClerkId } from '@/lib/actions/actions'
+import { getUserByClerkId } from '@/lib/actions/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'
-import fs from 'fs'
 import { NextRequest, NextResponse } from 'next/server'
-import path from 'path'
+import cloudinary from '@/lib/cloudinary'
 
 export const DELETE = async (req: NextRequest, props: { params: Promise<{ mediaId: string }> }) => {
   const params = await props.params
@@ -31,20 +30,23 @@ export const DELETE = async (req: NextRequest, props: { params: Promise<{ mediaI
       })
     }
 
+    // Delete from Cloudinary if public_id exists
+    if (media.cloudinaryPublicId) {
+      await cloudinary.uploader.destroy(media.cloudinaryPublicId)
+    }
+
     // Delete media and update products in a transaction
     await prisma.$transaction(
       async (tx: {
         media: { delete: (arg0: { where: { id: string } }) => any }
         mediasOnProducts: { deleteMany: (arg0: { where: { mediaId: string } }) => any }
       }) => {
-        // Delete the media
         await tx.media.delete({
           where: {
             id: params.mediaId,
           },
         })
 
-        // Update products that reference this media
         await tx.mediasOnProducts.deleteMany({
           where: {
             mediaId: params.mediaId,
@@ -52,15 +54,6 @@ export const DELETE = async (req: NextRequest, props: { params: Promise<{ mediaI
         })
       },
     )
-
-    const userDir = path.join(process.cwd(), 'tmp', userId)
-    if (!fs.existsSync(userDir)) {
-      return new NextResponse('Internal error', { status: 500 })
-    }
-
-    // Deletes the local file
-    const filePath = path.join(process.cwd(), 'tmp', userId, media.fileName)
-    fs.unlinkSync(filePath)
 
     return new NextResponse('Media is deleted', { status: 200 })
   } catch (err) {

@@ -17,16 +17,17 @@ enum MediaType {
 }
 
 model Media {
-  id          String             @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt   DateTime           @default(now())
-  fileName    String             @unique(map: "fileName_1")
-  products    MediasOnProducts[]
-  categories  Category[]
-  type        MediaType
-  updatedAt   DateTime           @updatedAt
-  url         String
-  blurDataUrl String?
-  creatorId   String
+  id                 String             @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt          DateTime           @default(now())
+  fileName           String             @unique(map: "fileName_1")
+  products           MediasOnProducts[]
+  categories         Category[]
+  type               MediaType
+  updatedAt          DateTime           @updatedAt
+  url                String
+  blurDataUrl        String?
+  creatorId          String
+  cloudinaryPublicId String?
 }
 
 // --------------------------------shipment model------------------------------------

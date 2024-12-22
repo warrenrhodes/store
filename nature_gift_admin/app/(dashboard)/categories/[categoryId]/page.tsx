@@ -1,5 +1,5 @@
 import { CategoryForm } from '@/components/categories/CategoryForm'
-import { getCategories, getCategoryById } from '@/lib/actions/actions'
+import { getCategories, getCategoryById } from '@/lib/actions/server'
 import { notFound } from 'next/navigation'
 
 export default async function EditCategoryPage(props: { params: Promise<{ categoryId: string }> }) {

@@ -1,20 +1,16 @@
-import SalesChart from "@/components/custom-ui/SalesChart";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import {
-  getSalesPerMonth,
-  getTotalCustomers,
-  getTotalSales,
-} from "@/lib/actions/actions";
-import { priceFormatted } from "@/lib/utils/utils";
-import { CircleDollarSign, ShoppingBag, UserRound } from "lucide-react";
+import SalesChart from '@/components/custom-ui/SalesChart'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { getSalesPerMonth, getTotalCustomers, getTotalSales } from '@/lib/actions/server'
+import { priceFormatted } from '@/lib/utils/utils'
+import { CircleDollarSign, ShoppingBag, UserRound } from 'lucide-react'
 
 export default async function Home() {
-  const totalRevenue = await getTotalSales().then((data) => data.totalRevenue);
-  const totalOrders = await getTotalSales().then((data) => data.totalOrders);
-  const totalCustomers = await getTotalCustomers();
+  const totalRevenue = await getTotalSales().then(data => data.totalRevenue)
+  const totalOrders = await getTotalSales().then(data => data.totalOrders)
+  const totalCustomers = await getTotalCustomers()
 
-  const graphData = await getSalesPerMonth();
+  const graphData = await getSalesPerMonth()
 
   return (
     <div className="px-8 py-10">
@@ -62,5 +58,5 @@ export default async function Home() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

@@ -52,33 +52,6 @@ export const getSalesPerMonth = async () => {
   return graphData
 }
 
-export const getMediaById = async (mediaId: string): Promise<string | null> => {
-  const media = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/media/${mediaId}`)
-  if (media.ok) {
-    const url = await media.json()
-    return url.mediaUrl
-  }
-  return null
-}
-
-export const uploadImages = async (files: File[]): Promise<string | null> => {
-  const formData = new FormData()
-  files.forEach((file, index) => {
-    formData.append(`files`, file)
-  })
-  const result = await fetch('/api/media/upload', {
-    method: 'POST',
-    body: formData,
-  })
-
-  if (result.ok) {
-    const data = await result.json()
-    console.log(data.files[0].file.url)
-    return data.files[0].file.url
-  }
-  return null
-}
-
 export async function getProducts(): Promise<Prisma.ProductGetPayload<{}>[]> {
   try {
     const { userId } = await auth()
@@ -284,26 +257,6 @@ export async function getBlogs(): Promise<Prisma.BlogGetPayload<{}>[]> {
   }
 }
 
-export async function getMedias(): Promise<Prisma.MediaGetPayload<{}>[]> {
-  try {
-    const { userId } = await auth()
-    if (!userId) return []
-
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) return []
-
-    const medias = await prisma.media.findMany({
-      where: {
-        creatorId: _currentUser.id,
-      },
-    })
-    return medias
-  } catch (error) {
-    console.error('Failed to fetch medias:', error)
-    return []
-  }
-}
-
 export async function getReviews(): Promise<Prisma.ReviewGetPayload<{}>[]> {
   try {
     const { userId } = await auth()
@@ -404,34 +357,34 @@ export async function getOrders(): Promise<IOrder[]> {
   }
 }
 
-export async function getOrderItemsOfOrder(params: {
-  orderId: string
-}): Promise<Prisma.OrderItemGetPayload<{}>[]> {
-  try {
-    const { userId } = await auth()
-    if (!userId) return []
+// export async function getOrderItemsOfOrder(params: {
+//   orderId: string
+// }): Promise<Prisma.OrderItemGetPayload<{}>[]> {
+//   try {
+//     const { userId } = await auth()
+//     if (!userId) return []
 
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) return []
+//     const _currentUser = await getUserByClerkId(userId)
+//     if (!_currentUser?.id) return []
 
-    const orderItems = await prisma.orderItem.findMany({
-      where: {
-        orderId: params.orderId,
-        items: {
-          some: {
-            product: {
-              partnerId: _currentUser.id,
-            },
-          },
-        },
-      },
-    })
-    return orderItems
-  } catch (error) {
-    console.error(`Failed to fetch orderItems of orderId ${params.orderId}:`, error)
-    return []
-  }
-}
+//     const orderItems = await prisma.orderItem.findMany({
+//       where: {
+//         orderId: params.orderId,
+//         items: {
+//           some: {
+//             product: {
+//               partnerId: _currentUser.id,
+//             },
+//           },
+//         },
+//       },
+//     })
+//     return orderItems
+//   } catch (error) {
+//     console.error(`Failed to fetch orderItems of orderId ${params.orderId}:`, error)
+//     return []
+//   }
+// }
 
 export async function getMediasOfProduct(
   productId: string,
@@ -586,5 +539,25 @@ export async function createNewUser(): Promise<Prisma.UserGetPayload<{}> | null>
   } catch (error) {
     console.error('Failed to create new user:', error)
     return null
+  }
+}
+
+export async function getMedias(): Promise<Prisma.MediaGetPayload<{}>[]> {
+  try {
+    const { userId } = await auth()
+    if (!userId) return []
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) return []
+
+    const medias = await prisma.media.findMany({
+      where: {
+        creatorId: _currentUser.id,
+      },
+    })
+    return medias
+  } catch (error) {
+    console.error('Failed to fetch medias:', error)
+    return []
   }
 }

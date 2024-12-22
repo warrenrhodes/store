@@ -1,5 +1,5 @@
 import { ProductList } from '@/components/products/ProductList'
-import { getProducts } from '@/lib/actions/actions'
+import { getProducts } from '@/lib/actions/server'
 
 export default async function Products() {
   const products = await getProducts()

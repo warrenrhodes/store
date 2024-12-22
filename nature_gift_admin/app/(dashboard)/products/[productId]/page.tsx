@@ -4,7 +4,7 @@ import {
   getCategoriesOfProduct,
   getMediasOfProduct,
   getProductId,
-} from '@/lib/actions/actions'
+} from '@/lib/actions/server'
 
 export default async function EditProductPage(props: { params: Promise<{ productId: string }> }) {
   const params = await props.params

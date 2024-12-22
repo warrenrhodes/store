@@ -1,18 +1,10 @@
-import { getUserByClerkId } from '@/lib/actions/actions'
+import { getUserByClerkId } from '@/lib/actions/server'
 import { normalizeFileName } from '@/lib/utils/normalize_file_name'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'
 import { MediaType } from '@naturegift/models/generated/client'
-import fs from 'fs'
-import { writeFile } from 'fs/promises'
 import { NextResponse } from 'next/server'
-import path from 'path'
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-}
+import cloudinary from '@/lib/cloudinary'
 
 export async function POST(request: Request) {
   try {
@@ -28,30 +20,54 @@ export async function POST(request: Request) {
     }
 
     const formData = await request.formData()
+
     const files = formData.getAll('files')
     if (!files)
       NextResponse.json({ error: 'Internal error. Files image are empty' }, { status: 500 })
+
     const responses = await Promise.all(
       files.map(async (file: any) => {
         const buffer = Buffer.from(await file.arrayBuffer())
-        const userDir = path.join(process.cwd(), 'tmp', userId)
-
-        if (!fs.existsSync(userDir)) {
-          fs.mkdirSync(userDir, { recursive: true })
-        }
         const fileName = normalizeFileName(file.name)
-        const fileDirectory = `${userDir}/${fileName}`
 
-        // Save to your public directory
-        await writeFile(fileDirectory, buffer)
-        const mediaUrl = `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/tmp/${userId}/${fileName}`
+        const existentMedia = await prisma.media.findFirst({
+          where: {
+            fileName: fileName,
+            creatorId: _currentUser.id,
+          },
+        })
 
+        if (existentMedia) {
+          return existentMedia
+        }
+
+        // Upload to Cloudinary
+        const uploadResponse = await new Promise(async (resolve, reject) => {
+          cloudinary.uploader
+            .upload_stream(
+              {
+                folder: `users/${userId}`,
+                public_id: fileName.split('.')[0], // Remove extension from public_id
+                resource_type: 'auto',
+              },
+              (error, result) => {
+                if (error) reject(error)
+                else resolve(result)
+              },
+            )
+            .end(buffer)
+        })
+
+        const cloudinaryResponse = uploadResponse as any
+        const mediaUrl = cloudinaryResponse.secure_url
+
+        // Generate blur data URL for images
         const { getPlaiceholder } = await import('plaiceholder')
         const { base64 } = !file.type.startsWith('image/')
           ? { base64: null }
           : await getPlaiceholder(buffer)
 
-        // Save to your media collection in the database using Prisma
+        // Save to database
         const media = await prisma.media.upsert({
           where: {
             fileName: fileName,
@@ -63,6 +79,7 @@ export async function POST(request: Request) {
             url: mediaUrl,
             blurDataUrl: base64,
             creatorId: _currentUser.id,
+            cloudinaryPublicId: cloudinaryResponse.public_id,
           },
         })
 

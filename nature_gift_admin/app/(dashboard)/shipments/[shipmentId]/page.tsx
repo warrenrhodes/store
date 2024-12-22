@@ -1,5 +1,5 @@
 import ShipmentForm from '@/components/shipments/ShipmentForm'
-import { getShipmentById } from '@/lib/actions/actions'
+import { getShipmentById } from '@/lib/actions/server'
 import { auth } from '@clerk/nextjs/server'
 import { notFound } from 'next/navigation'
 

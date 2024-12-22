@@ -1,5 +1,5 @@
 import { BlogForm } from '@/components/blogs/BlogForm'
-import { getBlogById, getCategories, getCategoriesOfBlog } from '@/lib/actions/actions'
+import { getBlogById, getCategories, getCategoriesOfBlog } from '@/lib/actions/server'
 import { notFound } from 'next/navigation'
 
 export default async function EditBlogPostPage(props: { params: Promise<{ blogId: string }> }) {

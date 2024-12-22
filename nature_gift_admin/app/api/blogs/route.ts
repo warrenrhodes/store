@@ -1,4 +1,4 @@
-import { getUserByClerkId } from '@/lib/actions/actions'
+import { getUserByClerkId } from '@/lib/actions/server'
 import { generateSlug } from '@/lib/utils/slugify'
 import { blogSchema } from '@/lib/validations/blog'
 import { auth, currentUser } from '@clerk/nextjs/server'

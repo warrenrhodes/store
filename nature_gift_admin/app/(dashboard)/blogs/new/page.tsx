@@ -1,5 +1,5 @@
 import { BlogForm } from '@/components/blogs/BlogForm'
-import { getCategories } from '@/lib/actions/actions'
+import { getCategories } from '@/lib/actions/server'
 
 export default async function NewBlogPage() {
   const [categories] = await Promise.all([getCategories()])

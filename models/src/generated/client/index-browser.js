@@ -118,7 +118,8 @@ exports.Prisma.MediaScalarFieldEnum = {
   updatedAt: 'updatedAt',
   url: 'url',
   blurDataUrl: 'blurDataUrl',
-  creatorId: 'creatorId'
+  creatorId: 'creatorId',
+  cloudinaryPublicId: 'cloudinaryPublicId'
 };
 
 exports.Prisma.ShipmentScalarFieldEnum = {

@@ -1,4 +1,4 @@
-import { getUserByClerkId } from '@/lib/actions/actions'
+import { getUserByClerkId } from '@/lib/actions/server'
 import { reviewSchema } from '@/lib/validations/reviews'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@naturegift/models'

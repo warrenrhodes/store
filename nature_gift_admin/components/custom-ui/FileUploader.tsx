@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { FileType } from '../accordion/CustomAccordionItem'
 import { Button } from '../ui/button'
-import { getMediaById } from '@/lib/actions/actions'
+import { getMediaById } from '@/lib/actions/client'
 import { Prisma } from '@naturegift/models'
 
 export enum MediaIdentity {

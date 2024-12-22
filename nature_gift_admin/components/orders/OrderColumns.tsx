@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import { priceFormatted } from '@/lib/utils/utils'
 import { Link, Badge, Eye } from 'lucide-react'
 import { format } from 'date-fns'
-import { IOrder } from '@/lib/actions/actions'
+import { IOrder } from '@/lib/actions/server'
 import {
   AlertDialog,
   AlertDialogTrigger,

@@ -1,5 +1,5 @@
 import { PromotionFormV2 } from '@/components/promotions/PromotionsFormV2'
-import { getProducts, getPromotionById } from '@/lib/actions/actions'
+import { getProducts, getPromotionById } from '@/lib/actions/server'
 
 export default async function EditPromotionPage(props: {
   params: Promise<{ promotionId: string }>

@@ -1,7 +1,7 @@
 import { DataTable } from '@/components/custom-ui/DataTable'
 import { columns } from '@/components/orders/OrderColumns'
 import { Separator } from '@/components/ui/separator'
-import { getOrders } from '@/lib/actions/actions'
+import { getOrders } from '@/lib/actions/server'
 
 const Orders = async () => {
   const orders = await getOrders()

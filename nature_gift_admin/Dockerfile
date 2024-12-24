@@ -2,27 +2,27 @@
 FROM node:20-alpine AS models-builder-admin
 
 WORKDIR /app/models
-COPY models/package.json models/yarn.lock ./
-RUN yarn install --frozen-lockfile
+COPY models/package.json models/package-lock.json ./
+RUN npm ci --legacy-peer-deps
 COPY models/ ./
-RUN yarn build
+RUN npm run build
 
 # Stage 2: Building the admin
 FROM node:20-alpine AS builder-admin
 
 WORKDIR /app/admin
-COPY nature_gift_admin/package.json nature_gift_admin/yarn.lock ./
+COPY nature_gift_admin/package.json nature_gift_admin/package-lock.json ./
 COPY --from=models-builder-admin /app/models/dist /app/models/dist
 COPY --from=models-builder-admin /app/models/package.json /app/models/package.json
 
 # Install dependencies
-RUN yarn install --frozen-lockfile
+RUN npm ci --legacy-peer-deps
 
 # Copy admin source
 COPY nature_gift_admin/ ./
 
 # Build application
-RUN yarn build
+RUN npm run build
 
 # Stage 3: Production image
 FROM node:20-alpine AS runner-admin
@@ -42,4 +42,4 @@ ENV PORT 3000
 
 EXPOSE 3000
 
-CMD ["yarn", "start"]
+CMD ["npm", "start"]

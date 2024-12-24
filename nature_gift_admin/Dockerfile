@@ -1,5 +1,5 @@
 # Stage 1: Building the models
-FROM node:20-alpine AS models-builder
+FROM node:20-alpine AS models-builder-admin
 
 WORKDIR /app/models
 COPY models/package.json models/yarn.lock ./
@@ -8,12 +8,12 @@ COPY models/ ./
 RUN yarn build
 
 # Stage 2: Building the admin
-FROM node:20-alpine AS builder
+FROM node:20-alpine AS builder-admin
 
 WORKDIR /app/admin
 COPY nature_gift_admin/package.json nature_gift_admin/yarn.lock ./
-COPY --from=models-builder /app/models/dist /app/models/dist
-COPY --from=models-builder /app/models/package.json /app/models/package.json
+COPY --from=models-builder-admin /app/models/dist /app/models/dist
+COPY --from=models-builder-admin /app/models/package.json /app/models/package.json
 
 # Install dependencies
 RUN yarn install --frozen-lockfile
@@ -25,17 +25,17 @@ COPY nature_gift_admin/ ./
 RUN yarn build
 
 # Stage 3: Production image
-FROM node:20-alpine AS runner
+FROM node:20-alpine AS runner-admin
 
 WORKDIR /app
 
 # Copy built application
-COPY --from=builder /app/admin/.next ./.next
-COPY --from=builder /app/admin/node_modules ./node_modules
-COPY --from=builder /app/admin/package.json ./package.json
-COPY --from=builder /app/admin/public ./public
-COPY --from=models-builder /app/models/dist /app/models/dist
-COPY --from=models-builder /app/models/package.json /app/models/package.json
+COPY --from=builder-admin /app/admin/.next ./.next
+COPY --from=builder-admin /app/admin/node_modules ./node_modules
+COPY --from=builder-admin /app/admin/package.json ./package.json
+COPY --from=builder-admin /app/admin/public ./public
+COPY --from=models-builder-admin /app/models/dist /app/models/dist
+COPY --from=models-builder-admin /app/models/package.json /app/models/package.json
 
 ENV NODE_ENV production
 ENV PORT 3000

@@ -1,10 +1,10 @@
 'use client'
 
+import { Prisma } from '@naturegift/models'
 import { motion } from 'framer-motion'
 import { Zap } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useEffect } from 'react'
-import { Prisma } from '@/prisma-models'
 
 export function PromotionBanner({
   promotions,

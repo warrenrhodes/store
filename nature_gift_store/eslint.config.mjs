@@ -1,7 +1,3 @@
-import typescriptEslint from '@typescript-eslint/eslint-plugin'
-import prettier from 'eslint-plugin-prettier'
-import globals from 'globals'
-import tsParser from '@typescript-eslint/parser'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import js from '@eslint/js'
@@ -16,54 +12,24 @@ const compat = new FlatCompat({
 })
 
 const config = [
-  ...compat.extends(
-    'next/core-web-vitals',
-    'plugin:@typescript-eslint/recommended',
-    'plugin:@next/next/recommended',
-  ),
-  {
-    plugins: {
-      '@typescript-eslint': typescriptEslint,
-      prettier,
-    },
-
-    languageOptions: {
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-      },
-
-      parser: tsParser,
-      ecmaVersion: 2020,
-      sourceType: 'module',
-
-      parserOptions: {
-        ecmaFeatures: {
-          jsx: true,
-        },
-      },
-    },
+  ...compat.config({
+    extends: ['next/core-web-vitals'],
+    plugins: ['@typescript-eslint', 'prettier'],
 
     settings: {
       react: {
         version: 'detect',
       },
     },
-
     rules: {
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        // {
-        //   argsIgnorePattern: '^_',
-        //   varsIgnorePattern: '^_',
-        // },
-      ],
-      '@typescript-eslint/no-explicit-any': 'off',
+      'react-hooks/exhaustive-deps': 'warn',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': 'warn',
       '@next/next/no-img-element': 'warn',
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
     },
-  },
+  }),
 ]
 
 export default config

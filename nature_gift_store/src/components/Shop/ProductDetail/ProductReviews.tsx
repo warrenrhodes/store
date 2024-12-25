@@ -66,8 +66,11 @@ export function ProductReviews({ product }: { product: IProduct }) {
             .map(stat => (
               <div key={stat.rating} className="flex items-center gap-4">
                 <div className="w-16 text-sm">{stat.rating} stars</div>
-                <Progress value={(stat.count / ratingStats.total) * 100} className="flex-1" />
-                <div className="w-12 text-sm text-muted-foreground">{stat.count}</div>
+                <Progress
+                  value={Math.round((((stat.count as number) / ratingStats.total) as number) * 100)}
+                  className="flex-1"
+                />
+                <div className="w-12 text-sm text-muted-foreground">{stat.count as number}</div>
               </div>
             ))}
         </div>

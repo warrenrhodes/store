@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "knip": "knip",
-     "prisma:generate": "prisma generate"
+    "prisma:generate": "prisma generate"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.8.0",

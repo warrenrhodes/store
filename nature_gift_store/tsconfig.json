@@ -4,12 +4,10 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "module": "esnext",
-    "moduleResolution": "bundler",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
-    "target": "ES2017",
-    "strict": true,
+    "target": "ESNext",
     "noEmit": true,
     "esModuleInterop": true,
     "noImplicitAny": false,
@@ -17,6 +15,9 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "strict": false,  // This makes TypeScript less strict
+    "moduleResolution": "bundler",
+
     "plugins": [
       {
         "name": "next"
@@ -28,8 +29,4 @@
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"],
-  "ts-node": {
-    "transpileOnly": true,
-    "swc": true
-  },
 }

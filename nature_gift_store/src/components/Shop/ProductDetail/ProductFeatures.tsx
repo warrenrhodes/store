@@ -55,8 +55,8 @@ export function FeaturesForProducts({ product }: { product: IProduct }) {
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
       >
         {features.map(feature => {
-          let LucideIcon = null
           const lucideIcon = iconNames.find(iconName => iconName.toLowerCase() === feature?.icon)
+          let LucideIcon: React.ComponentType<LucideIcons.LucideProps> | null = null
           if (lucideIcon) {
             LucideIcon = icons[lucideIcon as keyof typeof icons]
           }

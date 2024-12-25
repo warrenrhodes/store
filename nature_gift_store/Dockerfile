@@ -1,16 +1,33 @@
 # Stage 1: Building the store
 FROM node:20-alpine AS builder-store
 
-WORKDIR /app/store
-COPY nature_gift_store/package.json nature_gift_store/package-lock.json ./
+# Add build dependencies
+RUN apk add --no-cache libc6-compat
 
-# Install dependencies
+WORKDIR /app/store
+
+# Install dependencies first (better layer caching)
+COPY nature_gift_store/package.json nature_gift_store/package-lock.json ./
 RUN npm ci --legacy-peer-deps
 
-# Copy store source
+# Copy source with proper .dockerignore
 COPY nature_gift_store/ ./
 
-# Build application
+# Set production environment for build
+ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV production
+ENV NEXT_BUILD_TIME=true
+
+ARG DATABASE_URL
+ARG CLERK_SECRET_KEY
+ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+
+
+RUN npm run prisma:generate
+RUN npm run lint
+RUN npx tsc --noEmit
+
+# Build application with error handling
 RUN npm run build
 
 # Stage 2: Production image
@@ -18,15 +35,20 @@ FROM node:20-alpine AS runner-store
 
 WORKDIR /app
 
-# Copy built application
-COPY --from=builder-store /app/store/.next ./.next
-COPY --from=builder-store /app/store/node_modules ./node_modules
-COPY --from=builder-store /app/store/package.json ./package.json
-COPY --from=builder-store /app/store/public ./public
+# Add runtime dependencies
+RUN apk add --no-cache libc6-compat
 
+# Set production environment
 ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
 ENV PORT 3001
+
+# Copy only necessary files
+COPY --from=builder-store /app/store/public ./public
+COPY --from=builder-store /app/store/.next/standalone ./
+COPY --from=builder-store /app/store/.next/static ./.next/static
 
 EXPOSE 3001
 
-CMD ["npm", "start"]
+# Use standalone server
+CMD ["node", "server.js"]

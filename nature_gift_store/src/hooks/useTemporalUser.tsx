@@ -2,10 +2,10 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
 export type TemporalUser = {
-  fullName: string
-  phone: string
+  fullName?: string
+  phone?: string
   email?: string
-  address: string
+  address?: string
   city?: string
 }
 

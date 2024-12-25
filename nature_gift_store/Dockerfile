@@ -5,6 +5,8 @@ WORKDIR /app/models
 COPY models/package.json models/package-lock.json ./
 RUN npm ci --legacy-peer-deps
 COPY models/ ./
+
+RUN npx prisma generate
 RUN npm run build
 
 # Stage 2: Building the store

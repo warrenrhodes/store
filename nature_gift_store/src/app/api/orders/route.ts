@@ -1,4 +1,4 @@
-import { prisma } from '@naturegift/models'
+import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
 
 /// Request to create new order.

@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { ColumnDef } from '@tanstack/react-table'
 import Delete from '../custom-ui/Delete'
 import { cn } from '@/lib/utils'
-import { Prisma } from '@naturegift/models'
+import { Prisma } from '@prisma/client'
 
 export const promotionsColumns: ColumnDef<Prisma.PromotionGetPayload<object>>[] = [
   {

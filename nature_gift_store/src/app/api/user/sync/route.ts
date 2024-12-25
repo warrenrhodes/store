@@ -1,4 +1,4 @@
-import { prisma } from '@naturegift/models'
+import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       },
       include: {
         productWishlist: true,
-        order: {
+        orders: {
           include: {
             items: {
               include: {

@@ -1,4 +1,5 @@
-import { prisma, Prisma } from '@naturegift/models'
+import { Prisma } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export type IPromotion = Prisma.PromotionGetPayload<object>
 export async function getPromotions(): Promise<IPromotion[]> {

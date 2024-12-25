@@ -3,10 +3,9 @@ import { Plus } from 'lucide-react'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
-import { Prisma } from '@naturegift/models'
 import { DataTable } from '../custom-ui/DataTable'
 import { blogsColumns } from './BlogColumn'
-
+import { Prisma } from '@prisma/client'
 interface BlogListProps {
   blogs: Prisma.BlogGetPayload<object>[]
 }

@@ -1,6 +1,6 @@
 import { getUserByClerkId } from '@/lib/actions/server'
 import { auth } from '@clerk/nextjs/server'
-import { prisma } from '@naturegift/models'
+import { prisma } from '@/lib/prisma'
 import fs from 'fs/promises'
 import { NextResponse } from 'next/server'
 import path from 'path'

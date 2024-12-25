@@ -4,7 +4,7 @@ import { Checkbox } from '../ui/checkbox'
 import { Button } from '../ui/button'
 import Delete from '../custom-ui/Delete'
 import Link from 'next/link'
-import { Prisma } from '@naturegift/models'
+import { Prisma } from '@prisma/client'
 
 export const reviewColumns: ColumnDef<Prisma.ReviewGetPayload<object>>[] = [
   {

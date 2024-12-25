@@ -1,4 +1,4 @@
-import { prisma } from '@naturegift/models'
+import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request, params: { params: Promise<{ id: string }> }) {
@@ -7,7 +7,7 @@ export async function GET(request: Request, params: { params: Promise<{ id: stri
       where: { id: (await params.params).id },
       include: {
         productWishlist: true,
-        order: {
+        orders: {
           include: {
             items: {
               include: {
@@ -46,7 +46,7 @@ export async function PATCH(request: Request, params: { params: Promise<{ id: st
       where: { id: (await params.params).id },
       include: {
         productWishlist: true,
-        order: {
+        orders: {
           include: {
             items: {
               include: {

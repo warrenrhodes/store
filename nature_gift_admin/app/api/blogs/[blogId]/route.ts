@@ -1,7 +1,7 @@
 import { getUserByClerkId } from '@/lib/actions/server'
 import { blogSchema } from '@/lib/validations/blog'
 import { auth } from '@clerk/nextjs/server'
-import { prisma } from '@naturegift/models'
+import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 
 export async function GET(req: Request, props: { params: Promise<{ blogId: string }> }) {

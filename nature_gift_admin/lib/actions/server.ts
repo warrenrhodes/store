@@ -1,4 +1,5 @@
-import { Prisma, prisma } from '@naturegift/models'
+import { Prisma } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { connectToDB } from '../mongoDB'
 import { currentUser, auth } from '@clerk/nextjs/server'
 import { object } from 'zod'

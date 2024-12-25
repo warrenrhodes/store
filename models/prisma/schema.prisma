@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/client"
   previewFeatures = ["tracing"]
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
@@ -387,7 +386,7 @@ model User {
   phone           String?
   isAnonymous     Boolean    @default(true)
   productWishlist Wishlist[]
-  order           Order[]
+  orders           Order[]
 }
 
 //------------------ Relation schema --------------------------------

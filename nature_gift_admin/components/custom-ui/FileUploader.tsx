@@ -6,8 +6,7 @@ import { useDropzone } from 'react-dropzone'
 import { FileType } from '../accordion/CustomAccordionItem'
 import { Button } from '../ui/button'
 import { getMediaById } from '@/lib/actions/client'
-import { Prisma } from '@naturegift/models'
-
+import { Prisma } from '@prisma/client'
 export enum MediaIdentity {
   'ID' = 'ID',
   'URL' = 'URL',

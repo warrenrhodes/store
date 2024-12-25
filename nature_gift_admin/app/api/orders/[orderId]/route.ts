@@ -1,6 +1,6 @@
 import { getUserByClerkId } from '@/lib/actions/server'
 import { auth } from '@clerk/nextjs/server'
-import { prisma } from '@naturegift/models'
+import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(req: NextRequest, props: { params: Promise<{ orderId: string }> }) {

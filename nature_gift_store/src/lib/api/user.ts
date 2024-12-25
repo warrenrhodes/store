@@ -1,9 +1,10 @@
-import { Prisma, prisma } from '@naturegift/models'
+import { Prisma } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export type IUser = Prisma.UserGetPayload<{
   include: {
     productWishlist: true
-    order: {
+    orders: {
       include: {
         items: {
           include: {
@@ -32,7 +33,7 @@ export async function getUserByClerkId({ clerkId: clerkId }: { clerkId: string }
       },
       include: {
         productWishlist: true,
-        order: {
+        orders: {
           include: {
             items: {
               include: {

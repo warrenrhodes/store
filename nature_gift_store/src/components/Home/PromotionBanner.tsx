@@ -1,16 +1,12 @@
 'use client'
 
-import { Prisma } from '@naturegift/models'
+import { IPromotion } from '@/lib/api/promotions'
 import { motion } from 'framer-motion'
 import { Zap } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useEffect } from 'react'
 
-export function PromotionBanner({
-  promotions,
-}: {
-  promotions: Prisma.PromotionGetPayload<object>[]
-}) {
+export function PromotionBanner({ promotions }: { promotions: IPromotion[] }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [opacity, setOpacity] = useState(1)
 

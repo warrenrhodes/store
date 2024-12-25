@@ -9,7 +9,7 @@ import { ArrowUpDown, Edit } from 'lucide-react'
 import { Badge } from '../ui/badge'
 import { cn } from '@/lib/utils'
 import { priceFormatted } from '@/lib/utils/utils'
-import { Prisma } from '@naturegift/models'
+import { Prisma } from '@prisma/client'
 
 export const productColumns: ColumnDef<Prisma.ProductGetPayload<object>>[] = [
   {

@@ -1,7 +1,7 @@
 import { getUserByClerkId } from '@/lib/actions/server'
 import { productSchema } from '@/lib/validations/product'
 import { auth } from '@clerk/nextjs/server'
-import { prisma } from '@naturegift/models'
+import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {

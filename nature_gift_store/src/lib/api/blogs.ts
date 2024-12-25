@@ -1,4 +1,5 @@
-import { prisma, Prisma } from '@naturegift/models'
+import { Prisma } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export type IBlog = Prisma.BlogGetPayload<{
   include: {
@@ -119,7 +120,7 @@ export const fetchRelatedBlogs = async (slug: string): Promise<IBlog[] | null> =
             categories: {
               some: {
                 categoryId: {
-                  in: blog.categories.map(c => c.categoryId),
+                  in: blog.categories.map((c: { categoryId: any }) => c.categoryId),
                 },
               },
             },

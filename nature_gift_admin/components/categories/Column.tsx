@@ -5,8 +5,7 @@ import Delete from '../custom-ui/Delete'
 import { ArrowUpDown, Edit } from 'lucide-react'
 import { Badge } from '../ui/badge'
 import Link from 'next/link'
-import { Prisma } from '@naturegift/models'
-
+import { Prisma } from '@prisma/client'
 export const categoryColumns: ColumnDef<Prisma.CategoryGetPayload<object>>[] = [
   {
     id: 'select',

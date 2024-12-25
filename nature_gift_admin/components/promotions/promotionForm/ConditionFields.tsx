@@ -14,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { PromotionSchemaType } from '@/lib/validations/promotions'
 import MultiText from '@/components/custom-ui/MultiText'
-import { Prisma } from '@naturegift/models'
+import { Prisma } from '@prisma/client'
 
 interface ConditionFieldsProps {
   form: UseFormReturn<PromotionSchemaType>

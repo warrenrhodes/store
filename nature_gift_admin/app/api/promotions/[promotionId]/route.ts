@@ -1,7 +1,7 @@
 import { getUserByClerkId } from '@/lib/actions/server'
 import { promotionSchema } from '@/lib/validations/promotions'
 import { auth } from '@clerk/nextjs/server'
-import { prisma } from '@naturegift/models'
+import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const GET = async (

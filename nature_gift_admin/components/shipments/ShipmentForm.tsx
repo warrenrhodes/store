@@ -16,14 +16,13 @@ import {
 import { Input } from '@/components/ui/input'
 import { toast } from '@/hooks/use-toast'
 import { shipmentSchema, ShipmentSchemaType } from '@/lib/validations/shipment'
-import { Prisma } from '@naturegift/models'
 import { Loader2, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import MultiText from '../custom-ui/MultiText'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Switch } from '../ui/switch'
 import { SubmitButton } from './components/SubmitButton'
-
+import { Prisma } from '@prisma/client'
 interface ShipmentFormProps {
   initialData?: Prisma.ShipmentGetPayload<object> | null
   shipments?: Prisma.ShipmentGetPayload<object>[]

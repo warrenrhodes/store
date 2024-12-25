@@ -31,12 +31,12 @@ import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 import { generateSlug } from '@/lib/utils/slugify'
 import { blogSchema, BlogSchemaType } from '@/lib/validations/blog'
-import { Prisma } from '@naturegift/models'
 import { FileType } from '../accordion/CustomAccordionItem'
 import { MediaIdentity, FileUploader } from '../custom-ui/FileUploader'
 import MultiSelect from '../custom-ui/MultiSelect'
 import MultiText from '../custom-ui/MultiText'
 import { ContentEditor } from '../custom-ui/ContentEditor'
+import { Prisma } from '@prisma/client'
 
 interface BlogFormProps {
   initialData?: Prisma.BlogGetPayload<object> | null

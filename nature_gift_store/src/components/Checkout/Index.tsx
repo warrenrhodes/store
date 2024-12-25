@@ -15,7 +15,7 @@ import { OrderSummary as OrderSummaryType } from '@/lib/api/orders'
 import { useCart } from '@/hooks/useCart'
 import { useRouter } from 'next/navigation'
 import { ToastAction } from '@/components/ui/toast'
-import { createOrder, IOrder } from '@/lib/api/orders'
+import { createOrder } from '@/lib/api/orders'
 import { IShipment } from '@/lib/api/shipments'
 import { CheckoutSteps } from './CheckoutSteps'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -52,7 +52,7 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
       return
     }
     setIsLoading(true)
-    const order: IOrder = {
+    const order = {
       deliveryInfo: {
         address: formData.address,
         deliveryDate: formData.deliveryDate,

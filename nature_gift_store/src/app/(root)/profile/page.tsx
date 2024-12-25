@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Image from 'next/image'
 import { FAKE_BLUR } from '@/lib/utils/constants'
+import { IOrder, IOrderItem } from '@/lib/api/orders'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -57,6 +58,7 @@ function TabsWrapper() {
   const { user } = useCurrentUser()
   const searchParams = useSearchParams()
   const tabs = searchParams.get('tabs')
+  const orders = user?.orders
   return (
     <Tabs defaultValue={tabs || 'orders'} className="w-full">
       <TabsList className="grid w-full grid-cols-3 mb-8">
@@ -69,7 +71,7 @@ function TabsWrapper() {
 
       <TabsContent value="orders">
         <ScrollArea className="h-[600px] pr-4">
-          {!user?.order || user.order.length === 0 ? (
+          {!orders || orders.length === 0 ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
                 <h3 className="mt-4 text-lg font-medium">You have no orders</h3>
@@ -82,7 +84,7 @@ function TabsWrapper() {
               </div>
             </div>
           ) : (
-            user?.order?.map(order => (
+            orders?.map((order: IOrder) => (
               <motion.div key={order.id} variants={itemVariants} className="mb-6">
                 <Card>
                   <CardHeader>
@@ -97,7 +99,7 @@ function TabsWrapper() {
                     </p>
                   </CardHeader>
                   <CardContent>
-                    {order.items.map(item => (
+                    {order.items.map((item: IOrderItem) => (
                       <div key={item.id} className="flex items-center gap-4 mb-4">
                         <div className="relative aspect-square w-24 rounded-lg overflow-hidden">
                           <Image
@@ -224,7 +226,7 @@ export default function ProfilePage() {
               <div className="mt-6 space-y-4">
                 <div className="flex items-center gap-3 text-muted-foreground">
                   <Package className="h-5 w-5" />
-                  <span>{user?.order?.length || 0} Orders</span>
+                  <span>{user?.orders?.length || 0} Orders</span>
                 </div>
               </div>
             </CardContent>

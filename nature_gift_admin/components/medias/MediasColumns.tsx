@@ -3,7 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table'
 import Delete from '../custom-ui/Delete'
 import Image from 'next/image'
-import { Prisma } from '@naturegift/models'
+import { Prisma } from '@prisma/client'
 export const mediColumns: ColumnDef<Prisma.MediaGetPayload<object>>[] = [
   {
     accessorKey: 'url',

@@ -32,7 +32,7 @@ import { CategorySchemaType, categorySchema } from '@/lib/validations/category'
 import CustomAccordion from '../accordion/CustomAccordion'
 import { FileType } from '../accordion/CustomAccordionItem'
 import { MediaIdentity, FileUploader } from '../custom-ui/FileUploader'
-import { Prisma } from '@naturegift/models'
+import { Prisma } from '@prisma/client'
 
 interface CategoryFormProps {
   initialData?: Prisma.CategoryGetPayload<object>

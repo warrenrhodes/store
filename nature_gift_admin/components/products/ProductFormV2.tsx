@@ -37,8 +37,7 @@ import { InventoryFields } from './product-form.tsx/InventoryFields'
 import { MetadataFields } from './product-form.tsx/MetadataFields'
 import { PriceFields } from './product-form.tsx/PriceFields'
 import { VariantFields } from './product-form.tsx/Variant'
-import { Prisma } from '@naturegift/models'
-
+import { Prisma } from '@prisma/client'
 interface ProductFormProps {
   initialData?: Prisma.ProductGetPayload<object> | null
   categories: Prisma.CategoryGetPayload<object>[]

@@ -4,10 +4,9 @@ import Link from 'next/link'
 import { Plus } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-
+import { Prisma } from '@prisma/client'
 import { DataTable } from '../custom-ui/DataTable'
 import { productColumns } from './ProductColumns'
-import { Prisma } from '@naturegift/models'
 
 interface ProductListProps {
   products: Prisma.ProductGetPayload<object>[]

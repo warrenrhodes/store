@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { PromotionCalculator } from '@/lib/utils/promotion-calculator'
-import { prisma } from '@naturegift/models'
+import { prisma } from '@/lib/prisma'
 
 export async function POST(req: Request) {
   try {

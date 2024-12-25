@@ -5,8 +5,7 @@ import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '../custom-ui/DataTable'
 import { promotionsColumns } from './PromotionsColumn'
-import { Prisma } from '@naturegift/models'
-
+import { Prisma } from '@prisma/client'
 interface PromotionListProps {
   promotions: Prisma.PromotionGetPayload<object>[]
 }

@@ -3,7 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { shipmentSchema } from '@/lib/validations/shipment'
-import { prisma } from '@naturegift/models'
+import { prisma } from '@/lib/prisma'
 import { getUserByClerkId } from '@/lib/actions/server'
 
 export const POST = async (req: NextRequest) => {

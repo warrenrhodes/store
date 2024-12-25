@@ -1,8 +1,7 @@
 'use client'
 
+import { Prisma } from '@prisma/client'
 import { ColumnDef } from '@tanstack/react-table'
-
-import { Prisma } from '@naturegift/models'
 
 export const columns: ColumnDef<Prisma.UserGetPayload<object>>[] = [
   {

@@ -1,7 +1,7 @@
 import { getUserByClerkId } from '@/lib/actions/server'
 import { categorySchema } from '@/lib/validations/category'
 import { auth } from '@clerk/nextjs/server'
-import { prisma } from '@naturegift/models'
+import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const GET = async (req: NextRequest, props: { params: Promise<{ categoryId: string }> }) => {

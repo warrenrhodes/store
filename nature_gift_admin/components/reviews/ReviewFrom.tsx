@@ -25,8 +25,7 @@ import { Checkbox } from '../ui/checkbox'
 import { Label } from '../ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Textarea } from '../ui/textarea'
-import { Prisma } from '@naturegift/models'
-
+import { Prisma } from '@prisma/client'
 interface ReviewFormProps {
   initialData?: Prisma.ReviewGetPayload<object> | null
   products: Prisma.ProductGetPayload<object>[]

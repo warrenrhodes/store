@@ -2,7 +2,7 @@ import { DataTable } from '@/components/custom-ui/DataTable'
 import { columns } from '@/components/customers/CustomerColumns'
 import { Separator } from '@/components/ui/separator'
 import { auth } from '@clerk/nextjs/server'
-import { prisma } from '@naturegift/models'
+import { prisma } from '@/lib/prisma'
 
 export default async function Customers() {
   const { userId } = await auth()

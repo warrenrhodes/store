@@ -1,12 +1,12 @@
 import { toast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
-import { Prisma } from '@naturegift/models'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown, Copy, Edit } from 'lucide-react'
 import Link from 'next/link'
 import Delete from '../custom-ui/Delete'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
+import { Prisma } from '@prisma/client'
 
 export const blogsColumns: ColumnDef<Prisma.BlogGetPayload<object>>[] = [
   {

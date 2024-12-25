@@ -1,10 +1,9 @@
 import MultiSelect from '@/components/custom-ui/MultiSelect'
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
 import { ProductSchemaType } from '@/lib/validations/product'
-import { Prisma } from '@naturegift/models'
 import { AlertTriangle } from 'lucide-react'
 import { UseFormReturn } from 'react-hook-form'
-
+import { Prisma } from '@prisma/client'
 interface CategoriesFieldsProps {
   form: UseFormReturn<ProductSchemaType>
   categories: Prisma.CategoryGetPayload<object>[]

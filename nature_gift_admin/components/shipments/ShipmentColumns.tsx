@@ -5,7 +5,7 @@ import Delete from '../custom-ui/Delete'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Badge } from '../ui/badge'
-import { Prisma } from '@naturegift/models'
+import { Prisma } from '@prisma/client'
 
 export const shipmentColumns: ColumnDef<Prisma.ShipmentGetPayload<object>>[] = [
   {

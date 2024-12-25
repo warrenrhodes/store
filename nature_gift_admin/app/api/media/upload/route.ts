@@ -1,12 +1,12 @@
 import { getUserByClerkId } from '@/lib/actions/server'
 import { normalizeFileName } from '@/lib/utils/normalize_file_name'
 import { auth } from '@clerk/nextjs/server'
-import { prisma } from '@naturegift/models'
-import { MediaType } from '@naturegift/models/generated/client'
+import { prisma } from '@/lib/prisma'
 import fs from 'fs'
 import { writeFile } from 'fs/promises'
 import { NextResponse } from 'next/server'
 import path from 'path'
+import { MediaType } from '@prisma/client'
 
 export const config = {
   api: {

@@ -35,8 +35,7 @@ import { ConditionFields } from './promotionForm/ConditionFields'
 import { generatePromoCode } from '@/lib/utils/generate-promo'
 import { useToast } from '@/hooks/use-toast'
 import { ToastAction } from '../ui/toast'
-import { Prisma } from '@naturegift/models'
-
+import { Prisma } from '@prisma/client'
 interface PromotionFormProps {
   initialData?: Prisma.PromotionGetPayload<object> | null
   products: Prisma.ProductGetPayload<object>[]

@@ -33,6 +33,7 @@ interface ReviewFormProps {
 
 const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
   const router = useRouter()
+
   const { toast } = useToast()
   const [imagePreview, setImagePreview] = useState<File | null>(null)
   const [isLoading, setLoading] = useState(false)
@@ -84,6 +85,9 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
       const url = initialData ? `/api/reviews/${initialData.id}` : '/api/reviews'
       const res = await fetch(url, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(values),
       })
       if (res.ok) {

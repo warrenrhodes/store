@@ -43,6 +43,7 @@ interface PromotionFormProps {
 
 export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
   const router = useRouter()
+
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
 

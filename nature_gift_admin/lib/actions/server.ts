@@ -330,12 +330,6 @@ export async function getOrders(): Promise<IOrder[]> {
           },
           include: {
             product: {
-              select: {
-                id: true,
-                title: true,
-                price: true,
-                partnerId: true,
-              },
               include: {
                 media: {
                   include: {
@@ -509,6 +503,7 @@ export async function getUserByClerkId(clerkId: string): Promise<Prisma.UserGetP
         clerkId: clerkId,
       },
     })
+    console.log('user', user)
     return user || createNewUser()
   } catch (error) {
     console.error('Failed to fetch promotion:', error)
@@ -519,6 +514,8 @@ export async function getUserByClerkId(clerkId: string): Promise<Prisma.UserGetP
 export async function createNewUser(): Promise<Prisma.UserGetPayload<{}> | null> {
   try {
     const clerkUser = await currentUser()
+
+    console.log('clerkUser', clerkUser)
 
     if (!clerkUser) {
       return null
@@ -536,6 +533,8 @@ export async function createNewUser(): Promise<Prisma.UserGetPayload<{}> | null>
         isAnonymous: false,
       },
     })
+
+    console.log('newUser', newUser)
     return newUser
   } catch (error) {
     console.error('Failed to create new user:', error)

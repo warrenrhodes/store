@@ -1,4 +1,4 @@
-export const uploadImages = async (files: File[]): Promise<string | null> => {
+export const uploadImages = async (files: File[], token: string): Promise<string | null> => {
   const formData = new FormData()
   files.forEach(file => {
     formData.append(`files`, file)
@@ -6,6 +6,9 @@ export const uploadImages = async (files: File[]): Promise<string | null> => {
   const result = await fetch('/api/media/upload', {
     method: 'POST',
     body: formData,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   })
 
   if (result.ok) {
@@ -16,8 +19,13 @@ export const uploadImages = async (files: File[]): Promise<string | null> => {
   return null
 }
 
-export const getMediaById = async (mediaId: string): Promise<string | null> => {
-  const media = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/media/${mediaId}`)
+export const getMediaById = async (mediaId: string, token: string): Promise<string | null> => {
+  const media = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/media/${mediaId}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
   if (media.ok) {
     const url = await media.json()
     return url.mediaUrl

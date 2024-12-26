@@ -8,7 +8,8 @@ import { SimpleLoader } from '@/components/custom-ui/Loader'
 import { Plus, XCircle } from 'lucide-react'
 import DialogBox from '@/components/custom-ui/CustomDialogue'
 import { useToast } from '@/hooks/use-toast'
-import { Prisma } from '@naturegift/models'
+import { Prisma } from '@prisma/client'
+import { useAuth } from '@clerk/nextjs'
 
 interface MediaListProps {
   medias: Prisma.MediaGetPayload<{}>[]
@@ -47,6 +48,7 @@ const AddMedia = () => {
   const { toast } = useToast()
   const [files, setFiles] = useState<File[]>([])
   const [uploading, setUploading] = useState(false)
+  const { getToken } = useAuth()
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -61,11 +63,14 @@ const AddMedia = () => {
     await fetch('/api/media/upload', {
       method: 'POST',
       body: formData,
+      headers: {
+        Authorization: `Bearer ${await getToken()}`,
+      },
     })
   }
 
   const handleUpload = async () => {
-    const updatesPromises = []
+    const updatesPromises: Promise<void>[] = []
     setUploading(true)
     for (const file of files) {
       updatesPromises.push(updateFile(file))

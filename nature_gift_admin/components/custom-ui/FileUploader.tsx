@@ -5,8 +5,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { FileType } from '../accordion/CustomAccordionItem'
 import { Button } from '../ui/button'
-import { getMediaById } from '@/lib/actions/client'
 import { Prisma } from '@prisma/client'
+import { useAuth } from '@clerk/nextjs'
+import { getMediaById } from '@/lib/actions/client'
 export enum MediaIdentity {
   'ID' = 'ID',
   'URL' = 'URL',
@@ -284,12 +285,22 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 
 const ImageRender = ({ mediaId, removeFile }: { mediaId: string; removeFile: () => void }) => {
   const [fileUrl, setFileUrl] = useState<string>()
+  const { getToken } = useAuth()
+
+  const fetchImageById = useCallback(
+    async (id: string) => {
+      const token = await getToken()
+      const res = await getMediaById(id, token || '')
+      if (res) {
+        setFileUrl(res)
+      }
+    },
+    [getToken],
+  )
 
   useEffect(() => {
-    getMediaById(mediaId).then(url => {
-      if (url) setFileUrl(url)
-    })
-  }, [mediaId])
+    fetchImageById(mediaId)
+  }, [fetchImageById, mediaId])
   return (
     <div className="relative group">
       <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">

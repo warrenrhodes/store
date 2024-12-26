@@ -10,7 +10,7 @@
     "start": "next start",
     "lint": "next lint",
     "migrate": "migrate-mongo up",
-     "prisma:generate": "prisma generate"
+    "prisma:generate": "prisma generate"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.8.0",

@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   images: {
     remotePatterns: [
       {
@@ -27,8 +28,6 @@ const nextConfig = {
       },
     ]
   },
-  base: '/admin',
-  assetPrefix: '/admin',
   // // Optional: Add custom headers
   async headers() {
     return [

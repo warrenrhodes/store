@@ -30,7 +30,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
 
   React.useEffect(() => {
     onChange(selected)
-  }, [selected])
+  }, [onChange, selected])
 
   const handleUnselect = React.useCallback((data: SelectValue) => {
     setSelected(prev => prev.filter(s => s.value !== data.value))

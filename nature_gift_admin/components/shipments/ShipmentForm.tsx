@@ -59,6 +59,11 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
     try {
       setLoading(true)
       const url = initialData ? `/api/shipments/${initialData.id}` : '/api/shipments'
+      console.log('📤 [shipments_POST] Submitting:', {
+        url,
+        method: 'POST',
+        values,
+      })
       const res = await fetch(url, {
         method: 'POST',
         headers: {
@@ -67,9 +72,20 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
         body: JSON.stringify(values),
       })
 
+      const responseText = await res.text()
+      console.log('📥 [shipments_POST] Raw response:', responseText)
+
       if (!res.ok) {
-        throw new Error(await res.text())
+        console.error('❌ [shipments_POST] Error response:', {
+          status: res.status,
+          statusText: res.statusText,
+          body: responseText,
+        })
+        throw new Error(responseText)
       }
+
+      const data = responseText ? JSON.parse(responseText) : null
+      console.log('✅ [shipments_POST] Success:', data)
 
       toast({
         description: `Shipment ${initialData ? 'updated' : 'created'} successfully`,
@@ -78,8 +94,13 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
 
       router.refresh() // Refresh the page data
       router.push('/shipments')
-    } catch (err) {
-      console.error('[shipments_POST]', err)
+    } catch (err: any) {
+      console.error('❌ [shipments_POST] Error:', {
+        name: err.name,
+        message: err.message,
+        stack: err.stack,
+      })
+
       toast({
         description: err instanceof Error ? err.message : 'Something went wrong! Please try again.',
         variant: 'destructive',

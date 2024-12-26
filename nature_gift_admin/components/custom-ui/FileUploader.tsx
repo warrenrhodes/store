@@ -45,19 +45,22 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         return 'files'
     }
   }
-  const validateFile = (file: File) => {
-    const fileType = file.type.split('/')[0]
-    if (fileType === FileType.IMAGE && ![FileType.IMAGE].includes(fileType)) {
-      return 'Only image files are allowed'
-    }
-    if (fileType === FileType.VIDEO && ![FileType.VIDEO].includes(fileType)) {
-      return 'Only video files are allowed'
-    }
-    if (file.size > maxFileSize) {
-      return `File size must be less than ${maxFileSize / (1024 * 1024)}MB`
-    }
-    return null
-  }
+  const validateFile = useCallback(
+    (file: File) => {
+      const fileType = file.type.split('/')[0]
+      if (fileType === FileType.IMAGE && ![FileType.IMAGE].includes(fileType)) {
+        return 'Only image files are allowed'
+      }
+      if (fileType === FileType.VIDEO && ![FileType.VIDEO].includes(fileType)) {
+        return 'Only video files are allowed'
+      }
+      if (file.size > maxFileSize) {
+        return `File size must be less than ${maxFileSize / (1024 * 1024)}MB`
+      }
+      return null
+    },
+    [maxFileSize],
+  )
 
   const onDrop = useCallback(
     (acceptedFiles: File[], rejectedFiles: any[]) => {
@@ -88,7 +91,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 
       setFiles(prev => [...prev, ...acceptedFiles])
     },
-    [files, maxFiles, maxFileSize, fileType],
+    [files.length, maxFiles, maxFileSize, validateFile],
   )
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

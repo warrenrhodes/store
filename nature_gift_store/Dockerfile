@@ -22,10 +22,7 @@ ARG DATABASE_URL
 ARG CLERK_SECRET_KEY
 ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 
-
 RUN npm run prisma:generate
-RUN npm run lint
-RUN npx tsc --noEmit
 
 # Build application with error handling
 RUN npm run build

@@ -15,7 +15,6 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "strict": false,  // This makes TypeScript less strict
     "moduleResolution": "bundler",
 
     "plugins": [

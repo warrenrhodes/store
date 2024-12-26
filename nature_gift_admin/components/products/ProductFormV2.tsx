@@ -52,6 +52,7 @@ export function ProductFormV2({
   mediasOfProduct,
 }: ProductFormProps) {
   const { toast } = useToast()
+
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 

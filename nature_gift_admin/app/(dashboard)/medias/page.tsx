@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { DataTable } from '@/components/custom-ui/DataTable'
 import { Button } from '@/components/ui/button'
@@ -20,7 +20,7 @@ const Medias = () => {
   const [medias, setMedia] = useState([])
   const { getToken } = useAuth()
 
-  const getMedias = async () => {
+  const getMedias = useCallback(async () => {
     try {
       const res = await fetch('/api/media', {
         headers: {
@@ -34,11 +34,11 @@ const Medias = () => {
       console.log('[media_GET]', err)
       setLoading(false)
     }
-  }
+  }, [getToken])
 
   useEffect(() => {
     getMedias()
-  }, [])
+  }, [getMedias])
 
   return loading ? (
     <Loader />
@@ -71,7 +71,7 @@ const AddMedia = () => {
     setFiles([...files, file])
   }
 
-  const updateFile = async (file: File) => {
+  const updateFile = async (file: File): Promise<void> => {
     const formData = new FormData()
     formData.append('files', file)
 
@@ -82,7 +82,7 @@ const AddMedia = () => {
   }
 
   const handleUpload = async () => {
-    const updatesPromises = []
+    const updatesPromises: Promise<void>[] = []
     setUploading(true)
     for (const file of files) {
       updatesPromises.push(updateFile(file))

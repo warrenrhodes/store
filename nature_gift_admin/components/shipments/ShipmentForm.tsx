@@ -23,12 +23,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Switch } from '../ui/switch'
 import { SubmitButton } from './components/SubmitButton'
 import { Prisma } from '@prisma/client'
+import { useAuth } from '@clerk/nextjs'
 interface ShipmentFormProps {
   initialData?: Prisma.ShipmentGetPayload<object> | null
   shipments?: Prisma.ShipmentGetPayload<object>[]
 }
 
 const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) => {
+  const { getToken } = useAuth()
   const router = useRouter()
   const [isLoading, setLoading] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -68,6 +70,7 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${await getToken()}`,
         },
         body: JSON.stringify(values),
       })
@@ -115,6 +118,9 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
       setIsDeleting(true)
       const res = await fetch(`/api/shipments/${initialData?.id}`, {
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${await getToken()}`,
+        },
       })
 
       if (!res.ok) {

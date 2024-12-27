@@ -37,6 +37,7 @@ import MultiSelect from '../custom-ui/MultiSelect'
 import MultiText from '../custom-ui/MultiText'
 import { ContentEditor } from '../custom-ui/ContentEditor'
 import { Prisma } from '@prisma/client'
+import { useAuth } from '@clerk/nextjs'
 
 interface BlogFormProps {
   initialData?: Prisma.BlogGetPayload<object> | null
@@ -46,6 +47,7 @@ interface BlogFormProps {
 
 export function BlogForm({ initialData, categories, categoriesOnBlog }: BlogFormProps) {
   const router = useRouter()
+  const { getToken } = useAuth()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -103,6 +105,7 @@ export function BlogForm({ initialData, categories, categoriesOnBlog }: BlogForm
         body: JSON.stringify(data),
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${await getToken()}`,
         },
       })
       if (res.ok) {

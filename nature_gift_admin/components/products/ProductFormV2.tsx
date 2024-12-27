@@ -5,6 +5,7 @@ import { Loader2, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useAuth } from '@clerk/nextjs'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -52,6 +53,7 @@ export function ProductFormV2({
   mediasOfProduct,
 }: ProductFormProps) {
   const { toast } = useToast()
+  const { getToken } = useAuth()
 
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
@@ -127,6 +129,7 @@ export function ProductFormV2({
         body: JSON.stringify(data),
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${await getToken()}`,
         },
       })
       if (res.ok) {
@@ -153,6 +156,9 @@ export function ProductFormV2({
   const onDelete = async (): Promise<boolean> => {
     const res = await fetch(`/api/products/${initialData?.id}`, {
       method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${await getToken()}`,
+      },
     })
     return res.ok
   }

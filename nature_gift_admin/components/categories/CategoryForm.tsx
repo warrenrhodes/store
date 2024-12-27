@@ -5,6 +5,7 @@ import { Loader2, Trash2, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useAuth } from '@clerk/nextjs'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -42,6 +43,7 @@ interface CategoryFormProps {
 export function CategoryForm({ initialData, categories }: CategoryFormProps) {
   const router = useRouter()
   const { toast } = useToast()
+  const { getToken } = useAuth()
 
   const [isLoading, setIsLoading] = useState(false)
 
@@ -105,6 +107,7 @@ export function CategoryForm({ initialData, categories }: CategoryFormProps) {
         body: JSON.stringify(data),
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${await getToken()}`,
         },
       })
       if (res.ok) {

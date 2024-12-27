@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
+import { useAuth } from '@clerk/nextjs'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -33,7 +34,7 @@ interface ReviewFormProps {
 
 const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
   const router = useRouter()
-
+  const { getToken } = useAuth()
   const { toast } = useToast()
   const [imagePreview, setImagePreview] = useState<File | null>(null)
   const [isLoading, setLoading] = useState(false)
@@ -70,7 +71,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
     try {
       setLoading(true)
       if (imagePreview) {
-        const imageUrl = await uploadImages([imagePreview])
+        const imageUrl = await uploadImages([imagePreview], (await getToken()) || '')
         if (imageUrl) {
           values.imageUrl = imageUrl
         } else {
@@ -82,11 +83,13 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
           return
         }
       }
+
       const url = initialData ? `/api/reviews/${initialData.id}` : '/api/reviews'
       const res = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${await getToken()}`,
         },
         body: JSON.stringify(values),
       })
@@ -117,6 +120,9 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
   const onDelete = async (): Promise<boolean> => {
     const res = await fetch(`/api/reviews/${initialData?.id}`, {
       method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${await getToken()}`,
+      },
     })
     return res.ok
   }

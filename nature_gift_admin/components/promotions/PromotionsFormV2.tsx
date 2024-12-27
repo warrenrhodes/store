@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { CalendarIcon, Loader2, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { format, subDays } from 'date-fns'
+import { useAuth } from '@clerk/nextjs'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -36,6 +37,7 @@ import { generatePromoCode } from '@/lib/utils/generate-promo'
 import { useToast } from '@/hooks/use-toast'
 import { ToastAction } from '../ui/toast'
 import { Prisma } from '@prisma/client'
+
 interface PromotionFormProps {
   initialData?: Prisma.PromotionGetPayload<object> | null
   products: Prisma.ProductGetPayload<object>[]
@@ -43,7 +45,7 @@ interface PromotionFormProps {
 
 export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
   const router = useRouter()
-
+  const { getToken } = useAuth()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -89,6 +91,7 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
         body: JSON.stringify(data),
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${await getToken()}`,
         },
       })
       if (res.ok) {

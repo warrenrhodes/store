@@ -10,13 +10,21 @@ export const mediColumns: ColumnDef<Prisma.MediaGetPayload<object>>[] = [
     header: 'Media',
     cell: ({ row }) => (
       <div className="h-[50px] relative w-[50px]">
-        <Image
-          src={`${row.original.url}`}
-          alt="media"
-          fill
-          style={{ objectFit: 'fill' }}
-          sizes="(max-width: 120px) 100vw, (max-width: 120px) 50vw, 33vw"
-        />
+        {row.original.type === 'IMAGE' ? (
+          <Image
+            src={`${row.original.url}`}
+            alt="media"
+            fill
+            style={{ objectFit: 'fill' }}
+            sizes="(max-width: 120px) 100vw, (max-width: 120px) 50vw, 33vw"
+          />
+        ) : (
+          <video
+            src={`${row.original.url}`}
+            className="w-full h-full object-cover"
+            onLoadedMetadata={() => URL.revokeObjectURL(`${row.original.url}`)}
+          />
+        )}
       </div>
     ),
   },

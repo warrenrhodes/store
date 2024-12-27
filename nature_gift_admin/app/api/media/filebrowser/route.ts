@@ -1,9 +1,8 @@
 import { getUserByClerkId } from '@/lib/actions/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
-import fs from 'fs/promises'
 import { NextResponse } from 'next/server'
-import path from 'path'
+import cloudinary from '@/lib/cloudinary'
 
 export async function GET(request: Request) {
   try {
@@ -20,44 +19,57 @@ export async function GET(request: Request) {
 
     const url = new URL(request.url)
     const queryParams = new URLSearchParams(url.search)
-
     const { action, name } = Object.fromEntries(queryParams)
 
-    const uploadsDir = path.join(process.cwd(), 'tmp', userId)
-    const files = await fs.readdir(uploadsDir)
-
     if (action === 'fileRemove') {
+      const media = await prisma.media.findFirst({
+        where: {
+          fileName: name,
+          creatorId: _currentUser.id,
+        },
+      })
+
+      if (media?.cloudinaryPublicId) {
+        await cloudinary.uploader.destroy(media.cloudinaryPublicId)
+      }
+
       await prisma.media.deleteMany({
         where: {
           fileName: name,
           creatorId: _currentUser.id,
         },
       })
-      await fs.unlink(path.join(uploadsDir, name))
     }
 
-    const items = await Promise.all(
-      files.map(async file => {
-        const stats = await fs.stat(path.join(uploadsDir, file))
-        return {
-          file: file,
-          changed: stats.mtime,
-          size: stats.size,
-          isImage: /\.(jpg|jpeg|png|gif|webp)$/i.test(file),
-          source: process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL ?? '-',
-          permissions: { read: true },
-          name: file,
-          type: /\.(jpg|jpeg|png|gif|webp)$/i.test(file) ? 'image' : 'video',
-        }
-      }),
-    )
+    // Fetch user's media from database
+    const mediaItems = await prisma.media.findMany({
+      where: {
+        creatorId: _currentUser.id,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    })
+    const items = mediaItems.map(media => {
+      return {
+        file: new URL(media.url).pathname,
+        changed: media.updatedAt,
+        size: 0,
+        isImage: media.type === 'IMAGE',
+        source: media.url,
+        permissions: { read: true },
+        name: media.fileName,
+        type: media.type.toLowerCase(),
+      }
+    })
+
     return NextResponse.json({
       success: true,
       data: {
         sources: [
           {
-            path: `/tmp/${userId}/`,
-            baseurl: process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL,
+            path: '',
+            baseurl: 'https://res.cloudinary.com',
             files: items,
             name: 'default',
             folders: [],

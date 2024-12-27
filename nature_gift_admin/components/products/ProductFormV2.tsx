@@ -121,9 +121,7 @@ export function ProductFormV2({
     }
     setIsLoading(true)
     try {
-      const url = initialData
-        ? `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/products/${initialData.id}`
-        : `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/products`
+      const url = initialData ? `/api/products/${initialData.id}` : `/api/products`
       const res = await fetch(url, {
         method: initialData ? 'PUT' : 'POST',
         body: JSON.stringify(data),

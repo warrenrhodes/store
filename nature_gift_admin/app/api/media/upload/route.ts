@@ -51,8 +51,12 @@ export async function POST(request: Request) {
                 resource_type: 'auto',
               },
               (error, result) => {
-                if (error) reject(error)
-                else resolve(result)
+                if (error) {
+                  console.error('Cloudinary upload error:', error)
+                  reject(error)
+                } else {
+                  resolve(result)
+                }
               },
             )
             .end(buffer)

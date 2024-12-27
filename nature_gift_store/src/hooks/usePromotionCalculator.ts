@@ -20,7 +20,7 @@ const calculatePromotion = async (
   }
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}/api/promotions/calculate${query ? '?' + new URLSearchParams(query).toString() : ''}`,
+    `/api/promotions/calculate${query ? '?' + new URLSearchParams(query).toString() : ''}`,
     {
       method: 'POST',
       headers: {

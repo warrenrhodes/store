@@ -98,9 +98,7 @@ export function CategoryForm({ initialData, categories }: CategoryFormProps) {
   async function onSubmit(data: CategorySchemaType) {
     setIsLoading(true)
     try {
-      const url = initialData
-        ? `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/categories/${initialData.id}`
-        : `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/categories`
+      const url = initialData ? `/api/categories/${initialData.id}` : `/api/categories`
 
       const res = await fetch(url, {
         method: initialData ? 'PUT' : 'POST',

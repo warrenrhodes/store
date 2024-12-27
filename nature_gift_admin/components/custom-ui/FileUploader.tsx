@@ -36,6 +36,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   const [files, setFiles] = useState<(File | string)[]>(mediaIds)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const { getToken } = useAuth()
   const getFileTypeText = (type: FileType) => {
     switch (type) {
       case FileType.IMAGE:
@@ -168,6 +170,9 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     const result = await fetch('/api/media/upload', {
       method: 'POST',
       body: formData,
+      headers: {
+        Authorization: `Bearer ${await getToken()}`,
+      },
     })
     if (result.ok) {
       const data = await result.json()

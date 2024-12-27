@@ -15,6 +15,7 @@ import { Separator } from '@radix-ui/react-separator'
 import { AppSidebar } from '@/components/layout/AppSibar'
 import { Toaster } from '@/components/ui/toaster'
 import localFont from 'next/font/local'
+import React from 'react'
 
 const geistSans = localFont({
   src: '../fonts/GeistVF.woff',

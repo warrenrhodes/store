@@ -20,7 +20,7 @@ export const uploadImages = async (files: File[], token: string): Promise<string
 }
 
 export const getMediaById = async (mediaId: string, token: string): Promise<string | null> => {
-  const media = await fetch(`${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/media/${mediaId}`, {
+  const media = await fetch(`/api/media/${mediaId}`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,

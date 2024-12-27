@@ -9,3 +9,5 @@ export default async function MediasPage() {
     </div>
   )
 }
+
+export const dynamic = 'force-dynamic'

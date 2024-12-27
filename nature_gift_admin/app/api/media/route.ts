@@ -37,3 +37,5 @@ export const GET = async (req: NextRequest) => {
     await prisma.$disconnect()
   }
 }
+
+export const dynamic = 'force-dynamic'

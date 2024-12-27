@@ -44,6 +44,7 @@ export const PUT = async (req: NextRequest, props: { params: Promise<{ shipmentI
     }
 
     const json = await req.json()
+
     const shipment = await prisma.shipment.update({
       where: {
         id: params.shipmentId,

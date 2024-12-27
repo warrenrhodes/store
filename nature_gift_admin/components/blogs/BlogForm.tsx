@@ -96,9 +96,7 @@ export function BlogForm({ initialData, categories, categoriesOnBlog }: BlogForm
     setIsLoading(true)
 
     try {
-      const url = initialData
-        ? `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/blogs/${initialData.id}`
-        : `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/blogs`
+      const url = initialData ? `/api/blogs/${initialData.id}` : `/api/blogs`
 
       const res = await fetch(url, {
         method: initialData ? 'PUT' : 'POST',

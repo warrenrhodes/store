@@ -15,7 +15,7 @@ import {
   Tag,
   UsersRound,
 } from 'lucide-react'
-import { useClerk, useUser } from '@clerk/nextjs'
+import { SignedIn, SignOutButton, useUser } from '@clerk/nextjs'
 import {
   Sidebar,
   SidebarContent,
@@ -27,7 +27,6 @@ import {
 } from '@/components/ui/sidebar'
 import { NavMain } from './NavMain'
 import { NavUser } from './NavUser'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 const data = {
@@ -88,17 +87,6 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { isSignedIn, user } = useUser()
-  const clerk = useClerk()
-  const router = useRouter()
-
-  const handleSignOut = React.useCallback(async () => {
-    try {
-      await clerk.signOut()
-      router.push('/')
-    } catch (error) {
-      console.error('Error signing out:', error)
-    }
-  }, [clerk, router])
 
   return (
     <Sidebar variant="inset" {...props}>
@@ -135,13 +123,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {isSignedIn && (
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild className="cursor-pointer">
-                <button onClick={handleSignOut}>
-                  <div className="flex items-center gap-3">
-                    <LogOut className="h-4 w-4" />
-                    <span>Sign Out</span>
-                  </div>
-                </button>
+              <SidebarMenuButton asChild>
+                <SignedIn>
+                  <SignOutButton redirectUrl="/sign-in">
+                    <span className="flex items-center gap-3 w-full cursor-pointer">
+                      <LogOut className="h-4 w-4" />
+                      Sign Out
+                    </span>
+                  </SignOutButton>
+                </SignedIn>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

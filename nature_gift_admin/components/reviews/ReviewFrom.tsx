@@ -86,7 +86,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
 
       const url = initialData ? `/api/reviews/${initialData.id}` : '/api/reviews'
       const res = await fetch(url, {
-        method: 'POST',
+        method: initialData ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${await getToken()}`,

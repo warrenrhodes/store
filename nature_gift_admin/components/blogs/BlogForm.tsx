@@ -101,7 +101,7 @@ export function BlogForm({ initialData, categories, categoriesOnBlog }: BlogForm
         : `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/blogs`
 
       const res = await fetch(url, {
-        method: initialData ? 'PATCH' : 'POST',
+        method: initialData ? 'PUT' : 'POST',
         body: JSON.stringify(data),
         headers: {
           'Content-Type': 'application/json',

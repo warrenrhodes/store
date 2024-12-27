@@ -63,11 +63,11 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
       const url = initialData ? `/api/shipments/${initialData.id}` : '/api/shipments'
       console.log('📤 [shipments_POST] Submitting:', {
         url,
-        method: 'POST',
+        method: initialData ? 'PUT' : 'POST',
         values,
       })
       const res = await fetch(url, {
-        method: 'POST',
+        method: initialData ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${await getToken()}`,

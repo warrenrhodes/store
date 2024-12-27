@@ -87,7 +87,7 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
         : `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/promotions`
 
       const res = await fetch(url, {
-        method: initialData ? 'PATCH' : 'POST',
+        method: initialData ? 'PUT' : 'POST',
         body: JSON.stringify(data),
         headers: {
           'Content-Type': 'application/json',

@@ -39,7 +39,7 @@ export const GET = async (req: NextRequest, props: { params: Promise<{ reviewId:
   }
 }
 
-export const POST = async (req: NextRequest, props: { params: Promise<{ reviewId: string }> }) => {
+export const PUT = async (req: NextRequest, props: { params: Promise<{ reviewId: string }> }) => {
   const params = await props.params
   try {
     const { userId } = await auth()

@@ -43,10 +43,7 @@ export const GET = async (req: NextRequest, props: { params: Promise<{ productId
   }
 }
 
-export const PATCH = async (
-  req: NextRequest,
-  props: { params: Promise<{ productId: string }> },
-) => {
+export const PUT = async (req: NextRequest, props: { params: Promise<{ productId: string }> }) => {
   const params = await props.params
   try {
     const { userId } = await auth()

@@ -45,7 +45,7 @@ export async function GET(req: Request, props: { params: Promise<{ blogId: strin
   }
 }
 
-export async function PATCH(req: Request, props: { params: Promise<{ blogId: string }> }) {
+export async function PUT(req: Request, props: { params: Promise<{ blogId: string }> }) {
   const params = await props.params
   try {
     const { userId } = await auth()

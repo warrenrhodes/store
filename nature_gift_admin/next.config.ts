@@ -2,6 +2,7 @@
 
 const nextConfig = {
   output: 'standalone',
+  productionBrowserSourceMaps: true,
   images: {
     remotePatterns: [
       {
@@ -48,6 +49,7 @@ const nextConfig = {
     ]
   },
   experimental: {
+    optimizePackageImports: ['lucide-react'],
     turbo: {
       rules: {
         '*.svg': {

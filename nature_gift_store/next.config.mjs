@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  productionBrowserSourceMaps: true,
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -29,6 +30,7 @@ const nextConfig = {
     ],
   },
   experimental: {
+    optimizePackageImports: ['lucide-react'],
     turbo: {
       rules: {
         '*.svg': {

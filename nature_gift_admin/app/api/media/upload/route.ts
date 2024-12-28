@@ -22,6 +22,9 @@ export async function POST(request: Request) {
     const formData = await request.formData()
 
     const files = formData.getAll('files')
+
+    console.log('responses +++++++++++++++++++++', files)
+
     if (!files)
       NextResponse.json({ error: 'Internal error. Files image are empty' }, { status: 500 })
 
@@ -91,6 +94,7 @@ export async function POST(request: Request) {
       }),
     )
 
+    console.log('responses -----------------', responses)
     return NextResponse.json(
       {
         success: true,

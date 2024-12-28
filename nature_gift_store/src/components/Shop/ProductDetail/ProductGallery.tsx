@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Expand } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { IProduct } from '@/lib/api/products'
@@ -26,7 +26,7 @@ export function ProductGallery({ product }: { product: IProduct }) {
             className="absolute inset-0"
           >
             <Image
-              src={product.media[0].media.url}
+              src={product.media[currentImage].media.url}
               alt={product.title}
               fill
               className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
@@ -57,14 +57,6 @@ export function ProductGallery({ product }: { product: IProduct }) {
             <ChevronRight className="h-5 w-5" />
           </Button>
         </div>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-sm hover:bg-white"
-        >
-          <Expand className="h-5 w-5" />
-        </Button>
       </div>
 
       <div className="grid grid-cols-4 gap-4">

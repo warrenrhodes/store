@@ -7,7 +7,12 @@ import { Badge } from '@/components/ui/badge'
 
 import { Separator } from '@/components/ui/separator'
 import { Price } from '@/components/Price'
-import { getPercentageDiscount, getRegularPrice, getReviewAverage } from '@/lib/utils/utils'
+import {
+  canDisplayPromoPrice,
+  getPercentageDiscount,
+  getRegularPrice,
+  getReviewAverage,
+} from '@/lib/utils/utils'
 import { useCart } from '@/hooks/useCart'
 import { useCartSideBar } from '@/hooks/useCart'
 import { useRouter } from 'next/navigation'
@@ -38,7 +43,9 @@ export function ProductInfo({ product }: { product: IProduct }) {
     cart.increaseQuantity(cartItem.product.id)
   }
 
-  const percentageDiscount = price.sale ? getPercentageDiscount(price.regular, price.sale) : 0
+  const percentageDiscount = canDisplayPromoPrice(product)
+    ? getPercentageDiscount(price.regular, price.sale)
+    : 0
   return (
     <div className="space-y-6">
       <div>
@@ -81,10 +88,10 @@ export function ProductInfo({ product }: { product: IProduct }) {
       </div>
 
       {description.contentType === 'TEXT' ? (
-        <p className="text-muted-foreground line-clamp-2">{description.content}</p>
+        <p className="text-muted-foreground">{description.content}</p>
       ) : (
         <div
-          className="prose prose-slate prose-sm sm:prose leading-relaxed text-gray-400 line-clamp-2"
+          className="prose prose-slate prose-sm sm:prose leading-relaxed text-gray-400"
           dangerouslySetInnerHTML={{
             __html: product.description.content,
           }}

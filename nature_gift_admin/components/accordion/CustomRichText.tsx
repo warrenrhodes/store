@@ -671,6 +671,7 @@ const CustomRichTextEditor = forwardRef<HTMLDivElement, CustomRichTextProps>(
       },
     }
 
+    console.log('config', process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL)
     return (
       <Card className="w-full p-0">
         <CardContent className="p-0">

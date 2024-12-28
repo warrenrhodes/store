@@ -1,7 +1,7 @@
 import { connectToDB } from '../lib/mongoDB'
 import { env } from '../envConfig'
 import { faker } from '@faker-js/faker'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '../lib/prisma'
 
 // Verify env is loaded
 console.log('Database URL exists:', !!env.DATABASE_URL)

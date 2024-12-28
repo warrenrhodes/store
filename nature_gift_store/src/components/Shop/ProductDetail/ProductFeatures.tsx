@@ -62,7 +62,7 @@ export function FeaturesForProducts({ product }: { product: IProduct }) {
           }
           return (
             <motion.div key={feature.title} variants={itemVariants}>
-              <Card>
+              <Card className="h-full">
                 <CardHeader>
                   {LucideIcon && <LucideIcon className="w-10 h-10 text-primary mb-2" />}
                   <CardTitle>{feature.title}</CardTitle>

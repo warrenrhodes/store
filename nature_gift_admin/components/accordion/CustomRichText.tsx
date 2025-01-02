@@ -1,16 +1,11 @@
 'use client'
 
-import 'froala-editor/js/plugins.pkgd.min.js'
-import 'froala-editor/js/third_party/embedly.min.js'
-import 'froala-editor/js/plugins/image.min.js'
-import 'froala-editor/js/plugins/save.min.js'
-import 'froala-editor/js/third_party/font_awesome.min.js'
-import 'froala-editor/js/third_party/image_tui.min.js'
-import 'froala-editor/css/froala_editor.pkgd.min.css'
-import 'froala-editor/css/froala_style.min.css'
-import { Card, CardContent } from '@/components/ui/card'
-import RichTextV1 from './rich_text/RichTextV1'
 import { memo, useCallback, useState } from 'react'
+
+import { PreviewText } from './rich_text/PreviewText'
+import React from 'react'
+import { Button } from '../ui/button'
+import RichTextV1 from './rich_text/RichTextV1'
 
 // Component props
 interface CustomRichTextProps {
@@ -29,15 +24,6 @@ function CustomRichTextEditor(props: CustomRichTextProps) {
     [onSave],
   )
 
-  if (process.env.NEXT_PUBLIC_RICH_TEXT_VERSION === 'v_1') {
-    return (
-      <Card className="w-full p-0">
-        <CardContent className="p-0">
-          <RichTextV1 {...props} ref={null} />
-        </CardContent>
-      </Card>
-    )
-  }
   return (
     <div>
       <div className="flex gap-3">
@@ -47,7 +33,7 @@ function CustomRichTextEditor(props: CustomRichTextProps) {
       </div>
 
       {isFullscreen && (
-        <RichTextV2
+        <RichTextV1
           content={props.content}
           onClose={() => setIsFullscreen(false)}
           onSave={handleSave}
@@ -56,11 +42,6 @@ function CustomRichTextEditor(props: CustomRichTextProps) {
     </div>
   )
 }
-
-import { PreviewText } from './rich_text/PreviewText'
-import React from 'react'
-import RichTextV2 from './rich_text/RichTextV2'
-import { Button } from '../ui/button'
 
 interface FullscreenButtonProps {
   onClick: () => void

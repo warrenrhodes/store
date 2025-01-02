@@ -39,17 +39,16 @@ export const createOrder = async (params: {
   cartItems: CartItem[]
   user: IUser | null
 }): Promise<string | null> => {
-  return null
-  // const response = await fetch(`/api/orders`, {
-  //   method: 'POST',
-  //   headers: {
-  //     'Content-Type': 'application/json',
-  //   },
-  //   body: JSON.stringify(params),
-  // })
+  const response = await fetch(`/api/orders`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(params),
+  })
 
-  // if (!response.ok) {
-  //   return null
-  // }
-  // return await response.json()
+  if (!response.ok) {
+    return null
+  }
+  return await response.json()
 }

@@ -1,14 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { icons } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import * as LucideIcons from 'lucide-react'
 import { IProduct } from '@/lib/api/products'
-
-const iconNames = Object.keys(LucideIcons).filter(
-  name => name !== 'createLucideIcon' && name !== 'default',
-)
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -55,16 +49,13 @@ export function FeaturesForProducts({ product }: { product: IProduct }) {
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
       >
         {features.map(feature => {
-          const lucideIcon = iconNames.find(iconName => iconName.toLowerCase() === feature?.icon)
-          let LucideIcon: React.ComponentType<LucideIcons.LucideProps> | null = null
-          if (lucideIcon) {
-            LucideIcon = icons[lucideIcon as keyof typeof icons]
-          }
           return (
             <motion.div key={feature.title} variants={itemVariants}>
               <Card className="h-full">
                 <CardHeader>
-                  {LucideIcon && <LucideIcon className="w-10 h-10 text-primary mb-2" />}
+                  {feature.icon && (
+                    <span className="w-10 h-10 text-primary mb-2"> {feature.icon}</span>
+                  )}
                   <CardTitle>{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>

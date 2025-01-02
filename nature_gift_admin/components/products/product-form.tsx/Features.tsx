@@ -6,7 +6,6 @@ import { ContentEditor } from '../../custom-ui/ContentEditor'
 import { useFieldArray, UseFormReturn } from 'react-hook-form'
 import { FormLabel, FormField, FormItem, FormControl, FormMessage } from '@/components/ui/form'
 import CustomAccordion from '@/components/accordion/CustomAccordion'
-import { IconSelector } from './IconSelector'
 
 type Feature = {
   title: string
@@ -88,10 +87,11 @@ export const FeaturesForm: React.FC<FeaturesFormProps> = ({ form }) => {
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormControl>
-                    <IconSelector
-                      key={field.value}
-                      onSelectIcon={field.onChange}
-                      selectedIcon={field.value}
+                    <Input
+                      placeholder="Ex: 😀"
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                      onKeyDown={handleKeyPress}
                     />
                   </FormControl>
                   <FormMessage />

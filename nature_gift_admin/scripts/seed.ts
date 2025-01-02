@@ -6,7 +6,7 @@ import { prisma } from '../lib/prisma'
 // Verify env is loaded
 console.log('Database URL exists:', !!env.DATABASE_URL)
 
-const creatorId = '676401e855b3332c5701717c'
+const creatorId = '67678106df3a27e34e4e0501'
 export async function getBlurDataUrl(imageUrl: string) {
   try {
     const res = await fetch(imageUrl)

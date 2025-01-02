@@ -24,9 +24,15 @@ export class PromotionCalculator {
       )
       .sort((a, b) => (b.priority || 0) - (a.priority || 0))
   }
-
   private checkCondition(condition: IPromotionCondition): boolean {
-    const conditionValue = JSON.parse(condition.value)
+    let conditionValue
+    try {
+      conditionValue =
+        typeof condition.value === 'string' ? JSON.parse(condition.value) : condition.value
+    } catch {
+      conditionValue = condition.value
+    }
+
     switch (condition.type) {
       case 'MINIMUM_QUANTITY':
         const totalQuantity = this.cart.reduce((sum, item) => sum + item.quantity, 0)
@@ -52,16 +58,23 @@ export class PromotionCalculator {
   }
 
   private calculateActionValue(action: IPromotionAction): number {
-    const actionValue = JSON.parse(action.value)
+    let actionValue
+    try {
+      actionValue = typeof action.value === 'string' ? JSON.parse(action.value) : action.value
+    } catch {
+      actionValue = action.value
+    }
+
     const subtotal = this.cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
     switch (action.type) {
-      case 'PERCENTAGE_DISCOUNT':
+      case 'PERCENTAGE_DISCOUNT': {
         const percentage = Number(actionValue)
         const percentageDiscount = (subtotal * percentage) / 100
         return action.maxDiscount
           ? Math.min(percentageDiscount, action.maxDiscount)
           : percentageDiscount
+      }
 
       case 'FIXED_DISCOUNT':
         return Number(actionValue)
@@ -69,22 +82,22 @@ export class PromotionCalculator {
       case 'FREE_SHIPPING':
         return this.deliveryInfo?.cost || 0
 
-      case 'FREE_PRODUCT':
-        // Find the product in cart and return its value
+      case 'FREE_PRODUCT': {
         const freeProductId = actionValue.toString()
         const freeProduct = this.cart.find(item => item.product.id === freeProductId)
         return freeProduct ? freeProduct.price : 0
+      }
 
-      case 'BUY_X_GET_Y':
+      case 'BUY_X_GET_Y': {
         const [buyQty, getQty] = actionValue.toString().split(',').map(Number)
         const eligibleItems = this.cart
           .filter(item => item.quantity >= buyQty)
           .sort((a, b) => a.price - b.price)
 
         if (eligibleItems.length === 0) return 0
-
         const discountedItem = eligibleItems[0]
         return discountedItem.price * getQty
+      }
 
       default:
         return 0

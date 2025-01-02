@@ -146,8 +146,9 @@ function RichTextV2(props: CustomRichTextProps) {
     [adminDashboardUrl, getToken, insertMedia],
   )
 
-  const config = useMemo(
-    () => ({
+  const config = useMemo(() => {
+    const token = getToken() // Get the token synchronously
+    return {
       placeholderText: 'Edit Your Content!',
       charCounterCount: true,
       key: 'YOUR-FROALA-LICENSE-KEY',
@@ -173,7 +174,6 @@ function RichTextV2(props: CustomRichTextProps) {
             'clearFormatting',
           ],
         },
-
         moreParagraph: {
           buttons: [
             'alignLeft',
@@ -207,9 +207,7 @@ function RichTextV2(props: CustomRichTextProps) {
         },
         moreMisc: {
           buttons: ['undo', 'redo', 'fullscreen', 'print', 'selectAll', 'html'],
-
           align: 'right',
-
           buttonsVisible: 2,
         },
       },
@@ -245,9 +243,7 @@ function RichTextV2(props: CustomRichTextProps) {
         },
         'image.beforeUpload': async function (this: any, images: any) {
           const file = images[0]
-
           await handleFileUpload(file)
-
           return false
         },
         'image.error': function (error: any) {
@@ -263,7 +259,6 @@ function RichTextV2(props: CustomRichTextProps) {
         'video.beforeUpload': async function (this: any, videos: any) {
           const file = videos[0]
           await handleFileUpload(file)
-
           return false
         },
         'video.error': function (error: any) {
@@ -274,7 +269,6 @@ function RichTextV2(props: CustomRichTextProps) {
             description: 'Video upload failed. Please try again.',
             variant: 'destructive',
           })
-
           return false
         },
         initialized: function (this: any) {
@@ -291,9 +285,8 @@ function RichTextV2(props: CustomRichTextProps) {
           editorInstanceRef.current = null
         },
       },
-    }),
-    [handleFileUpload, handleInitialize, props],
-  )
+    }
+  }, [handleFileUpload, handleInitialize, props, getToken]) // Ensure getToken is included in dependencies
 
   if (!process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL) {
     console.error('Missing NEXT_PUBLIC_ADMIN_DASHBOARD_URL environment variable')
@@ -328,7 +321,7 @@ function RichTextV2(props: CustomRichTextProps) {
         </button>
       </div>
 
-      <div className="flex-1  p-4 overflow-scroll h-full gap-2">
+      <div className="flex-1 p-4 overflow-scroll h-full gap-2">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-3">
             <SpeechToText onTranscript={value => handleSpeechTranscript(value, false)} />

@@ -59,7 +59,7 @@ export function ActivePromotions({ activePromotions }: { activePromotions: IProm
                   <div className="flex items-center justify-between flex-wrap">
                     <div className="flex items-center gap-2">
                       <Timer className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Expires in {expiresIn}</span>
+                      <span className="text-sm text-muted-foreground">{expiresIn}</span>
                     </div>
                     {/* <Button variant="outline" size="sm" onClick={() => copyCode(promo.code)}>
                       {promo.code}

@@ -6,6 +6,7 @@ import { FileUploader } from '../custom-ui/FileUploader'
 import { Button } from '../ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import CustomRichTextEditor from './CustomRichText'
+import useAuthToken from '@/hooks/useAuthToken'
 
 enum ContentType {
   'TEXT' = 'TEXT',
@@ -44,6 +45,11 @@ const CustomAccordionItem = ({
   element: ContentElement
 }) => {
   const [currentType, setCurrenType] = useState<string>(element.type ?? ContentType.TEXT)
+  const { token } = useAuthToken()
+
+  if (token === null) {
+    return null
+  }
 
   return (
     <>
@@ -66,6 +72,7 @@ const CustomAccordionItem = ({
           <div>
             {currentType === ContentType.TEXT ? (
               <CustomRichTextEditor
+                token={token}
                 content={element.content}
                 onSave={value => {
                   onSave({ ...element, content: value })

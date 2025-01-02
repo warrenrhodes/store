@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server'
 import cloudinary from '@/lib/cloudinary'
 import { MediaType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { v4 as uuidv4 } from 'uuid'
 
 export async function POST(request: Request) {
   try {
@@ -20,10 +21,8 @@ export async function POST(request: Request) {
     }
 
     const formData = await request.formData()
-
+    const uploadSource = request.headers.get('X-Upload-Source')
     const files = formData.getAll('files')
-
-    console.log('responses +++++++++++++++++++++', files)
 
     if (!files)
       NextResponse.json({ error: 'Internal error. Files image are empty' }, { status: 500 })
@@ -64,7 +63,6 @@ export async function POST(request: Request) {
             )
             .end(buffer)
         })
-
         const cloudinaryResponse = uploadResponse as any
         const mediaUrl = cloudinaryResponse.secure_url
 
@@ -89,12 +87,32 @@ export async function POST(request: Request) {
             cloudinaryPublicId: cloudinaryResponse.public_id,
           },
         })
-
         return media
       }),
     )
 
-    console.log('responses -----------------', responses)
+    if (uploadSource === 'froala-editor') {
+      return NextResponse.json({
+        link: responses[0].url,
+      })
+    }
+    if (uploadSource === 'jodit-editor') {
+      return NextResponse.json(
+        {
+          success: true,
+          files: responses.map(file => {
+            return {
+              file: {
+                name: file.fileName,
+                url: file.url,
+                id: uuidv4(),
+              },
+            }
+          }),
+        },
+        { status: 200 },
+      )
+    }
     return NextResponse.json(
       {
         success: true,

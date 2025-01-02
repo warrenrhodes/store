@@ -27,7 +27,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 import { generateSlug } from '@/lib/utils/slugify'
 import { blogSchema, BlogSchemaType } from '@/lib/validations/blog'
@@ -37,7 +36,6 @@ import MultiSelect from '../custom-ui/MultiSelect'
 import MultiText from '../custom-ui/MultiText'
 import { ContentEditor } from '../custom-ui/ContentEditor'
 import { Prisma } from '@prisma/client'
-import { useAuth } from '@clerk/nextjs'
 
 interface BlogFormProps {
   initialData?: Prisma.BlogGetPayload<object> | null
@@ -47,8 +45,6 @@ interface BlogFormProps {
 
 export function BlogForm({ initialData, categories, categoriesOnBlog }: BlogFormProps) {
   const router = useRouter()
-  const { getToken } = useAuth()
-  const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<BlogSchemaType>({
@@ -95,35 +91,35 @@ export function BlogForm({ initialData, categories, categoriesOnBlog }: BlogForm
   async function onSubmit(data: BlogSchemaType) {
     setIsLoading(true)
 
-    try {
-      const url = initialData ? `/api/blogs/${initialData.id}` : `/api/blogs`
+    // try {
+    //   const url = initialData ? `/api/blogs/${initialData.id}` : `/api/blogs`
 
-      const res = await fetch(url, {
-        method: initialData ? 'PUT' : 'POST',
-        body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${await getToken()}`,
-        },
-      })
-      if (res.ok) {
-        toast({
-          variant: 'success',
-          description: `Blogs ${initialData ? 'updated' : 'created'}`,
-        })
-        window.location.href = '/blogs'
-        router.push('/blogs')
-      } else {
-        toast({
-          variant: 'destructive',
-          description: 'Something went wrong! Please try again.',
-        })
-      }
-    } catch (error) {
-      console.error(error)
-    } finally {
-      setIsLoading(false)
-    }
+    //   const res = await fetch(url, {
+    //     method: initialData ? 'PUT' : 'POST',
+    //     body: JSON.stringify(data),
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //       Authorization: `Bearer ${await getToken()}`,
+    //     },
+    //   })
+    //   if (res.ok) {
+    //     toast({
+    //       variant: 'success',
+    //       description: `Blogs ${initialData ? 'updated' : 'created'}`,
+    //     })
+    //     window.location.href = '/blogs'
+    //     router.push('/blogs')
+    //   } else {
+    //     toast({
+    //       variant: 'destructive',
+    //       description: 'Something went wrong! Please try again.',
+    //     })
+    //   }
+    // } catch (error) {
+    //   console.error(error)
+    // } finally {
+    //   setIsLoading(false)
+    // }
   }
 
   const handleKeyPress = (
@@ -399,7 +395,7 @@ export function BlogForm({ initialData, categories, categoriesOnBlog }: BlogForm
             />
           </div>
           <div className="flex justify-between">
-            <Button disabled={isLoading || categories.length < 1}>
+            <Button type="button" disabled={isLoading || categories.length < 1}>
               {isLoading && <Loader2 className="animate-spin" />}
               {initialData ? 'Update' : 'Create'} Blog
             </Button>

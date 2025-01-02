@@ -289,7 +289,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 }
 
 const ImageRender = ({ mediaId, removeFile }: { mediaId: string; removeFile: () => void }) => {
-  const [fileUrl, setFileUrl] = useState<string>()
+  const isCloudinaryUrl = mediaId.includes('res.cloudinary.com')
+  const [fileUrl, setFileUrl] = useState<string>(isCloudinaryUrl ? mediaId : '')
   const { getToken } = useAuth()
 
   const fetchImageById = useCallback(
@@ -304,8 +305,9 @@ const ImageRender = ({ mediaId, removeFile }: { mediaId: string; removeFile: () 
   )
 
   useEffect(() => {
+    if (isCloudinaryUrl) return
     fetchImageById(mediaId)
-  }, [fetchImageById, mediaId])
+  }, [fetchImageById, isCloudinaryUrl, mediaId])
   return (
     <div className="relative group">
       <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">

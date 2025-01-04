@@ -37,7 +37,9 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-slate-900">Our Location</h3>
-                  <p className="text-slate-600">Ekoudoum, Face Hotel IRIS</p>
+                  <p className="text-slate-600">
+                    {"Yaoundé, Ekoudoum, sis à coté de l'Hotel IRIS"}
+                  </p>
                 </div>
               </div>
             </div>

@@ -63,4 +63,36 @@ export async function GET(req: NextRequest, props: { params: Promise<{ orderId: 
   }
 }
 
+export const PUT = async (req: NextRequest, props: { params: Promise<{ orderId: string }> }) => {
+  const params = await props.params
+  try {
+    const { userId } = await auth()
+
+    if (!userId) {
+      return new NextResponse('Unauthorized', { status: 401 })
+    }
+
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await req.json()
+
+    const order = await prisma.order.update({
+      where: {
+        id: params.orderId,
+      },
+      data: {
+        status: body.status,
+      },
+    })
+
+    return NextResponse.json(order)
+  } catch (error) {
+    console.error('[ORDER_PUT]', error)
+    return new NextResponse('Internal error', { status: 500 })
+  }
+}
+
 export const dynamic = 'force-dynamic'

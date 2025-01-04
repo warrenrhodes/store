@@ -83,7 +83,6 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
           return
         }
       }
-
       const url = initialData ? `/api/reviews/${initialData.id}` : '/api/reviews'
       const res = await fetch(url, {
         method: initialData ? 'PUT' : 'POST',
@@ -109,6 +108,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
         })
       }
     } catch (err) {
+      setLoading(false)
       console.log('[reviews_POST]', err)
       toast({
         description: 'Something went wrong! Please try again.',

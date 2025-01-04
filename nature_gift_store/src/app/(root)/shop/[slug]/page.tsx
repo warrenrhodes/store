@@ -16,6 +16,7 @@ import {
   ProductInfoLoading,
   ProductsLoading,
 } from '@/components/Loading'
+import { AutoAddToCart } from './autoAddToCart'
 // export async function generateStaticParams() {
 //   try {
 //     const productList = await getProducts({})
@@ -42,34 +43,42 @@ export async function generateMetadata({ params }: Props) {
 
 type Props = {
   params: Promise<{ slug: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 export default async function ProductDetailPage(props: Props) {
   const { slug } = await props.params
+  const searchParams = await props.searchParams
 
   return (
     <div className="bg-background min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col gap-16">
+        {searchParams?.autoAddToCart ? (
           <Loader loading={<ProductInfoLoading />}>
-            <FeaturedProductLoader slug={slug} />
+            <AutoAddToCartLoader slug={slug} />
           </Loader>
-          <Loader loading={<ProductsLoading />}>
-            <ActivePromotionsLoader />
-          </Loader>
-          <Loader loading={<ProductsLoading />}>
-            <FeaturedProductsLoader slug={slug} />
-          </Loader>
-          <Loader loading={<HeroLoading />}>
-            <FeaturedProductReviewLoader slug={slug} />
-          </Loader>
-          <Loader loading={<ProductsLoading />}>
-            <RelatedProductLoader slug={slug} />
-          </Loader>
-          <GeneralCTAComponent />
-          <Loader loading={<BlogsLoading />}>
-            <RelatedBlogLoader slug={slug} />
-          </Loader>
-        </div>
+        ) : (
+          <div className="flex flex-col gap-16">
+            <Loader loading={<ProductInfoLoading />}>
+              <FeaturedProductLoader slug={slug} />
+            </Loader>
+            <Loader loading={<ProductsLoading />}>
+              <ActivePromotionsLoader />
+            </Loader>
+            <Loader loading={<ProductsLoading />}>
+              <FeaturedProductsLoader slug={slug} />
+            </Loader>
+            <Loader loading={<HeroLoading />}>
+              <FeaturedProductReviewLoader slug={slug} />
+            </Loader>
+            <Loader loading={<ProductsLoading />}>
+              <RelatedProductLoader slug={slug} />
+            </Loader>
+            <GeneralCTAComponent />
+            <Loader loading={<BlogsLoading />}>
+              <RelatedBlogLoader slug={slug} />
+            </Loader>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -79,6 +88,17 @@ async function ActivePromotionsLoader() {
   const activePromotions = await getPromotions()
 
   return <ActivePromotions activePromotions={activePromotions} />
+}
+async function AutoAddToCartLoader({ slug }: { slug: string }) {
+  const product = await fetchProductBySlug({ slug: slug })
+
+  if (!product) return null
+
+  return (
+    <div className="flex items-center justify-center">
+      <AutoAddToCart product={product} />
+    </div>
+  )
 }
 async function FeaturedProductLoader({ slug }: { slug: string }) {
   const product = await fetchProductBySlug({ slug: slug })

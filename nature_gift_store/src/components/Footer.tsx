@@ -72,7 +72,7 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-center space-x-3">
                 <MapPin className="w-5 h-5" />
-                <span>Yaoundé, Ekoudoum, Face Hotel IRIS</span>
+                <span>{"Yaoundé, Ekoudoum, sis à coté de l'Hotel IRIS"}</span>
               </li>
               <li className="flex items-center space-x-3">
                 <Phone className="w-5 h-5" />

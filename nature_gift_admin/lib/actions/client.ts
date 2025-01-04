@@ -10,11 +10,9 @@ export const uploadImages = async (files: File[], token: string): Promise<string
       Authorization: `Bearer ${token}`,
     },
   })
-
   if (result.ok) {
     const data = await result.json()
-    console.log(data.files[0].file.url)
-    return data.files[0].file.url
+    return data.data.files[0].url
   }
   return null
 }

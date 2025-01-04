@@ -198,7 +198,7 @@ async function seedDatabase() {
                 seoDescription: faker.lorem.sentence(),
                 keywords: faker.lorem.words(5).split(' '),
               },
-              partnerId: faker.string.uuid(),
+              partnerId: creatorId,
               media: {
                 create: productMedias.map(media => ({
                   mediaId: media.id,

@@ -12,7 +12,7 @@ import { Package } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { SignInButton } from '@clerk/nextjs'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { priceFormatted } from '@/lib/utils/utils'
+import { cn, priceFormatted } from '@/lib/utils/utils'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -90,7 +90,14 @@ function TabsWrapper() {
                   <CardHeader>
                     <div className="flex justify-between items-center">
                       <CardTitle className="text-lg">Order #{order.id}</CardTitle>
-                      <Badge variant={order.status === 'PENDING' ? 'default' : 'secondary'}>
+                      <Badge
+                        className={cn({
+                          'bg-green-500': order.status === 'ACCEPTED',
+                          'bg-gray-500': order.status === 'PENDING',
+                          'bg-blue-500': order.status === 'COMPLETED',
+                          'bg-red-500': order.status === 'CANCELED' || order.status === 'REJECTED',
+                        })}
+                      >
                         {order.status}
                       </Badge>
                     </div>
@@ -120,7 +127,7 @@ function TabsWrapper() {
                         <div>
                           <h4 className="font-medium">{item.product.title}</h4>
                           <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
-                          <p className="text-sm font-medium">${item.price.toFixed(2)}</p>
+                          <p className="text-sm font-medium">{priceFormatted(item.price)}</p>
                         </div>
                       </div>
                     ))}

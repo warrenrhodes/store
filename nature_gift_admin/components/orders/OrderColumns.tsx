@@ -3,11 +3,41 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
 import { priceFormatted } from '@/lib/utils/utils'
-import { Link, Badge } from 'lucide-react'
 import { format } from 'date-fns'
 import { IOrder } from '@/lib/actions/server'
+import Link from 'next/link'
+import { Badge } from '../ui/badge'
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '../ui/alert-dialog'
+import { Separator } from '@radix-ui/react-separator'
+import { ChevronDown, Eye } from 'lucide-react'
+import { Button } from '../ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu'
+import { toast } from '@/hooks/use-toast'
+import router from 'next/router'
 
-// type Items = IOrder['items'][0]
+type Items = IOrder['items'][0]
+
+const statusTransitions = {
+  PENDING: ['ACCEPTED', 'REJECTED'],
+  ACCEPTED: ['COMPLETED', 'CANCELED'],
+  COMPLETED: [],
+  CANCELED: [],
+  REJECTED: [],
+}
+
 export const columns: ColumnDef<IOrder>[] = [
   {
     accessorKey: 'id',
@@ -15,7 +45,7 @@ export const columns: ColumnDef<IOrder>[] = [
     cell: ({ row }) => {
       return (
         <Link href={`/orders/${row.original.id}`} className="hover:text-red-1">
-          {row.original.id}
+          {row.original.id.slice(0, 8)}...
         </Link>
       )
     },
@@ -23,20 +53,65 @@ export const columns: ColumnDef<IOrder>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: ({ row }) => (
-      <div>
-        <Badge
-          className={cn({
-            'bg-green-500 ': row.original.status === 'ACCEPTED',
-            'bg-gray-500': row.original.status === 'PENDING',
-            'bg-blue-500': row.original.status === 'COMPLETED',
-            'bg-red-500': row.original.status === 'CANCELED' || row.original.status === 'REJECTED',
-          })}
-        >
-          {row.original.status}
-        </Badge>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const currentStatus = row.original.status
+      const allowedTransitions = statusTransitions[currentStatus]
+
+      const handleStatusChange = async (newStatus: string) => {
+        const res = await fetch(`/api/orders/${row.original.id}`, {
+          method: 'PUT',
+          body: JSON.stringify({ status: newStatus }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+        if (res.ok) {
+          toast({
+            variant: 'success',
+            description: `Changing status from ${currentStatus} to ${newStatus}`,
+          })
+          window.location.href = '/orders'
+          router.push('/orders')
+        } else {
+          toast({
+            variant: 'destructive',
+            description: 'Failed to update status',
+          })
+        }
+      }
+
+      return (
+        <div className="flex items-center gap-2">
+          <Badge
+            className={cn({
+              'bg-green-500': currentStatus === 'ACCEPTED',
+              'bg-gray-500': currentStatus === 'PENDING',
+              'bg-blue-500': currentStatus === 'COMPLETED',
+              'bg-red-500': currentStatus === 'CANCELED' || currentStatus === 'REJECTED',
+            })}
+          >
+            {currentStatus}
+          </Badge>
+
+          {allowedTransitions.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {allowedTransitions.map(newStatus => (
+                  <DropdownMenuItem key={newStatus} onClick={() => handleStatusChange(newStatus)}>
+                    Change to {newStatus}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+      )
+    },
   },
   {
     accessorKey: 'deliveryInfo',
@@ -58,141 +133,141 @@ export const columns: ColumnDef<IOrder>[] = [
     header: 'Created At',
     cell: ({ row }) => <div>{format(row.original.createdAt || new Date(), 'PPP')}</div>,
   },
-  // {
-  //   id: 'actions',
-  //   enableHiding: false,
-  //   cell: ({ row }) => {
-  //     const order = row.original
-  //     return (
-  //       <div>
-  //         <OrderView order={order} />
-  //       </div>
-  //     )
-  //   },
-  // },
+  {
+    id: 'actions',
+    enableHiding: false,
+    cell: ({ row }) => {
+      const order = row.original
+      return (
+        <div>
+          <OrderView order={order} />
+        </div>
+      )
+    },
+  },
 ]
 
-// const OrderView = ({ order }: { order: IOrder }) => {
-//   return (
-//     <AlertDialog>
-//       <AlertDialogTrigger asChild>
-//         <Button variant="outline">
-//           <Eye className="h-4 w-4" color="blue" /> View
-//         </Button>
-//       </AlertDialogTrigger>
-//       <AlertDialogContent className=" text-grey-1 ">
-//         <AlertDialogHeader>
-//           <AlertDialogTitle className="text-red-1">Order Detail</AlertDialogTitle>
-//           <div className="flex flex-col gap-4 max-h-[50vh] overflow-y-scroll">
-//             <div className="flex gap-3">
-//               <span className="text-muted-foreground">Full Name: </span>
-//               <p> {order.userData.fullName}</p>
-//             </div>
-//             <div className="flex gap-3">
-//               <span className="text-muted-foreground">Phone: </span>
-//               <p> {order.userData.phone}</p>
-//             </div>
-//             {order.userData.email && (
-//               <div className="flex gap-3">
-//                 <span className="text-muted-foreground">Email: </span>
-//                 <p> {order.userData.email}</p>
-//               </div>
-//             )}
-//             <Separator className="my-3" />
-//             <div className="flex gap-3">
-//               <span className="text-muted-foreground">Address: </span>
-//               <p> {order.deliveryInfo.address}</p>
-//             </div>
-//             <div className="flex gap-3">
-//               <span className="text-muted-foreground">Delivery Date: </span>
-//               <p>
-//                 {format(order.deliveryInfo.deliveryDate, 'PPP')} {order.deliveryInfo.deliveryTime}
-//               </p>
-//             </div>
-//             {order.deliveryInfo.city && (
-//               <div className="flex gap-3">
-//                 <span className="text-muted-foreground">City: </span>
-//                 <p> {order.deliveryInfo.city}</p>
-//               </div>
-//             )}
-//             <div className="flex gap-3">
-//               <span className="text-muted-foreground">Delivery Method: </span>
-//               <p>{order.deliveryInfo.deliveryMethod === 'DELIVERY' ? 'Delivery' : 'Expedition'}</p>
-//             </div>
-//             <div className="flex gap-3">
-//               <span className="text-muted-foreground">Delivery Location: </span>
-//               <p> {order.deliveryInfo.location}</p>
-//             </div>
-//             <Separator className="my-3" />
+const OrderView = ({ order }: { order: IOrder }) => {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="outline">
+          <Eye className="h-4 w-4" color="blue" /> View
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent className=" text-grey-1 ">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-red-1">Order Detail</AlertDialogTitle>
+          <div className="flex flex-col gap-4 max-h-[50vh] overflow-y-scroll">
+            <div className="flex gap-3">
+              <span className="text-muted-foreground">Full Name: </span>
+              <p> {order.userData.fullName}</p>
+            </div>
+            <div className="flex gap-3">
+              <span className="text-muted-foreground">Phone: </span>
+              <p> {order.userData.phone}</p>
+            </div>
+            {order.userData.email && (
+              <div className="flex gap-3">
+                <span className="text-muted-foreground">Email: </span>
+                <p> {order.userData.email}</p>
+              </div>
+            )}
+            <Separator className="my-3" />
+            <div className="flex gap-3">
+              <span className="text-muted-foreground">Address: </span>
+              <p> {order.deliveryInfo.address}</p>
+            </div>
+            <div className="flex gap-3">
+              <span className="text-muted-foreground">Delivery Date: </span>
+              <p>
+                {format(order.deliveryInfo.deliveryDate, 'PPP')} {order.deliveryInfo.deliveryTime}
+              </p>
+            </div>
+            {order.deliveryInfo.city && (
+              <div className="flex gap-3">
+                <span className="text-muted-foreground">City: </span>
+                <p> {order.deliveryInfo.city}</p>
+              </div>
+            )}
+            <div className="flex gap-3">
+              <span className="text-muted-foreground">Delivery Method: </span>
+              <p>{order.deliveryInfo.deliveryMethod === 'DELIVERY' ? 'Delivery' : 'Expedition'}</p>
+            </div>
+            <div className="flex gap-3">
+              <span className="text-muted-foreground">Delivery Location: </span>
+              <p> {order.deliveryInfo.location}</p>
+            </div>
+            <Separator className="my-3" />
 
-//             {/* The list of items */}
-//             <div className="flex gap-3">
-//               <span className="text-muted-foreground">Items: </span>
-//             </div>
-//             <div className="flex flex-col gap-3 ml-5">
-//               {order.items.map(item => (
-//                 <OrderItem item={item} />
-//               ))}
-//             </div>
-//             <Separator className="my-3" />
-//             <div className="flex gap-3">
-//               <span className="text-muted-foreground">Promotions: </span>
-//             </div>
-//             <div className="flex flex-col gap-3 ml-5">
-//               {order.promotions.map(item => (
-//                 <div key={item.promotionId}>
-//                   <div className="flex gap-3">
-//                     <span className="text-muted-foreground">Promo Code: </span>
-//                     <p> {item.code}</p>
-//                   </div>
-//                   <div className="flex gap-3">
-//                     <span className="text-muted-foreground">Discount: </span>
-//                     <p> {item.discountAmount}</p>
-//                   </div>
-//                 </div>
-//               ))}
-//             </div>
-//             <Separator className="my-3" />
-//             <div className="flex gap-3">
-//               <span className="text-muted-foreground">SubTotal: </span>
-//               <p> {order.orderPrices.subtotal}</p>
-//             </div>
-//             <div className="flex gap-3">
-//               <span className="text-muted-foreground">Shipping: </span>
-//               <p> {order.orderPrices.shipping}</p>
-//             </div>
-//             <div className="flex gap-3">
-//               <span className="text-muted-foreground">Total: </span>
-//               <p> {order.orderPrices.total}</p>
-//             </div>
-//           </div>
-//         </AlertDialogHeader>
-//         <AlertDialogFooter>
-//           <AlertDialogCancel>Close</AlertDialogCancel>
-//         </AlertDialogFooter>
-//       </AlertDialogContent>
-//     </AlertDialog>
-//   )
-// }
+            {/* The list of items */}
+            <div className="flex gap-3">
+              <span className="text-muted-foreground">Items: </span>
+            </div>
+            <div className="flex flex-col gap-3 ml-5">
+              {order.items.map(item => (
+                <OrderItem item={item} key={item.productId} />
+              ))}
+            </div>
+            <Separator className="my-3" />
+            <div className="flex gap-3">
+              <span className="text-muted-foreground">Promotions: </span>
+            </div>
+            <div className="flex flex-col gap-3 ml-5">
+              {order.promotions.map(item => (
+                <div key={item.promotionId}>
+                  <div className="flex gap-3">
+                    <span className="text-muted-foreground">Promo Code: </span>
+                    <p> {item.code}</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="text-muted-foreground">Discount: </span>
+                    <p> {item.discountAmount}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Separator className="my-3" />
+            <div className="flex gap-3">
+              <span className="text-muted-foreground">SubTotal: </span>
+              <p> {order.orderPrices.subtotal}</p>
+            </div>
+            <div className="flex gap-3">
+              <span className="text-muted-foreground">Shipping: </span>
+              <p> {order.orderPrices.shipping}</p>
+            </div>
+            <div className="flex gap-3">
+              <span className="text-muted-foreground">Total: </span>
+              <p> {order.orderPrices.total}</p>
+            </div>
+          </div>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Close</AlertDialogCancel>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
 
-// const OrderItem = ({ item }: { item: Items }) => {
-//   const product = item.product
-//   return (
-//     <div key={item.productId}>
-//       {product && (
-//         <div className="flex gap-3">
-//           <span className="text-muted-foreground">Name: </span>
-//           <p> {product.title}</p>
-//         </div>
-//       )}
-//       <div className="flex gap-3">
-//         <span className="text-muted-foreground">Count: </span>
-//         <p> {item.quantity}</p>
-//       </div>
-//       <div className="flex gap-3">
-//         <span className="text-muted-foreground">Price: </span>
-//         <p> {item.price}</p>
-//       </div>
-//     </div>
-//   )
-// }
+const OrderItem = ({ item }: { item: Items }) => {
+  const product = item.product
+  return (
+    <div key={item.productId}>
+      {product && (
+        <div className="flex gap-3">
+          <span className="text-muted-foreground">Name: </span>
+          <p> {product.title}</p>
+        </div>
+      )}
+      <div className="flex gap-3">
+        <span className="text-muted-foreground">Count: </span>
+        <p> {item.quantity}</p>
+      </div>
+      <div className="flex gap-3">
+        <span className="text-muted-foreground">Price: </span>
+        <p> {item.price}</p>
+      </div>
+    </div>
+  )
+}

@@ -103,7 +103,7 @@ export function FeaturedBlogCarousel({ blogs }: FeaturedBlogCarouselProps) {
           animate={{ opacity: 1 }}
           className="relative aspect-[2/1] overflow-hidden"
         >
-          <div className="relative aspect-[16/9] overflow-hidden rounded-t-lg">
+          <div className="absolute inset-0  aspect-[16/9] overflow-hidden rounded-t-lg">
             <Image
               src={blog.metadata.coverImageURL || ''}
               alt={blog.title}
@@ -115,7 +115,7 @@ export function FeaturedBlogCarousel({ blogs }: FeaturedBlogCarouselProps) {
             />
           </div>
 
-          <div className="relative h-full flex flex-col justify-end p-8">
+          <div className="relative h-full flex flex-col justify-end p-8 bg-black/50">
             <div className="flex flex-wrap gap-2 mb-4">
               {blog.categories.slice(0, 3).map(category => (
                 <Badge key={category.id as string} variant="secondary">

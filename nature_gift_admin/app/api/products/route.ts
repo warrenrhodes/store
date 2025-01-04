@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
         visibility: body.visibility,
         inventory: body.inventory,
         blogUrl: body.blogUrl,
-        partnerId: userId,
+        partnerId: _currentUser.id,
         metadata: body.metadata,
         ...(body.media?.length > 0 && {
           media: {

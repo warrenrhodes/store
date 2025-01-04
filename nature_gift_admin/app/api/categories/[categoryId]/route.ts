@@ -48,6 +48,11 @@ export const PUT = async (req: NextRequest, props: { params: Promise<{ categoryI
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
+    const _currentUser = await getUserByClerkId(userId)
+    if (!_currentUser?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const json = await req.json()
     const body = categorySchema.partial().parse(json)
 

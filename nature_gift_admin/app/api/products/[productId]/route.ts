@@ -74,6 +74,7 @@ export const PUT = async (req: NextRequest, props: { params: Promise<{ productId
       visibility: body.visibility,
       blogUrl: body.blogUrl,
       metadata: body.metadata,
+      partnerId: _currentUser.id,
     }
 
     // Remove undefined values

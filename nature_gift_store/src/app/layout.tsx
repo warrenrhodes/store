@@ -20,6 +20,7 @@ import ToasterProvider from '@/lib/providers/ToasterProvider'
 import Footer from '@/components/Footer'
 import { Toaster } from '@/components/ui/toaster'
 import { Header } from '@/components/Header/Index'
+import FacebookPixel from '@/components/FacebookPixel'
 
 export const metadata: Metadata = {
   metadataBase: new URL(`${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}`),
@@ -52,6 +53,7 @@ export default async function RootLayout({
 
           <body className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}>
             <div>
+              <FacebookPixel pixelId={process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID} />
               <ToasterProvider />
               <Header />
               {children}

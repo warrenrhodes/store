@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import { toast } from '@/hooks/use-toast'
 import { IDeliveryInfo } from '@/lib/api/orders'
 import { IProduct } from '@/lib/api/products'
+import { trackAddToCart, trackRemoveFromCart } from '@/lib/pixel-events'
 export interface CartShipment {
   method: 'DELIVERY' | 'EXPEDITION'
   cost: number
@@ -66,15 +67,29 @@ const useCart = create(
         toast({
           title: '🎉🎉 Item added to cart',
         })
+        trackAddToCart({
+          content_name: product.title,
+          content_ids: [product.id],
+          content_type: 'product',
+          value: product.price,
+          currency: 'XAF',
+        })
       },
       removeItem: (idToRemove: string) => {
+        const product = get().cartItems.find(cartItem => cartItem.product.id === idToRemove).product
         const newCartItems = get().cartItems.filter(cartItem => cartItem.product.id !== idToRemove)
         set({ cartItems: newCartItems })
 
-        console.log(get().cartItems.length)
         if (get().cartItems.length === 0) {
           useCartDeliveryInfo.getState().clearDeliveryInfo()
         }
+        trackRemoveFromCart({
+          content_name: product.title,
+          content_ids: [product.id],
+          content_type: 'product',
+          value: product.price,
+          currency: 'XAF',
+        })
       },
       increaseQuantity: (idToIncrease: string) => {
         const newCartItems = get().cartItems.map(cartItem =>

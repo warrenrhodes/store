@@ -24,9 +24,6 @@ const staticUrls: MetadataRoute.Sitemap = [
 ]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  if (process.env.NEXT_BUILD_TIME === 'true') {
-    return staticUrls
-  }
   try {
     // Fetch dynamic data with timeout
     const [products, blogs] = await Promise.all([

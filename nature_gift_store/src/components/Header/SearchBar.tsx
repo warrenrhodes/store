@@ -13,6 +13,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { IProduct } from '@/lib/api/products'
 import { FAKE_BLUR } from '@/lib/utils/constants'
+import { trackSearch } from '@/lib/pixel-events'
 
 export function SearchBar() {
   const [query, setQuery] = useState('')
@@ -55,7 +56,12 @@ export function SearchBar() {
           className="w-full pl-10 pr-4"
           value={query}
           onKeyDown={handleKeyPress}
-          onChange={e => setQuery(e.target.value)}
+          onChange={e => {
+            setQuery(e.target.value)
+            trackSearch({
+              search_string: e.target.value,
+            })
+          }}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
         />

@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, ShoppingBag } from 'lucide-react'
 import Link from 'next/link'
@@ -19,6 +19,7 @@ import { createOrder } from '@/lib/api/orders'
 import { IShipment } from '@/lib/api/shipments'
 import { CheckoutSteps } from './CheckoutSteps'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { trackInitiateCheckout, trackPurchaseWithSource } from '@/lib/pixel-events'
 
 const steps = [
   { id: 'delivery', title: 'Delivery' },
@@ -35,6 +36,20 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
   const orderSummary = useRef<OrderSummaryType>()
   const currentStepIndex = steps.findIndex(step => step.id === currentStep)
   const { user } = useCurrentUser()
+
+  useEffect(() => {
+    // Track when user views a checkout
+    trackInitiateCheckout({
+      content_ids: cartItems.map(item => item.product.id),
+      contents: cartItems.map(item => ({
+        id: item.product.id,
+        quantity: item.quantity,
+      })),
+      num_items: cartItems.length,
+      value: cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0),
+      currency: 'XAF',
+    })
+  }, [cartItems])
 
   const handleStepSubmit = (stepId: string, data: DeliveryFormData) => {
     setFormData(data)
@@ -110,6 +125,7 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
         </ToastAction>
       ),
     })
+    trackPurchaseWithSource(order, cartItems)
 
     setUserData({ ...formData })
     clearCart()

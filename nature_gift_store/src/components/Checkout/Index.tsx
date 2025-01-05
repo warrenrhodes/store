@@ -125,7 +125,11 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
         </ToastAction>
       ),
     })
-    trackPurchaseWithSource(order, cartItems)
+    try {
+      trackPurchaseWithSource(confirmOrder)
+    } catch (error) {
+      console.log(error)
+    }
 
     setUserData({ ...formData })
     clearCart()
@@ -134,7 +138,7 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
       router.replace('/profile?tabs=orders')
       return
     }
-    router.replace('/')
+    router.replace('/order/success')
   }
 
   const handleBack = () => {

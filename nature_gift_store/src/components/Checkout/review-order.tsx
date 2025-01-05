@@ -74,6 +74,10 @@ export function ReviewOrder({ formData, onBack, onSubmit, isLoading }: ReviewOrd
                 <span className="text-muted-foreground">Delivery Location: </span>
                 <p> {delivery.shipping.location}</p>
               </div>
+              <div className="flex gap-3">
+                <span className="text-muted-foreground">Additional Information: </span>
+                <p> {delivery.additionalNotes}</p>
+              </div>
             </div>
           </CardContent>
         </Card>

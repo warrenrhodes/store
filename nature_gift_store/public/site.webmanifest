@@ -1,6 +1,6 @@
 {
-  "name": "MyWebSite",
-  "short_name": "MySite",
+  "name": "Nature's Gift",
+  "short_name": "N.Gift",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",

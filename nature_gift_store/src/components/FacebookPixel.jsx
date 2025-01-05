@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { trackPageViewWithSource } from '@/lib/pixel-events'
 
 export default function FacebookPixel({ pixelId }) {
   const pathname = usePathname()
@@ -33,10 +32,10 @@ export default function FacebookPixel({ pixelId }) {
   }, [pixelId])
 
   // Track pageviews with campaign data
-  useEffect(() => {
-    if (!pixelId) return
-    trackPageViewWithSource()
-  }, [pathname, searchParams]) // Re-run when URL or parameters change
+  // useEffect(() => {
+  //   if (!pixelId) return
+  //   trackPageViewWithSource()
+  // }, [pathname, searchParams]) // Re-run when URL or parameters change
 
   return (
     <noscript>

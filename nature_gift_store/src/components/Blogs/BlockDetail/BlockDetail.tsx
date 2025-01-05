@@ -11,18 +11,14 @@ import { IBlog } from '@/lib/api/blogs'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { FAKE_BLUR } from '@/lib/utils/constants'
-import { trackCustomEvent } from '@/lib/pixel-events'
+import { trackPageViewWithSource } from '@/lib/pixel-events'
 import { useEffect } from 'react'
 
 const BlogDetail = ({ blog, relatedBlogs }: { blog: IBlog; relatedBlogs: IBlog[] }) => {
   useEffect(() => {
     // Track when user views a blog
-    trackCustomEvent('Viewed Blog', {
-      content_name: blog.title,
-      content_ids: [blog.id],
-      content_type: 'blog',
-    })
-  }, [blog])
+    trackPageViewWithSource()
+  }, [])
 
   return (
     <motion.div

@@ -5,7 +5,7 @@ import { RelatedProducts } from '@/components/Shop/ProductDetail/RelatedProducts
 import { RelatedBlogs } from '@/components/Shop/ProductDetail/RelatedBlogs'
 import { ActivePromotions } from '@/components/Shop/ProductDetail/ActivePromotions'
 import { ProductReviews } from '@/components/Shop/ProductDetail/ProductReviews'
-import { fetchProductBySlug, fetchRelatedProducts } from '@/lib/api/products'
+import { fetchProductBySlug, fetchRelatedProducts, getProducts } from '@/lib/api/products'
 import { getPromotions } from '@/lib/api/promotions'
 import GeneralCTAComponent from '@/components/Cta/GeneralCta'
 import { fetchBlogsByQuery } from '@/lib/api/blogs'
@@ -17,27 +17,33 @@ import {
   ProductsLoading,
 } from '@/components/Loading'
 import { AutoAddToCart } from './autoAddToCart'
-// export async function generateStaticParams() {
-//   try {
-//     const productList = await getProducts({})
-//     return productList?.map(c => ({ slug: c.slug })) || []
-//   } catch (error) {
-//     console.info('Could not fetch products during build:', error)
-//     return []
-//   }
-// }
+
+export async function generateStaticParams() {
+  const product = await getProducts()
+
+  return product.map(post => ({
+    slug: post.slug,
+  }))
+}
 
 export async function generateMetadata({ params }: Props) {
   const product = await fetchProductBySlug({ slug: (await params).slug })
   return {
-    title: product?.title,
-    description: product?.description.content,
-    keywords: product?.tags,
+    title: product?.metadata.seoTitle,
+    description: product?.metadata.seoDescription,
+    keywords: product?.metadata.keywords,
     openGraph: {
-      images: product?.media.map(m => ({
+      title: product?.metadata.seoTitle,
+      description: product?.metadata.seoDescription,
+      url: process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL,
+      siteName: 'Nature Gift',
+      images: product?.media.reverse().map(m => ({
         url: m.media.url,
+        width: 800,
+        height: 600,
       })),
     },
+    type: 'product',
   }
 }
 
@@ -106,7 +112,11 @@ async function FeaturedProductLoader({ slug }: { slug: string }) {
   if (!product) return null
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div
+      itemScope
+      itemType={`${process.env.NEXT_PUBLIC_SCHEMA_URL}/shop/${product.slug}`}
+      className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+    >
       <ProductGallery product={product} />
       <ProductInfo product={product} />
     </div>

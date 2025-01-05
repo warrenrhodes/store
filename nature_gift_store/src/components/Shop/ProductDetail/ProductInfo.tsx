@@ -18,7 +18,7 @@ import { useCartSideBar } from '@/hooks/useCart'
 import { useRouter } from 'next/navigation'
 import { IProduct } from '@/lib/api/products'
 import { useEffect } from 'react'
-import { trackViewContent } from '@/lib/pixel-events'
+import { trackPageViewWithSource } from '@/lib/pixel-events'
 
 export function ProductInfo({ product }: { product: IProduct }) {
   const { title, features, description, price } = product
@@ -47,14 +47,8 @@ export function ProductInfo({ product }: { product: IProduct }) {
 
   useEffect(() => {
     // Track when user views a product
-    trackViewContent({
-      content_name: product.title,
-      content_ids: [product.id],
-      content_type: 'product',
-      value: product.price,
-      currency: 'XAF',
-    })
-  }, [product])
+    trackPageViewWithSource()
+  }, [])
 
   const percentageDiscount = canDisplayPromoPrice(product)
     ? getPercentageDiscount(price.regular, price.sale)
@@ -62,7 +56,9 @@ export function ProductInfo({ product }: { product: IProduct }) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">{title}</h1>
+        <h1 itemProp="name" className="text-3xl font-bold">
+          {title}
+        </h1>
         <div className="space-x-1">
           {product.tags?.slice(0, 3).map(tag => (
             <span key={tag} className="inline-block text-xs text-muted-foreground">
@@ -104,6 +100,7 @@ export function ProductInfo({ product }: { product: IProduct }) {
         <p className="text-muted-foreground">{description.content}</p>
       ) : (
         <div
+          itemProp="description"
           className="prose prose-slate prose-sm sm:prose leading-relaxed text-gray-400"
           dangerouslySetInnerHTML={{
             __html: product.description.content,

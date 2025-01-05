@@ -55,7 +55,7 @@ export function CartItem({ item, increaseQuantity, decreaseQuantity, onRemove }:
               <Image
                 src={item.product.media[0].media.url}
                 fill
-                alt={item.product.title}
+                alt={item.product.metadata.seoTitle}
                 className="object-cover w-full h-full"
                 onError={() => console.log('Image not found')}
                 placeholder="blur"

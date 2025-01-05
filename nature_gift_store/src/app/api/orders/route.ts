@@ -1,8 +1,12 @@
+import { FlockNotifier } from '@/lib/notifications/flock/flock'
 import { sendEmailNotifications, sendSmsNotifications } from '@/lib/notifications/sendNotifications'
 import { prisma } from '@/lib/prisma'
 import { format } from 'date-fns'
 import { NextRequest, NextResponse } from 'next/server'
 
+const flockNotifier = new FlockNotifier({
+  webhookUrl: process.env.FLOCK_WEBHOOK_URL as string,
+})
 /// Request to create new order.
 export const POST = async (req: NextRequest) => {
   const { order, cartItems, user } = await req.json()
@@ -30,12 +34,31 @@ export const POST = async (req: NextRequest) => {
           },
         },
       },
+      include: {
+        items: {
+          include: {
+            product: {
+              include: {
+                media: {
+                  include: {
+                    media: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     })
 
     if (!newOrder) {
       return NextResponse.json({ error: 'Failed to create order' }, { status: 500 })
     }
-
+    try {
+      await flockNotifier.sendOrderNotification(newOrder)
+    } catch (error) {
+      console.error('Error sending Flock notification:', error)
+    }
     // Send notifications
     const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.split(',') || []
     const adminPhones = process.env.NEXT_PUBLIC_ADMIN_PHONE_NUMBER?.split(',') || []
@@ -74,7 +97,7 @@ export const POST = async (req: NextRequest) => {
               phoneNumber: phone,
               notificationId: 'new_product',
               data: {
-                comment: `Go to ${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}/orders`,
+                comment: `Visit the order on ${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/orders`,
               },
             }),
           ),

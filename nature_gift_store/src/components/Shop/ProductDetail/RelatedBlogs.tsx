@@ -53,7 +53,7 @@ export function RelatedBlogs({ relatedBlogs }: { relatedBlogs: IBlog[] }) {
                 <div className="relative aspect-video overflow-hidden rounded-t-lg">
                   <Image
                     src={blog.metadata.coverImageURL || ''}
-                    alt={blog.title}
+                    alt={blog.metadata.title}
                     fill
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
                     placeholder="blur"

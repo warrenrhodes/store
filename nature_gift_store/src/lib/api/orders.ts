@@ -38,7 +38,7 @@ export const createOrder = async (params: {
   order: Record<string, unknown>
   cartItems: CartItem[]
   user: IUser | null
-}): Promise<string | null> => {
+}): Promise<IOrder | null> => {
   const response = await fetch(`/api/orders`, {
     method: 'POST',
     headers: {

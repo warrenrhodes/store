@@ -29,6 +29,7 @@ export const metadata: Metadata = {
     template: '%s | N.Gift',
   },
   description: 'Explore N.Gift, your online boutique dedicated to health, style and innovation.',
+  keywords: ['Gift', 'Longrich', 'Health', 'Style', 'Innovation'],
   twitter: {
     card: 'summary_large_image',
   },

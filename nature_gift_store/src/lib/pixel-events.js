@@ -43,7 +43,7 @@ export const trackPageViewWithSource = () => {
   }
 }
 
-export const trackPurchaseWithSource = (order, cartItems) => {
+export const trackPurchaseWithSource = order => {
   const campaignData = getAdCampaignFromURL()
 
   fbq('track', 'Purchase', {
@@ -54,11 +54,11 @@ export const trackPurchaseWithSource = (order, cartItems) => {
       lastName: order.userData.fullName.split(' ')[1],
       phone: order.userData.phone,
     },
-    contents: cartItems.map(item => ({
+    contents: order.items.map(item => ({
       product: item.product.title,
       quantity: item.quantity,
     })),
-    num_items: cartItems.length,
+    num_items: order.items.length,
     value: order.orderPrices.total,
     currency: 'XAF',
     transaction_id: order.id,

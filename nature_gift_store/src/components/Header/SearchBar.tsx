@@ -112,7 +112,7 @@ const ItemResult = ({ product }: { product: IProduct }) => {
                 <Image
                   src={product.media[0].media.url}
                   fill
-                  alt={product.title}
+                  alt={product.metadata.seoTitle}
                   className="object-cover w-full h-full"
                   onError={() => console.log('Image not found')}
                   placeholder="blur"

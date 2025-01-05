@@ -15,7 +15,7 @@ export function ProductGallery({ product }: { product: IProduct }) {
 
   return (
     <div className="space-y-4">
-      <div className="relative aspect-square rounded-lg overflow-hidden bg-muted">
+      <div itemScope className="relative aspect-square rounded-lg overflow-hidden bg-muted">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentImage}
@@ -23,11 +23,12 @@ export function ProductGallery({ product }: { product: IProduct }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
+            itemProp="image"
             className="absolute inset-0"
           >
             <Image
               src={product.media[currentImage].media.url}
-              alt={product.title}
+              alt={product.metadata.seoTitle}
               fill
               className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
               placeholder="blur"
@@ -72,7 +73,7 @@ export function ProductGallery({ product }: { product: IProduct }) {
           >
             <Image
               src={value.media.url}
-              alt={value.media.fileName}
+              alt={product.metadata.seoTitle}
               fill
               className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
               placeholder="blur"

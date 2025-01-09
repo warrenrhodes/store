@@ -9,10 +9,13 @@ import { CartItem } from '@/components/Cart/CartItem'
 import { PromotionSummary } from '@/components/Cart/PromotionSummary'
 import { useCart, useCartDeliveryInfo } from '@/hooks/useCart'
 import { useShallow } from 'zustand/react/shallow'
+import { useLocalization } from '@/hooks/useLocalization'
 
 export default function CartPage() {
   const cartItems = useCart(e => e.cartItems)
   const { cartDeliveryInfo } = useCartDeliveryInfo()
+  const { localization } = useLocalization()
+
   const { decreaseQuantity, increaseQuantity, removeCartItem } = useCart(
     useShallow(s => ({
       increaseQuantity: s.increaseQuantity,
@@ -29,10 +32,10 @@ export default function CartPage() {
             <Button variant="ghost" asChild className="mb-4">
               <Link href="/shop" className="flex items-center gap-2">
                 <ArrowLeft className="w-4 h-4" />
-                Continue Shopping
+                {localization.continueShopping}
               </Link>
             </Button>
-            <h1 className="text-3xl font-bold tracking-tight">Shopping Cart</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{localization.shoppingCart}</h1>
           </div>
 
           {cartItems.length === 0 ? (
@@ -42,12 +45,10 @@ export default function CartPage() {
               className="text-center py-16"
             >
               <ShoppingBag className="w-16 h-16 mx-auto text-muted-foreground" />
-              <h2 className="mt-4 text-xl font-semibold">Your cart is empty</h2>
-              <p className="mt-2 text-muted-foreground">
-                {"Looks like you haven't added any items to your cart yet"}
-              </p>
+              <h2 className="mt-4 text-xl font-semibold">{localization.cartEmpty}</h2>
+              <p className="mt-2 text-muted-foreground">{localization.addItemsToCart}</p>
               <Button asChild className="mt-8">
-                <Link href="/shop">Start Shopping</Link>
+                <Link href="/shop">{localization.startShopping}</Link>
               </Button>
             </motion.div>
           ) : (
@@ -72,7 +73,7 @@ export default function CartPage() {
                 <PromotionSummary cartItems={cartItems} deliveryInfo={cartDeliveryInfo} />
                 <Separator />
                 <Button size="lg" className="w-full" asChild>
-                  <Link href="/checkout">Proceed to Checkout</Link>
+                  <Link href="/checkout">{localization.proceedToCheckout}</Link>
                 </Button>
               </div>
             </div>

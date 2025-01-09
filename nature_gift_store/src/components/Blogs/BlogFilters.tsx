@@ -10,6 +10,7 @@ import {
 import useBlogFilter from '@/hooks/useBlogFilter'
 import { Checkbox } from '../ui/checkbox'
 import { IBlog } from '@/lib/api/blogs'
+import { useLocalization } from '@/hooks/useLocalization'
 
 export function BlogFilters({
   categories,
@@ -20,14 +21,15 @@ export function BlogFilters({
   blogs: IBlog[]
 }) {
   const { filters, setFilters, clearFilters } = useBlogFilter()
+  const { localization } = useLocalization()
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between h-11">
-        <h2 className="text-lg font-semibold">Filters</h2>
+        <h2 className="text-lg font-semibold">{localization.filters}</h2>
         {(filters.categories.length > 0 || filters.tags.length > 0) && (
           <Button variant="ghost" size="sm" onClick={clearFilters}>
-            Clear All
+            {localization.clearAll}
           </Button>
         )}
       </div>

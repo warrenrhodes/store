@@ -8,6 +8,7 @@ import { Price } from '../Price'
 import Link from 'next/link'
 import { cn } from '@/lib/utils/utils'
 import { IProduct } from '@/lib/api/products'
+import { useLocalization } from '@/hooks/useLocalization'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -31,6 +32,8 @@ const itemVariants = {
 }
 
 export function NewArrivals({ products }: { products: IProduct[] }) {
+  const { localization } = useLocalization()
+
   return (
     <section
       className={cn({
@@ -41,8 +44,10 @@ export function NewArrivals({ products }: { products: IProduct[] }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900">New Arrivals</h2>
-            <p className="mt-2 text-lg text-gray-600">The latest additions to our collection</p>
+            <h2 className="text-3xl font-bold tracking-tight text-gray-900">
+              {localization.newArrivals}
+            </h2>
+            <p className="mt-2 text-lg text-gray-600">{localization.latestAdditions}</p>
           </div>
           <Button variant="ghost" className="group" asChild>
             <Link href="/products">
@@ -77,7 +82,7 @@ export function NewArrivals({ products }: { products: IProduct[] }) {
                 <CardFooter className="p-6 pt-0">
                   <Button variant="outline" className="w-full group" asChild>
                     <Link href={`/shop/${product.slug}`}>
-                      View Details
+                      {localization.viewDetails}
                       <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </Link>
                   </Button>

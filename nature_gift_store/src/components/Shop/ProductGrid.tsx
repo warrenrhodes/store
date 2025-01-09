@@ -6,6 +6,7 @@ import { FilterX } from 'lucide-react'
 import { ProductCard } from '../ProductCard'
 import { GlobalPagination } from '../GlobalPagination'
 import { IProduct } from '@/lib/api/products'
+import { useLocalization } from '@/hooks/useLocalization'
 
 interface ProductGridProps {
   products: IProduct[]
@@ -14,6 +15,8 @@ interface ProductGridProps {
 }
 
 export function ProductGrid({ products, loading, clearFilters }: ProductGridProps) {
+  const { localization } = useLocalization()
+
   if (loading) {
     return (
       <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -34,7 +37,7 @@ export function ProductGrid({ products, loading, clearFilters }: ProductGridProp
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
         <div className="max-w-md mx-auto">
-          <h3 className="text-xl font-medium mb-2">No products found</h3>
+          <h3 className="text-xl font-medium mb-2">{localization.noProductsFound}</h3>
           <p className="text-muted-foreground mb-6">
             {"Try adjusting your search or filter criteria to find what you're looking for."}
           </p>

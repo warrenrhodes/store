@@ -7,6 +7,7 @@ import { Separator } from '../ui/separator'
 import { Checkbox } from '../ui/checkbox'
 import { ICategory } from '@/lib/api/categories'
 import { Filters } from '@/lib/api/products'
+import { useLocalization } from '@/hooks/useLocalization'
 
 interface FilterOptionsProps {
   filters: Filters
@@ -23,6 +24,8 @@ export function FilterOptions({
   maxPrice,
   categories,
 }: FilterOptionsProps) {
+  const { localization } = useLocalization()
+
   return (
     <div className="mt-8 space-y-6">
       <AnimatePresence>
@@ -34,7 +37,7 @@ export function FilterOptions({
           className="space-y-6"
         >
           <div>
-            <h3 className="text-sm font-medium mb-4">Price Range</h3>
+            <h3 className="text-sm font-medium mb-4">{localization.priceRange}</h3>
             <Slider
               value={filters.priceRange}
               max={maxPrice}
@@ -59,7 +62,7 @@ export function FilterOptions({
                 hidden: categories.length === 0,
               })}
             >
-              <AccordionTrigger>Categories</AccordionTrigger>
+              <AccordionTrigger>{localization.categories}</AccordionTrigger>
               <AccordionContent>
                 <div className="space-y-4 pt-2">
                   {categories.map(category => (

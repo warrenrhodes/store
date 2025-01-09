@@ -8,9 +8,11 @@ import { Textarea } from '../ui/textarea'
 import { Input } from '../ui/input'
 import { Button } from '../ui/button'
 import { sendEmailNotifications } from '@/lib/notifications/sendNotifications'
+import { useLocalization } from '@/hooks/useLocalization'
 
 export function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { localization } = useLocalization()
   const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -107,7 +109,7 @@ export function ContactForm() {
             'Sending...'
           ) : (
             <>
-              Send Message
+              {localization.sendMessage}
               <Send className="ml-2 h-4 w-4" />
             </>
           )}

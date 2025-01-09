@@ -14,11 +14,13 @@ import Link from 'next/link'
 import { IProduct } from '@/lib/api/products'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { trackSearch } from '@/lib/pixel-events'
+import { useLocalization } from '@/hooks/useLocalization'
 
 export function SearchBar() {
   const [query, setQuery] = useState('')
   const [isFocused, setIsFocused] = useState(false)
   const [products, setProducts] = useState<IProduct[]>([])
+  const { localization } = useLocalization()
 
   const fetchData = useCallback(async () => {
     const result = await fetch('/api/products')
@@ -52,7 +54,7 @@ export function SearchBar() {
       <div className="relative">
         <Input
           type="search"
-          placeholder="Search products..."
+          placeholder={localization.searchProducts}
           className="w-full pl-10 pr-4"
           value={query}
           onKeyDown={handleKeyPress}
@@ -95,6 +97,7 @@ export function SearchBar() {
 
 const ItemResult = ({ product }: { product: IProduct }) => {
   const cart = useCart()
+  const { localization } = useLocalization()
 
   return (
     <motion.div
@@ -119,7 +122,9 @@ const ItemResult = ({ product }: { product: IProduct }) => {
                   blurDataURL={product.media[0].media.blurDataUrl || FAKE_BLUR}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
-                {product.isFeature && <Badge className="absolute top-1 left-1">Feature</Badge>}
+                {product.isFeature && (
+                  <Badge className="absolute top-1 left-1">{localization.featured}</Badge>
+                )}
               </div>
             </Link>
             <div className="flex-1">

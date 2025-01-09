@@ -8,10 +8,11 @@ import { AnimatePresence } from 'framer-motion'
 import { Card, CardContent } from '../ui/card'
 import Link from 'next/link'
 import { IBlog } from '@/lib/api/blogs'
+import { useLocalization } from '@/hooks/useLocalization'
 
 export function BlogSearch({ blogs }: { blogs: IBlog[] }) {
   const [query, setQuery] = useState('')
-
+  const { localization } = useLocalization()
   const blogsFiltered = blogs.filter(blog => blog.title.toLowerCase().includes(query.toLowerCase()))
 
   const handleKeyPress = (
@@ -69,12 +70,13 @@ export function BlogSearch({ blogs }: { blogs: IBlog[] }) {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">{`No results found for "${query}"`}</p>
+                <p className="text-sm text-muted-foreground">{`${localization.noResultsFoundFor} "${query}"`}</p>
               )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+      <h2 className="text-2xl font-bold">{localization.search}</h2>
     </div>
   )
 }

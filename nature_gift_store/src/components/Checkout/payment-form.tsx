@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { paymentSchema } from '@/lib/utils/validation-form'
+import { useLocalization } from '@/hooks/useLocalization'
 
 interface PaymentFormProps {
   initialData?: any
@@ -22,6 +23,8 @@ interface PaymentFormProps {
 }
 
 export function PaymentForm({ initialData, onSubmit, onBack }: PaymentFormProps) {
+  const { localization } = useLocalization()
+
   const form = useForm({
     resolver: zodResolver(paymentSchema),
     defaultValues: initialData || {
@@ -46,7 +49,7 @@ export function PaymentForm({ initialData, onSubmit, onBack }: PaymentFormProps)
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <CreditCard className="w-5 h-5" />
-            <h2 className="text-2xl font-semibold">Payment Information</h2>
+            <h2 className="text-2xl font-semibold">{localization.paymentInformation}</h2>
           </div>
 
           <FormField
@@ -54,7 +57,7 @@ export function PaymentForm({ initialData, onSubmit, onBack }: PaymentFormProps)
             name="cardNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Card Number</FormLabel>
+                <FormLabel>{localization.cardNumber}</FormLabel>
                 <FormControl>
                   <Input
                     {...field}

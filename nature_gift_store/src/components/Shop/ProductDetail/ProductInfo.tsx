@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation'
 import { IProduct } from '@/lib/api/products'
 import { useEffect } from 'react'
 import { trackPageViewWithSource } from '@/lib/pixel-events'
+import { useLocalization } from '@/hooks/useLocalization'
 
 export function ProductInfo({ product }: { product: IProduct }) {
   const { title, features, description, price } = product
@@ -26,6 +27,8 @@ export function ProductInfo({ product }: { product: IProduct }) {
   const router = useRouter()
   const cartSideBar = useCartSideBar()
   const cartItem = cart.cartItems.find(item => item.product.id === product.id)
+  const { localization } = useLocalization()
+
   const handleClickDecrement = () => {
     if (!cartItem) return
     if (1 >= cartItem.quantity) return
@@ -83,7 +86,9 @@ export function ProductInfo({ product }: { product: IProduct }) {
             </span>
           </div>
           <Separator orientation="vertical" className="h-5" />
-          <span className="text-sm text-muted-foreground">{product?.reviews?.length} reviews</span>
+          <span className="text-sm text-muted-foreground">
+            {product?.reviews?.length} {localization.reviews}
+          </span>
         </div>
       </div>
 
@@ -91,7 +96,9 @@ export function ProductInfo({ product }: { product: IProduct }) {
         <div className="flex items-center gap-2">
           <Price product={product} />
           {percentageDiscount > 0 && (
-            <Badge variant="destructive">Save {percentageDiscount.toFixed(0)}%</Badge>
+            <Badge variant="destructive">
+              {localization.save} {percentageDiscount.toFixed(0)}%
+            </Badge>
           )}
         </div>
       </div>
@@ -110,7 +117,7 @@ export function ProductInfo({ product }: { product: IProduct }) {
 
       <div className="space-y-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Quantity</label>
+          <label className="text-sm font-medium">{localization.quantity}</label>
           <div className="nc-NcInputNumber__content flex w-[104px] items-center justify-between sm:w-28 mt-5">
             <Button variant="outline" size="icon" onClick={handleClickDecrement}>
               <Minus className="w-4 h-4" />
@@ -125,7 +132,7 @@ export function ProductInfo({ product }: { product: IProduct }) {
           <div className="flex gap-4">
             <Button
               variant={'outline'}
-              className="flex-1 group flex w-full  py-5 gap-1 border-2 border-primary font-bold transition-all duration-300"
+              className="flex-1 group flex w-full py-5 gap-1 border-2 border-primary font-bold transition-all duration-300"
               onClick={() => {
                 if (!cartItem) {
                   handleClickIncrement()
@@ -134,7 +141,7 @@ export function ProductInfo({ product }: { product: IProduct }) {
               }}
             >
               <ShoppingCart className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />{' '}
-              Add to cart
+              {localization.addToCart}
             </Button>
 
             <Button variant="outline" size="icon">
@@ -145,7 +152,7 @@ export function ProductInfo({ product }: { product: IProduct }) {
             </Button>
           </div>
           <Button
-            className="flex w-full  py-5 text-secondary items-center gap-1 border-2 border-primary font-bold transition-all duration-300"
+            className="flex w-full py-5 text-secondary items-center gap-1 border-2 border-primary font-bold transition-all duration-300"
             onClick={() => {
               if (!cartItem) {
                 handleClickIncrement()
@@ -155,7 +162,7 @@ export function ProductInfo({ product }: { product: IProduct }) {
               }, 1000)
             }}
           >
-            Buy Now
+            {localization.buyNow}
           </Button>
         </div>
       </div>
@@ -164,7 +171,7 @@ export function ProductInfo({ product }: { product: IProduct }) {
 
       {features && (
         <div className="space-y-2">
-          <h3 className="font-medium">Key Features</h3>
+          <h3 className="font-medium">{localization.keyFeatures}</h3>
           <ul className="grid grid-cols-2 gap-2 text-sm">
             {features.map(feature => (
               <li key={feature.title} className="flex items-center">

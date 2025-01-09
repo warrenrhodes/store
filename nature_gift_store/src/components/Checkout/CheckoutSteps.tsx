@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { CheckCircle } from 'lucide-react'
+import { useLocalization } from '@/hooks/useLocalization'
 
 interface Step {
   id: string
@@ -15,7 +16,7 @@ interface StepsProps {
 
 export function CheckoutSteps({ steps, currentStep }: StepsProps) {
   const currentStepIndex = steps.findIndex(step => step.id === currentStep)
-
+  const { localization } = useLocalization()
   return (
     <div className="relative">
       <div className="absolute top-1/2 left-0 w-full h-px bg-border -translate-y-1/2" />
@@ -40,7 +41,7 @@ export function CheckoutSteps({ steps, currentStep }: StepsProps) {
               >
                 {isCompleted ? <CheckCircle className="w-5 h-5" /> : <span>{index + 1}</span>}
               </div>
-              <span className="mt-2 text-sm font-medium">{step.title}</span>
+              <span className="mt-2 text-sm font-medium">{localization.stepTitle}</span>
             </motion.div>
           )
         })}

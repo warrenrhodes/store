@@ -1,8 +1,10 @@
 'use client'
 
+import { useLocalization } from '@/hooks/useLocalization'
 import { motion } from 'framer-motion'
 
 export function ProductHero() {
+  const { localization } = useLocalization()
   return (
     <section className="relative h-96 bg-gray-900 overflow-hidden">
       <motion.div
@@ -18,7 +20,7 @@ export function ProductHero() {
             transition={{ delay: 0.2 }}
             className="text-5xl font-bold text-white mb-6"
           >
-            Discover Amazing Product
+            {localization.heroTitle}
           </motion.h1>
           <motion.p
             initial={{ y: 20, opacity: 0 }}
@@ -26,7 +28,7 @@ export function ProductHero() {
             transition={{ delay: 0.3 }}
             className="text-xl text-gray-200 mb-8"
           >
-            Explore our collection of premium products designed to enhance your lifestyle
+            {localization.heroDescription}
           </motion.p>
         </div>
       </div>

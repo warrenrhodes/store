@@ -15,6 +15,7 @@ import { NextButton, PrevButton, usePrevNextButtons } from './EmblaCarouselArrow
 import { DotButton, useDotButton } from './EmblaCarouselDotButton'
 import Image from 'next/image'
 import { FAKE_BLUR } from '@/lib/utils/constants'
+import { useLocalization } from '@/hooks/useLocalization'
 
 interface FeaturedBlogCarouselProps {
   blogs: IBlog[]
@@ -24,6 +25,7 @@ const OPTIONS: EmblaOptionsType = { dragFree: true, loop: true }
 const TWEEN_FACTOR_BASE = 0.2
 
 export function FeaturedBlogCarousel({ blogs }: FeaturedBlogCarouselProps) {
+  const { localization } = useLocalization()
   const [emblaRef, emblaApi] = useEmblaCarousel(OPTIONS)
   const tweenFactor = useRef(0)
   const tweenNodes = useRef<HTMLElement[]>([])
@@ -156,7 +158,7 @@ export function FeaturedBlogCarousel({ blogs }: FeaturedBlogCarouselProps) {
             </div>
             <Button asChild className="absolute top-8 right-8" variant="secondary">
               <Link href={`/blogs/${blog.slug}`}>
-                Read More
+                {localization.readMore}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>

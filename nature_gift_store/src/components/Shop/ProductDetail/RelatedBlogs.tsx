@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { IBlog } from '@/lib/api/blogs'
 import Image from 'next/image'
 import { FAKE_BLUR } from '@/lib/utils/constants'
+import { useLocalization } from '@/hooks/useLocalization'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -32,13 +33,15 @@ const itemVariants = {
 }
 
 export function RelatedBlogs({ relatedBlogs }: { relatedBlogs: IBlog[] }) {
+  const { localization } = useLocalization()
+
   if (relatedBlogs.length === 0) {
     return <></>
   }
 
   return (
     <section>
-      <h2 className="text-2xl font-bold mb-8">Learn More</h2>
+      <h2 className="text-2xl font-bold mb-8">{localization.learnMore}</h2>
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -73,7 +76,7 @@ export function RelatedBlogs({ relatedBlogs }: { relatedBlogs: IBlog[] }) {
               <CardFooter className="p-6 pt-0">
                 <Button variant="ghost" className="w-full group" asChild>
                   <Link href={`/blogs/${blog.slug}`}>
-                    Read More
+                    {localization.readMore}
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />{' '}
                   </Link>
                 </Button>

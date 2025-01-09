@@ -5,6 +5,7 @@ import { Tag, Timer } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { getDetailedExpiresIn } from '@/lib/utils/utils'
 import { IPromotion } from '@/lib/api/promotions'
+import { useLocalization } from '@/hooks/useLocalization'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -28,13 +29,15 @@ const itemVariants = {
 }
 
 export function ActivePromotions({ activePromotions }: { activePromotions: IPromotion[] }) {
+  const { localization } = useLocalization()
+
   if (activePromotions.length === 0) {
     return <></>
   }
 
   return (
     <section>
-      <h2 className="text-2xl font-bold mb-8">Available Promotions</h2>
+      <h2 className="text-2xl font-bold mb-8">{localization.activePromotions}</h2>
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -50,7 +53,7 @@ export function ActivePromotions({ activePromotions }: { activePromotions: IProm
                 <CardHeader>
                   <div className="flex items-center gap-2 text-primary mb-2">
                     <Tag className="h-5 w-5" />
-                    <span className="text-sm font-medium">Special Offer</span>
+                    <span className="text-sm font-medium">{localization.specialOffer}</span>
                   </div>
                   <CardTitle>{promo.name}</CardTitle>
                   <CardDescription>{promo.description}</CardDescription>

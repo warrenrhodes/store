@@ -7,9 +7,11 @@ import { Package } from 'lucide-react'
 import { cn } from '@/lib/utils/utils'
 import { motion } from 'framer-motion'
 import { navItems } from '@/lib/utils/navItems'
+import { useLocale } from '@/hooks/useLocale'
 
 export function MainNav() {
   const pathname = usePathname()
+  const { locale } = useLocale()
 
   return (
     <div className="flex items-center gap-6 lg:gap-8">
@@ -26,7 +28,7 @@ export function MainNav() {
               pathname === item.href ? 'text-primary' : 'text-muted-foreground',
             )}
           >
-            {item.title}
+            {item.title[locale]}
 
             {pathname === item.href && (
               <motion.div

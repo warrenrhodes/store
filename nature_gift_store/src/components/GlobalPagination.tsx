@@ -9,6 +9,7 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination'
 import { motion } from 'framer-motion'
+import { useLocalization } from '@/hooks/useLocalization'
 
 interface PaginationProps<T> {
   items: T[]
@@ -18,6 +19,8 @@ interface PaginationProps<T> {
 
 export const GlobalPagination = <T,>({ items, itemsPerPage, children }: PaginationProps<T>) => {
   const [currentPage, setCurrentPage] = React.useState(1)
+  const { localization } = useLocalization()
+
   const totalItems = items.length
   const totalPages = Math.ceil(totalItems / itemsPerPage)
   const itemsToDisplay = items.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
@@ -32,7 +35,7 @@ export const GlobalPagination = <T,>({ items, itemsPerPage, children }: Paginati
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
         <div className="max-w-md mx-auto">
-          <h3 className="text-xl font-medium mb-2">No resources found</h3>
+          <h3 className="text-xl font-medium mb-2">{localization.noRessourceFound}</h3>
           <p className="text-muted-foreground mb-6">
             {" Try adjusting your filter criteria to find what you're looking for."}
           </p>

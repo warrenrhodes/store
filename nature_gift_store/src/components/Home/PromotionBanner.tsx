@@ -5,10 +5,12 @@ import { motion } from 'framer-motion'
 import { Zap } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useEffect } from 'react'
+import { useLocalization } from '@/hooks/useLocalization'
 
 export function PromotionBanner({ promotions }: { promotions: IPromotion[] }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [opacity, setOpacity] = useState(1)
+  const { localization } = useLocalization()
 
   const goToNext = useCallback(() => {
     setOpacity(0)
@@ -47,7 +49,9 @@ export function PromotionBanner({ promotions }: { promotions: IPromotion[] }) {
             <div className="flex-1">
               <div className="flex items-center justify-center sm:justify-start gap-2 mb-4">
                 <Zap className="h-6 w-6 text-primary-foreground" />
-                <span className="text-lg font-medium text-primary-foreground">Flash Sale</span>
+                <span className="text-lg font-medium text-primary-foreground">
+                  {localization.flashSale}
+                </span>
               </div>
               <h2 className="text-3xl font-bold tracking-tight text-primary-foreground sm:text-4xl">
                 {currentPromotion.name}

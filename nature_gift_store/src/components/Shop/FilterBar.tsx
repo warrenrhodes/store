@@ -15,6 +15,7 @@ import { Search, SlidersHorizontal, FilterX } from 'lucide-react'
 import { FilterOptions } from './FilterOptions'
 import { ICategory } from '@/lib/api/categories'
 import { Filters, SortOption } from '@/lib/api/products'
+import { useLocalization } from '@/hooks/useLocalization'
 
 interface FilterBarProps {
   filters: Filters
@@ -35,6 +36,7 @@ export function FilterBar({
   maxPrice,
   categories,
 }: FilterBarProps) {
+  const { localization } = useLocalization()
   return (
     <div className="bg-card rounded-xl shadow-lg p-6 mb-8">
       <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
@@ -60,10 +62,10 @@ export function FilterBar({
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="price-asc">Price: Low to High</SelectItem>
-              <SelectItem value="price-desc">Price: High to Low</SelectItem>
-              <SelectItem value="rating">Top Rated</SelectItem>
+              <SelectItem value="newest">{localization.newest}</SelectItem>
+              <SelectItem value="price-asc">{localization.lowToHighPrice}</SelectItem>
+              <SelectItem value="price-desc">{localization.highToLowPrice}</SelectItem>
+              <SelectItem value="rating">{localization.topRates}</SelectItem>
             </SelectContent>
           </Select>
 
@@ -72,7 +74,7 @@ export function FilterBar({
               <SheetTrigger asChild>
                 <Button variant="outline" className="gap-2">
                   <SlidersHorizontal className="h-4 w-4" />
-                  Filters
+                  {localization.filters}
                   {activeFilters > 0 && (
                     <Badge variant="secondary" className="ml-2">
                       {activeFilters}
@@ -83,11 +85,11 @@ export function FilterBar({
               <SheetContent className="w-full sm:max-w-md overflow-y-auto">
                 <SheetHeader>
                   <div className="flex items-center justify-between">
-                    <SheetTitle>Filters</SheetTitle>
+                    <SheetTitle>{localization.filters}</SheetTitle>
                     {activeFilters > 0 && (
                       <Button variant="ghost" onClick={clearFilters} className="gap-2">
                         <FilterX className="h-4 w-4" />
-                        Clear all
+                        {localization.clearAll}
                       </Button>
                     )}
                   </div>

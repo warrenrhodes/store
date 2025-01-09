@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import { ICategory } from '@/lib/api/categories'
 import Image from 'next/image'
 import { FAKE_BLUR } from '@/lib/utils/constants'
+import { useLocalization } from '@/hooks/useLocalization'
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -30,6 +31,8 @@ const itemVariants = {
 
 export function CategoryShowcase({ categories }: { categories: ICategory[] }) {
   const router = useRouter()
+  const { localization } = useLocalization()
+
   const { filters, setFilters, clearFilters } = useFilter()
 
   return (
@@ -37,7 +40,7 @@ export function CategoryShowcase({ categories }: { categories: ICategory[] }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            Explore Categories
+            {localization.exploreCategories}
           </h2>
           <p className="mt-4 text-lg text-gray-600">
             Find everything you need across our diverse range of products

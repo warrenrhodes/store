@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, ShoppingBag } from 'lucide-react'
+import { ArrowLeft, Check, Loader2, ShoppingBag } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { DeliveryForm } from '@/components/Checkout/delivery-form'
@@ -20,6 +20,7 @@ import { IShipment } from '@/lib/api/shipments'
 import { CheckoutSteps } from './CheckoutSteps'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { trackInitiateCheckout, trackPurchaseWithSource } from '@/lib/pixel-events'
+import { useLocalization } from '@/hooks/useLocalization'
 
 const steps = [
   { id: 'delivery', title: 'Delivery' },
@@ -36,6 +37,7 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
   const orderSummary = useRef<OrderSummaryType>()
   const currentStepIndex = steps.findIndex(step => step.id === currentStep)
   const { user } = useCurrentUser()
+  const { localization } = useLocalization()
 
   useEffect(() => {
     // Track when user views a checkout
@@ -156,12 +158,14 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
         className="text-center py-16"
       >
         <ShoppingBag className="w-16 h-16 mx-auto text-muted-foreground" />
-        <h2 className="mt-4 text-xl font-semibold">Your cart is empty</h2>
-        <p className="mt-2 text-muted-foreground">
-          {" Looks like you haven't added any items to your cart yet"}
-        </p>
-        <Button asChild className="mt-8">
-          <Link href="/shop">Start Shopping</Link>
+        <h1 className="text-3xl font-bold tracking-tight">{localization.checkout}</h1>
+        <h2 className="mt-4 text-xl font-semibold">{localization.cartEmpty}</h2>
+        <p className="mt-2 text-muted-foreground">{localization.addItemsToCart}</p>
+        <Button variant="ghost" asChild className="mb-4">
+          <Link href="/cart" className="flex items-center gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            {localization.backToCart}
+          </Link>
         </Button>
       </motion.div>
     )
@@ -191,12 +195,25 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
+                  className="space-y-6"
                 >
                   <DeliveryForm
                     shipment={props.shipments}
                     onSubmit={data => handleStepSubmit('delivery', data)}
                     initialData={formData}
                   />
+                  <Button
+                    onClick={onOrderConfirm}
+                    className="w-full"
+                    disabled={isLoading || !formData}
+                  >
+                    {isLoading ? (
+                      <Loader2 className="animate-spin" />
+                    ) : (
+                      <Check className="mr-2 h-4 w-4" />
+                    )}
+                    {localization.placeOrder}
+                  </Button>
                 </motion.div>
               )}
 

@@ -11,6 +11,7 @@ import { usePromotionCalculator } from '@/hooks/usePromotionCalculator'
 import { OrderSummary as OrderSummaryType } from '@/lib/api/orders'
 import { Skeleton } from '../ui/skeleton'
 import { Badge } from '../ui/badge'
+import { useLocalization } from '@/hooks/useLocalization'
 
 export function OrderSummary({
   orderSummary,
@@ -22,6 +23,7 @@ export function OrderSummary({
 
   const [summary, setSummary] = useState<OrderSummaryType | null>(null)
   const { calculatePromotions, isCalculating, error } = usePromotionCalculator()
+  const { localization } = useLocalization()
 
   useEffect(() => {
     async function updatePromotions() {
@@ -57,7 +59,7 @@ export function OrderSummary({
           <CardTitle>Promotions</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-destructive">Failed to load promotions</p>
+          <p className="text-destructive">{localization.failedToLoadPromotions}</p>
         </CardContent>
       </Card>
     )
@@ -70,7 +72,7 @@ export function OrderSummary({
   return (
     <Card className="sticky top-8">
       <CardHeader>
-        <CardTitle>Order Summary</CardTitle>
+        <CardTitle>{localization.orderSummary}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {cartItems.map(item => (
@@ -86,22 +88,22 @@ export function OrderSummary({
 
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span>Subtotal</span>
+            <span>{localization.subtotal}</span>
             <span>{priceFormatted(summary.subtotal)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span>Shipping</span>
+            <span>{localization.shipping}</span>
             <span>{priceFormatted(summary.shipping)}</span>
           </div>
           {summary.discount > 0 && (
             <div className="flex justify-between text-sm text-green-600">
-              <span>Discount</span>
+              <span>{localization.discount}</span>
               <span>-{priceFormatted(summary.discount)}</span>
             </div>
           )}
           {summary.appliedPromotions.length > 0 && (
             <div className="border-t pt-4">
-              <h4 className="font-medium mb-2">Applied Promotions:</h4>
+              <h4 className="font-medium mb-2">{localization.appliedPromotions}:</h4>
               <div className="space-y-2">
                 {summary.appliedPromotions.map(promo => (
                   <div key={promo.id} className="flex justify-between items-center text-sm">
@@ -123,7 +125,7 @@ export function OrderSummary({
         <Separator />
 
         <div className="flex justify-between font-medium">
-          <span>Total</span>
+          <span>{localization.total}</span>
           <span>{priceFormatted(summary?.total)}</span>
         </div>
       </CardContent>

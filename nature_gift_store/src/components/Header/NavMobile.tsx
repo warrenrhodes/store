@@ -8,11 +8,14 @@ import { usePathname } from 'next/navigation'
 import { Button } from '../ui/button'
 import { SearchBar } from './SearchBar'
 import { navItems } from '@/lib/utils/navItems'
+import { useLocalization } from '@/hooks/useLocalization'
+import { useLocale } from '@/hooks/useLocale'
 
 export function MobileNav() {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
-
+  const { localization } = useLocalization()
+  const { locale } = useLocale()
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
@@ -25,7 +28,7 @@ export function MobileNav() {
           <div className="flex items-center justify-between py-4">
             <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
               <Package className="h-6 w-6" />
-              <span className="font-semibold">Store</span>
+              <span className="font-semibold">{localization.store}</span>
             </Link>
             <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
               <X className="h-5 w-5" />
@@ -44,7 +47,7 @@ export function MobileNav() {
                 }`}
                 onClick={() => setOpen(false)}
               >
-                <span className="relative">{item.title}</span>
+                <span className="relative">{item.title[locale]}</span>
               </Link>
             ))}
           </nav>

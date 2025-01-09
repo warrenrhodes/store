@@ -10,11 +10,13 @@ import { BlogGrid } from './BlogGrid'
 import { BlogSearch } from './BlogSearch'
 import useBlogFilter from '@/hooks/useBlogFilter'
 import { IBlog } from '@/lib/api/blogs'
+import { useLocalization } from '@/hooks/useLocalization'
 
 export default function Blogs({ blogs }: { blogs: IBlog[] }) {
   const { filters } = useBlogFilter()
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false)
   const [filteredBlogs, setFilteredBlogs] = useState<IBlog[]>(blogs)
+  const { localization } = useLocalization()
 
   useEffect(() => {
     let filtered: IBlog[] = []
@@ -38,10 +40,8 @@ export default function Blogs({ blogs }: { blogs: IBlog[] }) {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="space-y-12">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">Blog</h1>
-          <p className="mt-4 text-lg text-muted-foreground">
-            Discover the latest insights, guides, and trends in health tech and electronics.
-          </p>
+          <h1 className="text-4xl font-bold tracking-tight">{localization.blog}</h1>
+          <p className="mt-4 text-lg text-muted-foreground">{localization.blogsDescription}</p>
         </div>
 
         <FeaturedBlogCarousel blogs={blogs.filter(blog => blog.metadata.featured)} />

@@ -18,6 +18,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { IOrder, IOrderItem } from '@/lib/api/orders'
+import { useLocalization } from '@/hooks/useLocalization'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -59,6 +60,7 @@ function TabsWrapper() {
   const searchParams = useSearchParams()
   const tabs = searchParams.get('tabs')
   const orders = user?.orders
+  const { localization } = useLocalization()
   return (
     <Tabs defaultValue={tabs || 'orders'} className="w-full">
       <TabsList className="grid w-full grid-cols-3 mb-8">
@@ -74,12 +76,10 @@ function TabsWrapper() {
           {!orders || orders.length === 0 ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
-                <h3 className="mt-4 text-lg font-medium">You have no orders</h3>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  You need to place an order to see your orders.
-                </p>
+                <h3 className="mt-4 text-lg font-medium">{localization.noOrders}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{localization.noOrdersMessage}</p>
                 <Button asChild className="mt-8">
-                  <Link href="/shop">Start Shopping</Link>
+                  <Link href="/shop">{localization.startShopping}</Link>
                 </Button>
               </div>
             </div>
@@ -89,7 +89,9 @@ function TabsWrapper() {
                 <Card>
                   <CardHeader>
                     <div className="flex justify-between items-center">
-                      <CardTitle className="text-lg">Order #{order.id}</CardTitle>
+                      <CardTitle className="text-lg">
+                        {localization.order} #{order.id}
+                      </CardTitle>
                       <Badge
                         className={cn({
                           'bg-green-500': order.status === 'ACCEPTED',
@@ -120,32 +122,34 @@ function TabsWrapper() {
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           />
                           {item.product.isFeature && (
-                            <Badge className="absolute top-1 left-1">Feature</Badge>
+                            <Badge className="absolute top-1 left-1">{localization.featured}</Badge>
                           )}
                         </div>
 
                         <div>
                           <h4 className="font-medium">{item.product.title}</h4>
-                          <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {localization.quantity}: {item.quantity}
+                          </p>
                           <p className="text-sm font-medium">{priceFormatted(item.price)}</p>
                         </div>
                       </div>
                     ))}
                     <div className="border-t pt-4 mt-4">
                       <div className="flex justify-between text-sm mb-2">
-                        <span>Subtotal</span>
+                        <span>{localization.subtotal}</span>
                         <span>{priceFormatted(order.orderPrices.subtotal)}</span>
                       </div>
                       <div className="flex justify-between text-sm mb-2">
-                        <span>Shipping</span>
+                        <span>{localization.shipping}</span>
                         <span>{priceFormatted(order.orderPrices.shipping)}</span>
                       </div>
                       <div className="flex justify-between text-sm mb-2">
-                        <span>Discount</span>
+                        <span>{localization.discount}</span>
                         <span>-{priceFormatted(order.orderPrices.discount)}</span>
                       </div>
                       <div className="flex justify-between font-medium mt-4">
-                        <span>Total</span>
+                        <span>{localization.total}</span>
                         <span>{priceFormatted(order.orderPrices.total)}</span>
                       </div>
                     </div>
@@ -160,19 +164,25 @@ function TabsWrapper() {
       <TabsContent value="info">
         <Card>
           <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
+            <CardTitle>{localization.personalInformation}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <label className="text-sm font-medium text-muted-foreground">Full Name</label>
+              <label className="text-sm font-medium text-muted-foreground">
+                {localization.fullName}
+              </label>
               <p className="mt-1">{user?.fullName}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-muted-foreground">Email</label>
+              <label className="text-sm font-medium text-muted-foreground">
+                {localization.email}
+              </label>
               <p className="mt-1">{user?.email}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-muted-foreground">Phone</label>
+              <label className="text-sm font-medium text-muted-foreground">
+                {localization.phone}
+              </label>
               <p className="mt-1">{user?.phone}</p>
             </div>
           </CardContent>
@@ -182,10 +192,10 @@ function TabsWrapper() {
       <TabsContent value="settings">
         <Card>
           <CardHeader>
-            <CardTitle>Settings</CardTitle>
+            <CardTitle>{localization.settings}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">Settings content coming soon...</p>
+            <p className="text-muted-foreground">{localization.noSettingsAvailable}...</p>
           </CardContent>
         </Card>
       </TabsContent>
@@ -195,15 +205,14 @@ function TabsWrapper() {
 
 export default function ProfilePage() {
   const { user } = useCurrentUser()
+  const { localization } = useLocalization()
 
   if (user?.isAnonymous) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
-          <h3 className="mt-4 text-lg font-medium">You are not signed in</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            You need to be signed in to view your profile.
-          </p>
+          <h3 className="mt-4 text-lg font-medium">{localization.notSignedIn}</h3>
+          <p className="mt-2 text-sm text-muted-foreground">{localization.notSignedInMessage}</p>
         </div>
         <SignInButton />
       </div>
@@ -233,7 +242,9 @@ export default function ProfilePage() {
               <div className="mt-6 space-y-4">
                 <div className="flex items-center gap-3 text-muted-foreground">
                   <Package className="h-5 w-5" />
-                  <span>{user?.orders?.length || 0} Orders</span>
+                  <span>
+                    {user?.orders?.length || 0} {localization.orders}
+                  </span>
                 </div>
               </div>
             </CardContent>

@@ -9,6 +9,7 @@ import { priceFormatted } from '@/lib/utils/utils'
 import { Tag } from 'lucide-react'
 import { IDeliveryInfo, OrderSummary } from '@/lib/api/orders'
 import { CartItem } from '@/hooks/useCart'
+import { useLocalization } from '@/hooks/useLocalization'
 
 interface PromotionSummaryProps {
   cartItems: CartItem[]
@@ -18,7 +19,7 @@ interface PromotionSummaryProps {
 export function PromotionSummary({ cartItems, deliveryInfo }: PromotionSummaryProps) {
   const [summary, setSummary] = useState<OrderSummary | null>(null)
   const { calculatePromotions, isCalculating, error } = usePromotionCalculator()
-
+  const { localization } = useLocalization()
   useEffect(() => {
     async function updatePromotions() {
       const result = await calculatePromotions(cartItems, deliveryInfo)
@@ -34,7 +35,7 @@ export function PromotionSummary({ cartItems, deliveryInfo }: PromotionSummaryPr
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Promotions</CardTitle>
+          <CardTitle>{localization.promotions}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <Skeleton className="h-4 w-full" />
@@ -49,10 +50,10 @@ export function PromotionSummary({ cartItems, deliveryInfo }: PromotionSummaryPr
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Promotions</CardTitle>
+          <CardTitle>{localization.promotions}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-destructive">Failed to load promotions</p>
+          <p className="text-destructive">{localization.failedToLoadPromotions}</p>
         </CardContent>
       </Card>
     )
@@ -65,23 +66,23 @@ export function PromotionSummary({ cartItems, deliveryInfo }: PromotionSummaryPr
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Order Summary</CardTitle>
+        <CardTitle>{localization.orderSummary}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex justify-between">
-          <span>Subtotal</span>
+          <span>{localization.subtotal}</span>
           <span>{priceFormatted(summary.subtotal)}</span>
         </div>
         {deliveryInfo && (
           <div className="flex justify-between">
-            <span>Shipping</span>
+            <span>{localization.shipping}</span>
             <span>{priceFormatted(summary.shipping)}</span>
           </div>
         )}
 
         {summary.appliedPromotions.length > 0 && (
           <div className="border-t pt-4">
-            <h4 className="font-medium mb-2">Applied Promotions:</h4>
+            <h4 className="font-medium mb-2">{localization.appliedPromotions}:</h4>
             <div className="space-y-2">
               {summary.appliedPromotions.map(promo => (
                 <div key={promo.id} className="flex justify-between items-center text-sm">
@@ -99,12 +100,12 @@ export function PromotionSummary({ cartItems, deliveryInfo }: PromotionSummaryPr
 
         <div className="border-t pt-4">
           <div className="flex justify-between font-bold">
-            <span>Total</span>
+            <span>{localization.total}</span>
             <span>{priceFormatted(summary.total)}</span>
           </div>
           {summary.discount > 0 && (
             <p className="text-sm text-green-600 mt-1">
-              You saved {priceFormatted(summary.discount)}!
+              {localization.save} {priceFormatted(summary.discount)}!
             </p>
           )}
         </div>

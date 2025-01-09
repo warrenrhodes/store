@@ -1,18 +1,30 @@
 export const navItems = [
   {
-    title: 'Home',
+    title: {
+      en: 'Home',
+      fr: 'Accueil',
+    },
     href: '/',
   },
   {
-    title: 'shop',
+    title: {
+      en: 'Shop',
+      fr: 'Boutique',
+    },
     href: '/shop',
   },
   {
-    title: 'blogs',
+    title: {
+      en: 'Blogs',
+      fr: 'Articles',
+    },
     href: '/blogs',
   },
   {
-    title: 'contact Us',
+    title: {
+      en: 'Contact Us',
+      fr: 'Nous Contact',
+    },
     href: '/contact',
   },
 ]

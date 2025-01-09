@@ -10,6 +10,7 @@ import { getRegularPrice, priceFormatted } from '@/lib/utils/utils'
 import Image from 'next/image'
 import { CartItem as CartItemType } from '@/hooks/useCart'
 import { FAKE_BLUR } from '@/lib/utils/constants'
+import { useLocalization } from '@/hooks/useLocalization'
 
 interface CartItemProps {
   item: CartItemType
@@ -20,6 +21,7 @@ interface CartItemProps {
 
 export function CartItem({ item, increaseQuantity, decreaseQuantity, onRemove }: CartItemProps) {
   const [isRemoving, setIsRemoving] = useState(false)
+  const { localization } = useLocalization()
 
   return (
     <motion.div
@@ -37,10 +39,10 @@ export function CartItem({ item, increaseQuantity, decreaseQuantity, onRemove }:
             className="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 flex items-center justify-center"
           >
             <div className="text-center">
-              <p className="mb-4">Remove this item?</p>
+              <p className="mb-4">{localization.removeConfirmation}</p>
               <div className="flex gap-2 justify-center">
                 <Button variant="destructive" onClick={() => onRemove(item.product.id as string)}>
-                  Remove
+                  {localization.remove}
                 </Button>
                 <Button variant="outline" onClick={() => setIsRemoving(false)}>
                   Cancel
@@ -62,7 +64,9 @@ export function CartItem({ item, increaseQuantity, decreaseQuantity, onRemove }:
                 blurDataURL={item.product.media[0].media.blurDataUrl || FAKE_BLUR}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
-              {item.product.isFeature && <Badge className="absolute top-1 left-1">Feature</Badge>}
+              {item.product.isFeature && (
+                <Badge className="absolute top-1 left-1">{localization.featured}</Badge>
+              )}
             </div>
             <div className="flex-1">
               <div className="flex justify-between">
@@ -101,7 +105,7 @@ export function CartItem({ item, increaseQuantity, decreaseQuantity, onRemove }:
                   </div>
                   {item.quantity > 1 && (
                     <div className="text-sm text-muted-foreground">
-                      {priceFormatted(getRegularPrice(item.product))} each
+                      {priceFormatted(getRegularPrice(item.product))} {localization.each}
                     </div>
                   )}
                 </div>

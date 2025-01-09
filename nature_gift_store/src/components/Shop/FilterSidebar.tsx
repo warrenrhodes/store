@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
 import { ICategory } from '@/lib/api/categories'
+import { useLocalization } from '@/hooks/useLocalization'
 
 interface FilterSidebarProps {
   isOpen: boolean
@@ -31,6 +32,7 @@ export function FilterSidebar({
   className = '',
   mobileClassName = '',
 }: FilterSidebarProps) {
+  const { localization } = useLocalization()
   const handlePriceChange = (value: number[]) => {
     onFilterChange({
       ...filters,
@@ -49,14 +51,14 @@ export function FilterSidebar({
   const content = (
     <div className="space-y-6">
       <div className="flex items-center justify-between sm:hidden">
-        <h2 className="text-lg font-semibold">Filters</h2>
+        <h2 className="text-lg font-semibold">{localization.filters}</h2>
         <Button variant="ghost" size="icon" onClick={onClose}>
           <X className="h-4 w-4" />
         </Button>
       </div>
 
       <div className="space-y-4">
-        <h3 className="font-medium">Price Range</h3>
+        <h3 className="font-medium">{localization.priceRange}</h3>
         <Slider
           defaultValue={[filters.minPrice, filters.maxPrice]}
           max={1000}

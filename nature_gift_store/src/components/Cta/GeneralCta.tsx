@@ -1,8 +1,10 @@
 'use client'
+import { useLocalization } from '@/hooks/useLocalization'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 function GeneralCTAComponent() {
   const router = useRouter()
+  const { localization } = useLocalization()
 
   return (
     <section className="mb-10 rounded-2xl  w-full bg-[url('/bgProducts.png')] bg-cover bg-center bg-no-repeat">
@@ -18,7 +20,7 @@ function GeneralCTAComponent() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          Find Your Perfect Match
+          {localization.ctaTitle}
         </motion.h2>
 
         <motion.p
@@ -27,8 +29,7 @@ function GeneralCTAComponent() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          Discover quality products for every need. From gourmet coffee to the latest tech and baby
-          essentials, we have it all. Browse our collection and find what fits your life best!
+          {localization.ctaDescription}
         </motion.p>
 
         <motion.button
@@ -37,7 +38,7 @@ function GeneralCTAComponent() {
           whileTap={{ scale: 0.95 }}
           onClick={() => router.push('/products')}
         >
-          See Our Products
+          {localization.ctaButton}
         </motion.button>
       </motion.div>
     </section>

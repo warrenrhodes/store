@@ -7,6 +7,7 @@ import { MobileNav } from './NavMobile'
 import { SearchBar } from './SearchBar'
 import { UserNav } from './UserNav'
 import { CartSidebar } from '../Cart/CartSidebar'
+import { LocaleSelector } from './LocaleSelector'
 
 export function Header() {
   return (
@@ -25,6 +26,7 @@ export function Header() {
             <SearchBar />
           </div>
           <div className="flex items-center gap-4">
+            <LocaleSelector />
             <CartSidebar />
             <UserNav />
           </div>

@@ -9,9 +9,11 @@ import { Separator } from '@/components/ui/separator'
 import { cn, getReviewAverage } from '@/lib/utils/utils'
 import { formatDistance } from 'date-fns'
 import { IProduct } from '@/lib/api/products'
+import { useLocalization } from '@/hooks/useLocalization'
 
 export function ProductReviews({ product }: { product: IProduct }) {
   const { reviews } = product
+  const { localization } = useLocalization()
 
   if (!reviews || reviews.length === 0) {
     return <></>
@@ -41,7 +43,7 @@ export function ProductReviews({ product }: { product: IProduct }) {
     <section className="space-y-8">
       <div className="flex flex-col md:flex-row gap-8">
         <div className="flex-1">
-          <h2 className="text-3xl font-bold mb-4">Customer Reviews</h2>
+          <h2 className="text-3xl font-bold mb-4">{localization.customerReviews}</h2>
           <div className="flex items-center gap-4">
             <div className="flex items-center">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -56,7 +58,9 @@ export function ProductReviews({ product }: { product: IProduct }) {
               ))}
             </div>
             <span className="text-2xl font-bold">{averageRating}</span>
-            <span className="text-muted-foreground">Based on {reviews.length} reviews</span>
+            <span className="text-muted-foreground">
+              {localization.baseOn} {reviews.length} {localization.reviews}
+            </span>
           </div>
         </div>
 
@@ -65,7 +69,9 @@ export function ProductReviews({ product }: { product: IProduct }) {
             .sort((a, b) => b.rating - a.rating)
             .map(stat => (
               <div key={stat.rating} className="flex items-center gap-4">
-                <div className="w-16 text-sm">{stat.rating} stars</div>
+                <div className="w-16 text-sm">
+                  {stat.rating} {localization.stars}
+                </div>
                 <Progress
                   value={Math.round((((stat.count as number) / ratingStats.total) as number) * 100)}
                   className="flex-1"
@@ -139,7 +145,7 @@ export function ProductReviews({ product }: { product: IProduct }) {
         )}
       >
         <Button variant="outline" size="lg">
-          Load More Reviews
+          {localization.loadMoreReviews}
         </Button>
       </div>
     </section>

@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator'
 import { DeliveryFormData } from '@/lib/utils/validation-form'
 import { format } from 'date-fns'
+import { useLocalization } from '@/hooks/useLocalization'
 
 interface ReviewOrderProps {
   formData: DeliveryFormData
@@ -16,30 +17,29 @@ interface ReviewOrderProps {
 
 export function ReviewOrder({ formData, onBack, onSubmit, isLoading }: ReviewOrderProps) {
   const delivery = formData
+  const { localization } = useLocalization()
 
   return (
     <div className="space-y-8">
       <div className="space-y-4">
-        <h2 className="text-2xl font-semibold">Review Your Order</h2>
-        <p className="text-muted-foreground">
-          Please review your order details before placing the order.
-        </p>
+        <h2 className="text-2xl font-semibold">{localization.reviewYourOrder}</h2>
+        <p className="text-muted-foreground">{localization.reviewOrderDetails}</p>
       </div>
 
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Delivery Information</CardTitle>
-            <CardDescription>Your order will be delivered to:</CardDescription>
+            <CardTitle>{localization.deliveryInformation}</CardTitle>
+            <CardDescription>{localization.shipmentInformation}:</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-4">
               <div className="flex gap-3">
-                <span className="text-muted-foreground">Full Name: </span>
+                <span className="text-muted-foreground">{localization.fullName}: </span>
                 <p> {delivery.fullName}</p>
               </div>
               <div className="flex gap-3">
-                <span className="text-muted-foreground">Phone: </span>
+                <span className="text-muted-foreground">{localization.phone}: </span>
                 <p> {delivery.phone}</p>
               </div>
               {delivery.email && (
@@ -51,31 +51,35 @@ export function ReviewOrder({ formData, onBack, onSubmit, isLoading }: ReviewOrd
 
               <Separator className="my-7" />
               <div className="flex gap-3">
-                <span className="text-muted-foreground">Address: </span>
+                <span className="text-muted-foreground">{localization.address}: </span>
                 <p> {delivery.address}</p>
               </div>
               <div className="flex gap-3">
-                <span className="text-muted-foreground">Delivery Date: </span>
+                <span className="text-muted-foreground">{localization.deliveryDate}: </span>
                 <p>
                   {format(delivery.deliveryDate, 'PPP')} {delivery.deliveryTime}
                 </p>
               </div>
               {delivery.city && (
                 <div className="flex gap-3">
-                  <span className="text-muted-foreground">City: </span>
+                  <span className="text-muted-foreground">{localization.city}: </span>
                   <p> {delivery.city}</p>
                 </div>
               )}
               <div className="flex gap-3">
-                <span className="text-muted-foreground">Delivery Method: </span>
-                <p>{delivery.shipping.method === 'DELIVERY' ? 'Delivery' : 'Expedition'}</p>
+                <span className="text-muted-foreground">{localization.shipmentMethod}: </span>
+                <p>
+                  {delivery.shipping.method === 'DELIVERY'
+                    ? `${localization.delivery}`
+                    : `${localization.expedition}`}
+                </p>
               </div>
               <div className="flex gap-3">
-                <span className="text-muted-foreground">Delivery Location: </span>
+                <span className="text-muted-foreground">{localization.address}: </span>
                 <p> {delivery.shipping.location}</p>
               </div>
               <div className="flex gap-3">
-                <span className="text-muted-foreground">Additional Information: </span>
+                <span className="text-muted-foreground">{localization.additionalNotes}: </span>
                 <p> {delivery.additionalNotes}</p>
               </div>
             </div>
@@ -90,7 +94,7 @@ export function ReviewOrder({ formData, onBack, onSubmit, isLoading }: ReviewOrd
         </Button>
         <Button onClick={onSubmit} className="flex-1">
           {isLoading ? <Loader2 className="animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
-          Place Order
+          {localization.placeOrder}
         </Button>
       </div>
     </div>

@@ -14,10 +14,12 @@ import {
 import { useClerk } from '@clerk/nextjs'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import Link from 'next/link'
+import { useLocalization } from '@/hooks/useLocalization'
 
 export function UserNav() {
   const clerk = useClerk()
   const { user } = useCurrentUser()
+  const { localization } = useLocalization()
 
   return (
     <DropdownMenu>
@@ -31,7 +33,7 @@ export function UserNav() {
           <>
             <DropdownMenuLabel>
               <Link className="flex flex-col" href="/profile?tabs=info">
-                <span>My Account</span>
+                <span>{localization.myAccount}</span>
                 <span className="text-muted-foreground">{user?.fullName}</span>
               </Link>
             </DropdownMenuLabel>
@@ -39,21 +41,25 @@ export function UserNav() {
             <DropdownMenuGroup>
               {/* <DropdownMenuItem ownMenuItem>Profile</DropdownMenuItem> */}
               <DropdownMenuItem>
-                <Link href="/cart">Cart</Link>
+                <Link href="/cart">{localization.cart}</Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Link href="/profile?tabs=orders">Orders</Link>
+                <Link href="/profile?tabs=orders">{localization.orders}</Link>
               </DropdownMenuItem>
               {/* <DropdownMenuItem>Wishlist</DropdownMenuItem> */}
               {/* <DropdownMenuItem>Settings</DropdownMenuItem> */}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={async () => await clerk.signOut()}>Log out</DropdownMenuItem>
+            <DropdownMenuItem onClick={async () => await clerk.signOut()}>
+              {localization.signOut}
+            </DropdownMenuItem>
           </>
         ) : (
           <>
-            <DropdownMenuItem onClick={async () => clerk.openSignIn({})}>Sign in</DropdownMenuItem>
-            <DropdownMenuItem>Create account</DropdownMenuItem>
+            <DropdownMenuItem onClick={async () => clerk.openSignIn({})}>
+              {localization.signIn}
+            </DropdownMenuItem>
+            <DropdownMenuItem>{localization.createAccount}</DropdownMenuItem>
           </>
         )}
       </DropdownMenuContent>

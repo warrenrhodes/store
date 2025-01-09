@@ -13,8 +13,10 @@ import Link from 'next/link'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { trackPageViewWithSource } from '@/lib/pixel-events'
 import { useEffect } from 'react'
+import { useLocalization } from '@/hooks/useLocalization'
 
 const BlogDetail = ({ blog, relatedBlogs }: { blog: IBlog; relatedBlogs: IBlog[] }) => {
+  const { localization } = useLocalization()
   useEffect(() => {
     // Track when user views a blog
     trackPageViewWithSource()
@@ -29,12 +31,12 @@ const BlogDetail = ({ blog, relatedBlogs }: { blog: IBlog; relatedBlogs: IBlog[]
       <Button variant="ghost" asChild>
         <Link href="/blogs" className="flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" />
-          Back to Blogs
+          {localization.backToBlogs}
         </Link>
       </Button>
 
       <div className="space-y-4">
-        {blog.metadata.featured && <Badge className="mb-4">Featured Article</Badge>}
+        {blog.metadata.featured && <Badge className="mb-4">{localization.featuredArticle}</Badge>}
         <h1 className="text-5xl font-bold tracking-tight">{blog.title}</h1>
         <p className="text-muted-foreground">{blog.content.excerpt}</p>
         {blog.metadata.coverImageURL && (

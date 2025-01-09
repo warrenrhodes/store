@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { IProduct } from '@/lib/api/products'
+import { useLocalization } from '@/hooks/useLocalization'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -27,6 +28,7 @@ const itemVariants = {
 
 export function FeaturesForProducts({ product }: { product: IProduct }) {
   const { features, description } = product
+  const { localization } = useLocalization()
 
   if (!features || features.length === 0) {
     return <></>
@@ -35,10 +37,8 @@ export function FeaturesForProducts({ product }: { product: IProduct }) {
   return (
     <section>
       <div className="text-center mb-12">
-        <h2 className="text-3xl font-bold">Advanced Features</h2>
-        <p className="mt-2 text-muted-foreground">
-          Discover what makes our Smart Fitness Watch Pro stand out
-        </p>
+        <h2 className="text-3xl font-bold">{localization.advancedFeatures}</h2>
+        <p className="mt-2 text-muted-foreground">{localization.discoverMessage}</p>
       </div>
 
       <motion.div

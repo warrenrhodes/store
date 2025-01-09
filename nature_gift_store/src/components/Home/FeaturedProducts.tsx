@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { ProductCard } from '../ProductCard'
 import { IProduct } from '@/lib/api/products'
 
+import { useLocalization } from '@/hooks/useLocalization'
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -16,16 +17,16 @@ const containerVariants = {
 }
 
 export function FeaturedProducts({ products }: { products: IProduct[] }) {
+  const { localization } = useLocalization()
+
   return (
     <section className="py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            Featured Products
+            {localization.featuredProducts}
           </h2>
-          <p className="mt-4 text-lg text-gray-600">
-            Top-rated products chosen for quality and innovation
-          </p>
+          <p className="mt-4 text-lg text-gray-600">{localization.topRatedProducts}</p>
         </div>
 
         <motion.div

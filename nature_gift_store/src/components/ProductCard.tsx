@@ -13,6 +13,7 @@ import { IProduct } from '@/lib/api/products'
 import Image from 'next/image'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useWishlist } from '@/hooks/useWishlist'
+import { useLocalization } from '@/hooks/useLocalization'
 
 interface ProductCardProps {
   product: IProduct
@@ -21,7 +22,7 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const cart = useCart()
   const { isInWishlist, toggleWishlist } = useWishlist()
-
+  const { localization } = useLocalization()
   return (
     <motion.div key={`${product.id}`}>
       <Card className="group h-full flex flex-col overflow-hidden">
@@ -38,10 +39,12 @@ export function ProductCard({ product }: ProductCardProps) {
                   blurDataURL={product.media[0].media.blurDataUrl || FAKE_BLUR}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
-                {product.isNewProduct && <Badge className="absolute top-4 left-4">New</Badge>}
+                {product.isNewProduct && (
+                  <Badge className="absolute top-4 left-4">{localization.new}</Badge>
+                )}
                 {product.inventory.stockQuantity && product.inventory.stockQuantity <= 10 && (
                   <Badge variant="destructive" className="absolute bottom-4 right-4 ring-1">
-                    Low Stock
+                    {localization.lowStock}
                   </Badge>
                 )}
               </div>
@@ -50,7 +53,7 @@ export function ProductCard({ product }: ProductCardProps) {
               variant="ghost"
               size="icon"
               className={cn(
-                'absolute top-4 right-4 backdrop-blur-sm z-50',
+                'absolute top-4 right-4 backdrop-blur-sm z-0',
                 isInWishlist(product.id)
                   ? 'bg-red-500/80 hover:bg-red-500 text-white hover:text-white'
                   : 'bg-white/80 hover:bg-white',
@@ -105,7 +108,7 @@ export function ProductCard({ product }: ProductCardProps) {
             }}
           >
             <ShoppingCart className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
-            Add to Cart
+            {localization.addToCart}
           </Button>
         </CardFooter>
       </Card>

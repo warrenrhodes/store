@@ -2,6 +2,7 @@
 import { motion } from 'framer-motion'
 import { ProductCard } from '@/components/ProductCard'
 import { IProduct } from '@/lib/api/products'
+import { useLocalization } from '@/hooks/useLocalization'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -14,13 +15,15 @@ const containerVariants = {
 }
 
 export function RelatedProducts({ relatedProducts }: { relatedProducts: IProduct[] }) {
+  const { localization } = useLocalization()
+
   if (relatedProducts.length === 0) {
     return <></>
   }
 
   return (
     <section>
-      <h2 className="text-2xl font-bold mb-8">You May Also Like</h2>
+      <h2 className="text-2xl font-bold mb-8">{localization.youMayAlsoLike}</h2>
       <motion.div
         variants={containerVariants}
         initial="hidden"

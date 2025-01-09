@@ -4,8 +4,11 @@ import { motion } from 'framer-motion'
 import { ArrowRight, Heart, Zap, ShoppingBag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { useLocalization } from '@/hooks/useLocalization'
 
 export function HeroSection() {
+  const { localization } = useLocalization()
+
   return (
     <section className="relative h-[80vh] overflow-hidden">
       <motion.div
@@ -37,16 +40,15 @@ export function HeroSection() {
               <ShoppingBag className="w-6 h-6 text-blue-400" />
             </div>
             <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl">
-              Everything You Need, All in One Place
+              {localization.heroSectionTitle}
             </h1>
             <p className="mt-6 text-lg leading-8 text-gray-300">
-              From health & wellness to the latest tech gadgets. Discover quality products that
-              enhance your lifestyle.
+              {localization.heroSectionDescription}
             </p>
             <div className="mt-10 flex items-center gap-x-6">
               <Button size="lg" className="group" asChild>
                 <Link href="/shop">
-                  Explore Store
+                  {localization.exploreMore}
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>

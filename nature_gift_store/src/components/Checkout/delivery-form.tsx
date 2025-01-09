@@ -29,6 +29,7 @@ import { cn } from '@/lib/utils/utils'
 import { useCartDeliveryInfo } from '@/hooks/useCart'
 import { IShipment } from '@/lib/api/shipments'
 
+import { useLocalization } from '@/hooks/useLocalization'
 interface DeliveryFormProps {
   onSubmit: (data: DeliveryFormData) => void
   shipment: IShipment[]
@@ -39,6 +40,7 @@ const MAX_DELIVERY_HOURS = 18
 const TODAY = new Date()
 export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: DeliveryFormProps) {
   const cartDeliveryInfo = useCartDeliveryInfo()
+  const { localization } = useLocalization()
   const maxDate = addDays(TODAY, 7)
   const { temporalUser } = useTemporalUser()
   const form = useForm<DeliveryFormData>({
@@ -136,14 +138,14 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <div className="space-y-4">
-          <h2 className="text-2xl font-semibold">Delivery Information</h2>
+          <h2 className="text-2xl font-semibold">{localization.deliveryInformation}</h2>
           <div className="grid gap-4 sm:grid-cols-3">
             <FormField
               control={form.control}
               name="fullName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel>{localization.fullName}</FormLabel>
                   <FormControl>
                     <Input {...field} onKeyDown={handleKeyPress} />
                   </FormControl>
@@ -156,7 +158,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone</FormLabel>
+                  <FormLabel>{localization.phone}</FormLabel>
                   <FormControl>
                     <Input type="tel" {...field} onKeyDown={handleKeyPress} />
                   </FormControl>
@@ -185,7 +187,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
               name="deliveryDate"
               render={({ field }) => (
                 <FormItem className="space-y-1">
-                  <FormLabel>Delivery Date</FormLabel>
+                  <FormLabel>{localization.deliveryDate}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -196,7 +198,11 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
                             !field.value && 'text-muted-foreground',
                           )}
                         >
-                          {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                          {field.value ? (
+                            format(field.value, 'PPP')
+                          ) : (
+                            <span>{localization.pickADate}</span>
+                          )}
                           <Calendar className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                       </FormControl>
@@ -231,7 +237,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
               name="deliveryTime"
               render={({ field }) => (
                 <FormItem className="space-y-1">
-                  <FormLabel>Delivery Time</FormLabel>
+                  <FormLabel>{localization.deliveryTime}</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
@@ -239,7 +245,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select time slot">
+                        <SelectValue placeholder={localization.deliveryTime}>
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4" />
                             <span>{field.value || 'Select time'}</span>
@@ -256,7 +262,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
                         ))
                       ) : (
                         <SelectItem value="Time disabled" disabled>
-                          Please select a date first
+                          {localization.selectDateFirst}
                         </SelectItem>
                       )}
                     </SelectContent>
@@ -289,7 +295,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
               name="city"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>City</FormLabel>
+                  <FormLabel>{localization.city}</FormLabel>
                   <FormControl>
                     <Input {...field} onKeyDown={handleKeyPress} />
                   </FormControl>
@@ -309,7 +315,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
               name="shipping.method"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Shipment Method</FormLabel>
+                  <FormLabel>{localization.shipmentMethod}</FormLabel>
                   <Select
                     onValueChange={e => {
                       field.onChange(e)
@@ -323,8 +329,8 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="DELIVERY">Delivery</SelectItem>
-                      <SelectItem value="EXPEDITION">Expedition</SelectItem>
+                      <SelectItem value="DELIVERY">{localization.delivery}</SelectItem>
+                      <SelectItem value="EXPEDITION">{localization.expedition}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -337,7 +343,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
                 name="shipping.location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Location</FormLabel>
+                    <FormLabel>{localization.location}</FormLabel>
                     <Select
                       onValueChange={e => {
                         field.onChange(e)
@@ -347,7 +353,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select location" />
+                          <SelectValue placeholder={localization.location} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -363,7 +369,8 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
                     </Select>
                     {getShipmentCostByLocation(form.watch('shipping.location')) && (
                       <p className="mt-1 text-sm text-muted-foreground">
-                        Shipping cost: {getShipmentCostByLocation(form.watch('shipping.location'))}
+                        {localization.shipmentCost}:{' '}
+                        {getShipmentCostByLocation(form.watch('shipping.location'))}
                       </p>
                     )}
                     <FormMessage />
@@ -377,9 +384,15 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
             name="additionalNotes"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Additional Notes (Optional)</FormLabel>
+                <FormLabel>
+                  {localization.additionalNotes} ({localization.optional})
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="Additional notes" {...field} onKeyDown={handleKeyPress} />
+                  <Input
+                    placeholder={localization.additionalNotes}
+                    {...field}
+                    onKeyDown={handleKeyPress}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -387,8 +400,8 @@ export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: Del
           />
         </div>
 
-        <Button type="submit" className="w-full sm:w-auto">
-          Review Order
+        <Button type="submit" className="w-full">
+          {localization.reviewOrder}
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </form>

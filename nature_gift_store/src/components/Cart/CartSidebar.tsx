@@ -17,6 +17,7 @@ import { CartItem } from './CartItem'
 import { PromotionSummary } from './PromotionSummary'
 import { useCart, useCartDeliveryInfo, useCartSideBar } from '@/hooks/useCart'
 import { useRouter } from 'next/navigation'
+import { useLocalization } from '@/hooks/useLocalization'
 
 const sidebarVariants = {
   hidden: { x: '100%', opacity: 0 },
@@ -29,7 +30,7 @@ export function CartSidebar() {
   const router = useRouter()
   const { cartItems, increaseQuantity, decreaseQuantity, removeItem } = cart
   const { cartDeliveryInfo } = useCartDeliveryInfo()
-
+  const { localization } = useLocalization()
   const cartSideBar = useCartSideBar()
 
   return (
@@ -58,7 +59,9 @@ export function CartSidebar() {
         >
           <SheetHeader className="space-y-2.5 pb-6">
             <div className="flex items-center justify-between">
-              <SheetTitle>Shopping Cart ({cartItems.length})</SheetTitle>
+              <SheetTitle>
+                {localization.shoppingCart} ({cartItems.length})
+              </SheetTitle>
               <SheetDescription />
             </div>
           </SheetHeader>

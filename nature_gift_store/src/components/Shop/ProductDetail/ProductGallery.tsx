@@ -8,11 +8,12 @@ import { Badge } from '@/components/ui/badge'
 import { IProduct } from '@/lib/api/products'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import Image from 'next/image'
+import { useLocalization } from '@/hooks/useLocalization'
 
 export function ProductGallery({ product }: { product: IProduct }) {
   const { media } = product
   const [currentImage, setCurrentImage] = useState(0)
-
+  const { localization } = useLocalization()
   return (
     <div className="space-y-4">
       <div itemScope className="relative aspect-square rounded-lg overflow-hidden bg-muted">
@@ -38,7 +39,7 @@ export function ProductGallery({ product }: { product: IProduct }) {
           </motion.div>
         </AnimatePresence>
 
-        <Badge className="absolute top-4 left-4">New</Badge>
+        <Badge className="absolute top-4 left-4">{localization.new}</Badge>
 
         <div className="absolute inset-0 flex items-center justify-between p-4">
           <Button

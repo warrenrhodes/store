@@ -9,16 +9,18 @@ import { IBlog } from '@/lib/api/blogs'
 import Link from 'next/link'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import Image from 'next/image'
+import { useLocalization } from '@/hooks/useLocalization'
 
 interface RelatedBlogsProps {
   relatedBlogs: IBlog[]
 }
 
 export function RelatedBlogs({ relatedBlogs }: RelatedBlogsProps) {
+  const { localization } = useLocalization()
   if (relatedBlogs.length === 0) return null
   return (
     <section>
-      <h2 className="text-2xl font-bold mb-8">Related Articles</h2>
+      <h2 className="text-2xl font-bold mb-8">{localization.relatedBlogs}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {relatedBlogs.map(blog => (
           <motion.div
@@ -52,7 +54,7 @@ export function RelatedBlogs({ relatedBlogs }: RelatedBlogsProps) {
               <CardFooter className="p-6 pt-0">
                 <Button variant="ghost" className="w-full group" asChild>
                   <Link href={`/blogs/${blog.slug}`}>
-                    Read More
+                    {localization.readMore}
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />{' '}
                   </Link>
                 </Button>

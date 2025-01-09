@@ -1,3 +1,5 @@
+'use client'
+import { useLocalization } from '@/hooks/useLocalization'
 import {
   Facebook,
   Twitter,
@@ -14,6 +16,7 @@ import Link from 'next/link'
 
 const Footer = () => {
   const currentYear = new Date().getFullYear()
+  const { localization } = useLocalization()
 
   return (
     <footer className="bg-gray-900 text-gray-300">
@@ -22,10 +25,8 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
-            <h3 className="text-xl font-bold text-white">Shop Name</h3>
-            <p className="text-sm">
-              Your trusted destination for quality products and exceptional service.
-            </p>
+            <h3 className="text-xl font-bold text-white">{localization.shopName}</h3>
+            <p className="text-sm">{localization.footerDescription}</p>
             <div className="flex space-x-4">
               <Facebook className="w-5 h-5 cursor-pointer hover:text-blue-400 transition-colors" />
               <Twitter className="w-5 h-5 cursor-pointer hover:text-blue-400 transition-colors" />
@@ -36,7 +37,7 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div className="space-y-4">
-            <h3 className="text-xl font-bold text-white">Quick Links</h3>
+            <h3 className="text-xl font-bold text-white">{localization.quickLinks}</h3>
             <ul className="space-y-2">
               {/* <li>
                 <a href="#" className="hover:text-white transition-colors">
@@ -68,7 +69,7 @@ const Footer = () => {
 
           {/* Contact Info */}
           <div className="space-y-4">
-            <h3 className="text-xl font-bold text-white">Contact Us</h3>
+            <h3 className="text-xl font-bold text-white">{localization.contactUs}</h3>
             <ul className="space-y-3">
               <li className="flex items-center space-x-3">
                 <MapPin className="w-5 h-5" />
@@ -94,19 +95,19 @@ const Footer = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div className="flex flex-col items-center space-y-2">
               <Truck className="w-8 h-8 text-blue-500" />
-              <span className="text-sm">Free Shipping</span>
+              <span className="text-sm">{localization.freeShipping}</span>
             </div>
             <div className="flex flex-col items-center space-y-2">
               <CreditCard className="w-8 h-8 text-blue-500" />
-              <span className="text-sm">Secure Payment</span>
+              <span className="text-sm">{localization.securePayment}</span>
             </div>
             <div className="flex flex-col items-center space-y-2">
               <Lock className="w-8 h-8 text-blue-500" />
-              <span className="text-sm">Safe Shopping</span>
+              <span className="text-sm">{localization.safeShopping}</span>
             </div>
             <div className="flex flex-col items-center space-y-2">
               <Truck className="w-8 h-8 text-blue-500" />
-              <span className="text-sm">Fast Delivery</span>
+              <span className="text-sm">{localization.fastDelivery}</span>
             </div>
           </div>
         </div>
@@ -117,17 +118,17 @@ const Footer = () => {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-sm">
-              © {currentYear} {"Nature's Gift. All rights reserved."}
+              © {currentYear} {localization.copyright}
             </div>
             <div className="flex space-x-4 text-sm">
               <a href="#" className="hover:text-white transition-colors">
-                Privacy Policy
+                {localization.privacyPolicy}
               </a>
               <a href="#" className="hover:text-white transition-colors">
-                Terms of Service
+                {localization.termsOfService}
               </a>
               <a href="#" className="hover:text-white transition-colors">
-                Cookie Policy
+                {localization.cookiePolicy}
               </a>
             </div>
           </div>

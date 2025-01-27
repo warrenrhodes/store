@@ -51,7 +51,6 @@ export function useCurrentUser() {
     if (!clerkLoaded) return
 
     const initializeUser = async () => {
-      console.log('initializeUser', clerkUser)
       try {
         if (clerkUser) {
           await fetchAuthenticatedUser()

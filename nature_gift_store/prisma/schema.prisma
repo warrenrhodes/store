@@ -1,5 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
@@ -386,7 +386,95 @@ model User {
   phone           String?
   isAnonymous     Boolean    @default(true)
   productWishlist Wishlist[]
-  orders           Order[]
+  orders          Order[]
+}
+
+// ------------ statistic model data -----------------
+type DeviceInfo {
+  userAgent  String
+  screenSize String
+  browser    String?
+  os         String?
+  device     String?
+}
+
+type UTMParams {
+  source   String
+  medium   String
+  campaign String
+  term     String?
+  content  String?
+}
+
+model PageView {
+  id             String     @id @default(auto()) @map("_id") @db.ObjectId
+  url            String
+  timestamp      DateTime   @default(now())
+  loadTime       Int
+  timeOnPage     Int
+  isCompleteLoad Boolean
+  referrer       String
+  source         String
+  utmParams      UTMParams?
+  deviceInfo     DeviceInfo
+  createdAt      DateTime   @default(now())
+}
+
+type SourceAnalytics {
+  name              String
+  visits            Int
+  conversions       Int
+  bounceRate        Float
+  averageTimeOnSite Float
+  revenue           Float
+}
+
+model CampaignCost {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  campaign  String
+  cost      Float
+  startDate DateTime
+  endDate   DateTime
+  createdAt DateTime @default(now())
+}
+
+enum ConversionType {
+  purchase
+  signup
+  lead
+}
+
+model Conversion {
+  id        String         @id @default(auto()) @map("_id") @db.ObjectId
+  visitId   String
+  type      ConversionType
+  value     Float
+  timestamp DateTime
+  createdAt DateTime       @default(now())
+}
+
+type CampaignAnalytics {
+  name        String
+  source      String
+  visits      Int
+  conversions Int
+  revenue     Float
+  cost        Float?
+  roi         Float?
+}
+
+model AnalyticsData {
+  id                String              @id @default(auto()) @map("_id") @db.ObjectId
+  totalVisits       Int
+  validVisits       Int
+  bounceRate        Float
+  averageTimeOnSite Float
+  totalRevenue      Float
+  totalConversions  Float
+  timeDistribution  Json //  Record<string, number>;
+  pagePerformance   Json // Record<string, {views: number; avgLoadTime: number; bounceRate: number, conversions: number, revenue: number;}>;
+  sourceAnalytics   SourceAnalytics[]
+  campaignAnalytics CampaignAnalytics[]
 }
 
 //------------------ Relation schema --------------------------------

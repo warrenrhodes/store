@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
+    "build:generate": "prisma generate && tsc && cp -R prisma ../nature_gift_store/ && cp -R prisma ../nature_gift_admin/",
     "build": "tsc && cp -R prisma ../nature_gift_store/ && cp -R prisma ../nature_gift_admin/",
     "prisma:generate": "prisma generate"
   },

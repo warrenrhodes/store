@@ -61,8 +61,6 @@ export class Analytics {
     const id = crypto.randomUUID()
     const url = new URL(window.location.href)
 
-    console.log('Starting visit:', id, url.pathname)
-
     const visit: PageView = {
       id,
       url: url.pathname,
@@ -96,7 +94,6 @@ export class Analytics {
     }
   }
   markPageLoaded(visitId: string) {
-    console.log('Marking page loaded:', visitId)
     const visit = this.visits.get(visitId)
     if (visit) {
       visit.isCompleteLoad = true
@@ -106,7 +103,6 @@ export class Analytics {
   }
 
   endVisit(visitId: string) {
-    console.log('Ending visit:', visitId)
     const visit = this.visits.get(visitId)
     if (visit) {
       visit.timeOnPage = (new Date().getTime() - visit.timestamp.getTime()) / 1000
@@ -115,12 +111,12 @@ export class Analytics {
   }
 
   trackConversion(visitId: string, type: 'purchase' | 'signup' | 'lead', value: number) {
-    console.log('Tracking conversion:', { visitId, type, value })
     const conversion: Omit<Conversion, 'id'> = {
       visitId,
       type,
       value,
       timestamp: new Date(),
+      createdAt: new Date(),
     }
 
     this.conversions.push(conversion)
@@ -128,12 +124,12 @@ export class Analytics {
   }
 
   setCampaignCost(campaign: string, cost: number, startDate: Date, endDate: Date) {
-    console.log('Setting campaign cost:', { campaign, cost, startDate, endDate })
     const campaignCost: Omit<CampaignCost, 'id'> = {
       campaign,
       cost,
       startDate,
       endDate,
+      createdAt: new Date(),
     }
 
     this.campaignCosts.set(campaign, campaignCost)

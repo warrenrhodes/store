@@ -420,15 +420,6 @@ model PageView {
   createdAt      DateTime   @default(now())
 }
 
-type SourceAnalytics {
-  name              String
-  visits            Int
-  conversions       Int
-  bounceRate        Float
-  averageTimeOnSite Float
-  revenue           Float
-}
-
 model CampaignCost {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   campaign  String
@@ -451,6 +442,15 @@ model Conversion {
   value     Float
   timestamp DateTime
   createdAt DateTime       @default(now())
+}
+
+type SourceAnalytics {
+  name              String
+  visits            Int
+  conversions       Int
+  bounceRate        Float
+  averageTimeOnSite Float
+  revenue           Float
 }
 
 type CampaignAnalytics {

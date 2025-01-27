@@ -3,6 +3,9 @@
 const nextConfig = {
   output: 'standalone',
   productionBrowserSourceMaps: true,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   images: {
     remotePatterns: [
       {

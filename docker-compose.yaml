@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   mongo:
     build:
@@ -24,3 +22,9 @@ services:
       - mongodb_data:/data/db
     networks:
       - nature-gift-network
+volumes:
+  mongodb_data: {}
+
+networks:
+  nature-gift-network:
+    driver: bridge

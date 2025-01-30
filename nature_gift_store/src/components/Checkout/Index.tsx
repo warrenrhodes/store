@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { DeliveryForm } from '@/components/Checkout/delivery-form'
 import { ReviewOrder } from '@/components/Checkout/review-order'
 import { OrderSummary } from '@/components/Checkout/order-summary'
-import { DeliveryFormData } from '@/lib/utils/validation-form'
+import { DeliveryFormData, deliverySchema } from '@/lib/utils/validation-form'
 import { useTemporalUser } from '@/hooks/useTemporalUser'
 import { toast } from '@/hooks/use-toast'
 import { OrderSummary as OrderSummaryType } from '@/lib/api/orders'
@@ -19,8 +19,10 @@ import { createOrder } from '@/lib/api/orders'
 import { IShipment } from '@/lib/api/shipments'
 import { CheckoutSteps } from './CheckoutSteps'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { trackInitiateCheckout, trackPurchaseWithSource } from '@/lib/pixel-events'
 import { useLocalization } from '@/hooks/useLocalization'
+import { sendGTMEvent } from '@next/third-parties/google'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
 
 const steps = [
   { id: 'delivery', title: 'Delivery' },
@@ -39,17 +41,33 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
   const { user } = useCurrentUser()
   const { localization } = useLocalization()
 
+  const { temporalUser } = useTemporalUser()
+  const form = useForm<DeliveryFormData>({
+    resolver: zodResolver(deliverySchema),
+    defaultValues: formData || {
+      fullName: temporalUser?.fullName || '',
+      phone: temporalUser?.phone || '',
+      email: temporalUser?.email || undefined,
+      address: temporalUser?.address || '',
+      deliveryDate: undefined,
+      deliveryTime: '',
+      additionalNotes: '',
+      city: temporalUser?.city || '',
+      shipping: {
+        method: 'DELIVERY',
+        location: '',
+      },
+    },
+  })
+
   useEffect(() => {
-    // Track when user views a checkout
-    trackInitiateCheckout({
-      content_ids: cartItems.map(item => item.product.id),
-      contents: cartItems.map(item => ({
-        id: item.product.id,
-        quantity: item.quantity,
-      })),
-      num_items: cartItems.length,
-      value: cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0),
+    sendGTMEvent({
+      event: 'begin_checkout',
       currency: 'XAF',
+      value: cartItems.reduce((acc, e) => acc + e.price * e.quantity, 0),
+      items: cartItems.map(e => {
+        return { item_id: e.product.id, item_name: e.product.title, quantity: e.quantity }
+      }),
     })
   }, [cartItems])
 
@@ -68,6 +86,15 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
       })
       return
     }
+
+    sendGTMEvent({
+      event: 'add_shipping_info',
+      currency: 'XAF',
+      items: cartItems.map(e => {
+        return { item_id: e.product.id, item_name: e.product.title, quantity: e.quantity }
+      }),
+    })
+
     setIsLoading(true)
     const order = {
       deliveryInfo: {
@@ -128,7 +155,15 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
       ),
     })
     try {
-      trackPurchaseWithSource(confirmOrder)
+      sendGTMEvent({
+        event: 'purchase',
+        currency: 'XAF',
+        value: confirmOrder.orderPrices.total,
+        transaction_id: confirmOrder.id,
+        items: confirmOrder.items.map(e => {
+          return { item_id: e.product.id, item_name: e.product.title, quantity: e.quantity }
+        }),
+      })
     } catch (error) {
       console.log(error)
     }
@@ -200,12 +235,12 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
                   <DeliveryForm
                     shipment={props.shipments}
                     onSubmit={data => handleStepSubmit('delivery', data)}
-                    initialData={formData}
+                    form={form}
                   />
                   <Button
                     onClick={onOrderConfirm}
                     className="w-full"
-                    disabled={isLoading || !formData}
+                    disabled={isLoading || !form.formState.isValid}
                   >
                     {isLoading ? (
                       <Loader2 className="animate-spin" />

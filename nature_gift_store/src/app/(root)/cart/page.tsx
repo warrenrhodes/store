@@ -10,6 +10,8 @@ import { PromotionSummary } from '@/components/Cart/PromotionSummary'
 import { useCart, useCartDeliveryInfo } from '@/hooks/useCart'
 import { useShallow } from 'zustand/react/shallow'
 import { useLocalization } from '@/hooks/useLocalization'
+import { useEffect } from 'react'
+import { sendGTMEvent } from '@next/third-parties/google'
 
 export default function CartPage() {
   const cartItems = useCart(e => e.cartItems)
@@ -23,6 +25,17 @@ export default function CartPage() {
       removeCartItem: s.removeItem,
     })),
   )
+
+  useEffect(() => {
+    sendGTMEvent({
+      event: 'view_cart',
+      currency: 'XAF',
+      value: cartItems.reduce((acc, e) => acc + e.price * e.quantity, 0),
+      items: cartItems.map(e => {
+        return { item_id: e.product.id, item_name: e.product.title, quantity: e.quantity }
+      }),
+    })
+  }, [])
 
   return (
     <div className="min-h-screen bg-background">

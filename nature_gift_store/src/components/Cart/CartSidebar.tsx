@@ -18,6 +18,8 @@ import { PromotionSummary } from './PromotionSummary'
 import { useCart, useCartDeliveryInfo, useCartSideBar } from '@/hooks/useCart'
 import { useRouter } from 'next/navigation'
 import { useLocalization } from '@/hooks/useLocalization'
+import { useEffect } from 'react'
+import { sendGTMEvent } from '@next/third-parties/google'
 
 const sidebarVariants = {
   hidden: { x: '100%', opacity: 0 },
@@ -32,6 +34,17 @@ export function CartSidebar() {
   const { cartDeliveryInfo } = useCartDeliveryInfo()
   const { localization } = useLocalization()
   const cartSideBar = useCartSideBar()
+
+  useEffect(() => {
+    sendGTMEvent({
+      event: 'view_cart',
+      currency: 'XAF',
+      value: cart.cartItems.reduce((acc, e) => acc + e.price * e.quantity, 0),
+      items: cart.cartItems.map(e => {
+        return { item_id: e.product.id, item_name: e.product.title, quantity: e.quantity }
+      }),
+    })
+  }, [])
 
   return (
     <Sheet open={cartSideBar.isSideBarCartOpen} onOpenChange={cartSideBar.onOpenChange}>

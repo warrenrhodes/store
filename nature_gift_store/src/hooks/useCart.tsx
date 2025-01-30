@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import { toast } from '@/hooks/use-toast'
 import { IDeliveryInfo } from '@/lib/api/orders'
 import { IProduct } from '@/lib/api/products'
-import { trackAddToCart, trackRemoveFromCart } from '@/lib/pixel-events'
+import { sendGTMEvent } from '@next/third-parties/google'
 export interface CartShipment {
   method: 'DELIVERY' | 'EXPEDITION'
   cost: number
@@ -67,28 +67,29 @@ const useCart = create(
         toast({
           title: '🎉🎉 Item added to cart',
         })
-        trackAddToCart({
-          content_name: product.title,
-          content_ids: [product.id],
-          content_type: 'product',
-          value: product.price,
+        sendGTMEvent({
+          event: 'add_to_cart',
           currency: 'XAF',
+          value: currentItems.reduce((acc, e) => acc + e.price * e.quantity, 0),
+          items: currentItems.map(e => {
+            return { item_id: e.product.id, item_name: e.product.title, quantity: e.quantity }
+          }),
         })
       },
       removeItem: (idToRemove: string) => {
-        const product = get().cartItems.find(cartItem => cartItem.product.id === idToRemove).product
         const newCartItems = get().cartItems.filter(cartItem => cartItem.product.id !== idToRemove)
         set({ cartItems: newCartItems })
 
         if (get().cartItems.length === 0) {
           useCartDeliveryInfo.getState().clearDeliveryInfo()
         }
-        trackRemoveFromCart({
-          content_name: product.title,
-          content_ids: [product.id],
-          content_type: 'product',
-          value: product.price,
+        sendGTMEvent({
+          event: 'remove_from_cart',
           currency: 'XAF',
+          value: newCartItems.reduce((acc, e) => acc + e.price * e.quantity, 0),
+          items: newCartItems.map(e => {
+            return { item_id: e.product.id, item_name: e.product.title, quantity: e.quantity }
+          }),
         })
       },
       increaseQuantity: (idToIncrease: string) => {

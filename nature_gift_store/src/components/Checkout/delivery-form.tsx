@@ -1,7 +1,6 @@
 'use client'
 
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { UseFormReturn } from 'react-hook-form'
 import { ArrowRight, Calendar, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { addDays, differenceInHours, format, isBefore, isToday } from 'date-fns'
@@ -22,8 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { DeliveryFormData, deliverySchema } from '@/lib/utils/validation-form'
-import { useTemporalUser } from '@/hooks/useTemporalUser'
+import { DeliveryFormData } from '@/lib/utils/validation-form'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { cn } from '@/lib/utils/utils'
 import { useCartDeliveryInfo } from '@/hooks/useCart'
@@ -33,33 +31,16 @@ import { useLocalization } from '@/hooks/useLocalization'
 interface DeliveryFormProps {
   onSubmit: (data: DeliveryFormData) => void
   shipment: IShipment[]
-  initialData?: DeliveryFormData
+  form: UseFormReturn<DeliveryFormData>
 }
 const TIME_IN_HOUR_BEFORE_DELIVERY = 3
 const MAX_DELIVERY_HOURS = 18
 const TODAY = new Date()
-export function DeliveryForm({ onSubmit, shipment: shipments, initialData }: DeliveryFormProps) {
+export function DeliveryForm({ onSubmit, shipment: shipments, form }: DeliveryFormProps) {
   const cartDeliveryInfo = useCartDeliveryInfo()
   const { localization } = useLocalization()
   const maxDate = addDays(TODAY, 7)
-  const { temporalUser } = useTemporalUser()
-  const form = useForm<DeliveryFormData>({
-    resolver: zodResolver(deliverySchema),
-    defaultValues: initialData || {
-      fullName: temporalUser?.fullName || '',
-      phone: temporalUser?.phone || '',
-      email: temporalUser?.email || undefined,
-      address: temporalUser?.address || '',
-      deliveryDate: undefined,
-      deliveryTime: '',
-      additionalNotes: '',
-      city: temporalUser?.city || '',
-      shipping: {
-        method: 'DELIVERY',
-        location: '',
-      },
-    },
-  })
+
   const generateTimeSlots = (selectedDate: Date) => {
     const now = new Date()
     const startHour = isToday(selectedDate) ? now.getHours() + 1 : 9

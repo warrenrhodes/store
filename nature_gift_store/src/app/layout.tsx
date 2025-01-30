@@ -8,6 +8,7 @@ import { Toaster } from '@/components/ui/toaster'
 import { Header } from '@/components/Header/Index'
 import FacebookPixel from '@/components/FacebookPixel'
 import { AnalyticsProvider } from '@/components/AnalyticsProvider'
+import { GoogleTagManager } from '@next/third-parties/google'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -41,39 +42,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const analyticsScript = `
-(() => {
-  console.log('Analytics script starting...');
-  
-  const initTracking = () => {
-    if (window.analytics) {
-      console.log('Analytics available, starting tracking...');
-      try {
-        const visitId = window.analytics.startVisit(window.location.pathname);
-        console.log('Visit started with ID:', visitId);
-        
-        window.analytics.markPageLoaded(visitId);
-        
-        window.addEventListener('beforeunload', () => {
-          window.analytics.endVisit(visitId);
-        });
-
-        window.sessionStorage.setItem('current_visit_id', visitId);
-      } catch (error) {
-        console.error('Error in analytics tracking:', error);
-      }
-    } else {
-      console.warn('Analytics not available yet...');
-      // Retry after a short delay
-      setTimeout(initTracking, 100);
-    }
-  };
-
-  // Start tracking as soon as possible
-  initTracking();
-})();
-`
-
   return await ClerkProvider({
     children: (
       <ClerkProvider>
@@ -85,7 +53,7 @@ export default async function RootLayout({
             <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
             <link rel="manifest" href="/site.webmanifest" />
           </head>
-
+          <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID} />
           <body className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}>
             <div>
               <AnalyticsProvider />

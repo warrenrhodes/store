@@ -28,6 +28,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props) {
   const product = await fetchProductBySlug({ slug: (await params).slug })
+
   return {
     title: product?.metadata.seoTitle,
     description: product?.metadata.seoDescription,

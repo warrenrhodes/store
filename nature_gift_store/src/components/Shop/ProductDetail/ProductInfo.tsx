@@ -17,8 +17,6 @@ import { useCart } from '@/hooks/useCart'
 import { useCartSideBar } from '@/hooks/useCart'
 import { useRouter } from 'next/navigation'
 import { IProduct } from '@/lib/api/products'
-import { useEffect } from 'react'
-import { trackPageViewWithSource } from '@/lib/pixel-events'
 import { useLocalization } from '@/hooks/useLocalization'
 
 export function ProductInfo({ product }: { product: IProduct }) {
@@ -47,11 +45,6 @@ export function ProductInfo({ product }: { product: IProduct }) {
     if (99 <= cartItem.quantity) return
     cart.increaseQuantity(cartItem.product.id)
   }
-
-  useEffect(() => {
-    // Track when user views a product
-    trackPageViewWithSource()
-  }, [])
 
   const percentageDiscount = canDisplayPromoPrice(product)
     ? getPercentageDiscount(price.regular, price.sale)

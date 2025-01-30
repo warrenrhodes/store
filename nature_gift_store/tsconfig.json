@@ -36,7 +36,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-, "src/components/FacebookPixel.jsx", "src/app/layout.tsx", "src/lib/pixel-events.js"  ],
+, "src/components/FacebookPixel.jsx", "src/app/layout.tsx"  ],
   "exclude": [
     "node_modules"
   ]

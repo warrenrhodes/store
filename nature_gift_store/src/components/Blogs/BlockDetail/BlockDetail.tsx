@@ -11,16 +11,10 @@ import { IBlog } from '@/lib/api/blogs'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { FAKE_BLUR } from '@/lib/utils/constants'
-import { trackPageViewWithSource } from '@/lib/pixel-events'
-import { useEffect } from 'react'
 import { useLocalization } from '@/hooks/useLocalization'
 
 const BlogDetail = ({ blog, relatedBlogs }: { blog: IBlog; relatedBlogs: IBlog[] }) => {
   const { localization } = useLocalization()
-  useEffect(() => {
-    // Track when user views a blog
-    trackPageViewWithSource()
-  }, [])
 
   return (
     <motion.div

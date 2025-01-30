@@ -6,8 +6,6 @@ import ToasterProvider from '@/lib/providers/ToasterProvider'
 import Footer from '@/components/Footer'
 import { Toaster } from '@/components/ui/toaster'
 import { Header } from '@/components/Header/Index'
-import FacebookPixel from '@/components/FacebookPixel'
-import { AnalyticsProvider } from '@/components/AnalyticsProvider'
 import { GoogleTagManager } from '@next/third-parties/google'
 
 export const dynamic = 'force-dynamic'
@@ -56,8 +54,6 @@ export default async function RootLayout({
           <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID} />
           <body className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}>
             <div>
-              <AnalyticsProvider />
-              <FacebookPixel pixelId={process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID} />
               <ToasterProvider />
               <Header />
               {children}

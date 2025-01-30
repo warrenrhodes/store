@@ -69,7 +69,7 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
         return { item_id: e.product.id, item_name: e.product.title, quantity: e.quantity }
       }),
     })
-  }, [cartItems])
+  }, [])
 
   const handleStepSubmit = (stepId: string, data: DeliveryFormData) => {
     setFormData(data)
@@ -78,8 +78,9 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
       setCurrentStep(nextStep.id)
     }
   }
-  const onOrderConfirm = async () => {
-    if (!formData || !orderSummary.current) {
+  const onOrderConfirm = async (data: DeliveryFormData) => {
+    setFormData(data)
+    if (!form.formState.isValid || !orderSummary.current) {
       toast({
         description: 'Please fill the form before submitting your order',
         variant: 'destructive',
@@ -98,19 +99,19 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
     setIsLoading(true)
     const order = {
       deliveryInfo: {
-        address: formData.address,
-        deliveryDate: formData.deliveryDate,
-        deliveryTime: formData.deliveryTime,
-        city: formData.city,
-        additionalNotes: formData.additionalNotes || null,
-        deliveryMethod: formData.shipping.method,
-        location: formData.shipping.location,
+        address: data.address,
+        deliveryDate: data.deliveryDate,
+        deliveryTime: data.deliveryTime,
+        city: data.city,
+        additionalNotes: data.additionalNotes || null,
+        deliveryMethod: data.shipping.method,
+        location: data.shipping.location,
       },
       userData: {
         id: user?.id || '',
-        email: formData.email || '',
-        fullName: formData.fullName,
-        phone: formData.phone,
+        email: data.email || '',
+        fullName: data.fullName,
+        phone: data.phone,
       },
       status: 'PENDING',
       orderPrices: {
@@ -161,14 +162,28 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
         value: confirmOrder.orderPrices.total,
         transaction_id: confirmOrder.id,
         items: confirmOrder.items.map(e => {
-          return { item_id: e.product.id, item_name: e.product.title, quantity: e.quantity }
+          return {
+            item_id: e.product.id,
+            item_name: e.product.title,
+            quantity: e.quantity,
+            price: e.price,
+          }
         }),
+        userInfo: {
+          id: user?.id,
+          email: confirmOrder.userData?.email,
+          full_name: confirmOrder.userData?.fullName,
+          phone: confirmOrder.userData?.phone,
+          address: confirmOrder.deliveryInfo.address,
+          city: confirmOrder.deliveryInfo?.city,
+          location: confirmOrder.deliveryInfo?.location,
+        },
       })
     } catch (error) {
       console.log(error)
     }
 
-    setUserData({ ...formData })
+    setUserData({ ...data })
     clearCart()
 
     if (!user?.isAnonymous) {
@@ -238,7 +253,7 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
                     form={form}
                   />
                   <Button
-                    onClick={onOrderConfirm}
+                    onClick={form.handleSubmit(onOrderConfirm)}
                     className="w-full"
                     disabled={isLoading || !form.formState.isValid}
                   >
@@ -262,7 +277,7 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
                   <ReviewOrder
                     formData={formData}
                     onBack={handleBack}
-                    onSubmit={onOrderConfirm}
+                    onSubmit={() => onOrderConfirm(formData)}
                     isLoading={isLoading}
                   />
                 </motion.div>

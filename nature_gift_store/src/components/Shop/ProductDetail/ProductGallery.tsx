@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -9,11 +9,33 @@ import { IProduct } from '@/lib/api/products'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import Image from 'next/image'
 import { useLocalization } from '@/hooks/useLocalization'
+import { sendGTMEvent } from '@next/third-parties/google'
 
 export function ProductGallery({ product }: { product: IProduct }) {
   const { media } = product
   const [currentImage, setCurrentImage] = useState(0)
   const { localization } = useLocalization()
+
+  const iProduct = useMemo(() => {
+    return product
+  }, [product])
+
+  useEffect(() => {
+    sendGTMEvent({
+      event: 'view_item',
+      currency: 'XAF',
+      value: iProduct?.price.regular,
+      items: [
+        {
+          item_name: iProduct?.title,
+          item_id: iProduct?.id,
+          price: iProduct?.price.regular,
+          quantity: 0,
+          category: iProduct?.categories[0]?.category?.name,
+        },
+      ],
+    })
+  }, [])
   return (
     <div className="space-y-4">
       <div itemScope className="relative aspect-square rounded-lg overflow-hidden bg-muted">

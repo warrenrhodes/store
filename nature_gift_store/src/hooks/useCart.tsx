@@ -72,7 +72,12 @@ const useCart = create(
           currency: 'XAF',
           value: currentItems.reduce((acc, e) => acc + e.price * e.quantity, 0),
           items: currentItems.map(e => {
-            return { item_id: e.product.id, item_name: e.product.title, quantity: e.quantity }
+            return {
+              item_id: e.product.id,
+              item_name: e.product.title,
+              quantity: e.quantity,
+              category: e.product.categories[0].category.name,
+            }
           }),
         })
       },
@@ -88,7 +93,12 @@ const useCart = create(
           currency: 'XAF',
           value: newCartItems.reduce((acc, e) => acc + e.price * e.quantity, 0),
           items: newCartItems.map(e => {
-            return { item_id: e.product.id, item_name: e.product.title, quantity: e.quantity }
+            return {
+              item_id: e.product.id,
+              item_name: e.product.title,
+              quantity: e.quantity,
+              category: e.product.categories[0].category.name,
+            }
           }),
         })
       },

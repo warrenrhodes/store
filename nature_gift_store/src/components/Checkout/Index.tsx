@@ -23,6 +23,7 @@ import { useLocalization } from '@/hooks/useLocalization'
 import { sendGTMEvent } from '@next/third-parties/google'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
+import { DeliveryInfo, OrderPrices, UserData } from '@/lib/type'
 
 const steps = [
   { id: 'delivery', title: 'Delivery' },
@@ -155,11 +156,14 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
         </ToastAction>
       ),
     })
+    const userData = confirmOrder.userData as UserData
+    const orderPrices = confirmOrder.orderPrices as OrderPrices
+    const deliveryInfo = confirmOrder.deliveryInfo as unknown as DeliveryInfo
     try {
       sendGTMEvent({
         event: 'purchase',
         currency: 'XAF',
-        value: confirmOrder.orderPrices.total,
+        value: orderPrices.total,
         transaction_id: confirmOrder.id,
         items: confirmOrder.items.map(e => {
           return {
@@ -171,12 +175,12 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
         }),
         userInfo: {
           id: user?.id,
-          email: confirmOrder.userData?.email,
-          full_name: confirmOrder.userData?.fullName,
-          phone: confirmOrder.userData?.phone,
-          address: confirmOrder.deliveryInfo.address,
-          city: confirmOrder.deliveryInfo?.city,
-          location: confirmOrder.deliveryInfo?.location,
+          email: userData?.email,
+          full_name: userData?.fullName,
+          phone: userData?.phone,
+          address: deliveryInfo.address,
+          city: deliveryInfo?.city,
+          location: deliveryInfo?.location,
         },
       })
     } catch (error) {

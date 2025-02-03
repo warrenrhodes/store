@@ -11,6 +11,7 @@ import { BlogSearch } from './BlogSearch'
 import useBlogFilter from '@/hooks/useBlogFilter'
 import { IBlog } from '@/lib/api/blogs'
 import { useLocalization } from '@/hooks/useLocalization'
+import { BlogMetadata } from '@/lib/type'
 
 export default function Blogs({ blogs }: { blogs: IBlog[] }) {
   const { filters } = useBlogFilter()
@@ -44,7 +45,9 @@ export default function Blogs({ blogs }: { blogs: IBlog[] }) {
           <p className="mt-4 text-lg text-muted-foreground">{localization.blogsDescription}</p>
         </div>
 
-        <FeaturedBlogCarousel blogs={blogs.filter(blog => blog.metadata.featured)} />
+        <FeaturedBlogCarousel
+          blogs={blogs.filter(blog => (blog.metadata as BlogMetadata).featured)}
+        />
 
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="hidden lg:block w-64 flex-shrink-0">

@@ -14,6 +14,7 @@ import Link from 'next/link'
 import { IProduct } from '@/lib/api/products'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
+import { ProductSeoMetadata } from '@/lib/type'
 
 export function SearchBar() {
   const [query, setQuery] = useState('')
@@ -111,7 +112,7 @@ const ItemResult = ({ product }: { product: IProduct }) => {
                 <Image
                   src={product.media[0].media.url}
                   fill
-                  alt={product.metadata.seoTitle}
+                  alt={(product.metadata as ProductSeoMetadata).seoTitle}
                   className="object-cover w-full h-full"
                   onError={() => console.log('Image not found')}
                   placeholder="blur"

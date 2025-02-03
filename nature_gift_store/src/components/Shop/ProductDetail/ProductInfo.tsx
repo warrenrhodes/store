@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
 import { Separator } from '@/components/ui/separator'
-import { Price } from '@/components/Price'
+import { Price as ProductPriceCP } from '@/components/Price'
 import {
   canDisplayPromoPrice,
   getPercentageDiscount,
@@ -18,14 +18,23 @@ import { useCartSideBar } from '@/hooks/useCart'
 import { useRouter } from 'next/navigation'
 import { IProduct } from '@/lib/api/products'
 import { useLocalization } from '@/hooks/useLocalization'
+import { Feature, Price, ProductDescription } from '@/lib/type'
 
 export function ProductInfo({ product }: { product: IProduct }) {
-  const { title, features, description, price } = product
+  const {
+    title,
+    features: productFeatures,
+    description: productDescription,
+    price: productPrice,
+  } = product
   const cart = useCart()
   const router = useRouter()
   const cartSideBar = useCartSideBar()
   const cartItem = cart.cartItems.find(item => item.product.id === product.id)
   const { localization } = useLocalization()
+  const price: Price | undefined = productPrice as unknown as Price | undefined
+  const description = productDescription as ProductDescription
+  const features = productFeatures as Feature[]
 
   const handleClickDecrement = () => {
     if (!cartItem) return
@@ -87,7 +96,7 @@ export function ProductInfo({ product }: { product: IProduct }) {
 
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <Price product={product} />
+          <ProductPriceCP product={product} />
           {percentageDiscount > 0 && (
             <Badge variant="destructive">
               {localization.save} {percentageDiscount.toFixed(0)}%
@@ -103,7 +112,7 @@ export function ProductInfo({ product }: { product: IProduct }) {
           itemProp="description"
           className="prose prose-slate prose-sm sm:prose leading-relaxed text-gray-400"
           dangerouslySetInnerHTML={{
-            __html: product.description.content,
+            __html: description.content,
           }}
         />
       )}

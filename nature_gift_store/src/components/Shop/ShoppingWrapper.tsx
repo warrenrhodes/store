@@ -10,6 +10,7 @@ import { FilterOptions } from '@/components/Shop/FilterOptions'
 import useFilter from '@/hooks/useFilter'
 import { IProduct } from '@/lib/api/products'
 import { ICategory } from '@/lib/api/categories'
+import { ProductDescription } from '@/lib/type'
 
 interface ProductPageData {
   categories: ICategory[]
@@ -50,7 +51,7 @@ export const ShoppingWrapper = ({
       filtered = filtered.filter(
         product =>
           product.title.toLowerCase().includes(searchTerm) ||
-          product.description.content.toLowerCase().includes(searchTerm),
+          (product.description as ProductDescription).content.toLowerCase().includes(searchTerm),
       )
     }
 

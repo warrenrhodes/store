@@ -39,7 +39,7 @@ import { ToastAction } from '../ui/toast'
 import { Prisma } from '@prisma/client'
 
 interface PromotionFormProps {
-  initialData?: Prisma.PromotionGetPayload<object> | null
+  initialData?: any | null
   products: Prisma.ProductGetPayload<object>[]
 }
 

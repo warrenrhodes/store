@@ -19,6 +19,7 @@ import Image from 'next/image'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { IOrder, IOrderItem } from '@/lib/api/orders'
 import { useLocalization } from '@/hooks/useLocalization'
+import { OrderPrices } from '@/lib/type'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -61,6 +62,7 @@ function TabsWrapper() {
   const tabs = searchParams.get('tabs')
   const orders = user?.orders
   const { localization } = useLocalization()
+
   return (
     <Tabs defaultValue={tabs || 'orders'} className="w-full">
       <TabsList className="grid w-full grid-cols-3 mb-8">
@@ -84,79 +86,86 @@ function TabsWrapper() {
               </div>
             </div>
           ) : (
-            orders?.map((order: IOrder) => (
-              <motion.div key={order.id} variants={itemVariants} className="mb-6">
-                <Card>
-                  <CardHeader>
-                    <div className="flex justify-between items-center">
-                      <CardTitle className="text-lg">
-                        {localization.order} #{order.id}
-                      </CardTitle>
-                      <Badge
-                        className={cn({
-                          'bg-green-500': order.status === 'ACCEPTED',
-                          'bg-gray-500': order.status === 'PENDING',
-                          'bg-blue-500': order.status === 'COMPLETED',
-                          'bg-red-500': order.status === 'CANCELED' || order.status === 'REJECTED',
-                        })}
-                      >
-                        {order.status}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {format(order.createdAt, 'PPP')}
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    {order.items.map((item: IOrderItem) => (
-                      <div key={item.id} className="flex items-center gap-4 mb-4">
-                        <div className="relative aspect-square w-24 rounded-lg overflow-hidden">
-                          <Image
-                            src={item.product.media[0].media.url}
-                            fill
-                            alt={item.product.title}
-                            className="object-cover w-full h-full"
-                            onError={() => console.log('Image not found')}
-                            placeholder="blur"
-                            blurDataURL={item.product.media[0].media.blurDataUrl || FAKE_BLUR}
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          />
-                          {item.product.isFeature && (
-                            <Badge className="absolute top-1 left-1">{localization.featured}</Badge>
-                          )}
-                        </div>
+            orders?.map((order: IOrder) => {
+              const orderPrices = order.orderPrices as OrderPrices
 
-                        <div>
-                          <h4 className="font-medium">{item.product.title}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {localization.quantity}: {item.quantity}
-                          </p>
-                          <p className="text-sm font-medium">{priceFormatted(item.price)}</p>
+              return (
+                <motion.div key={order.id} variants={itemVariants} className="mb-6">
+                  <Card>
+                    <CardHeader>
+                      <div className="flex justify-between items-center">
+                        <CardTitle className="text-lg">
+                          {localization.order} #{order.id}
+                        </CardTitle>
+                        <Badge
+                          className={cn({
+                            'bg-green-500': order.status === 'ACCEPTED',
+                            'bg-gray-500': order.status === 'PENDING',
+                            'bg-blue-500': order.status === 'COMPLETED',
+                            'bg-red-500':
+                              order.status === 'CANCELED' || order.status === 'REJECTED',
+                          })}
+                        >
+                          {order.status}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {format(order.createdAt, 'PPP')}
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      {order.items.map((item: IOrderItem) => (
+                        <div key={item.id} className="flex items-center gap-4 mb-4">
+                          <div className="relative aspect-square w-24 rounded-lg overflow-hidden">
+                            <Image
+                              src={item.product.media[0].media.url}
+                              fill
+                              alt={item.product.title}
+                              className="object-cover w-full h-full"
+                              onError={() => console.log('Image not found')}
+                              placeholder="blur"
+                              blurDataURL={item.product.media[0].media.blurDataUrl || FAKE_BLUR}
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            />
+                            {item.product.isFeature && (
+                              <Badge className="absolute top-1 left-1">
+                                {localization.featured}
+                              </Badge>
+                            )}
+                          </div>
+
+                          <div>
+                            <h4 className="font-medium">{item.product.title}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              {localization.quantity}: {item.quantity}
+                            </p>
+                            <p className="text-sm font-medium">{priceFormatted(item.price)}</p>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="border-t pt-4 mt-4">
+                        <div className="flex justify-between text-sm mb-2">
+                          <span>{localization.subtotal}</span>
+                          <span>{priceFormatted(orderPrices.subtotal)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm mb-2">
+                          <span>{localization.shipping}</span>
+                          <span>{priceFormatted(orderPrices.shipping)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm mb-2">
+                          <span>{localization.discount}</span>
+                          <span>-{priceFormatted(orderPrices.discount)}</span>
+                        </div>
+                        <div className="flex justify-between font-medium mt-4">
+                          <span>{localization.total}</span>
+                          <span>{priceFormatted(orderPrices.total)}</span>
                         </div>
                       </div>
-                    ))}
-                    <div className="border-t pt-4 mt-4">
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>{localization.subtotal}</span>
-                        <span>{priceFormatted(order.orderPrices.subtotal)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>{localization.shipping}</span>
-                        <span>{priceFormatted(order.orderPrices.shipping)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>{localization.discount}</span>
-                        <span>-{priceFormatted(order.orderPrices.discount)}</span>
-                      </div>
-                      <div className="flex justify-between font-medium mt-4">
-                        <span>{localization.total}</span>
-                        <span>{priceFormatted(order.orderPrices.total)}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )
+            })
           )}
         </ScrollArea>
       </TabsContent>

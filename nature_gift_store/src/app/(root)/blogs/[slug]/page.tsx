@@ -1,5 +1,6 @@
 import BlogDetail from '@/components/Blogs/BlockDetail/BlockDetail'
 import { fetchAllBlogs, fetchBlogBySlug, fetchRelatedBlogs } from '@/lib/api/blogs'
+import { BlogMetadata } from '@/lib/type'
 import { notFound } from 'next/navigation'
 
 type Props = {
@@ -15,22 +16,23 @@ export async function generateStaticParams() {
 }
 export async function generateMetadata({ params }: Props) {
   const blog = await fetchBlogBySlug((await params).slug)
+  const metadata = blog?.metadata as undefined | BlogMetadata
   return {
     applicationName: 'Nature Gift',
-    title: blog?.metadata.title,
-    description: blog?.metadata.description,
-    keywords: blog?.metadata.keywords,
-    authors: [{ name: blog.metadata.author.name, url: blog.metadata.author.avatar }],
-    creator: blog.metadata.author.name,
-    publisher: blog.metadata.author.name,
+    title: metadata.title,
+    description: metadata.description,
+    keywords: metadata.keywords,
+    authors: [{ name: metadata.author.name, url: metadata.author.avatar }],
+    creator: metadata.author.name,
+    publisher: metadata.author.name,
     openGraph: {
-      title: blog?.metadata.title,
-      description: blog?.metadata.description,
+      title: metadata.title,
+      description: metadata.description,
       url: process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL,
       siteName: 'Nature Gift',
       images: [
         {
-          url: blog?.metadata.coverImageURL,
+          url: metadata.coverImageURL,
         },
       ],
       publishedTime: blog?.publishedAt,

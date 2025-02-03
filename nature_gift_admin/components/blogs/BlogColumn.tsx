@@ -7,6 +7,7 @@ import Delete from '../custom-ui/Delete'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import { Prisma } from '@prisma/client'
+import { BlogMetadata } from '@/lib/type'
 
 export const blogsColumns: ColumnDef<Prisma.BlogGetPayload<object>>[] = [
   {
@@ -66,7 +67,7 @@ export const blogsColumns: ColumnDef<Prisma.BlogGetPayload<object>>[] = [
   {
     accessorKey: 'readingTime',
     header: 'Reading Time (min)',
-    cell: ({ row }) => <span>{row.original.metadata.readingTime || 'N/A'}</span>,
+    cell: ({ row }) => <span>{(row.original.metadata as BlogMetadata).readingTime || 'N/A'}</span>,
   },
 
   {

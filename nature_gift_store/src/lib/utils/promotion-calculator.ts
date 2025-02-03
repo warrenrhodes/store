@@ -1,9 +1,10 @@
 import { CartItem } from '@/hooks/useCart'
 import { IDeliveryInfo, OrderSummary } from '../api/orders'
 import { IPromotion } from '../api/promotions'
+import { PromotionAction, PromotionCondition } from '../type'
 
-type IPromotionCondition = IPromotion['conditions'][0]
-type IPromotionAction = IPromotion['actions'][0]
+// type IPromotionCondition = IPromotion['conditions'][0]
+// type IPromotionAction = IPromotion['actions'][0]
 
 export class PromotionCalculator {
   private cart: CartItem[]
@@ -24,7 +25,7 @@ export class PromotionCalculator {
       )
       .sort((a, b) => (b.priority || 0) - (a.priority || 0))
   }
-  private checkCondition(condition: IPromotionCondition): boolean {
+  private checkCondition(condition: PromotionCondition): boolean {
     let conditionValue
     try {
       conditionValue =
@@ -57,7 +58,7 @@ export class PromotionCalculator {
     }
   }
 
-  private calculateActionValue(action: IPromotionAction): number {
+  private calculateActionValue(action: PromotionAction): number {
     let actionValue
     try {
       actionValue = typeof action.value === 'string' ? JSON.parse(action.value) : action.value
@@ -119,7 +120,7 @@ export class PromotionCalculator {
       if (!conditionsMet) continue
 
       // Calculate discount from each action
-      for (const action of promotion.actions) {
+      for (const action of promotion.actions as PromotionAction[]) {
         const discountAmount = this.calculateActionValue(action)
         if (discountAmount > 0) {
           totalDiscount += discountAmount

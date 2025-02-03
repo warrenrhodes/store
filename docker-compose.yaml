@@ -1,29 +1,25 @@
 services:
-  mongo:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: mongodb-replicaset
-    restart: always
+  postgres:
+    image: postgres:15
+    container_name: postgres-naturegift
     environment:
-      MONGO_INITDB_ROOT_USERNAME: naturegift
-      MONGO_INITDB_ROOT_PASSWORD: naturegift
-      MONGO_INITDB_DATABASE: naturegift-store
+      POSTGRES_USER: naturegift
+      POSTGRES_PASSWORD: naturegift
+      POSTGRES_DB: naturegift-store
     ports:
-      - 27017:27017
-    command: --replSet rs0 --keyFile /etc/mongo-keyfile --bind_ip_all --port 27017
-    healthcheck:
-      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'127.0.0.1:27017'}]}) }" | mongosh --port 27017 -u naturegift -p naturegift --authenticationDatabase admin naturegift-store
-      interval: 5s
-      timeout: 15s
-      start_period: 15s
-      retries: 10
+      - "5432:5432"
     volumes:
-      - mongodb_data:/data/db
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - nature-gift-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U naturegift -d naturegift-store"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
-  mongodb_data: {}
+  postgres_data: {}
 
 networks:
   nature-gift-network:

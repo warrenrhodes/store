@@ -21,9 +21,6 @@ export const GET = async () => {
       where: {
         creatorId: _currentUser.id,
       },
-      include: {
-        products: true,
-      },
     })
 
     return NextResponse.json(promotions)
@@ -47,7 +44,7 @@ export async function POST(req: NextRequest) {
     }
 
     const json = await req.json()
-    const body = promotionSchema.parse(json)
+    const body = promotionSchema.parse(json) as any
 
     const promotion = await prisma.promotion.create({
       data: {

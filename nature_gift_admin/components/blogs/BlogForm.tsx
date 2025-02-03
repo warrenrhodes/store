@@ -40,7 +40,7 @@ import { toast } from '@/hooks/use-toast'
 import { useAuth } from '@clerk/nextjs'
 
 interface BlogFormProps {
-  initialData?: Prisma.BlogGetPayload<object> | null
+  initialData?: any | null
   categories: Prisma.CategoryGetPayload<object>[]
   categoriesOnBlog: Prisma.CategoriesOnBlogsGetPayload<object>[]
 }

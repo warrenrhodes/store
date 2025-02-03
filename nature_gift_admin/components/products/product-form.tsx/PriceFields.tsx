@@ -21,10 +21,6 @@ export function PriceFields({ form }: PriceFieldsProps) {
   const saleStartDate = form.getValues('price.saleStartDate')
   const saleEndDate = form.getValues('price.saleEndDate')
 
-  // form.getValues('price.saleStartDate') !== undefined &&
-  // typeof form.getValues('price.saleStartDate') === 'string'
-  //   ? new Date()
-  //   : form.getValues('price.saleStartDate')
   const [date, setDate] = useState<DateRange | undefined>({
     from: (saleStartDate && new Date(saleStartDate)) || addDays(new Date(), 1),
     to: (saleEndDate && new Date(saleEndDate)) || addDays(new Date(), 20),

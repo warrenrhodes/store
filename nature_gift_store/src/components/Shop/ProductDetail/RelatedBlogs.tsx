@@ -10,6 +10,7 @@ import { IBlog } from '@/lib/api/blogs'
 import Image from 'next/image'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
+import { BlogMetadata, BlogContent } from '@/lib/type'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -49,41 +50,45 @@ export function RelatedBlogs({ relatedBlogs }: { relatedBlogs: IBlog[] }) {
         viewport={{ once: true, margin: '-100px' }}
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
       >
-        {relatedBlogs.slice(0, 3).map(blog => (
-          <motion.div key={`${blog.id}`} variants={itemVariants}>
-            <Card className="group h-full flex flex-col">
-              <CardHeader className="p-0">
-                <div className="relative aspect-video overflow-hidden rounded-t-lg">
-                  <Image
-                    src={blog.metadata.coverImageURL || ''}
-                    alt={blog.metadata.title}
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    placeholder="blur"
-                    blurDataURL={blog.metadata.blurDataUrl || FAKE_BLUR}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  />
-                </div>
-              </CardHeader>
-              <CardContent className="flex-1 p-6">
-                <div className="text-sm text-muted-foreground mb-2">
-                  {blog.metadata.author.name} •{' '}
-                  {format(blog.publishedAt || subDays(new Date(), 4), 'PPP')}
-                </div>
-                <h3 className="font-semibold mb-2">{blog.title}</h3>
-                <p className="text-muted-foreground text-sm line-clamp-2">{blog.content.excerpt}</p>
-              </CardContent>
-              <CardFooter className="p-6 pt-0">
-                <Button variant="ghost" className="w-full group" asChild>
-                  <Link href={`/blogs/${blog.slug}`}>
-                    {localization.readMore}
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />{' '}
-                  </Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          </motion.div>
-        ))}
+        {relatedBlogs.slice(0, 3).map(blog => {
+          const metadata = blog.metadata as BlogMetadata
+          const content = blog.content as BlogContent
+          return (
+            <motion.div key={`${blog.id}`} variants={itemVariants}>
+              <Card className="group h-full flex flex-col">
+                <CardHeader className="p-0">
+                  <div className="relative aspect-video overflow-hidden rounded-t-lg">
+                    <Image
+                      src={metadata.coverImageURL || ''}
+                      alt={metadata.title}
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      placeholder="blur"
+                      blurDataURL={metadata.blurDataUrl || FAKE_BLUR}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                  </div>
+                </CardHeader>
+                <CardContent className="flex-1 p-6">
+                  <div className="text-sm text-muted-foreground mb-2">
+                    {metadata.author.name} •{' '}
+                    {format(blog.publishedAt || subDays(new Date(), 4), 'PPP')}
+                  </div>
+                  <h3 className="font-semibold mb-2">{blog.title}</h3>
+                  <p className="text-muted-foreground text-sm line-clamp-2">{content.excerpt}</p>
+                </CardContent>
+                <CardFooter className="p-6 pt-0">
+                  <Button variant="ghost" className="w-full group" asChild>
+                    <Link href={`/blogs/${blog.slug}`}>
+                      {localization.readMore}
+                      <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />{' '}
+                    </Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            </motion.div>
+          )
+        })}
       </motion.div>
     </section>
   )

@@ -9,6 +9,7 @@ import { Card, CardContent } from '../ui/card'
 import Link from 'next/link'
 import { IBlog } from '@/lib/api/blogs'
 import { useLocalization } from '@/hooks/useLocalization'
+import { BlogContent } from '@/lib/type'
 
 export function BlogSearch({ blogs }: { blogs: IBlog[] }) {
   const [query, setQuery] = useState('')
@@ -61,7 +62,7 @@ export function BlogSearch({ blogs }: { blogs: IBlog[] }) {
                           <CardContent className="p-4">
                             <h1 className="font-bold">{e.title}</h1>
                             <p className="line-clamp-2 text-muted-foreground">
-                              {e.content.excerpt}
+                              {(e.content as BlogContent).excerpt}
                             </p>
                           </CardContent>
                         </Card>

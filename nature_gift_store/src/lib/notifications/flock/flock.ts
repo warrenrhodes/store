@@ -1,4 +1,5 @@
 import { IOrder } from '@/lib/api/orders'
+import { DeliveryInfo, OrderPrices, UserData } from '@/lib/type'
 import { priceFormatted } from '@/lib/utils/utils'
 import axios from 'axios'
 
@@ -18,23 +19,26 @@ export class FlockNotifier {
       .map(item => `- ${item.quantity}x ${item.product.title} (${priceFormatted(item.price)})`)
       .join('\n')
 
+    const userData = order.userData as UserData
+    const deliveryInfo = order.deliveryInfo as unknown as DeliveryInfo
+    const orderPrices = order.orderPrices as OrderPrices
     return {
       text:
         `🛍️ New Order Received!\n\n` +
         `Order ID: ${order.id}\n` +
-        `Customer: ${order.userData.fullName}\n` +
-        `Email: ${order.userData.email}\n` +
-        `Phone: ${order.userData.phone}\n\n` +
+        `Customer: ${userData.fullName}\n` +
+        `Email: ${userData.email}\n` +
+        `Phone: ${userData.phone}\n\n` +
         `Items:\n${items}\n\n` +
-        `Delivery Address: ${order.deliveryInfo.address}\n` +
-        `Delivery Date: ${order.deliveryInfo.deliveryDate}\n` +
-        `Delivery Time: ${order.deliveryInfo.deliveryTime}\n` +
-        `Additional Notes: ${order.deliveryInfo.additionalNotes}\n\n` +
+        `Delivery Address: ${deliveryInfo.address}\n` +
+        `Delivery Date: ${deliveryInfo.deliveryDate}\n` +
+        `Delivery Time: ${deliveryInfo.deliveryTime}\n` +
+        `Additional Notes: ${deliveryInfo.additionalNotes}\n\n` +
         `Order Summary:\n` +
-        `Subtotal: ${priceFormatted(order.orderPrices.subtotal)}\n` +
-        `Shipping: ${priceFormatted(order.orderPrices.shipping)}\n` +
-        `Discount: ${priceFormatted(order.orderPrices.discount)}\n` +
-        `Total: ${priceFormatted(order.orderPrices.total)}\n\n` +
+        `Subtotal: ${priceFormatted(orderPrices.subtotal)}\n` +
+        `Shipping: ${priceFormatted(orderPrices.shipping)}\n` +
+        `Discount: ${priceFormatted(orderPrices.discount)}\n` +
+        `Total: ${priceFormatted(orderPrices.total)}\n\n` +
         `Status: ${order.status}`,
     }
   }

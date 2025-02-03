@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { connectToDB } from '../mongoDB'
 import { currentUser, auth } from '@clerk/nextjs/server'
+import { OrderPrices } from '../type'
 
 export type IOrder = Prisma.OrderGetPayload<{
   include: {
@@ -25,12 +25,14 @@ export const getTotalSales = async () => {
   const orders = await getOrders()
 
   const totalOrders = orders.length
-  const totalRevenue = orders.reduce((acc, order) => acc + order.orderPrices.total, 0)
+  const totalRevenue = orders.reduce(
+    (acc, order) => acc + ((order?.orderPrices as OrderPrices | undefined)?.total || 0) || 0,
+    0,
+  )
   return { totalOrders, totalRevenue }
 }
 
 export const getTotalCustomers = async () => {
-  await connectToDB()
   // const customers = await Customer.find();
   // const totalCustomers = customers.length;
   return 0
@@ -41,7 +43,8 @@ export const getSalesPerMonth = async () => {
 
   const salesPerMonth = orders.reduce<Record<number, number>>((acc, order) => {
     const monthIndex = new Date(order.createdAt).getMonth()
-    acc[monthIndex] = (acc[monthIndex] || 0) + order.orderPrices.total
+    acc[monthIndex] =
+      (acc[monthIndex] || 0) + ((order?.orderPrices as OrderPrices | undefined)?.total || 0) || 0
     return acc
   }, {})
 

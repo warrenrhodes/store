@@ -10,6 +10,7 @@ import { Badge } from '../ui/badge'
 import { cn } from '@/lib/utils'
 import { priceFormatted } from '@/lib/utils/utils'
 import { Prisma } from '@prisma/client'
+import { Inventory, Price } from '@/lib/type'
 
 export const productColumns: ColumnDef<Prisma.ProductGetPayload<object>>[] = [
   {
@@ -84,15 +85,18 @@ export const productColumns: ColumnDef<Prisma.ProductGetPayload<object>>[] = [
   {
     accessorKey: 'price',
     header: 'Price (FCFA)',
-    cell: ({ row }) => <div>{priceFormatted(row.original.price.regular)}</div>,
+    cell: ({ row }) => (
+      <div>{priceFormatted((row.original.price as unknown as Price).regular)}</div>
+    ),
   },
   {
     accessorKey: 'inventory',
     header: 'Inventory',
     cell: ({ row }) => (
       <div>
-        {row.original.inventory.quantity}
-        {row.original.inventory.quantity <= row.original.inventory.lowStockThreshold && (
+        {(row.original.inventory as Inventory).quantity}
+        {(row.original.inventory as Inventory).quantity <=
+          (row.original.inventory as Inventory).lowStockThreshold && (
           <Badge variant="destructive" className="ml-2">
             Low Stock
           </Badge>

@@ -12,9 +12,13 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
+import { BlogContent, BlogMetadata } from '@/lib/type'
+import { title } from 'process'
 
 const BlogDetail = ({ blog, relatedBlogs }: { blog: IBlog; relatedBlogs: IBlog[] }) => {
   const { localization } = useLocalization()
+  const metadata = blog.metadata as BlogMetadata
+  const content = blog.content as BlogContent
 
   return (
     <motion.div
@@ -30,18 +34,18 @@ const BlogDetail = ({ blog, relatedBlogs }: { blog: IBlog; relatedBlogs: IBlog[]
       </Button>
 
       <div className="space-y-4">
-        {blog.metadata.featured && <Badge className="mb-4">{localization.featuredArticle}</Badge>}
-        <h1 className="text-5xl font-bold tracking-tight">{blog.title}</h1>
-        <p className="text-muted-foreground">{blog.content.excerpt}</p>
-        {blog.metadata.coverImageURL && (
+        {metadata.featured && <Badge className="mb-4">{localization.featuredArticle}</Badge>}
+        <h1 className="text-5xl font-bold tracking-tight">{title}</h1>
+        <p className="text-muted-foreground">{content.excerpt}</p>
+        {metadata.coverImageURL && (
           <div className="relative aspect-video overflow-hidden rounded-lg ">
             <Image
-              src={blog.metadata.coverImageURL}
+              src={metadata.coverImageURL}
               alt={blog.title}
               fill
               className="object-cover"
               placeholder="blur"
-              blurDataURL={blog.metadata.blurDataUrl || FAKE_BLUR}
+              blurDataURL={metadata.blurDataUrl || FAKE_BLUR}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </div>
@@ -55,11 +59,11 @@ const BlogDetail = ({ blog, relatedBlogs }: { blog: IBlog; relatedBlogs: IBlog[]
           )}
           <div className="flex items-center gap-1">
             <Clock className="w-4 h-4" />
-            <span>{blog.metadata.readingTime} min read</span>
+            <span>{metadata.readingTime} min read</span>
           </div>
           <div className="flex items-center gap-1">
             <User className="w-4 h-4" />
-            <span>{blog.metadata.author.name}</span>
+            <span>{metadata.author.name}</span>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -71,26 +75,21 @@ const BlogDetail = ({ blog, relatedBlogs }: { blog: IBlog; relatedBlogs: IBlog[]
         </div>
       </div>
 
-      {blog.content.type === 'HTML' && (
+      {content.type === 'HTML' && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
           className="prose prose-lg max-w-none"
-          dangerouslySetInnerHTML={{ __html: blog.content.content }}
+          dangerouslySetInnerHTML={{ __html: content.content }}
         />
       )}
 
-      {blog.content.type === 'MARKDOWN' && (
-        <div
-          className="prose max-w-none"
-          dangerouslySetInnerHTML={{ __html: blog.content.content }}
-        />
+      {content.type === 'MARKDOWN' && (
+        <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: content.content }} />
       )}
 
-      {blog.content.type === 'TEXT' && (
-        <div className="prose max-w-none">{blog.content.content}</div>
-      )}
+      {content.type === 'TEXT' && <div className="prose max-w-none">{content.content}</div>}
 
       <div className="flex flex-wrap gap-2">
         {blog.tags.map(tag => (
@@ -102,7 +101,7 @@ const BlogDetail = ({ blog, relatedBlogs }: { blog: IBlog; relatedBlogs: IBlog[]
 
       <Separator />
 
-      <BlogAuthor author={blog.metadata.author} />
+      <BlogAuthor author={metadata.author} />
 
       <Separator />
 

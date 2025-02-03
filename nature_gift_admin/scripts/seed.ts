@@ -1,4 +1,3 @@
-import { connectToDB } from '../lib/mongoDB'
 import { env } from '../envConfig'
 import { faker } from '@faker-js/faker'
 import { prisma } from '../lib/prisma'
@@ -36,7 +35,6 @@ export async function getBlurDataUrl(imageUrl: string) {
 async function runSeed() {
   try {
     console.log('Starting database seeding...')
-    await connectToDB()
 
     // Run seed function
     await seedDatabase()
@@ -118,7 +116,7 @@ async function seedDatabase() {
         data: {
           creatorId: creatorId,
           name: faker.commerce.department(),
-          slug: faker.helpers.slugify(faker.commerce.department()),
+          slug: faker.helpers.slugify(`${faker.commerce.department()}-${Math.random()}`),
           description: faker.commerce.productDescription(),
           featured: Math.random() > 0.7,
           // Optionally add parent if not first category

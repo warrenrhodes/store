@@ -1,6 +1,7 @@
 import { CartItem } from '@/hooks/useCart'
 import { IUser } from './user'
 import { Prisma } from '@prisma/client'
+import { DeliveryInfo } from '../type'
 
 export interface OrderSummary {
   subtotal: number
@@ -32,7 +33,7 @@ export type IOrder = Prisma.OrderGetPayload<{
   }
 }>
 export type IOrderItem = IOrder['items'][number]
-export type IDeliveryInfo = IOrder['deliveryInfo'] & { cost: number }
+export type IDeliveryInfo = DeliveryInfo & { cost: number }
 
 export const createOrder = async (params: {
   order: Record<string, unknown>

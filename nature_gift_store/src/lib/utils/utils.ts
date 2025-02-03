@@ -8,6 +8,7 @@ import {
   format,
 } from 'date-fns'
 import { IProduct } from '../api/products'
+import { Price } from '../type'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -15,14 +16,15 @@ export function cn(...inputs: ClassValue[]) {
 
 export const getPrice = (product: IProduct): number => {
   const now = new Date()
+  const price = product.price as unknown as Price
 
-  if (product.price.sale && product.price.saleStartDate && product.price.saleEndDate) {
-    if (now >= product.price.saleStartDate && now <= product.price.saleEndDate) {
-      return product.price.sale
+  if (price.sale && price.saleStartDate && price.saleEndDate) {
+    if (now >= price.saleStartDate && now <= price.saleEndDate) {
+      return price.sale
     }
   }
 
-  return product.price.regular
+  return price.regular
 }
 
 export const getReviewAverage = (reviews: IProduct['reviews']) => {
@@ -38,10 +40,12 @@ export const priceFormatted = (price: number) => {
 }
 
 export const getRegularPrice = (product: IProduct) => {
-  if (product.price.sale && canDisplayPromoPrice(product)) {
-    return product.price.sale
+  const price = product.price as unknown as Price
+
+  if (price.sale && canDisplayPromoPrice(product)) {
+    return price.sale
   }
-  return product.price.regular
+  return price.regular
 }
 
 export const getPercentageDiscount = (regularPrice: number, salePrice: number) => {
@@ -78,10 +82,11 @@ export function getDetailedExpiresIn(endDate: Date): string {
 
 export const canDisplayPromoPrice = (product: IProduct) => {
   const now = new Date()
-  if (!product.price.saleStartDate || !product.price.saleEndDate) return false
+  const price = product.price as unknown as Price
+  if (!price.saleStartDate || !price.saleEndDate) return false
 
-  const startDate = new Date(product.price.saleStartDate)
-  const endDate = new Date(product.price.saleEndDate)
+  const startDate = new Date(price.saleStartDate)
+  const endDate = new Date(price.saleEndDate)
 
   return now >= startDate && now <= endDate
 }

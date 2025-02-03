@@ -11,6 +11,7 @@ import Image from 'next/image'
 import { CartItem as CartItemType } from '@/hooks/useCart'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
+import { Inventory, ProductSeoMetadata } from '@/lib/type'
 
 interface CartItemProps {
   item: CartItemType
@@ -57,7 +58,7 @@ export function CartItem({ item, increaseQuantity, decreaseQuantity, onRemove }:
               <Image
                 src={item.product.media[0].media.url}
                 fill
-                alt={item.product.metadata.seoTitle}
+                alt={(item.product.metadata as ProductSeoMetadata).seoTitle}
                 className="object-cover w-full h-full"
                 onError={() => console.log('Image not found')}
                 placeholder="blur"
@@ -94,7 +95,9 @@ export function CartItem({ item, increaseQuantity, decreaseQuantity, onRemove }:
                     variant="outline"
                     size="icon"
                     onClick={() => increaseQuantity(item.product.id, item.quantity + 1)}
-                    disabled={item.quantity >= (item.product.inventory.stockQuantity || 0)}
+                    disabled={
+                      item.quantity >= ((item.product.inventory as Inventory).stockQuantity || 0)
+                    }
                   >
                     <Plus className="w-4 h-4" />
                   </Button>

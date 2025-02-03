@@ -25,9 +25,6 @@ export const GET = async (
         id: params.promotionId,
         creatorId: _currentUser.id,
       },
-      include: {
-        products: true,
-      },
     })
 
     return NextResponse.json(promotion)
@@ -61,7 +58,7 @@ export const PUT = async (
         id: params.promotionId,
         creatorId: _currentUser.id,
       },
-      data: body,
+      data: body as any,
     })
 
     return NextResponse.json(promotion)

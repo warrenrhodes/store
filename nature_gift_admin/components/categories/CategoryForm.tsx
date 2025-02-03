@@ -36,7 +36,7 @@ import { MediaIdentity, FileUploader } from '../custom-ui/FileUploader'
 import { Prisma } from '@prisma/client'
 
 interface CategoryFormProps {
-  initialData?: Prisma.CategoryGetPayload<object>
+  initialData?: any
   categories?: Prisma.CategoryGetPayload<object>[]
 }
 

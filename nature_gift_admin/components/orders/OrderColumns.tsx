@@ -27,6 +27,7 @@ import {
 } from '../ui/dropdown-menu'
 import { toast } from '@/hooks/use-toast'
 import router from 'next/router'
+import { DeliveryInfo, OrderPrices, OrderPromotion, UserData } from '@/lib/type'
 
 type Items = IOrder['items'][0]
 
@@ -118,15 +119,15 @@ export const columns: ColumnDef<IOrder>[] = [
     header: 'Delivery Date',
     cell: ({ row }) => (
       <div>
-        {format(row.original.deliveryInfo.deliveryDate, 'PPP')}{' '}
-        {row.original.deliveryInfo.deliveryTime}
+        {format((row.original.deliveryInfo as unknown as DeliveryInfo).deliveryDate, 'PPP')}{' '}
+        {(row.original.deliveryInfo as unknown as DeliveryInfo).deliveryTime}
       </div>
     ),
   },
   {
     accessorKey: 'orderPrices',
     header: 'Total (FCFA)',
-    cell: ({ row }) => <div>{priceFormatted(row.original.orderPrices.total)}</div>,
+    cell: ({ row }) => <div>{priceFormatted((row.original.orderPrices as OrderPrices).total)}</div>,
   },
   {
     accessorKey: 'createdAt',
@@ -148,6 +149,10 @@ export const columns: ColumnDef<IOrder>[] = [
 ]
 
 const OrderView = ({ order }: { order: IOrder }) => {
+  const userData = order.userData as UserData
+  const deliveryInfo = order.deliveryInfo as unknown as DeliveryInfo
+  const promotions = order.promotions as OrderPromotion[]
+  const orderPrices = order.orderPrices as OrderPrices
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -161,42 +166,42 @@ const OrderView = ({ order }: { order: IOrder }) => {
           <div className="flex flex-col gap-4 max-h-[50vh] overflow-y-scroll">
             <div className="flex gap-3">
               <span className="text-muted-foreground">Full Name: </span>
-              <p> {order.userData.fullName}</p>
+              <p> {userData.fullName}</p>
             </div>
             <div className="flex gap-3">
               <span className="text-muted-foreground">Phone: </span>
-              <p> {order.userData.phone}</p>
+              <p> {userData.phone}</p>
             </div>
-            {order.userData.email && (
+            {userData.email && (
               <div className="flex gap-3">
                 <span className="text-muted-foreground">Email: </span>
-                <p> {order.userData.email}</p>
+                <p> {userData.email}</p>
               </div>
             )}
             <Separator className="my-3" />
             <div className="flex gap-3">
               <span className="text-muted-foreground">Address: </span>
-              <p> {order.deliveryInfo.address}</p>
+              <p> {deliveryInfo.address}</p>
             </div>
             <div className="flex gap-3">
               <span className="text-muted-foreground">Delivery Date: </span>
               <p>
-                {format(order.deliveryInfo.deliveryDate, 'PPP')} {order.deliveryInfo.deliveryTime}
+                {format(deliveryInfo.deliveryDate, 'PPP')} {deliveryInfo.deliveryTime}
               </p>
             </div>
-            {order.deliveryInfo.city && (
+            {deliveryInfo.city && (
               <div className="flex gap-3">
                 <span className="text-muted-foreground">City: </span>
-                <p> {order.deliveryInfo.city}</p>
+                <p> {deliveryInfo.city}</p>
               </div>
             )}
             <div className="flex gap-3">
               <span className="text-muted-foreground">Delivery Method: </span>
-              <p>{order.deliveryInfo.deliveryMethod === 'DELIVERY' ? 'Delivery' : 'Expedition'}</p>
+              <p>{deliveryInfo.deliveryMethod === 'DELIVERY' ? 'Delivery' : 'Expedition'}</p>
             </div>
             <div className="flex gap-3">
               <span className="text-muted-foreground">Delivery Location: </span>
-              <p> {order.deliveryInfo.location}</p>
+              <p> {deliveryInfo.location}</p>
             </div>
             <Separator className="my-3" />
 
@@ -214,7 +219,7 @@ const OrderView = ({ order }: { order: IOrder }) => {
               <span className="text-muted-foreground">Promotions: </span>
             </div>
             <div className="flex flex-col gap-3 ml-5">
-              {order.promotions.map(item => (
+              {promotions.map(item => (
                 <div key={item.promotionId}>
                   <div className="flex gap-3">
                     <span className="text-muted-foreground">Promo Code: </span>
@@ -230,15 +235,15 @@ const OrderView = ({ order }: { order: IOrder }) => {
             <Separator className="my-3" />
             <div className="flex gap-3">
               <span className="text-muted-foreground">SubTotal: </span>
-              <p> {order.orderPrices.subtotal}</p>
+              <p> {orderPrices.subtotal}</p>
             </div>
             <div className="flex gap-3">
               <span className="text-muted-foreground">Shipping: </span>
-              <p> {order.orderPrices.shipping}</p>
+              <p> {orderPrices.shipping}</p>
             </div>
             <div className="flex gap-3">
               <span className="text-muted-foreground">Total: </span>
-              <p> {order.orderPrices.total}</p>
+              <p> {orderPrices.total}</p>
             </div>
           </div>
         </AlertDialogHeader>

@@ -10,6 +10,7 @@ import { FAKE_BLUR } from '@/lib/utils/constants'
 import Image from 'next/image'
 import { useLocalization } from '@/hooks/useLocalization'
 import { sendGTMEvent } from '@next/third-parties/google'
+import { Price, ProductSeoMetadata } from '@/lib/type'
 
 export function ProductGallery({ product }: { product: IProduct }) {
   const { media } = product
@@ -20,16 +21,19 @@ export function ProductGallery({ product }: { product: IProduct }) {
     return product
   }, [product])
 
+  const price: Price | undefined = iProduct?.price as unknown as Price | undefined
+  const metadata = iProduct?.metadata as ProductSeoMetadata
+
   useEffect(() => {
     sendGTMEvent({
       event: 'view_item',
       currency: 'XAF',
-      value: iProduct?.price.regular,
+      value: price?.regular,
       items: [
         {
           item_name: iProduct?.title,
           item_id: iProduct?.id,
-          price: iProduct?.price.regular,
+          price: price.regular,
           quantity: 0,
           category: iProduct?.categories[0]?.category?.name,
         },
@@ -51,7 +55,7 @@ export function ProductGallery({ product }: { product: IProduct }) {
           >
             <Image
               src={product.media[currentImage].media.url}
-              alt={product.metadata.seoTitle}
+              alt={metadata.seoTitle}
               fill
               className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
               placeholder="blur"
@@ -96,7 +100,7 @@ export function ProductGallery({ product }: { product: IProduct }) {
           >
             <Image
               src={value.media.url}
-              alt={product.metadata.seoTitle}
+              alt={metadata.seoTitle}
               fill
               className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
               placeholder="blur"

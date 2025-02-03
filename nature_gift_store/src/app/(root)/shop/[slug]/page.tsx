@@ -17,6 +17,7 @@ import {
   ProductsLoading,
 } from '@/components/Loading'
 import { AutoAddToCart } from './autoAddToCart'
+import { ProductSeoMetadata } from '@/lib/type'
 
 export async function generateStaticParams() {
   const product = await getProducts()
@@ -28,14 +29,14 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props) {
   const product = await fetchProductBySlug({ slug: (await params).slug })
-
+  const metadata = product?.metadata as undefined | ProductSeoMetadata
   return {
-    title: product?.metadata.seoTitle,
-    description: product?.metadata.seoDescription,
-    keywords: product?.metadata.keywords,
+    title: metadata.seoTitle,
+    description: metadata.seoDescription,
+    keywords: metadata.keywords,
     openGraph: {
-      title: product?.metadata.seoTitle,
-      description: product?.metadata.seoDescription,
+      title: metadata.seoTitle,
+      description: metadata.seoDescription,
       url: process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL,
       siteName: 'Nature Gift',
       images: product?.media.reverse().map(m => ({

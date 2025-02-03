@@ -16,6 +16,7 @@ import { DotButton, useDotButton } from './EmblaCarouselDotButton'
 import Image from 'next/image'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
+import { BlogContent, BlogMetadata } from '@/lib/type'
 
 interface FeaturedBlogCarouselProps {
   blogs: IBlog[]
@@ -98,74 +99,78 @@ export function FeaturedBlogCarousel({ blogs }: FeaturedBlogCarouselProps) {
   }, [emblaApi, setTweenFactor, setTweenNodes, tweenParallax])
 
   const renderBlogCards = useMemo(() => {
-    return blogs.map(blog => (
-      <div key={`${blog.id}`} className="relative flex-[0_0_100%] min-w-0">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="relative aspect-[2/1] overflow-hidden"
-        >
-          <div className="absolute inset-0  aspect-[16/9] overflow-hidden rounded-t-lg">
-            <Image
-              src={blog.metadata.coverImageURL || ''}
-              alt={blog.title}
-              fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-              placeholder="blur"
-              blurDataURL={blog.metadata.blurDataUrl || FAKE_BLUR}
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
-          </div>
+    return blogs.map(blog => {
+      const metadata = blog.metadata as BlogMetadata
+      const content = blog.content as BlogContent
+      return (
+        <div key={`${blog.id}`} className="relative flex-[0_0_100%] min-w-0">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="relative aspect-[2/1] overflow-hidden"
+          >
+            <div className="absolute inset-0  aspect-[16/9] overflow-hidden rounded-t-lg">
+              <Image
+                src={metadata.coverImageURL || ''}
+                alt={blog.title}
+                fill
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                placeholder="blur"
+                blurDataURL={metadata.blurDataUrl || FAKE_BLUR}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              />
+            </div>
 
-          <div className="relative h-full flex flex-col justify-end p-8 bg-black/50">
-            <div className="flex flex-wrap gap-2 mb-4">
-              {blog.categories.slice(0, 3).map(category => (
-                <Badge key={category.id as string} variant="secondary">
-                  {category.category.name}
-                </Badge>
-              ))}
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4">
-              {blog.title}
-            </h2>
-            <p className="text-lg text-white/80 mb-6 max-w-3xl">{blog.content.excerpt}</p>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
-              <div className="flex items-center gap-2">
-                <Avatar>
-                  <AvatarImage
-                    src={blog.metadata.author.avatar || undefined}
-                    alt={blog.metadata.author.name}
-                  />
-                  <AvatarFallback>
-                    {blog.metadata.author.name
-                      .split(' ')
-                      .map((n: string) => n[0])
-                      .join('')}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-white font-medium">{blog.metadata.author.name}</span>
+            <div className="relative h-full flex flex-col justify-end p-8 bg-black/50">
+              <div className="flex flex-wrap gap-2 mb-4">
+                {blog.categories.slice(0, 3).map(category => (
+                  <Badge key={category.id as string} variant="secondary">
+                    {category.category.name}
+                  </Badge>
+                ))}
               </div>
-              <div className="flex items-center gap-4 text-sm text-white/80">
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  <span>{format(blog.publishedAt || subDays(new Date(), 4), 'PPP')}</span>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4">
+                {blog.title}
+              </h2>
+              <p className="text-lg text-white/80 mb-6 max-w-3xl">{content.excerpt}</p>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
+                <div className="flex items-center gap-2">
+                  <Avatar>
+                    <AvatarImage
+                      src={metadata.author.avatar || undefined}
+                      alt={metadata.author.name}
+                    />
+                    <AvatarFallback>
+                      {metadata.author.name
+                        .split(' ')
+                        .map((n: string) => n[0])
+                        .join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-white font-medium">{metadata.author.name}</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  <span>{blog.metadata.readingTime} min read</span>
+                <div className="flex items-center gap-4 text-sm text-white/80">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    <span>{format(blog.publishedAt || subDays(new Date(), 4), 'PPP')}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Clock className="w-4 h-4" />
+                    <span>{metadata.readingTime} min read</span>
+                  </div>
                 </div>
               </div>
+              <Button asChild className="absolute top-8 right-8" variant="secondary">
+                <Link href={`/blogs/${blog.slug}`}>
+                  {localization.readMore}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
             </div>
-            <Button asChild className="absolute top-8 right-8" variant="secondary">
-              <Link href={`/blogs/${blog.slug}`}>
-                {localization.readMore}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </motion.div>
-      </div>
-    ))
+          </motion.div>
+        </div>
+      )
+    })
   }, [blogs])
 
   const renderDotButtons = useMemo(() => {

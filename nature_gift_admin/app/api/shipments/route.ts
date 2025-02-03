@@ -1,4 +1,3 @@
-import { connectToDB } from '@/lib/mongoDB'
 import { auth } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -111,8 +110,6 @@ export const GET = async () => {
     if (!_currentUser?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
-    await connectToDB()
 
     const shipments = await prisma.shipment.findMany({
       where: {

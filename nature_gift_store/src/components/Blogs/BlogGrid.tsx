@@ -11,6 +11,7 @@ import { GlobalPagination } from '../GlobalPagination'
 import { IBlog } from '@/lib/api/blogs'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import Image from 'next/image'
+import { BlogContent, BlogMetadata } from '@/lib/type'
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -47,69 +48,71 @@ export function BlogGrid({ blogs }: BlogGridProps) {
           animate="visible"
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
-          {blogList.map(blog => (
-            <motion.div key={`${`${blog.id}`}`} variants={itemVariants}>
-              <Link href={`/blogs/${blog.slug}`}>
-                <Card className="h-full group">
-                  <CardHeader className="p-0">
-                    <div className="relative aspect-[16/9] overflow-hidden rounded-t-lg">
-                      <Image
-                        src={blog.metadata.coverImageURL || ''}
-                        alt={blog.title}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        placeholder="blur"
-                        blurDataURL={blog.metadata.blurDataUrl || FAKE_BLUR}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      />
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {blog.categories.slice(0, 3).map(category => (
-                        <Badge key={`${category.id}`} variant="outline">
-                          {category.category.name}
-                        </Badge>
-                      ))}
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                      {blog.title}
-                    </h3>
-                    <p className="text-muted-foreground line-clamp-2 mb-4">
-                      {blog.content?.excerpt}
-                    </p>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        <span>{format(blog.publishedAt || subDays(new Date(), 4), 'PPP')}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        <span>{blog.metadata.readingTime} min read</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="p-6 pt-0">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage
-                          src={blog.metadata.author.avatar || undefined}
-                          alt={blog.metadata.author.name}
+          {blogList.map(blog => {
+            const metadata = blog.metadata as BlogMetadata
+            const content = blog.content as BlogContent
+            return (
+              <motion.div key={`${`${blog.id}`}`} variants={itemVariants}>
+                <Link href={`/blogs/${blog.slug}`}>
+                  <Card className="h-full group">
+                    <CardHeader className="p-0">
+                      <div className="relative aspect-[16/9] overflow-hidden rounded-t-lg">
+                        <Image
+                          src={metadata.coverImageURL || ''}
+                          alt={blog.title}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          placeholder="blur"
+                          blurDataURL={metadata.blurDataUrl || FAKE_BLUR}
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         />
-                        <AvatarFallback>
-                          {blog.metadata.author.name
-                            .split(' ')
-                            .map((n: string) => n[0])
-                            .join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm font-medium">{blog.metadata.author.name}</span>
-                    </div>
-                  </CardFooter>
-                </Card>
-              </Link>
-            </motion.div>
-          ))}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {blog.categories.slice(0, 3).map(category => (
+                          <Badge key={`${category.id}`} variant="outline">
+                            {category.category.name}
+                          </Badge>
+                        ))}
+                      </div>
+                      <h3 className="text-xl font-semibold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                        {blog.title}
+                      </h3>
+                      <p className="text-muted-foreground line-clamp-2 mb-4">{content?.excerpt}</p>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          <span>{format(blog.publishedAt || subDays(new Date(), 4), 'PPP')}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          <span>{metadata.readingTime} min read</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                    <CardFooter className="p-6 pt-0">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage
+                            src={metadata.author.avatar || undefined}
+                            alt={metadata.author.name}
+                          />
+                          <AvatarFallback>
+                            {metadata.author.name
+                              .split(' ')
+                              .map((n: string) => n[0])
+                              .join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm font-medium">{metadata.author.name}</span>
+                      </div>
+                    </CardFooter>
+                  </Card>
+                </Link>
+              </motion.div>
+            )
+          })}
         </motion.section>
       )}
     </GlobalPagination>

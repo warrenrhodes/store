@@ -14,6 +14,7 @@ import Image from 'next/image'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useWishlist } from '@/hooks/useWishlist'
 import { useLocalization } from '@/hooks/useLocalization'
+import { Inventory } from '@/lib/type'
 
 interface ProductCardProps {
   product: IProduct
@@ -42,11 +43,12 @@ export function ProductCard({ product }: ProductCardProps) {
                 {product.isNewProduct && (
                   <Badge className="absolute top-4 left-4">{localization.new}</Badge>
                 )}
-                {product.inventory.stockQuantity && product.inventory.stockQuantity <= 10 && (
-                  <Badge variant="destructive" className="absolute bottom-4 right-4 ring-1">
-                    {localization.lowStock}
-                  </Badge>
-                )}
+                {(product.inventory as Inventory).stockQuantity &&
+                  (product.inventory as Inventory).stockQuantity <= 10 && (
+                    <Badge variant="destructive" className="absolute bottom-4 right-4 ring-1">
+                      {localization.lowStock}
+                    </Badge>
+                  )}
               </div>
             </Link>
             <Button

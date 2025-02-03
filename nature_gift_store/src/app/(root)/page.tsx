@@ -17,6 +17,7 @@ import { fetchAllBlogs } from '@/lib/api/blogs'
 import { getCategories } from '@/lib/api/categories'
 import { fetchProductsByQuery } from '@/lib/api/products'
 import { getPromotions } from '@/lib/api/promotions'
+import { BlogMetadata } from '@/lib/type'
 
 export default function Home() {
   return (
@@ -81,5 +82,7 @@ async function NewArrivalsLoader() {
 async function FeaturedBlogsLoader() {
   const featuredBlogs = (await fetchAllBlogs()) || []
 
-  return <FeaturedBlogs blogs={featuredBlogs.filter(blog => blog.metadata.featured)} />
+  return (
+    <FeaturedBlogs blogs={featuredBlogs.filter(blog => (blog.metadata as BlogMetadata).featured)} />
+  )
 }

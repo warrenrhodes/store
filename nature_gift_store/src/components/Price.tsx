@@ -1,6 +1,6 @@
 import { IProduct } from '@/lib/api/products'
 import { canDisplayPromoPrice, priceFormatted } from '@/lib/utils/utils'
-
+import { Price as IPrice } from '@/lib/type'
 /**
  * Component to display the price of a product.
  * If the product is on sale and the sale can be displayed, it shows the sale price
@@ -12,19 +12,20 @@ import { canDisplayPromoPrice, priceFormatted } from '@/lib/utils/utils'
  * @returns {JSX.Element} The JSX element displaying the product's price.
  */
 export const Price = ({ product }: { product: IProduct }) => {
-  if (product.price.sale && canDisplayPromoPrice(product)) {
+  const price = product.price as unknown as IPrice | undefined
+  if (price.sale && canDisplayPromoPrice(product)) {
     return (
       <div className="flex items-center gap-1">
-        <span className="text-lg font-bold">{priceFormatted(product.price.sale)}</span>
+        <span className="text-lg font-bold">{priceFormatted(price.sale)}</span>
         <span className="text-sm text-muted-foreground line-through">
-          {priceFormatted(product.price.regular)}
+          {priceFormatted(price.regular)}
         </span>
       </div>
     )
   }
   return (
     <div>
-      <span className="text-lg font-bold">{priceFormatted(product.price.regular)}</span>
+      <span className="text-lg font-bold">{priceFormatted(price.regular)}</span>
     </div>
   )
 }

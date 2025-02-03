@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { IProduct } from '@/lib/api/products'
 import { useLocalization } from '@/hooks/useLocalization'
+import { Feature, ProductDescription } from '@/lib/type'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -27,8 +28,10 @@ const itemVariants = {
 }
 
 export function FeaturesForProducts({ product }: { product: IProduct }) {
-  const { features, description } = product
+  const { features: productFeatures, description: productDescription } = product
   const { localization } = useLocalization()
+  const features = productFeatures as Feature[]
+  const description = productDescription as ProductDescription
 
   if (!features || features.length === 0) {
     return <></>
@@ -67,7 +70,7 @@ export function FeaturesForProducts({ product }: { product: IProduct }) {
                         <div
                           className="prose prose-slate prose-sm sm:prose text-muted-foreground leading-relaxed"
                           dangerouslySetInnerHTML={{
-                            __html: product.description.content,
+                            __html: description.content,
                           }}
                         />
                       )}

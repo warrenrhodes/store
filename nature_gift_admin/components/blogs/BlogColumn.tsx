@@ -6,10 +6,11 @@ import Link from 'next/link'
 import Delete from '../custom-ui/Delete'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
-import { Prisma } from '@prisma/client'
 import { BlogMetadata } from '@/lib/type'
+import { IBlog } from '@/lib/actions/server'
+import { getDocumentId } from '@spreeloop/database'
 
-export const blogsColumns: ColumnDef<Prisma.BlogGetPayload<object>>[] = [
+export const blogsColumns: ColumnDef<IBlog>[] = [
   {
     accessorKey: 'title',
     header: ({ column }) => {
@@ -23,7 +24,7 @@ export const blogsColumns: ColumnDef<Prisma.BlogGetPayload<object>>[] = [
         </Button>
       )
     },
-    cell: ({ row }) => <span className="font-mono leading-none">{row.original.title}</span>,
+    cell: ({ row }) => <span className="font-mono leading-none">{row.original.data.title}</span>,
   },
   {
     accessorKey: 'status',
@@ -43,12 +44,12 @@ export const blogsColumns: ColumnDef<Prisma.BlogGetPayload<object>>[] = [
         <div>
           <Badge
             className={cn({
-              'bg-blue-500': row.original.status === 'DRAFT',
-              'bg-red-500': row.original.status === 'ARCHIVED',
-              'bg-green-500': row.original.status === 'PUBLISHED',
+              'bg-blue-500': row.original.data.status === 'DRAFT',
+              'bg-red-500': row.original.data.status === 'ARCHIVED',
+              'bg-green-500': row.original.data.status === 'PUBLISHED',
             })}
           >
-            {row.original.status}
+            {row.original.data.status}
           </Badge>
         </div>
       )
@@ -58,8 +59,8 @@ export const blogsColumns: ColumnDef<Prisma.BlogGetPayload<object>>[] = [
     accessorKey: 'publishedAt',
     header: 'Published At',
     cell: ({ row }) =>
-      row.original.publishedAt ? (
-        <span>{new Date(row.original.publishedAt).toLocaleDateString('en-US')}</span>
+      row.original.data.publishedAt ? (
+        <span>{new Date(row.original.data.publishedAt).toLocaleDateString('en-US')}</span>
       ) : (
         <span>Not Published</span>
       ),
@@ -67,7 +68,9 @@ export const blogsColumns: ColumnDef<Prisma.BlogGetPayload<object>>[] = [
   {
     accessorKey: 'readingTime',
     header: 'Reading Time (min)',
-    cell: ({ row }) => <span>{(row.original.metadata as BlogMetadata).readingTime || 'N/A'}</span>,
+    cell: ({ row }) => (
+      <span>{(row.original.data.metadata as BlogMetadata).readingTime || 'N/A'}</span>
+    ),
   },
 
   {
@@ -76,7 +79,7 @@ export const blogsColumns: ColumnDef<Prisma.BlogGetPayload<object>>[] = [
     cell: ({ row }) => {
       const blogs = row.original
       const onDelete = async (): Promise<boolean> => {
-        const res = await fetch(`/api/blogs/${blogs.id}`, {
+        const res = await fetch(`/api/blogs/${getDocumentId(blogs.path)}`, {
           method: 'DELETE',
         })
         return res.ok
@@ -94,14 +97,14 @@ export const blogsColumns: ColumnDef<Prisma.BlogGetPayload<object>>[] = [
             className="w-full"
             size="sm"
             onClick={() =>
-              copyLink(`${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/blogs/${blogs.slug}`)
+              copyLink(`${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/blogs/${blogs.data.slug}`)
             }
           >
             Copy link
             <Copy className="ml-2 h-4 w-4" />
           </Button>
           <Button variant="outline" size="sm" className="w-full" asChild>
-            <Link href={`/blogs/${blogs.id}`}>
+            <Link href={`/blogs/${getDocumentId(blogs.path)}`}>
               <Edit className="w-4 h-4" />
               Edit
             </Link>

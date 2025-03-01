@@ -1,8 +1,7 @@
-import { getUserByClerkId } from '@/lib/actions/server'
+import { deleteData, getDataById, putData } from '@/lib/actions/server'
 import { promotionSchema } from '@/lib/validations/promotions'
-import { auth } from '@clerk/nextjs/server'
-import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
+import { CollectionsName } from '@/lib/firebase/collection-name'
 
 export const GET = async (
   req: NextRequest,
@@ -10,24 +9,7 @@ export const GET = async (
 ) => {
   const params = await props.params
   try {
-    const { userId } = await auth()
-    if (!userId) {
-      return new NextResponse('Unauthorized', { status: 403 })
-    }
-
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const promotion = await prisma.promotion.findUnique({
-      where: {
-        id: params.promotionId,
-        creatorId: _currentUser.id,
-      },
-    })
-
-    return NextResponse.json(promotion)
+    return getDataById(req, CollectionsName.Promotions, params.promotionId)
   } catch (error) {
     console.error('[PROMOTION_GET]', error)
     return new NextResponse('Internal error', { status: 500 })
@@ -40,28 +22,7 @@ export const PUT = async (
 ) => {
   const params = await props.params
   try {
-    const { userId } = await auth()
-    if (!userId) {
-      return new NextResponse('Unauthorized', { status: 403 })
-    }
-
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const json = await req.json()
-    const body = promotionSchema.partial().parse(json)
-
-    const promotion = await prisma.promotion.update({
-      where: {
-        id: params.promotionId,
-        creatorId: _currentUser.id,
-      },
-      data: body as any,
-    })
-
-    return NextResponse.json(promotion)
+    return putData(req, promotionSchema, CollectionsName.Promotions, params.promotionId)
   } catch (error) {
     console.error('[PROMOTION_PATCH]', error)
     return new NextResponse('Internal error', { status: 500 })
@@ -74,24 +35,7 @@ export const DELETE = async (
 ) => {
   const params = await props.params
   try {
-    const { userId } = await auth()
-    if (!userId) {
-      return new NextResponse('Unauthorized', { status: 403 })
-    }
-
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    await prisma.promotion.delete({
-      where: {
-        id: params.promotionId,
-        creatorId: _currentUser.id,
-      },
-    })
-
-    return new NextResponse(null, { status: 204 })
+    return deleteData(req, CollectionsName.Promotions, params.promotionId)
   } catch (error) {
     console.error('[PROMOTION_DELETE]', error)
     return new NextResponse('Internal error', { status: 500 })

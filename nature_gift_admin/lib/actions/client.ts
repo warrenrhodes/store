@@ -1,4 +1,9 @@
-export const uploadImages = async (files: File[], token: string): Promise<string | null> => {
+import { doc, getDoc } from 'firebase/firestore'
+import { getDatabasePath } from '@spreeloop/database'
+import { CollectionsName } from '../firebase/collection-name'
+import { db } from '../firebase/firebase-client/firebase'
+
+export const uploadImages = async (files: File[]): Promise<string | null> => {
   const formData = new FormData()
   files.forEach(file => {
     formData.append(`files`, file)
@@ -6,9 +11,6 @@ export const uploadImages = async (files: File[], token: string): Promise<string
   const result = await fetch('/api/media/upload', {
     method: 'POST',
     body: formData,
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   })
   if (result.ok) {
     const data = await result.json()
@@ -29,4 +31,24 @@ export const getMediaById = async (mediaId: string, token: string): Promise<stri
     return url.mediaUrl
   }
   return null
+}
+
+export const getUserById = async (id: string) => {
+  const userRef = doc(db, getDatabasePath(CollectionsName.Users, id))
+  const docSnap = await getDoc(userRef)
+  if (!docSnap.exists()) {
+    return null
+  }
+  return docSnap.data()
+}
+
+export const setUser = async (data: any) => {
+  const user = await fetch(`/api/users`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+  if (user.ok) {
+    return true
+  }
+  return false
 }

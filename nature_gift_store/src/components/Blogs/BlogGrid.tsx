@@ -8,10 +8,10 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { format, subDays } from 'date-fns'
 import { GlobalPagination } from '../GlobalPagination'
-import { IBlog } from '@/lib/api/blogs'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import Image from 'next/image'
 import { BlogContent, BlogMetadata } from '@/lib/type'
+import { Blog } from '@/lib/firebase/models'
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -35,7 +35,7 @@ const containerVariants = {
 }
 
 interface BlogGridProps {
-  blogs: IBlog[]
+  blogs: Blog[]
 }
 
 export function BlogGrid({ blogs }: BlogGridProps) {
@@ -52,7 +52,7 @@ export function BlogGrid({ blogs }: BlogGridProps) {
             const metadata = blog.metadata as BlogMetadata
             const content = blog.content as BlogContent
             return (
-              <motion.div key={`${`${blog.id}`}`} variants={itemVariants}>
+              <motion.div key={`${`${blog.slug}`}`} variants={itemVariants}>
                 <Link href={`/blogs/${blog.slug}`}>
                   <Card className="h-full group">
                     <CardHeader className="p-0">
@@ -71,8 +71,8 @@ export function BlogGrid({ blogs }: BlogGridProps) {
                     <CardContent className="p-6">
                       <div className="flex flex-wrap gap-2 mb-4">
                         {blog.categories.slice(0, 3).map(category => (
-                          <Badge key={`${category.id}`} variant="outline">
-                            {category.category.name}
+                          <Badge key={`${category}`} variant="outline">
+                            {category}
                           </Badge>
                         ))}
                       </div>

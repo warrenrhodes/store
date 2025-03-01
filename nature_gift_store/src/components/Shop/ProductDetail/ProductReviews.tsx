@@ -8,11 +8,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { cn, getReviewAverage } from '@/lib/utils/utils'
 import { formatDistance } from 'date-fns'
-import { IProduct } from '@/lib/api/products'
+import { Product, Review } from '@/lib/firebase/models'
 import { useLocalization } from '@/hooks/useLocalization'
 
-export function ProductReviews({ product }: { product: IProduct }) {
-  const { reviews } = product
+export function ProductReviews({ reviews }: { product: Product; reviews: Review[] }) {
   const { localization } = useLocalization()
 
   if (!reviews || reviews.length === 0) {
@@ -87,7 +86,7 @@ export function ProductReviews({ product }: { product: IProduct }) {
       <div className="space-y-6">
         {reviews.map(review => (
           <motion.div
-            key={`${review.id}`}
+            key={`${review.path}`}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -95,7 +94,7 @@ export function ProductReviews({ product }: { product: IProduct }) {
           >
             <div className="flex items-start gap-4">
               <Avatar>
-                <AvatarImage src={review.imageUrl || undefined} alt={review.userName} />
+                <AvatarImage src={review.image.url || undefined} alt={review.userName} />
                 <AvatarFallback>
                   {review.userName
                     .split(' ')
@@ -107,7 +106,7 @@ export function ProductReviews({ product }: { product: IProduct }) {
                 <div className="flex items-center justify-between">
                   <h4 className="font-semibold">{review.userName}</h4>
                   <span className="text-sm text-muted-foreground">
-                    {durationFormatted(review.createdAt || new Date())}
+                    {durationFormatted(new Date(review.createdAt))}
                   </span>
                 </div>
                 <div className="flex items-center mt-1">

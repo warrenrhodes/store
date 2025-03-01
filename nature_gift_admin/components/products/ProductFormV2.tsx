@@ -5,7 +5,6 @@ import { Loader2, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useAuth } from '@clerk/nextjs'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -26,8 +25,7 @@ import {
 
 import { useToast } from '@/hooks/use-toast'
 import CustomAccordion from '../accordion/CustomAccordion'
-import { FileType } from '../accordion/CustomAccordionItem'
-import { MediaIdentity, FileUploader } from '../custom-ui/FileUploader'
+import { FileUploader } from '../custom-ui/FileUploader'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Switch } from '../ui/switch'
 import { ToastAction } from '../ui/toast'
@@ -38,33 +36,25 @@ import { InventoryFields } from './product-form.tsx/InventoryFields'
 import { MetadataFields } from './product-form.tsx/MetadataFields'
 import { PriceFields } from './product-form.tsx/PriceFields'
 import { VariantFields } from './product-form.tsx/Variant'
-import { Prisma } from '@prisma/client'
+import { getDocumentId } from '@spreeloop/database'
+import { ICategory, IProduct } from '@/lib/actions/server'
+import { Media, MediaType } from '@/lib/firebase/models'
 interface ProductFormProps {
-  initialData?: any | null
-  categories: Prisma.CategoryGetPayload<object>[]
-  categoriesOfProduct: Prisma.CategoriesOnProductsGetPayload<object>[]
-  mediasOfProduct: Prisma.MediasOnProductsGetPayload<object>[]
+  initialData?: IProduct | null
+  categories: ICategory[]
 }
 
-export function ProductFormV2({
-  initialData,
-  categories,
-  categoriesOfProduct,
-  mediasOfProduct,
-}: ProductFormProps) {
+export function ProductFormV2({ initialData, categories }: ProductFormProps) {
   const { toast } = useToast()
-  const { getToken } = useAuth()
 
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<ProductSchemaType>({
     resolver: zodResolver(productSchema),
-    defaultValues: initialData
+    defaultValues: initialData?.data
       ? {
-          ...initialData,
-          categoryIds: categoriesOfProduct.map(e => e.categoryId),
-          media: mediasOfProduct.map(e => e.mediaId),
+          ...initialData.data,
         }
       : {
           title: '',
@@ -75,7 +65,6 @@ export function ProductFormV2({
             contentType: 'TEXT',
             content: '',
           },
-
           price: {
             regular: 0,
             sale: 0,
@@ -84,10 +73,9 @@ export function ProductFormV2({
             quantity: 0,
             lowStockThreshold: 5,
           },
-          status: 'draft',
           visibility: false,
-          media: [],
-          categoryIds: [],
+          medias: [],
+          categories: [],
           tags: [],
           features: [],
           metadata: {
@@ -109,7 +97,6 @@ export function ProductFormV2({
 
   async function onSubmit(data: ProductSchemaType) {
     const errorMessage = productVerificationForm(data)
-    console.log(data)
     if (errorMessage) {
       toast({
         variant: 'destructive',
@@ -121,14 +108,12 @@ export function ProductFormV2({
     }
     setIsLoading(true)
     try {
-      const url = initialData ? `/api/products/${initialData.id}` : `/api/products`
+      const url = initialData
+        ? `/api/products/${getDocumentId(initialData.path || '')}`
+        : `/api/products`
       const res = await fetch(url, {
         method: initialData ? 'PUT' : 'POST',
         body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${await getToken()}`,
-        },
       })
       if (res.ok) {
         toast({
@@ -152,11 +137,8 @@ export function ProductFormV2({
   }
 
   const onDelete = async (): Promise<boolean> => {
-    const res = await fetch(`/api/products/${initialData?.id}`, {
+    const res = await fetch(`/api/products/${getDocumentId(initialData?.path || '')}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${await getToken()}`,
-      },
     })
     return res.ok
   }
@@ -250,15 +232,15 @@ export function ProductFormV2({
         <InventoryFields form={form} />
         <FormField
           control={form.control}
-          name="media"
+          name="medias"
           render={({ field }) => (
             <FormItem>
               <CustomAccordion title="Product Images*">
                 <FileUploader
-                  mediaIds={field.value || []}
-                  setContent={(value: string[]) => field.onChange(value)}
-                  fileType={FileType.IMAGE}
-                  targetType={MediaIdentity.ID}
+                  medias={field.value ? field.value : []}
+                  setContent={(value: Media[]) => field.onChange(value)}
+                  fileType={MediaType.IMAGE}
+                  maxFiles={5}
                 />
               </CustomAccordion>
               <FormMessage className="text-red-1" />

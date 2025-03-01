@@ -8,7 +8,7 @@ import { priceFormatted } from '@/lib/utils/utils'
 import { MutableRefObject, useState } from 'react'
 import { useEffect } from 'react'
 import { usePromotionCalculator } from '@/hooks/usePromotionCalculator'
-import { OrderSummary as OrderSummaryType } from '@/lib/api/orders'
+import { OrderSummary as OrderSummaryType } from '@/lib/firebase/models'
 import { Skeleton } from '../ui/skeleton'
 import { Badge } from '../ui/badge'
 import { useLocalization } from '@/hooks/useLocalization'
@@ -76,7 +76,7 @@ export function OrderSummary({
       </CardHeader>
       <CardContent className="space-y-4">
         {cartItems.map(item => (
-          <div key={`${item.product.id}`} className="flex justify-between text-sm">
+          <div key={`${item.product.path}`} className="flex justify-between text-sm">
             <span>
               {item.product.title} x {item.quantity}
             </span>

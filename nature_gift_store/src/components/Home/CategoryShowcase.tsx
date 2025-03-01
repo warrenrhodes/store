@@ -5,10 +5,10 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '../ui/badge'
 import useFilter from '@/hooks/useFilter'
 import { useRouter } from 'next/navigation'
-import { ICategory } from '@/lib/api/categories'
 import Image from 'next/image'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
+import { Category } from '@/lib/firebase/models'
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -29,7 +29,7 @@ const itemVariants = {
   },
 }
 
-export function CategoryShowcase({ categories }: { categories: ICategory[] }) {
+export function CategoryShowcase({ categories }: { categories: Category[] }) {
   const router = useRouter()
   const { localization } = useLocalization()
 
@@ -55,14 +55,14 @@ export function CategoryShowcase({ categories }: { categories: ICategory[] }) {
           className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
         >
           {categories.map(category => (
-            <motion.div key={`${category.id}`} variants={itemVariants}>
+            <motion.div key={`${category.path}`} variants={itemVariants}>
               <div
                 className="cursor-pointer"
                 onClick={() => {
                   clearFilters()
                   setFilters({
                     ...filters,
-                    categories: [category.id],
+                    categories: [category.slug],
                   })
                   router.push(`/shop`)
                 }}

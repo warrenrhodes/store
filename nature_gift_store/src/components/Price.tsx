@@ -1,6 +1,6 @@
-import { IProduct } from '@/lib/api/products'
 import { canDisplayPromoPrice, priceFormatted } from '@/lib/utils/utils'
 import { Price as IPrice } from '@/lib/type'
+import { Product } from '@/lib/firebase/models'
 /**
  * Component to display the price of a product.
  * If the product is on sale and the sale can be displayed, it shows the sale price
@@ -8,10 +8,10 @@ import { Price as IPrice } from '@/lib/type'
  * Otherwise, it displays the regular price.
  *
  * @param {Object} props - The component props.
- * @param {IProduct} props.product - The product object containing price information.
+ * @param {Product} props.product - The product object containing price information.
  * @returns {JSX.Element} The JSX element displaying the product's price.
  */
-export const Price = ({ product }: { product: IProduct }) => {
+export const Price = ({ product }: { product: Product }) => {
   const price = product.price as unknown as IPrice | undefined
   if (price.sale && canDisplayPromoPrice(product)) {
     return (

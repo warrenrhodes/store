@@ -5,11 +5,11 @@ import { Button } from '@/components/ui/button'
 import { FilterX } from 'lucide-react'
 import { ProductCard } from '../ProductCard'
 import { GlobalPagination } from '../GlobalPagination'
-import { IProduct } from '@/lib/api/products'
 import { useLocalization } from '@/hooks/useLocalization'
+import { Product } from '@/lib/firebase/models'
 
 interface ProductGridProps {
-  products: IProduct[]
+  products: Product[]
   loading: boolean
   clearFilters: () => void
 }
@@ -59,7 +59,7 @@ export function ProductGrid({ products, loading, clearFilters }: ProductGridProp
         >
           <AnimatePresence>
             {productList.map(product => (
-              <ProductCard key={`${product.id}`} product={product} />
+              <ProductCard key={`${product.path}`} product={product} />
             ))}
           </AnimatePresence>
         </motion.div>

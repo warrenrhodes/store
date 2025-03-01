@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { ClerkProvider } from '@clerk/nextjs'
 import localFont from 'next/font/local'
 import './globals.css'
 import ToasterProvider from '@/lib/providers/ToasterProvider'
@@ -40,29 +39,25 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  return await ClerkProvider({
-    children: (
-      <ClerkProvider>
-        <html lang="en" suppressHydrationWarning>
-          <head>
-            <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
-            <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-            <link rel="shortcut icon" href="/favicon.ico" />
-            <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-            <link rel="manifest" href="/site.webmanifest" />
-          </head>
-          <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID} />
-          <body className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}>
-            <div>
-              <ToasterProvider />
-              <Header />
-              {children}
-              <Footer />
-              <Toaster />
-            </div>
-          </body>
-        </html>
-      </ClerkProvider>
-    ),
-  })
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+      </head>
+      <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID} />
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}>
+        <div>
+          <ToasterProvider />
+          <Header />
+          {children}
+          <Footer />
+          <Toaster />
+        </div>
+      </body>
+    </html>
+  )
 }

@@ -16,11 +16,11 @@ import {
 import { useCart } from '@/hooks/useCart'
 import { useCartSideBar } from '@/hooks/useCart'
 import { useRouter } from 'next/navigation'
-import { IProduct } from '@/lib/api/products'
 import { useLocalization } from '@/hooks/useLocalization'
 import { Feature, Price, ProductDescription } from '@/lib/type'
+import { Product, Review } from '@/lib/firebase/models'
 
-export function ProductInfo({ product }: { product: IProduct }) {
+export function ProductInfo({ product, reviews }: { product: Product; reviews: Review[] }) {
   const {
     title,
     features: productFeatures,
@@ -30,7 +30,7 @@ export function ProductInfo({ product }: { product: IProduct }) {
   const cart = useCart()
   const router = useRouter()
   const cartSideBar = useCartSideBar()
-  const cartItem = cart.cartItems.find(item => item.product.id === product.id)
+  const cartItem = cart.cartItems.find(item => item.product.path === product.path)
   const { localization } = useLocalization()
   const price: Price | undefined = productPrice as unknown as Price | undefined
   const description = productDescription as ProductDescription
@@ -39,7 +39,7 @@ export function ProductInfo({ product }: { product: IProduct }) {
   const handleClickDecrement = () => {
     if (!cartItem) return
     if (1 >= cartItem.quantity) return
-    cart.decreaseQuantity(cartItem.product.id)
+    cart.decreaseQuantity(cartItem.product.path)
   }
   const handleClickIncrement = () => {
     if (!cartItem) {
@@ -52,7 +52,7 @@ export function ProductInfo({ product }: { product: IProduct }) {
     }
 
     if (99 <= cartItem.quantity) return
-    cart.increaseQuantity(cartItem.product.id)
+    cart.increaseQuantity(cartItem.product.path)
   }
 
   const percentageDiscount = canDisplayPromoPrice(product)
@@ -77,19 +77,17 @@ export function ProductInfo({ product }: { product: IProduct }) {
               <Star
                 key={i}
                 className={`w-5 h-5 ${
-                  i < Math.floor(getReviewAverage(product?.reviews || []))
+                  i < Math.floor(getReviewAverage(reviews || []))
                     ? 'text-yellow-400 fill-yellow-400'
                     : 'text-gray-300'
                 }`}
               />
             ))}
-            <span className="ml-2 text-sm font-medium">
-              {getReviewAverage(product?.reviews || [])}
-            </span>
+            <span className="ml-2 text-sm font-medium">{getReviewAverage(reviews || [])}</span>
           </div>
           <Separator orientation="vertical" className="h-5" />
           <span className="text-sm text-muted-foreground">
-            {product?.reviews?.length} {localization.reviews}
+            {reviews.length} {localization.reviews}
           </span>
         </div>
       </div>

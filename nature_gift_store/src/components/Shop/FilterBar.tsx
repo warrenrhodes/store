@@ -13,9 +13,8 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Search, SlidersHorizontal, FilterX } from 'lucide-react'
 import { FilterOptions } from './FilterOptions'
-import { ICategory } from '@/lib/api/categories'
-import { Filters, SortOption } from '@/lib/api/products'
 import { useLocalization } from '@/hooks/useLocalization'
+import { Category, Filters, SortOption } from '@/lib/firebase/models'
 
 interface FilterBarProps {
   filters: Filters
@@ -24,7 +23,7 @@ interface FilterBarProps {
   clearFilters: () => void
   minPrice: number
   maxPrice: number
-  categories: ICategory[]
+  categories: Category[]
 }
 
 export function FilterBar({

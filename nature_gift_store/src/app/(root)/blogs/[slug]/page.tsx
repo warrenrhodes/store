@@ -1,21 +1,30 @@
 import BlogDetail from '@/components/Blogs/BlockDetail/BlockDetail'
-import { fetchAllBlogs, fetchBlogBySlug, fetchRelatedBlogs } from '@/lib/api/blogs'
+import { getAllRelatedCollection, getDocumentBySlug } from '@/lib/api/utils'
+import { CollectionsName } from '@/lib/firebase/collection-name'
+import { Blog, BlogStatus } from '@/lib/firebase/models'
 import { BlogMetadata } from '@/lib/type'
+import { QueryFilter } from '@spreeloop/database'
 import { notFound } from 'next/navigation'
 
 type Props = {
   params: Promise<{ slug: string }>
 }
 
-export async function generateStaticParams() {
-  const blogs = await fetchAllBlogs()
+// export async function generateStaticParams() {
+//   const blogs = await getAllCollection<Blog>({
+//     collection: CollectionsName.Blogs,
+//     filters: [new QueryFilter('status', '==', BlogStatus.PUBLISHED)],
+//   })
 
-  return blogs.map(post => ({
-    slug: post.slug,
-  }))
-}
+//   return blogs.map(post => ({
+//     slug: post.slug,
+//   }))
+// }
 export async function generateMetadata({ params }: Props) {
-  const blog = await fetchBlogBySlug((await params).slug)
+  const blog = await getDocumentBySlug<Blog>({
+    collection: CollectionsName.Blogs,
+    slug: (await params).slug,
+  })
   const metadata = blog?.metadata as undefined | BlogMetadata
   return {
     applicationName: 'Nature Gift',
@@ -43,8 +52,15 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function BlogDetailPage(props: Props) {
   const params = await props.params
-  const blog = await fetchBlogBySlug(params.slug)
-  const relatedBlogs = await fetchRelatedBlogs(params.slug)
+  const blog = await getDocumentBySlug<Blog>({
+    collection: CollectionsName.Blogs,
+    slug: params.slug,
+  })
+  const relatedBlogs = await getAllRelatedCollection<Blog>({
+    collection: CollectionsName.Blogs,
+    slug: params.slug,
+    filters: [new QueryFilter('status', '==', BlogStatus.PUBLISHED)],
+  })
 
   if (!blog) {
     notFound()

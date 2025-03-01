@@ -4,9 +4,10 @@ import { Checkbox } from '../ui/checkbox'
 import { Button } from '../ui/button'
 import Delete from '../custom-ui/Delete'
 import Link from 'next/link'
-import { Prisma } from '@prisma/client'
+import { IReview } from '@/lib/actions/server'
+import { getDocumentId } from '@spreeloop/database'
 
-export const reviewColumns: ColumnDef<Prisma.ReviewGetPayload<object>>[] = [
+export const reviewColumns: ColumnDef<IReview>[] = [
   {
     id: 'select',
     header: ({ table }) => (
@@ -41,17 +42,17 @@ export const reviewColumns: ColumnDef<Prisma.ReviewGetPayload<object>>[] = [
         </Button>
       )
     },
-    cell: ({ row }) => <div className="lowercase">{row.getValue('userName')}</div>,
+    cell: ({ row }) => <div className="lowercase">{row.original.data.userName}</div>,
   },
   {
     accessorKey: 'product',
     header: 'Product',
-    cell: ({ row }) => <p>{row.original.productId}</p>,
+    cell: ({ row }) => <p>{row.original.data.productPath}</p>,
   },
   {
     accessorKey: 'rating',
     header: 'Rating',
-    cell: ({ row }) => <p>{row.original.rating}</p>,
+    cell: ({ row }) => <p>{row.original.data.rating}</p>,
   },
 
   {
@@ -60,7 +61,7 @@ export const reviewColumns: ColumnDef<Prisma.ReviewGetPayload<object>>[] = [
     cell: ({ row }) => {
       const review = row.original
       const onDelete = async (): Promise<boolean> => {
-        const res = await fetch(`/api/reviews/${row.original.id}`, {
+        const res = await fetch(`/api/reviews/${getDocumentId(review.path || '')}`, {
           method: 'DELETE',
         })
         return res.ok
@@ -68,7 +69,7 @@ export const reviewColumns: ColumnDef<Prisma.ReviewGetPayload<object>>[] = [
 
       return (
         <div>
-          <Link href={`/reviews/${review.id}`}>
+          <Link href={`/reviews/${getDocumentId(review.path)}`}>
             <div className="flex gap-3 items-center">
               <Edit className="w-4 h-4" />
               Edit

@@ -11,26 +11,25 @@ import { OrderSummary } from '@/components/Checkout/order-summary'
 import { DeliveryFormData, deliverySchema } from '@/lib/utils/validation-form'
 import { useTemporalUser } from '@/hooks/useTemporalUser'
 import { toast } from '@/hooks/use-toast'
-import { OrderSummary as OrderSummaryType } from '@/lib/api/orders'
+import { OrderSummary as OrderSummaryType, Shipment } from '@/lib/firebase/models'
 import { useCart } from '@/hooks/useCart'
 import { useRouter } from 'next/navigation'
 import { ToastAction } from '@/components/ui/toast'
 import { createOrder } from '@/lib/api/orders'
-import { IShipment } from '@/lib/api/shipments'
 import { CheckoutSteps } from './CheckoutSteps'
-import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useLocalization } from '@/hooks/useLocalization'
 import { sendGTMEvent } from '@next/third-parties/google'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { DeliveryInfo, OrderPrices, UserData } from '@/lib/type'
+import { useAuthStore } from '@/hooks/store/auth-store'
+import { getDocumentId } from '@spreeloop/database'
 
 const steps = [
   { id: 'delivery', title: 'Delivery' },
   { id: 'review', title: 'Review' },
 ]
 
-export default function CheckoutPageView(props: { shipments: IShipment[] }) {
+export default function CheckoutPageView(props: { shipments: Shipment[] }) {
   const router = useRouter()
   const { setUserData } = useTemporalUser()
   const { cartItems, clearCart } = useCart()
@@ -39,7 +38,7 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
   const [isLoading, setIsLoading] = useState(false)
   const orderSummary = useRef<OrderSummaryType>()
   const currentStepIndex = steps.findIndex(step => step.id === currentStep)
-  const { user } = useCurrentUser()
+  const { user } = useAuthStore()
   const { localization } = useLocalization()
 
   const { temporalUser } = useTemporalUser()
@@ -67,7 +66,11 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
       currency: 'XAF',
       value: cartItems.reduce((acc, e) => acc + e.price * e.quantity, 0),
       items: cartItems.map(e => {
-        return { item_id: e.product.id, item_name: e.product.title, quantity: e.quantity }
+        return {
+          item_id: getDocumentId(e.product.path),
+          item_name: e.product.title,
+          quantity: e.quantity,
+        }
       }),
     })
   }, [])
@@ -93,7 +96,11 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
       event: 'add_shipping_info',
       currency: 'XAF',
       items: cartItems.map(e => {
-        return { item_id: e.product.id, item_name: e.product.title, quantity: e.quantity }
+        return {
+          item_id: getDocumentId(e.product.path),
+          item_name: e.product.title,
+          quantity: e.quantity,
+        }
       }),
     })
 
@@ -109,7 +116,7 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
         location: data.shipping.location,
       },
       userData: {
-        id: user?.id || '',
+        id: user?.uid || '',
         email: data.email || '',
         fullName: data.fullName,
         phone: data.phone,
@@ -129,9 +136,9 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
       id: '',
       createdAt: new Date(),
       updatedAt: new Date(),
-      userId: user?.id || '',
+      userId: user?.uid || '',
     }
-    const confirmOrder = await createOrder({ order: order, cartItems: cartItems, user: user })
+    const confirmOrder = await createOrder({ order: order, cartItems: cartItems })
 
     if (!confirmOrder) {
       toast({
@@ -156,25 +163,25 @@ export default function CheckoutPageView(props: { shipments: IShipment[] }) {
         </ToastAction>
       ),
     })
-    const userData = confirmOrder.userData as UserData
-    const orderPrices = confirmOrder.orderPrices as OrderPrices
-    const deliveryInfo = confirmOrder.deliveryInfo as unknown as DeliveryInfo
+    const userData = confirmOrder.userData
+    const orderPrices = confirmOrder.orderPrices
+    const deliveryInfo = confirmOrder.deliveryInfo
     try {
       sendGTMEvent({
         event: 'purchase',
         currency: 'XAF',
         value: orderPrices.total,
-        transaction_id: confirmOrder.id,
+        transaction_id: getDocumentId(confirmOrder.path),
         items: confirmOrder.items.map(e => {
           return {
-            item_id: e.product.id,
+            item_id: getDocumentId(e.product.path),
             item_name: e.product.title,
             quantity: e.quantity,
             price: e.price,
           }
         }),
         userInfo: {
-          id: user?.id,
+          id: user?.uid,
           email: userData?.email,
           full_name: userData?.fullName,
           phone: userData?.phone,

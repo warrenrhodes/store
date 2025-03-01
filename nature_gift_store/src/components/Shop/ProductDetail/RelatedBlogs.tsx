@@ -6,11 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { format, subDays } from 'date-fns'
 import Link from 'next/link'
-import { IBlog } from '@/lib/api/blogs'
 import Image from 'next/image'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
 import { BlogMetadata, BlogContent } from '@/lib/type'
+import { Blog } from '@/lib/firebase/models'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -33,7 +33,7 @@ const itemVariants = {
   },
 }
 
-export function RelatedBlogs({ relatedBlogs }: { relatedBlogs: IBlog[] }) {
+export function RelatedBlogs({ relatedBlogs }: { relatedBlogs: Blog[] }) {
   const { localization } = useLocalization()
 
   if (relatedBlogs.length === 0) {
@@ -54,7 +54,7 @@ export function RelatedBlogs({ relatedBlogs }: { relatedBlogs: IBlog[] }) {
           const metadata = blog.metadata as BlogMetadata
           const content = blog.content as BlogContent
           return (
-            <motion.div key={`${blog.id}`} variants={itemVariants}>
+            <motion.div key={`${blog.slug}`} variants={itemVariants}>
               <Card className="group h-full flex flex-col">
                 <CardHeader className="p-0">
                   <div className="relative aspect-video overflow-hidden rounded-t-lg">

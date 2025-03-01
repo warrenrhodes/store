@@ -6,7 +6,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { CalendarIcon, Loader2, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { format, subDays } from 'date-fns'
-import { useAuth } from '@clerk/nextjs'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -36,22 +35,22 @@ import { ConditionFields } from './promotionForm/ConditionFields'
 import { generatePromoCode } from '@/lib/utils/generate-promo'
 import { useToast } from '@/hooks/use-toast'
 import { ToastAction } from '../ui/toast'
-import { Prisma } from '@prisma/client'
+import { IProduct, IPromotion } from '@/lib/actions/server'
+import { getDocumentId } from '@spreeloop/database'
 
 interface PromotionFormProps {
-  initialData?: any | null
-  products: Prisma.ProductGetPayload<object>[]
+  initialData?: IPromotion | null
+  products: IProduct[]
 }
 
 export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
   const router = useRouter()
-  const { getToken } = useAuth()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<PromotionSchemaType>({
     resolver: zodResolver(promotionSchema),
-    defaultValues: initialData || {
+    defaultValues: initialData?.data || {
       code: '',
       name: '',
       description: '',
@@ -82,15 +81,13 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
     }
     setIsLoading(true)
     try {
-      const url = initialData ? `/api/promotions/${initialData.id}` : `/api/promotions`
+      const url = initialData
+        ? `/api/promotions/${getDocumentId(initialData.path || '')}`
+        : `/api/promotions`
 
       const res = await fetch(url, {
         method: initialData ? 'PUT' : 'POST',
         body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${await getToken()}`,
-        },
       })
       if (res.ok) {
         toast({
@@ -330,7 +327,7 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
               onClick={async () => {
                 setIsLoading(true)
                 try {
-                  await fetch(`/api/promotions/${initialData.id}`, {
+                  await fetch(`/api/promotions/${getDocumentId(initialData.path || '')}`, {
                     method: 'DELETE',
                   })
                   router.refresh()

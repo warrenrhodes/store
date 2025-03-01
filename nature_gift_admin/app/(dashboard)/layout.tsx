@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import '../globals.css'
-import { ClerkProvider } from '@clerk/nextjs'
 
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import {
@@ -39,14 +38,12 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}>
-          <NewSideBar>{children}</NewSideBar>
-          <Toaster />
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}>
+        <NewSideBar>{children}</NewSideBar>
+        <Toaster />
+      </body>
+    </html>
   )
 }
 

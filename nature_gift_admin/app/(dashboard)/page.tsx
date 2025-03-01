@@ -1,11 +1,25 @@
 import SalesChart from '@/components/custom-ui/SalesChart'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { clientConfig, serverConfig } from '@/config'
 import { getSalesPerMonth, getTotalCustomers, getTotalSales } from '@/lib/actions/server'
 import { priceFormatted } from '@/lib/utils/utils'
 import { CircleDollarSign, ShoppingBag, UserRound } from 'lucide-react'
+import { getTokens } from 'next-firebase-auth-edge'
+import { cookies } from 'next/headers'
+import { notFound } from 'next/navigation'
 
 export default async function Home() {
+  const tokens = await getTokens(await cookies(), {
+    apiKey: clientConfig.apiKey,
+    cookieName: serverConfig.cookieName,
+    cookieSignatureKeys: serverConfig.cookieSignatureKeys,
+    serviceAccount: serverConfig.serviceAccount,
+  })
+
+  if (!tokens) {
+    notFound()
+  }
   const totalRevenue = await getTotalSales().then(data => data.totalRevenue)
   const totalOrders = await getTotalSales().then(data => data.totalOrders)
   const totalCustomers = await getTotalCustomers()

@@ -27,9 +27,9 @@ import {
 } from '../ui/dropdown-menu'
 import { toast } from '@/hooks/use-toast'
 import router from 'next/router'
-import { DeliveryInfo, OrderPrices, OrderPromotion, UserData } from '@/lib/type'
-
-type Items = IOrder['items'][0]
+import { DeliveryInfo, OrderPrices, UserData } from '@/lib/type'
+import { getDocumentId } from '@spreeloop/database'
+import { OrderItem } from '@/lib/firebase/models'
 
 const statusTransitions = {
   PENDING: ['ACCEPTED', 'REJECTED'],
@@ -45,8 +45,8 @@ export const columns: ColumnDef<IOrder>[] = [
     header: 'Order',
     cell: ({ row }) => {
       return (
-        <Link href={`/orders/${row.original.id}`} className="hover:text-red-1">
-          {row.original.id.slice(0, 8)}...
+        <Link href={`/orders/${getDocumentId(row.original.path)}`} className="hover:text-red-1">
+          {getDocumentId(row.original.path).slice(0, 8)}...
         </Link>
       )
     },
@@ -55,11 +55,11 @@ export const columns: ColumnDef<IOrder>[] = [
     accessorKey: 'status',
     header: 'Status',
     cell: ({ row }) => {
-      const currentStatus = row.original.status
+      const currentStatus = row.original.data.status
       const allowedTransitions = statusTransitions[currentStatus]
 
       const handleStatusChange = async (newStatus: string) => {
-        const res = await fetch(`/api/orders/${row.original.id}`, {
+        const res = await fetch(`/api/orders/${getDocumentId(row.original.path)}`, {
           method: 'PUT',
           body: JSON.stringify({ status: newStatus }),
           headers: {
@@ -119,20 +119,22 @@ export const columns: ColumnDef<IOrder>[] = [
     header: 'Delivery Date',
     cell: ({ row }) => (
       <div>
-        {format((row.original.deliveryInfo as unknown as DeliveryInfo).deliveryDate, 'PPP')}{' '}
-        {(row.original.deliveryInfo as unknown as DeliveryInfo).deliveryTime}
+        {format((row.original.data.deliveryInfo as unknown as DeliveryInfo).deliveryDate, 'PPP')}{' '}
+        {(row.original.data.deliveryInfo as unknown as DeliveryInfo).deliveryTime}
       </div>
     ),
   },
   {
     accessorKey: 'orderPrices',
     header: 'Total (FCFA)',
-    cell: ({ row }) => <div>{priceFormatted((row.original.orderPrices as OrderPrices).total)}</div>,
+    cell: ({ row }) => (
+      <div>{priceFormatted((row.original.data.orderPrices as OrderPrices).total)}</div>
+    ),
   },
   {
     accessorKey: 'createdAt',
     header: 'Created At',
-    cell: ({ row }) => <div>{format(row.original.createdAt || new Date(), 'PPP')}</div>,
+    cell: ({ row }) => <div>{format(row.original.data.createdAt || new Date(), 'PPP')}</div>,
   },
   {
     id: 'actions',
@@ -149,10 +151,10 @@ export const columns: ColumnDef<IOrder>[] = [
 ]
 
 const OrderView = ({ order }: { order: IOrder }) => {
-  const userData = order.userData as UserData
-  const deliveryInfo = order.deliveryInfo as unknown as DeliveryInfo
-  const promotions = order.promotions as OrderPromotion[]
-  const orderPrices = order.orderPrices as OrderPrices
+  const userData = order.data.userData as UserData
+  const deliveryInfo = order.data.deliveryInfo
+  const promotions = order.data.promotions
+  const orderPrices = order.data.orderPrices
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -210,8 +212,8 @@ const OrderView = ({ order }: { order: IOrder }) => {
               <span className="text-muted-foreground">Items: </span>
             </div>
             <div className="flex flex-col gap-3 ml-5">
-              {order.items.map(item => (
-                <OrderItem item={item} key={item.productId} />
+              {order.data.items.map(item => (
+                <OrderItemView item={item} key={item.productPath} />
               ))}
             </div>
             <Separator className="my-3" />
@@ -220,7 +222,7 @@ const OrderView = ({ order }: { order: IOrder }) => {
             </div>
             <div className="flex flex-col gap-3 ml-5">
               {promotions.map(item => (
-                <div key={item.promotionId}>
+                <div key={item.promotionPath}>
                   <div className="flex gap-3">
                     <span className="text-muted-foreground">Promo Code: </span>
                     <p> {item.code}</p>
@@ -255,16 +257,13 @@ const OrderView = ({ order }: { order: IOrder }) => {
   )
 }
 
-const OrderItem = ({ item }: { item: Items }) => {
-  const product = item.product
+const OrderItemView = ({ item }: { item: OrderItem }) => {
   return (
-    <div key={item.productId}>
-      {product && (
-        <div className="flex gap-3">
-          <span className="text-muted-foreground">Name: </span>
-          <p> {product.title}</p>
-        </div>
-      )}
+    <div key={item.productPath}>
+      <div className="flex gap-3">
+        <span className="text-muted-foreground">path: </span>
+        <p> {item.productPath}</p>
+      </div>
       <div className="flex gap-3">
         <span className="text-muted-foreground">Count: </span>
         <p> {item.quantity}</p>

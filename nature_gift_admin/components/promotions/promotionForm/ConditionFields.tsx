@@ -14,11 +14,11 @@ import {
 import { Input } from '@/components/ui/input'
 import { PromotionSchemaType } from '@/lib/validations/promotions'
 import MultiText from '@/components/custom-ui/MultiText'
-import { Prisma } from '@prisma/client'
+import { IProduct } from '@/lib/actions/server'
 
 interface ConditionFieldsProps {
   form: UseFormReturn<PromotionSchemaType>
-  products: Prisma.ProductGetPayload<object>[]
+  products: IProduct[]
 }
 
 export function ConditionFields({ form, products }: ConditionFieldsProps) {
@@ -138,8 +138,8 @@ export function ConditionFields({ form, products }: ConditionFieldsProps) {
 
                       <SelectContent>
                         {products.map(product => (
-                          <SelectItem key={product.id} value={product.id}>
-                            {product.title}
+                          <SelectItem key={product.path} value={product.path}>
+                            {product.data.title}
                           </SelectItem>
                         ))}
                       </SelectContent>

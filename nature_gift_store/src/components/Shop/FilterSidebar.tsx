@@ -6,13 +6,13 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
-import { ICategory } from '@/lib/api/categories'
 import { useLocalization } from '@/hooks/useLocalization'
+import { Category } from '@/lib/firebase/models'
 
 interface FilterSidebarProps {
   isOpen: boolean
   onClose: () => void
-  categories: ICategory[]
+  categories: Category[]
   filters: {
     minPrice: number
     maxPrice: number
@@ -77,13 +77,15 @@ export function FilterSidebar({
         <ScrollArea className="h-[300px] pr-4">
           <div className="space-y-3">
             {categories.map(category => (
-              <div key={`${category.id}`} className="flex items-center space-x-2">
+              <div key={`${category.path}`} className="flex items-center space-x-2">
                 <Checkbox
-                  id={`${category.id}`}
-                  checked={filters.categories.includes(category.id)}
-                  onCheckedChange={checked => handleCategoryChange(category.id, checked as boolean)}
+                  id={`${category.path}`}
+                  checked={filters.categories.includes(category.slug)}
+                  onCheckedChange={checked =>
+                    handleCategoryChange(category.slug, checked as boolean)
+                  }
                 />
-                <Label htmlFor={`${category.id}`} className="text-sm">
+                <Label htmlFor={`${category.path}`} className="text-sm">
                   {category.name}
                 </Label>
               </div>

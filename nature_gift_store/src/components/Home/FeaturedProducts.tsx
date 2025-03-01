@@ -3,9 +3,9 @@
 
 import { motion } from 'framer-motion'
 import { ProductCard } from '../ProductCard'
-import { IProduct } from '@/lib/api/products'
 
 import { useLocalization } from '@/hooks/useLocalization'
+import { Product } from '@/lib/firebase/models'
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -16,7 +16,7 @@ const containerVariants = {
   },
 }
 
-export function FeaturedProducts({ products }: { products: IProduct[] }) {
+export function FeaturedProducts({ products }: { products: Product[] }) {
   const { localization } = useLocalization()
 
   return (
@@ -37,7 +37,7 @@ export function FeaturedProducts({ products }: { products: IProduct[] }) {
           className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4"
         >
           {products.map(product => (
-            <ProductCard key={`${product.id}`} product={product} />
+            <ProductCard key={`${product.path}`} product={product} />
           ))}
         </motion.div>
       </div>

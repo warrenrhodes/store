@@ -30,35 +30,29 @@ import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
 import { generateSlug } from '@/lib/utils/slugify'
 import { blogSchema, BlogSchemaType } from '@/lib/validations/blog'
-import { FileType } from '../accordion/CustomAccordionItem'
-import { MediaIdentity, FileUploader } from '../custom-ui/FileUploader'
+import { FileUploader } from '../custom-ui/FileUploader'
 import MultiSelect from '../custom-ui/MultiSelect'
 import MultiText from '../custom-ui/MultiText'
 import { ContentEditor } from '../custom-ui/ContentEditor'
-import { Prisma } from '@prisma/client'
 import { toast } from '@/hooks/use-toast'
-import { useAuth } from '@clerk/nextjs'
+import { Media, MediaType } from '@/lib/firebase/models'
+import { IBlog, ICategory } from '@/lib/actions/server'
+import { getDocumentId } from '@spreeloop/database'
 
 interface BlogFormProps {
-  initialData?: any | null
-  categories: Prisma.CategoryGetPayload<object>[]
-  categoriesOnBlog: Prisma.CategoriesOnBlogsGetPayload<object>[]
+  initialData?: IBlog | null
+  categories: ICategory[]
 }
 
-export function BlogForm({ initialData, categories, categoriesOnBlog }: BlogFormProps) {
+export function BlogForm({ initialData, categories }: BlogFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
-  const { getToken } = useAuth()
 
   const form = useForm<BlogSchemaType>({
     resolver: zodResolver(blogSchema),
-    defaultValues: initialData
+    defaultValues: initialData?.data
       ? {
-          ...initialData,
-          categoryIds: categoriesOnBlog.map(e => e.categoryId),
-          metadata: {
-            ...initialData.metadata,
-          },
+          ...initialData.data,
         }
       : {
           title: '',
@@ -77,11 +71,9 @@ export function BlogForm({ initialData, categories, categoriesOnBlog }: BlogForm
             },
             featured: false,
           },
-          categoryIds: [],
+          categories: [],
           customFields: null,
           tags: [],
-          status: 'DRAFT',
-          layout: 'DEFAULT',
         },
   })
 
@@ -93,18 +85,13 @@ export function BlogForm({ initialData, categories, categoriesOnBlog }: BlogForm
 
   async function onSubmit(data: BlogSchemaType) {
     setIsLoading(true)
-    console.log(data)
 
     try {
-      const url = initialData ? `/api/blogs/${initialData.id}` : `/api/blogs`
+      const url = initialData ? `/api/blogs/${getDocumentId(initialData.path)}` : `/api/blogs`
 
       const res = await fetch(url, {
         method: initialData ? 'PUT' : 'POST',
         body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${await getToken()}`,
-        },
       })
       if (res.ok) {
         toast({
@@ -188,18 +175,17 @@ export function BlogForm({ initialData, categories, categoriesOnBlog }: BlogForm
           />
           <FormField
             control={form.control}
-            name="metadata.coverImageURL"
+            name="metadata.coverImage"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Cover Image URL</FormLabel>
                 <FormControl>
                   <div className="flex gap-2">
                     <FileUploader
-                      mediaIds={field.value ? [field.value] : []}
-                      setContent={(value: string[]) => field.onChange(value[0])}
-                      fileType={FileType.IMAGE}
+                      medias={field.value ? [field.value] : []}
+                      setContent={(value: Media[]) => field.onChange(value[0])}
+                      fileType={MediaType.IMAGE}
                       maxFiles={1}
-                      targetType={MediaIdentity.URL}
                     />
                   </div>
                 </FormControl>
@@ -209,7 +195,7 @@ export function BlogForm({ initialData, categories, categoriesOnBlog }: BlogForm
           />
           <FormField
             control={form.control}
-            name="categoryIds"
+            name="categories"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Categories</FormLabel>
@@ -221,17 +207,17 @@ export function BlogForm({ initialData, categories, categoriesOnBlog }: BlogForm
                         return {
                           value,
                           label: categories.find(category => {
-                            return category.id === value
-                          })?.name as string,
+                            return category.path === value
+                          })?.data.name as string,
                         }
                       })}
                       values={categories.map(category => {
                         return {
-                          value: category.id,
-                          label: category.name,
+                          value: category.path,
+                          label: category.data.name,
                         }
                       })}
-                      onChange={values => field.onChange([...values.map(value => value.value)])}
+                      onChange={values => field.onChange([...values.map(value => value.label)])}
                     />
                   ) : (
                     <div className="text-red-500 flex items-center gap-3 justify-center">
@@ -412,7 +398,7 @@ export function BlogForm({ initialData, categories, categoriesOnBlog }: BlogForm
                 onClick={async () => {
                   setIsLoading(true)
                   try {
-                    await fetch(`/api/blogs/${initialData.id}`, {
+                    await fetch(`/api/blogs/${getDocumentId(initialData.path)}`, {
                       method: 'DELETE',
                     })
                     router.refresh()

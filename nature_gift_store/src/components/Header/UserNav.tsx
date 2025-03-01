@@ -11,15 +11,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useClerk } from '@clerk/nextjs'
-import { useCurrentUser } from '@/hooks/useCurrentUser'
 import Link from 'next/link'
 import { useLocalization } from '@/hooks/useLocalization'
+import { useAuthStore } from '@/hooks/store/auth-store'
+import { useRouter } from 'next/navigation'
 
 export function UserNav() {
-  const clerk = useClerk()
-  const { user } = useCurrentUser()
+  const { user, logout } = useAuthStore()
   const { localization } = useLocalization()
+  const router = useRouter()
 
   return (
     <DropdownMenu>
@@ -34,7 +34,7 @@ export function UserNav() {
             <DropdownMenuLabel>
               <Link className="flex flex-col" href="/profile?tabs=info">
                 <span>{localization.myAccount}</span>
-                <span className="text-muted-foreground">{user?.fullName}</span>
+                <span className="text-muted-foreground">{user?.displayName}</span>
               </Link>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -50,14 +50,19 @@ export function UserNav() {
               {/* <DropdownMenuItem>Settings</DropdownMenuItem> */}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={async () => await clerk.signOut()}>
+            <DropdownMenuItem
+              onClick={async () => {
+                await logout()
+                router.push('/')
+              }}
+            >
               {localization.signOut}
             </DropdownMenuItem>
           </>
         ) : (
           <>
-            <DropdownMenuItem onClick={async () => clerk.openSignIn({})}>
-              {localization.signIn}
+            <DropdownMenuItem asChild>
+              <Link href="/login">{localization.signIn}</Link>
             </DropdownMenuItem>
             <DropdownMenuItem>{localization.createAccount}</DropdownMenuItem>
           </>

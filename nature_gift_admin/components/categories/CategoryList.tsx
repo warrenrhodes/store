@@ -6,9 +6,9 @@ import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '../custom-ui/DataTable'
 import { categoryColumns } from './Column'
-import { Prisma } from '@prisma/client'
+import { ICategory } from '@/lib/actions/server'
 interface CategoryListProps {
-  categories: Prisma.CategoryGetPayload<object>[]
+  categories: ICategory[]
 }
 
 export function CategoryList({ categories }: CategoryListProps) {

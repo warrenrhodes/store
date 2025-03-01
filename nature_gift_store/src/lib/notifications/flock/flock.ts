@@ -1,4 +1,4 @@
-import { IOrder } from '@/lib/api/orders'
+import { Order } from '@/lib/firebase/models'
 import { DeliveryInfo, OrderPrices, UserData } from '@/lib/type'
 import { priceFormatted } from '@/lib/utils/utils'
 import axios from 'axios'
@@ -14,7 +14,7 @@ export class FlockNotifier {
     this.webhookUrl = config.webhookUrl
   }
 
-  private formatOrderMessage(order: IOrder) {
+  private formatOrderMessage(order: Order) {
     const items = order.items
       .map(item => `- ${item.quantity}x ${item.product.title} (${priceFormatted(item.price)})`)
       .join('\n')
@@ -25,7 +25,7 @@ export class FlockNotifier {
     return {
       text:
         `🛍️ New Order Received!\n\n` +
-        `Order ID: ${order.id}\n` +
+        `Order ID: ${order.path}\n` +
         `Customer: ${userData.fullName}\n` +
         `Email: ${userData.email}\n` +
         `Phone: ${userData.phone}\n\n` +
@@ -43,7 +43,7 @@ export class FlockNotifier {
     }
   }
 
-  async sendOrderNotification(order: IOrder) {
+  async sendOrderNotification(order: Order) {
     try {
       const message = this.formatOrderMessage(order)
       await axios.post(this.webhookUrl, message)

@@ -2,7 +2,7 @@ import { z } from 'zod'
 const required_error = 'This field cannot be blank'
 
 export const reviewSchema = z.object({
-  productId: z.string().min(1, required_error),
+  productPath: z.string().min(1, required_error).optional().nullable(),
   userName: z.string().min(1, required_error),
   rating: z.number(),
   comment: z.string(),

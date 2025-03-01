@@ -10,7 +10,6 @@ import 'froala-editor/js/third_party/image_tui.min.js'
 import 'froala-editor/css/froala_editor.pkgd.min.css'
 import 'froala-editor/css/froala_style.min.css'
 import { toast } from '@/hooks/use-toast'
-import { useAuth } from '@clerk/nextjs'
 import { X } from 'lucide-react'
 import { PreviewText } from './PreviewText'
 import SpeechToText from '../plugin/SpeechToText'
@@ -36,7 +35,6 @@ const MAX_VIDEO_FILE_SIZE = 100 * 1024 * 1024
 function RichTextV2(props: CustomRichTextProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const editorInstanceRef = useRef<any>(null)
-  const { getToken } = useAuth()
 
   const adminDashboardUrl = process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL
 
@@ -91,16 +89,11 @@ function RichTextV2(props: CustomRichTextProps) {
         const formData = new FormData()
         formData.append('files', file)
 
-        const authToken = await getToken()
-
         const response = await fetch(
           adminDashboardUrl ? `${adminDashboardUrl}/api/media/upload` : '/api/media/upload',
           {
             method: 'POST',
             body: formData,
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
           },
         )
         if (!response.ok) {
@@ -143,11 +136,10 @@ function RichTextV2(props: CustomRichTextProps) {
         }
       }
     },
-    [adminDashboardUrl, getToken, insertMedia],
+    [adminDashboardUrl, insertMedia],
   )
 
   const config = useMemo(() => {
-    const token = getToken() // Get the token synchronously
     return {
       placeholderText: 'Edit Your Content!',
       charCounterCount: true,
@@ -286,7 +278,7 @@ function RichTextV2(props: CustomRichTextProps) {
         },
       },
     }
-  }, [handleFileUpload, handleInitialize, props, getToken]) // Ensure getToken is included in dependencies
+  }, [handleFileUpload, handleInitialize, props]) // Ensure getToken is included in dependencies
 
   if (!process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL) {
     console.error('Missing NEXT_PUBLIC_ADMIN_DASHBOARD_URL environment variable')

@@ -1,23 +1,16 @@
-import { getUserByClerkId } from '@/lib/actions/server'
 import { normalizeFileName } from '@/lib/utils/normalize_file_name'
-import { auth } from '@clerk/nextjs/server'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import cloudinary from '@/lib/cloudinary'
-import { MediaType } from '@prisma/client'
-import { prisma } from '@/lib/prisma'
 import { v4 as uuidv4 } from 'uuid'
+import { getUserTokensOnApiRoute } from '@/lib/actions/server'
+import { Media, MediaType } from '@/lib/firebase/models'
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth()
+    const token = await getUserTokensOnApiRoute(request)
 
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!token) {
+      return new NextResponse('Unauthorized', { status: 403 })
     }
 
     const formData = await request.formData()
@@ -32,23 +25,12 @@ export async function POST(request: Request) {
         const buffer = Buffer.from(await file.arrayBuffer())
         const fileName = normalizeFileName(file.name)
 
-        const existentMedia = await prisma.media.findFirst({
-          where: {
-            fileName: fileName,
-            creatorId: _currentUser.id,
-          },
-        })
-
-        if (existentMedia) {
-          return existentMedia
-        }
-
         // Upload to Cloudinary
         const uploadResponse = await new Promise(async (resolve, reject) => {
           cloudinary.uploader
             .upload_stream(
               {
-                folder: `users/${userId}`,
+                folder: `users/${token.decodedToken.uid}`,
                 public_id: fileName.split('.')[0], // Remove extension from public_id
                 resource_type: 'auto',
               },
@@ -72,21 +54,12 @@ export async function POST(request: Request) {
           ? { base64: null }
           : await getPlaiceholder(buffer)
 
-        // Save to database
-        const media = await prisma.media.upsert({
-          where: {
-            fileName: fileName,
-          },
-          update: {},
-          create: {
-            type: file.type.startsWith('image/') ? MediaType.IMAGE : MediaType.VIDEO,
-            fileName: fileName,
-            url: mediaUrl,
-            blurDataUrl: base64,
-            creatorId: _currentUser.id,
-            cloudinaryPublicId: cloudinaryResponse.public_id,
-          },
-        })
+        const media: Media = {
+          type: file.type.startsWith('image/') ? MediaType.IMAGE : MediaType.VIDEO,
+          fileName: fileName,
+          url: mediaUrl,
+          blurDataUrl: base64,
+        }
         return media
       }),
     )
@@ -125,7 +98,5 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('[upload_POST]', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
-  } finally {
-    await prisma.$disconnect()
   }
 }

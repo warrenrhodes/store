@@ -10,16 +10,16 @@ import { format, subDays } from 'date-fns'
 import useEmblaCarousel from 'embla-carousel-react'
 import { EmblaCarouselType, EmblaEventType, EmblaOptionsType } from 'embla-carousel'
 import { useCallback, useEffect, useRef, useMemo } from 'react'
-import { IBlog } from '@/lib/api/blogs'
 import { NextButton, PrevButton, usePrevNextButtons } from './EmblaCarouselArrowButtons'
 import { DotButton, useDotButton } from './EmblaCarouselDotButton'
 import Image from 'next/image'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
 import { BlogContent, BlogMetadata } from '@/lib/type'
+import { Blog } from '@/lib/firebase/models'
 
 interface FeaturedBlogCarouselProps {
-  blogs: IBlog[]
+  blogs: Blog[]
 }
 
 const OPTIONS: EmblaOptionsType = { dragFree: true, loop: true }
@@ -103,7 +103,7 @@ export function FeaturedBlogCarousel({ blogs }: FeaturedBlogCarouselProps) {
       const metadata = blog.metadata as BlogMetadata
       const content = blog.content as BlogContent
       return (
-        <div key={`${blog.id}`} className="relative flex-[0_0_100%] min-w-0">
+        <div key={`${blog.slug}`} className="relative flex-[0_0_100%] min-w-0">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -124,8 +124,8 @@ export function FeaturedBlogCarousel({ blogs }: FeaturedBlogCarouselProps) {
             <div className="relative h-full flex flex-col justify-end p-8 bg-black/50">
               <div className="flex flex-wrap gap-2 mb-4">
                 {blog.categories.slice(0, 3).map(category => (
-                  <Badge key={category.id as string} variant="secondary">
-                    {category.category.name}
+                  <Badge key={category as string} variant="secondary">
+                    {category}
                   </Badge>
                 ))}
               </div>

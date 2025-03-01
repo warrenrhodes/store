@@ -1,4 +1,4 @@
-import { Filters } from '@/lib/api/products'
+import { Filters } from '@/lib/firebase/models'
 import { create } from 'zustand'
 
 const MIN_PRICE = 0

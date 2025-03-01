@@ -9,25 +9,25 @@ import { BlogFilters } from './BlogFilters'
 import { BlogGrid } from './BlogGrid'
 import { BlogSearch } from './BlogSearch'
 import useBlogFilter from '@/hooks/useBlogFilter'
-import { IBlog } from '@/lib/api/blogs'
 import { useLocalization } from '@/hooks/useLocalization'
 import { BlogMetadata } from '@/lib/type'
+import { Blog } from '@/lib/firebase/models'
 
-export default function Blogs({ blogs }: { blogs: IBlog[] }) {
+export default function Blogs({ blogs }: { blogs: Blog[] }) {
   const { filters } = useBlogFilter()
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false)
-  const [filteredBlogs, setFilteredBlogs] = useState<IBlog[]>(blogs)
+  const [filteredBlogs, setFilteredBlogs] = useState<Blog[]>(blogs)
   const { localization } = useLocalization()
 
   useEffect(() => {
-    let filtered: IBlog[] = []
+    let filtered: Blog[] = []
     if (filters.categories.length === 0 && filters.tags.length === 0) {
       setFilteredBlogs(blogs)
       return
     }
     if (filters.categories.length > 0) {
       filtered = blogs.filter(blog =>
-        blog.categories.some(category => filters.categories.includes(category.category.name)),
+        blog.categories.some(category => filters.categories.includes(category)),
       )
     }
 
@@ -53,13 +53,7 @@ export default function Blogs({ blogs }: { blogs: IBlog[] }) {
           <div className="hidden lg:block w-64 flex-shrink-0">
             <BlogFilters
               blogs={blogs}
-              categories={Array.from(
-                new Set(
-                  blogs
-                    .map(blog => blog.categories.map(category => category.category.name).flat())
-                    .flat(),
-                ),
-              )}
+              categories={Array.from(new Set(blogs.map(blog => blog.categories).flat()))}
               tags={Array.from(new Set(blogs.map(blog => blog.tags).flat()))}
             />
           </div>
@@ -77,15 +71,7 @@ export default function Blogs({ blogs }: { blogs: IBlog[] }) {
                 <SheetContent side="left" className="w-80">
                   <BlogFilters
                     blogs={blogs}
-                    categories={Array.from(
-                      new Set(
-                        blogs
-                          .map(blog =>
-                            blog.categories.map(category => category.category.name).flat(),
-                          )
-                          .flat(),
-                      ),
-                    )}
+                    categories={Array.from(new Set(blogs.map(blog => blog.categories).flat()))}
                     tags={Array.from(new Set(blogs.map(blog => blog.tags).flat()))}
                   />
                 </SheetContent>

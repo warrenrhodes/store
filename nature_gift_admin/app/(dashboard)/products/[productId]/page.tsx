@@ -1,18 +1,11 @@
 import { ProductFormV2 } from '@/components/products/ProductFormV2'
-import {
-  getCategories,
-  getCategoriesOfProduct,
-  getMediasOfProduct,
-  getProductId,
-} from '@/lib/actions/server'
+import { getCategories, getProductById } from '@/lib/actions/server'
 
 export default async function EditProductPage(props: { params: Promise<{ productId: string }> }) {
   const params = await props.params
-  const [product, categories, categoriesOfProduct, mediasOfProduct] = await Promise.all([
-    getProductId(params.productId),
+  const [product, categories] = await Promise.all([
+    getProductById(params.productId),
     getCategories(),
-    getCategoriesOfProduct(params.productId),
-    getMediasOfProduct(params.productId),
   ])
 
   return (
@@ -21,12 +14,7 @@ export default async function EditProductPage(props: { params: Promise<{ product
         <h1 className="text-3xl font-bold">Edit Product</h1>
         <p className="text-muted-foreground">Make changes to your product</p>
       </div>
-      <ProductFormV2
-        initialData={product}
-        categories={categories}
-        categoriesOfProduct={categoriesOfProduct}
-        mediasOfProduct={mediasOfProduct}
-      />
+      <ProductFormV2 initialData={product} categories={categories} />
     </div>
   )
 }

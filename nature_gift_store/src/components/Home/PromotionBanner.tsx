@@ -1,13 +1,13 @@
 'use client'
 
-import { IPromotion } from '@/lib/api/promotions'
 import { motion } from 'framer-motion'
 import { Zap } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useEffect } from 'react'
 import { useLocalization } from '@/hooks/useLocalization'
+import { Promotion } from '@/lib/firebase/models'
 
-export function PromotionBanner({ promotions }: { promotions: IPromotion[] }) {
+export function PromotionBanner({ promotions }: { promotions: Promotion[] }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [opacity, setOpacity] = useState(1)
   const { localization } = useLocalization()
@@ -33,7 +33,7 @@ export function PromotionBanner({ promotions }: { promotions: IPromotion[] }) {
   const currentPromotion = promotions[currentIndex]
 
   return (
-    <section className="bg-primary" key={`${currentPromotion.id}`}>
+    <section className="bg-primary" key={`${currentPromotion.path}`}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}

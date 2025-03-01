@@ -5,9 +5,10 @@ import Delete from '../custom-ui/Delete'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Badge } from '../ui/badge'
-import { Prisma } from '@prisma/client'
+import { IShipment } from '@/lib/actions/server'
+import { getDocumentId } from '@spreeloop/database'
 
-export const shipmentColumns: ColumnDef<Prisma.ShipmentGetPayload<object>>[] = [
+export const shipmentColumns: ColumnDef<IShipment>[] = [
   {
     id: 'select',
     header: ({ table }) => (
@@ -32,7 +33,7 @@ export const shipmentColumns: ColumnDef<Prisma.ShipmentGetPayload<object>>[] = [
   {
     accessorKey: 'method',
     header: 'Method',
-    cell: ({ row }) => <div className="lowercase">{row.original.method}</div>,
+    cell: ({ row }) => <div className="lowercase">{row.original.data.method}</div>,
   },
   {
     accessorKey: 'isActive',
@@ -41,11 +42,11 @@ export const shipmentColumns: ColumnDef<Prisma.ShipmentGetPayload<object>>[] = [
       <div>
         <Badge
           className={cn({
-            'bg-blue-500 ': row.original.isActive === true,
-            'bg-gray-500': !row.original.isActive,
+            'bg-blue-500 ': row.original.data.isActive === true,
+            'bg-gray-500': !row.original.data.isActive,
           })}
         >
-          {row.original.isActive === true ? 'Active' : 'Inactive'}
+          {row.original.data.isActive === true ? 'Active' : 'Inactive'}
         </Badge>
       </div>
     ),
@@ -53,14 +54,13 @@ export const shipmentColumns: ColumnDef<Prisma.ShipmentGetPayload<object>>[] = [
   {
     accessorKey: 'locations',
     header: 'Locations',
-    cell: ({ row }) => <span>{row.original.locations.join(', ')}</span>,
+    cell: ({ row }) => <span>{row.original.data.locations.join(', ')}</span>,
   },
   {
     id: 'actions',
     cell: ({ row }) => {
-      const shipment = row.original
       const onDelete = async (): Promise<boolean> => {
-        const res = await fetch(`/api/shipments/${row.original.id}`, {
+        const res = await fetch(`/api/shipments/${getDocumentId(row.original.path)}`, {
           method: 'DELETE',
         })
         return res.ok
@@ -68,7 +68,7 @@ export const shipmentColumns: ColumnDef<Prisma.ShipmentGetPayload<object>>[] = [
 
       return (
         <div>
-          <Link href={`/shipments/${shipment.id}`}>
+          <Link href={`/shipments/${getDocumentId(row.original.path)}`}>
             <div className="flex gap-3 items-center">
               <Edit className="w-4 h-4" />
               Edit

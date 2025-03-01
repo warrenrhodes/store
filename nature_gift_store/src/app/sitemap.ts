@@ -1,5 +1,7 @@
-import { fetchAllBlogs, IBlog } from '@/lib/api/blogs'
-import { getProducts, IProduct } from '@/lib/api/products'
+import { getAllCollection } from '@/lib/api/utils'
+import { CollectionsName } from '@/lib/firebase/collection-name'
+import { Blog, BlogStatus, Product, ProductStatus } from '@/lib/firebase/models'
+import { QueryFilter } from '@spreeloop/database'
 import { MetadataRoute } from 'next'
 // Default static URLs that are always present
 const staticUrls: MetadataRoute.Sitemap = [
@@ -28,16 +30,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fetch dynamic data with timeout
     const [products, blogs] = await Promise.all([
       Promise.race([
-        getProducts(),
-        new Promise<IProduct[]>((_, reject) =>
-          setTimeout(() => reject(new Error('Timeout')), 5000),
-        ),
+        getAllCollection<Product>({
+          collection: CollectionsName.Products,
+          filters: [
+            new QueryFilter('status', '==', ProductStatus.PUBLISHED),
+            new QueryFilter('visibility', '==', true),
+          ],
+        }),
+        new Promise<Product[]>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000)),
       ]),
       Promise.race([
-        fetchAllBlogs(),
-        new Promise<IBlog[]>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000)),
+        getAllCollection<Blog>({
+          collection: CollectionsName.Blogs,
+          filters: [new QueryFilter('status', '==', BlogStatus.PUBLISHED)],
+        }),
+        new Promise<Blog[]>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000)),
       ]),
-    ]).catch(() => [[], []] as [IProduct[], IBlog[]])
+    ]).catch(() => [[], []] as [Product[], Blog[]])
 
     const productEntries: MetadataRoute.Sitemap =
       products?.map(e => ({

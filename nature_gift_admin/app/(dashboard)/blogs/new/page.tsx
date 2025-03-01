@@ -9,7 +9,7 @@ export default async function NewBlogPage() {
         <h1 className="text-3xl font-bold">Create New Blog Post</h1>{' '}
         <p className="text-muted-foreground">Add a new blog post to your site</p>
       </div>
-      <BlogForm categories={categories} categoriesOnBlog={[]} />
+      <BlogForm categories={categories} />
     </div>
   )
 }

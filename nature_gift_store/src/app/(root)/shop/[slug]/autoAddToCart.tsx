@@ -1,12 +1,12 @@
 'use client'
 
 import { useCart } from '@/hooks/useCart'
-import { IProduct } from '@/lib/api/products'
+import { Product } from '@/lib/firebase/models'
 import { getRegularPrice } from '@/lib/utils/utils'
 import { redirect } from 'next/navigation'
 import { useCallback, useEffect } from 'react'
 
-export const AutoAddToCart = ({ product }: { product: IProduct }) => {
+export const AutoAddToCart = ({ product }: { product: Product }) => {
   const { addItem } = useCart()
   const addProductToCart = useCallback(async () => {
     addItem({

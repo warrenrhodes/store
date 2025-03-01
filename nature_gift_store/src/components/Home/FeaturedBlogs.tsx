@@ -1,10 +1,10 @@
 // @refresh reset
 'use client'
-import { IBlog } from '@/lib/api/blogs'
+import { Blog } from '@/lib/firebase/models'
 import { FeaturedBlogCarousel } from '../BlogFeatured'
 import { useLocalization } from '@/hooks/useLocalization'
 
-export function FeaturedBlogs({ blogs }: { blogs: IBlog[] }) {
+export function FeaturedBlogs({ blogs }: { blogs: Blog[] }) {
   const { localization } = useLocalization()
 
   if (blogs.length === 0) {

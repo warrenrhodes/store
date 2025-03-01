@@ -7,15 +7,15 @@ import { RelatedBlogs } from './RelatedBlogs'
 import { Badge } from '@/components/ui/badge'
 import { format, subDays } from 'date-fns'
 import Image from 'next/image'
-import { IBlog } from '@/lib/api/blogs'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
 import { BlogContent, BlogMetadata } from '@/lib/type'
 import { title } from 'process'
+import { Blog } from '@/lib/firebase/models'
 
-const BlogDetail = ({ blog, relatedBlogs }: { blog: IBlog; relatedBlogs: IBlog[] }) => {
+const BlogDetail = ({ blog, relatedBlogs }: { blog: Blog; relatedBlogs: Blog[] }) => {
   const { localization } = useLocalization()
   const metadata = blog.metadata as BlogMetadata
   const content = blog.content as BlogContent
@@ -68,8 +68,8 @@ const BlogDetail = ({ blog, relatedBlogs }: { blog: IBlog; relatedBlogs: IBlog[]
         </div>
         <div className="flex flex-wrap gap-2">
           {blog.categories.map(category => (
-            <Badge key={`${category.id}`} variant="outline">
-              {category.category.name}
+            <Badge key={`${category}`} variant="outline">
+              {category}
             </Badge>
           ))}
         </div>

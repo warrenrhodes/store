@@ -1,8 +1,8 @@
 'use client'
 import { motion } from 'framer-motion'
 import { ProductCard } from '@/components/ProductCard'
-import { IProduct } from '@/lib/api/products'
 import { useLocalization } from '@/hooks/useLocalization'
+import { Product } from '@/lib/firebase/models'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -14,7 +14,7 @@ const containerVariants = {
   },
 }
 
-export function RelatedProducts({ relatedProducts }: { relatedProducts: IProduct[] }) {
+export function RelatedProducts({ relatedProducts }: { relatedProducts: Product[] }) {
   const { localization } = useLocalization()
 
   if (relatedProducts.length === 0) {
@@ -32,7 +32,7 @@ export function RelatedProducts({ relatedProducts }: { relatedProducts: IProduct
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
       >
         {relatedProducts.map(product => (
-          <ProductCard key={`${product.id}`} product={product} />
+          <ProductCard key={`${product.path}`} product={product} />
         ))}
       </motion.div>
     </section>

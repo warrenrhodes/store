@@ -6,9 +6,9 @@ import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '../custom-ui/DataTable'
 import { reviewColumns } from './ReviewColumns'
-import { Prisma } from '@prisma/client'
+import { IReview } from '@/lib/actions/server'
 interface ReviewListProps {
-  reviews: Prisma.ReviewGetPayload<object>[]
+  reviews: IReview[]
 }
 
 export function ReviewList({ reviews }: ReviewListProps) {

@@ -8,13 +8,12 @@ import { ShoppingCartButton } from '@/components/Shop/ShoppingCartButton'
 import { getPrice } from '@/lib/utils/utils'
 import { FilterOptions } from '@/components/Shop/FilterOptions'
 import useFilter from '@/hooks/useFilter'
-import { IProduct } from '@/lib/api/products'
-import { ICategory } from '@/lib/api/categories'
 import { ProductDescription } from '@/lib/type'
+import { Category, Product } from '@/lib/firebase/models'
 
 interface ProductPageData {
-  categories: ICategory[]
-  products: IProduct[]
+  categories: Category[]
+  products: Product[]
   tags: string[]
 }
 
@@ -22,8 +21,8 @@ export const ShoppingWrapper = ({
   productList,
   categories,
 }: {
-  productList: IProduct[]
-  categories: ICategory[]
+  productList: Product[]
+  categories: Category[]
 }) => {
   const { filters, MAX_PRICE, MIN_PRICE, setFilters, clearFilters } = useFilter()
   const [pageData] = useState<ProductPageData>({
@@ -31,7 +30,7 @@ export const ShoppingWrapper = ({
     products: productList,
     tags: Array.from(new Set(productList.map(product => product.tags?.flat() || []).flat())),
   })
-  const [filteredProducts, setFilteredProducts] = useState<IProduct[]>(productList)
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>(productList)
   const [activeFilters, setActiveFilters] = useState(0)
 
   useEffect(() => {
@@ -57,7 +56,7 @@ export const ShoppingWrapper = ({
 
     if (filters.categories.length > 0) {
       filtered = filtered.filter(product =>
-        product.categories.some(cat => filters.categories.includes(cat.categoryId)),
+        product.categories.some(cat => filters.categories.includes(cat)),
       )
     }
 

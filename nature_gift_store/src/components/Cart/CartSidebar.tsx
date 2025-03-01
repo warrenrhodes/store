@@ -41,7 +41,7 @@ export function CartSidebar() {
       currency: 'XAF',
       value: cart.cartItems.reduce((acc, e) => acc + e.price * e.quantity, 0),
       items: cart.cartItems.map(e => {
-        return { item_id: e.product.id, item_name: e.product.title, quantity: e.quantity }
+        return { item_id: e.product.path, item_name: e.product.title, quantity: e.quantity }
       }),
     })
   }, [])
@@ -96,7 +96,7 @@ export function CartSidebar() {
                   <AnimatePresence initial={false}>
                     {cartItems.map(item => (
                       <CartItem
-                        key={`${item.product.id}`}
+                        key={`${item.product.path}`}
                         item={item}
                         increaseQuantity={increaseQuantity}
                         decreaseQuantity={decreaseQuantity}

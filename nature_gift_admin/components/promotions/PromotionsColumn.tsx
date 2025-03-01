@@ -9,13 +9,14 @@ import { Badge } from '@/components/ui/badge'
 import { ColumnDef } from '@tanstack/react-table'
 import Delete from '../custom-ui/Delete'
 import { cn } from '@/lib/utils'
-import { Prisma } from '@prisma/client'
+import { getDocumentId } from '@spreeloop/database'
+import { IPromotion } from '@/lib/actions/server'
 
-export const promotionsColumns: ColumnDef<Prisma.PromotionGetPayload<object>>[] = [
+export const promotionsColumns: ColumnDef<IPromotion>[] = [
   {
     accessorKey: 'code',
     header: 'Code',
-    cell: ({ row }) => <div className="font-mono leading-none">{row.original.code}</div>,
+    cell: ({ row }) => <div className="font-mono leading-none">{row.original.data.code}</div>,
   },
   {
     accessorKey: 'name',
@@ -32,10 +33,10 @@ export const promotionsColumns: ColumnDef<Prisma.PromotionGetPayload<object>>[] 
     },
     cell: ({ row }) => (
       <div>
-        <div className="font-medium">{row.original.name}</div>
-        {row.original.description && (
+        <div className="font-medium">{row.original.data.name}</div>
+        {row.original.data.description && (
           <div className="text-sm text-muted-foreground truncate max-w-[300px]">
-            {row.original.description}
+            {row.original.data.description}
           </div>
         )}
       </div>
@@ -46,9 +47,9 @@ export const promotionsColumns: ColumnDef<Prisma.PromotionGetPayload<object>>[] 
     header: 'Period',
     cell: ({ row }) => (
       <div className="text-sm">
-        <div>{format(new Date(row.original.startDate), 'PP')}</div>
+        <div>{format(new Date(row.original.data.startDate), 'PP')}</div>
         <div className="text-muted-foreground">
-          to {format(new Date(row.original.endDate), 'PP')}
+          to {format(new Date(row.original.data.endDate), 'PP')}
         </div>
       </div>
     ),
@@ -71,13 +72,13 @@ export const promotionsColumns: ColumnDef<Prisma.PromotionGetPayload<object>>[] 
         <div>
           <Badge
             className={cn({
-              'bg-green-500': row.original.status !== 'ACTIVE',
-              'bg-blue-500': row.original.status === 'DRAFT',
-              'bg-red-500': row.original.status === 'EXPIRED',
-              'bg-gray-500': row.original.status === 'DISABLED',
+              'bg-green-500': row.original.data.status !== 'ACTIVE',
+              'bg-blue-500': row.original.data.status === 'DRAFT',
+              'bg-red-500': row.original.data.status === 'EXPIRED',
+              'bg-gray-500': row.original.data.status === 'DISABLED',
             })}
           >
-            {row.original.status}
+            {row.original.data.status}
           </Badge>
         </div>
       )
@@ -86,15 +87,14 @@ export const promotionsColumns: ColumnDef<Prisma.PromotionGetPayload<object>>[] 
   {
     accessorKey: 'priority',
     header: 'Priority',
-    cell: ({ row }) => <div className="font-medium">{row.original.priority}</div>,
+    cell: ({ row }) => <div className="font-medium">{row.original.data.priority}</div>,
   },
   {
     id: 'actions',
     enableHiding: false,
     cell: ({ row }) => {
-      const promotions = row.original
       const onDelete = async (): Promise<boolean> => {
-        const res = await fetch(`/api/promotions/${promotions.id}`, {
+        const res = await fetch(`/api/promotions/${getDocumentId(row.original.path)}`, {
           method: 'DELETE',
         })
         return res.ok
@@ -102,7 +102,7 @@ export const promotionsColumns: ColumnDef<Prisma.PromotionGetPayload<object>>[] 
 
       return (
         <div>
-          <Link href={`/promotions/${promotions.id}`}>
+          <Link href={`/promotions/${getDocumentId(row.original.path)}`}>
             <div className="flex gap-3 items-center">
               <Edit className="w-4 h-4" />
               Edit

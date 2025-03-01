@@ -15,6 +15,7 @@ import { getAuthErrorMessage } from '@/lib/firebase/firebase-client/error-handle
 import { auth } from '@/lib/firebase/firebase-client/firebase'
 import { setUser, getUserById } from '@/lib/actions/client'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import { UserType } from '@/lib/firebase/models'
 
 interface AuthState {
   user: User | null
@@ -75,6 +76,7 @@ const useAuthStore = create(
             name: name,
             authId: userCredential.user.uid,
             photoURL: null,
+            userType: UserType.PARTNER,
             createdAtInUTC: new Date().toISOString(),
           }
 
@@ -112,6 +114,7 @@ const useAuthStore = create(
               name: userCredential.user.displayName,
               authId: userCredential.user.uid,
               photoURL: userCredential.user.photoURL,
+              userType: UserType.PARTNER,
               createdAtInUTC: new Date().toISOString(),
             })
             if (!result) {

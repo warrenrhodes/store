@@ -5,7 +5,11 @@ export enum MediaType {
 }
 
 export type SortOption = 'newest' | 'price-asc' | 'price-desc' | 'rating'
-
+export enum UserType {
+  ADMIN = 'ADMIN',
+  PARTNER = 'PARTNER',
+  CLIENT = 'CLIENT',
+}
 export interface Filters {
   search: string
   categories: string[]
@@ -236,6 +240,7 @@ export interface User extends BaseDocument {
   avatar?: string | null
   phone?: string | null
   isAnonymous: boolean
+  userType: UserType
   whitelists: string[]
 }
 

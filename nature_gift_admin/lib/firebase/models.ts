@@ -206,6 +206,12 @@ interface UsageLimit {
   total?: number | null
 }
 
+export enum UserType {
+  ADMIN = 'ADMIN',
+  PARTNER = 'PARTNER',
+  CLIENT = 'CLIENT',
+}
+
 // Collection Interfaces
 export interface User extends BaseDocument {
   clerkPath?: string | null
@@ -214,6 +220,7 @@ export interface User extends BaseDocument {
   avatar?: string | null
   phone?: string | null
   isAnonymous: boolean
+  userType: UserType
 }
 
 export interface Category extends CreatorDocument {

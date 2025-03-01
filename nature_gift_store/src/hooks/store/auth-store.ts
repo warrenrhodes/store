@@ -22,6 +22,7 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import { doc, getDoc } from 'firebase/firestore'
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { getDatabasePath } from '@spreeloop/database'
+import { UserType } from '@/lib/firebase/models'
 
 export const getUserById = async (id: string) => {
   const userRef = doc(db, getDatabasePath(CollectionsName.Users, id))
@@ -104,6 +105,7 @@ const useAuthStore = create(
             authId: userCredential.user.uid,
             photoURL: userCredential.user.photoURL,
             isAnonymous: userCredential.user.isAnonymous,
+            userType: UserType.CLIENT,
             createdAtInUTC: new Date().toISOString(),
           }
 
@@ -156,6 +158,7 @@ const useAuthStore = create(
             authId: userCredential.user.uid,
             photoURL: null,
             isAnonymous: userCredential.user.isAnonymous,
+            userType: UserType.CLIENT,
             createdAtInUTC: new Date().toISOString(),
           }
 
@@ -202,6 +205,7 @@ const useAuthStore = create(
               authId: userCredential.user.uid,
               photoURL: userCredential.user.photoURL,
               isAnonymous: userCredential.user.isAnonymous,
+              userType: UserType.CLIENT,
               createdAtInUTC: new Date().toISOString(),
             })
             if (!result) {

@@ -5,9 +5,8 @@ import { IJodit } from 'jodit/esm/types'
 import * as uuid from 'uuid'
 import { toast } from '@/hooks/use-toast'
 import { useMemo } from 'react'
-import useAuthToken from '@/hooks/useAuthToken'
 import { X } from 'lucide-react'
-import { MediaType } from '@prisma/client'
+import { MediaType } from '@/lib/firebase/models'
 
 const JoditEditor = dynamic(() => import('jodit-react').then(mod => mod.default), {
   ssr: false,
@@ -85,20 +84,13 @@ const createFileInput = (accept: string): Promise<FileSelectionResult> => {
 }
 
 // Helper function to upload file
-const uploadFile = async (
-  file: File,
-  uploadUrl: string,
-  token: string | null,
-): Promise<UploadResponse | null> => {
+const uploadFile = async (file: File, uploadUrl: string): Promise<UploadResponse | null> => {
   const formData = new FormData()
   formData.append('files', file)
 
   const response = await fetch(uploadUrl, {
     method: 'POST',
     body: formData,
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   })
 
   if (!response.ok) {
@@ -125,8 +117,6 @@ const validateVideoSize = (file: File): { valid: boolean; message?: string } => 
 }
 
 function RichTextV1(props: CustomRichTextProps) {
-  const { token } = useAuthToken()
-
   const config = useMemo(
     () => ({
       toolbarSticky: true,
@@ -216,7 +206,6 @@ function RichTextV1(props: CustomRichTextProps) {
                   const result = await uploadFile(
                     file,
                     `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/api/media/upload`,
-                    token,
                   )
                   if (result?.success && result?.data.files && result?.data?.files[0]) {
                     const videoUrl = result?.data.files[0].url
@@ -738,9 +727,6 @@ function RichTextV1(props: CustomRichTextProps) {
       ],
       uploader: {
         url: `/api/media/upload`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         insertImageAsBase64URI: false,
         imagesExtensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
         filesVariableName: (): string => {
@@ -781,9 +767,6 @@ function RichTextV1(props: CustomRichTextProps) {
           cache: true,
           url: `/api/media/filebrowser`,
           method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
           process: (resp: any) => {
             if (!resp.success) {
               throw new Error(resp.message)
@@ -799,7 +782,7 @@ function RichTextV1(props: CustomRichTextProps) {
         buttons: ['filebrowser.select'],
       },
     }),
-    [token],
+    [],
   )
 
   return (

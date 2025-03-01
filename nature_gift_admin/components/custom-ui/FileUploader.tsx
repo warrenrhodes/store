@@ -1,48 +1,42 @@
 import { useToast } from '@/hooks/use-toast'
 import { Film, ImageIcon, Loader2, Trash2, Upload } from 'lucide-react'
 import Image from 'next/image'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { FileType } from '../accordion/CustomAccordionItem'
 import { Button } from '../ui/button'
-import { Prisma } from '@prisma/client'
-import { useAuth } from '@clerk/nextjs'
-import { getMediaById } from '@/lib/actions/client'
+import { Media, MediaType } from '@/lib/firebase/models'
 export enum MediaIdentity {
   'ID' = 'ID',
   'URL' = 'URL',
 }
 
 interface FileUploaderProps {
-  mediaIds: string[]
-  setContent: (value: string[]) => void
-  fileType: FileType
+  medias: Media[]
+  setContent: (value: Media[]) => void
+  fileType: MediaType
   maxFiles?: number
   maxFileSize?: number
-  targetType?: MediaIdentity
   multiple?: boolean
 }
 
 export const FileUploader: React.FC<FileUploaderProps> = ({
-  mediaIds,
+  medias,
   setContent,
-  fileType = FileType.IMAGE,
+  fileType = MediaType.IMAGE,
   maxFiles = 5,
   maxFileSize = 5 * 1024 * 1024, // 5MB
-  targetType,
   multiple = true,
 }) => {
   const { toast } = useToast()
-  const [files, setFiles] = useState<(File | string)[]>(mediaIds)
+  const [files, setFiles] = useState<(File | Media)[]>(medias)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const { getToken } = useAuth()
-  const getFileTypeText = (type: FileType) => {
+  const getMediaTypeText = (type: MediaType) => {
     switch (type) {
-      case FileType.IMAGE:
+      case MediaType.IMAGE:
         return 'images (JPEG, PNG, GIF, WEBP)'
-      case FileType.VIDEO:
+      case MediaType.VIDEO:
         return 'videos (MP4, WEBM, OGG)'
       default:
         return 'files'
@@ -51,10 +45,10 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   const validateFile = useCallback(
     (file: File) => {
       const fileType = file.type.split('/')[0]
-      if (fileType === FileType.IMAGE && ![FileType.IMAGE].includes(fileType)) {
+      if (fileType === MediaType.IMAGE && ![MediaType.IMAGE].includes(fileType)) {
         return 'Only image files are allowed'
       }
-      if (fileType === FileType.VIDEO && ![FileType.VIDEO].includes(fileType)) {
+      if (fileType === MediaType.VIDEO && ![MediaType.VIDEO].includes(fileType)) {
         return 'Only video files are allowed'
       }
       if (file.size > maxFileSize) {
@@ -100,7 +94,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept:
-      fileType === FileType.VIDEO
+      fileType === MediaType.VIDEO
         ? {
             'video/*': ['.mp4', '.webm', '.ogg'],
           }
@@ -113,9 +107,9 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     setFiles(files.filter((_, i) => i !== index))
     setError(null)
   }
-  const renderPreview = (file: File | string, index: number) => {
-    if (typeof file === 'string') {
-      return <ImageRender key={index} mediaId={file} removeFile={() => removeFile(index)} />
+  const renderPreview = (file: File | Media, index: number) => {
+    if ('url' in file) {
+      return <ImageRender key={index} mediaUrl={file.url} removeFile={() => removeFile(index)} />
     } else {
       const isVideo = file.type.startsWith('video/')
       const isImage = file.type.startsWith('image/')
@@ -162,7 +156,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
       )
     }
   }
-  const updateFile = async (files: File[]): Promise<string[] | null> => {
+  const updateFile = async (files: File[]): Promise<Media[] | null> => {
     const formData = new FormData()
     files.forEach(file => {
       formData.append(`files`, file)
@@ -170,22 +164,18 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     const result = await fetch('/api/media/upload', {
       method: 'POST',
       body: formData,
-      headers: {
-        Authorization: `Bearer ${await getToken()}`,
-      },
     })
+
     if (result.ok) {
       const data = await result.json()
-      return data.data.files.map((e: Prisma.MediaGetPayload<object>) =>
-        targetType === MediaIdentity.ID ? e.id : e.url,
-      )
+      return data.data.files
     }
     return null
   }
 
   const handleImport = async () => {
-    const existingFiles = files.filter(f => typeof f === 'string')
-    const updatedFiles = files.filter(f => !(typeof f === 'string'))
+    const existingFiles = files.filter(f => 'url' in f) as Media[]
+    const updatedFiles = files.filter(f => f instanceof File)
     if (files.length === 0) {
       setError('Please select at least one file')
       return
@@ -223,9 +213,9 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         >
           <input {...getInputProps()} id="fileInput" />
           <div className="p-8 text-center">
-            {fileType === FileType.IMAGE ? (
+            {fileType === MediaType.IMAGE ? (
               <ImageIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            ) : fileType === FileType.VIDEO ? (
+            ) : fileType === MediaType.VIDEO ? (
               <Film className="mx-auto h-12 w-12 text-gray-400 mb-4" />
             ) : (
               <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
@@ -235,7 +225,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 <span className="text-blue-500">Drop files here...</span>
               ) : (
                 <span>
-                  Drag & drop {getFileTypeText(fileType)}, or{' '}
+                  Drag & drop {getMediaTypeText(fileType)}, or{' '}
                   <span className="text-blue-500 cursor-pointer">browse</span>
                 </span>
               )}
@@ -288,44 +278,22 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   )
 }
 
-const ImageRender = ({ mediaId, removeFile }: { mediaId: string; removeFile: () => void }) => {
-  const isCloudinaryUrl = mediaId.includes('res.cloudinary.com')
-  const [fileUrl, setFileUrl] = useState<string>(isCloudinaryUrl ? mediaId : '')
-  const { getToken } = useAuth()
-
-  const fetchImageById = useCallback(
-    async (id: string) => {
-      const token = await getToken()
-      const res = await getMediaById(id, token || '')
-      if (res) {
-        setFileUrl(res)
-      }
-    },
-    [getToken],
-  )
-
-  useEffect(() => {
-    if (isCloudinaryUrl) return
-    fetchImageById(mediaId)
-  }, [fetchImageById, isCloudinaryUrl, mediaId])
+const ImageRender = ({ mediaUrl, removeFile }: { mediaUrl: string; removeFile: () => void }) => {
   return (
     <div className="relative group">
       <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-        {!fileUrl ? (
+        {!mediaUrl ? (
           <Loader2 className="w-5 h-5 animate-spin" />
         ) : (
           <Image
-            src={fileUrl}
-            alt={`Preview of ${fileUrl}`}
+            src={mediaUrl}
+            alt={`Preview image`}
             fill
             className="w-full h-full object-cover rounded-lg"
-            onLoad={() => URL.revokeObjectURL(fileUrl || '')}
+            onLoad={() => URL.revokeObjectURL(mediaUrl || '')}
             sizes="(max-width: 768px) 100vw,"
           />
         )}
-      </div>
-      <div className="absolute bottom-1 left-1 right-1 px-2 py-1 text-xs text-white bg-black/50 rounded truncate">
-        {mediaId as string}
       </div>
       <button
         onClick={e => {

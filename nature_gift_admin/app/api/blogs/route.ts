@@ -1,119 +1,60 @@
-import { getUserByClerkId } from '@/lib/actions/server'
+import { getBlogs, getUserTokensOnApiRoute, postData } from '@/lib/actions/server'
 import { generateSlug } from '@/lib/utils/slugify'
 import { blogSchema } from '@/lib/validations/blog'
-import { auth, currentUser } from '@clerk/nextjs/server'
-import { prisma } from '@/lib/prisma'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { CollectionsName } from '@/lib/firebase/collection-name'
 
-export const GET = async () => {
+export const GET = async (req: NextRequest) => {
   try {
-    const { userId } = await auth()
+    const token = await getUserTokensOnApiRoute(req)
 
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!token) {
+      return new NextResponse('Unauthorized', { status: 403 })
     }
 
-    const categories = await prisma.blog.findMany({
-      where: {
-        creatorId: _currentUser.id,
-      },
-      include: {
-        categories: {
-          include: {
-            category: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    })
+    const blogs = getBlogs()
 
-    return NextResponse.json(categories)
+    return NextResponse.json(blogs)
   } catch (error) {
     console.error('[CATEGORIES_GET]', error)
     return new NextResponse('Internal error', { status: 500 })
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const { userId } = await auth()
+    const token = await getUserTokensOnApiRoute(req)
 
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!token) {
+      return new NextResponse('Unauthorized', { status: 403 })
     }
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    const user = await currentUser()
-    const userName =
-      user?.firstName && user?.lastName
-        ? `${user.firstName} ${user.lastName}`
-        : user?.emailAddresses[0].emailAddress
 
-    const json = await req.json()
-    const body = blogSchema.parse({
+    const userName = token.decodedToken.name ? token.decodedToken.name : token.decodedToken?.email
+
+    const json = await req.clone().json()
+    const newJson = {
       ...json,
       slug: generateSlug(json.title),
+      customFields: [],
       metadata: {
         ...json.metadata,
         readingTime: calculateReadingTime(json.content.content),
         author: {
           ...json.metadata.author,
           name: userName,
-          avatar: user?.imageUrl,
+          avatar: token.decodedToken?.picture,
         },
       },
+    }
+    const newRequest = new NextRequest(req, {
+      body: JSON.stringify({
+        ...newJson,
+        creatorId: token.decodedToken.uid,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }),
     })
-
-    const blog = await prisma.blog.create({
-      data: {
-        creatorId: _currentUser.id,
-        title: body.title,
-        slug: body.slug,
-        content: body.content,
-        metadata: body.metadata,
-        tags: body.tags,
-        status: body.status,
-        layout: body.layout,
-        customFields: [],
-        publishedAt: body.publishedAt,
-        ...(body.categoryIds?.length > 0 && {
-          categories: {
-            create: body.categoryIds.map(categoryId => ({
-              category: { connect: { id: categoryId } },
-            })),
-          },
-        }),
-      },
-      include: {
-        categories: {
-          include: {
-            category: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-              },
-            },
-          },
-        },
-      },
-    })
-
-    return NextResponse.json(blog)
+    return postData(newRequest, blogSchema, CollectionsName.Blogs, true, 'slug', json.slug)
   } catch (error) {
     console.error('[BLOGS_POST]', error)
     return NextResponse.json({ error: 'Failed to create blog' }, { status: 500 })

@@ -5,15 +5,15 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { IProduct } from '@/lib/api/products'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import Image from 'next/image'
 import { useLocalization } from '@/hooks/useLocalization'
 import { sendGTMEvent } from '@next/third-parties/google'
 import { Price, ProductSeoMetadata } from '@/lib/type'
+import { Product } from '@/lib/firebase/models'
 
-export function ProductGallery({ product }: { product: IProduct }) {
-  const { media } = product
+export function ProductGallery({ product }: { product: Product }) {
+  const { medias } = product
   const [currentImage, setCurrentImage] = useState(0)
   const { localization } = useLocalization()
 
@@ -32,10 +32,10 @@ export function ProductGallery({ product }: { product: IProduct }) {
       items: [
         {
           item_name: iProduct?.title,
-          item_id: iProduct?.id,
+          item_id: iProduct?.path,
           price: price.regular,
           quantity: 0,
-          category: iProduct?.categories[0]?.category?.name,
+          category: iProduct?.categories[0],
         },
       ],
     })
@@ -54,12 +54,12 @@ export function ProductGallery({ product }: { product: IProduct }) {
             className="absolute inset-0"
           >
             <Image
-              src={product.media[currentImage].media.url}
+              src={product.medias[currentImage].url}
               alt={metadata.seoTitle}
               fill
               className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
               placeholder="blur"
-              blurDataURL={product.media[0].media.blurDataUrl || FAKE_BLUR}
+              blurDataURL={product.medias[0].blurDataUrl || FAKE_BLUR}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </motion.div>
@@ -72,7 +72,7 @@ export function ProductGallery({ product }: { product: IProduct }) {
             variant="ghost"
             size="icon"
             className="bg-white/80 backdrop-blur-sm hover:bg-white"
-            onClick={() => setCurrentImage(prev => (prev === 0 ? media.length - 1 : prev - 1))}
+            onClick={() => setCurrentImage(prev => (prev === 0 ? medias.length - 1 : prev - 1))}
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
@@ -80,7 +80,7 @@ export function ProductGallery({ product }: { product: IProduct }) {
             variant="ghost"
             size="icon"
             className="bg-white/80 backdrop-blur-sm hover:bg-white"
-            onClick={() => setCurrentImage(prev => (prev === media.length - 1 ? 0 : prev + 1))}
+            onClick={() => setCurrentImage(prev => (prev === medias.length - 1 ? 0 : prev + 1))}
           >
             <ChevronRight className="h-5 w-5" />
           </Button>
@@ -88,7 +88,7 @@ export function ProductGallery({ product }: { product: IProduct }) {
       </div>
 
       <div className="grid grid-cols-4 gap-4">
-        {media.map((value, index) => (
+        {medias.map((value, index) => (
           <motion.button
             key={index}
             whileHover={{ scale: 1.05 }}
@@ -99,12 +99,12 @@ export function ProductGallery({ product }: { product: IProduct }) {
             }`}
           >
             <Image
-              src={value.media.url}
+              src={value.url}
               alt={metadata.seoTitle}
               fill
               className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
               placeholder="blur"
-              blurDataURL={value.media.blurDataUrl || FAKE_BLUR}
+              blurDataURL={value.blurDataUrl || FAKE_BLUR}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </motion.button>

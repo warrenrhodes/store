@@ -1,4 +1,5 @@
 import * as z from 'zod'
+import { BlogLayout, BlogStatus, MediaType } from '../firebase/models'
 const required_error = 'This field cannot be blank'
 const invalid_type_error = 'Invalid type provided for this field'
 
@@ -17,7 +18,16 @@ export const blogMetadataSchema = z.object({
     bio: z.string().optional().nullable(),
     avatar: z.string().optional().nullable(),
   }),
-  coverImageURL: z.string().optional().nullable(),
+  coverImage: z
+    .object({
+      fileName: z.string(),
+      url: z.string(),
+      type: z.enum([MediaType.IMAGE, MediaType.VIDEO]),
+      blurDataUrl: z.string().optional().nullable(),
+      cloudinaryPublicPath: z.string().optional().nullable(),
+    })
+    .optional()
+    .nullable(),
   featured: z.boolean().default(false),
 })
 
@@ -26,12 +36,16 @@ export const blogSchema = z.object({
   title: z.string({ invalid_type_error, required_error }).min(2).max(100),
   content: blogContentSchema,
   metadata: blogMetadataSchema,
-  categoryIds: z.array(z.string()).min(1),
+  categories: z.array(z.string()).min(1),
   tags: z.array(z.string()),
-  status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).default('DRAFT'),
+  status: z
+    .enum([BlogStatus.DRAFT, BlogStatus.PUBLISHED, BlogStatus.ARCHIVED])
+    .default(BlogStatus.DRAFT),
   publishedAt: z.string().or(z.date()).default(new Date()).nullable(),
   customFields: z.array(z.record(z.string(), z.any())).optional().nullable(),
-  layout: z.enum(['DEFAULT', 'FEATURED', 'MINIMAL']).default('DEFAULT'),
+  layout: z
+    .enum([BlogLayout.DEFAULT, BlogLayout.FEATURED, BlogLayout.MINIMAL])
+    .default(BlogLayout.DEFAULT),
 })
 
 export type BlogSchemaType = z.infer<typeof blogSchema>

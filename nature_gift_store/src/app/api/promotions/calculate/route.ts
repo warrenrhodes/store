@@ -1,32 +1,21 @@
 import { NextResponse } from 'next/server'
 import { PromotionCalculator } from '@/lib/utils/promotion-calculator'
-import { prisma } from '@/lib/prisma'
+import { getAllCollection } from '@/lib/api/utils'
+import { Promotion } from '@/lib/firebase/models'
+import { CollectionsName } from '@/lib/firebase/collection-name'
+import { QueryFilter } from '@spreeloop/database'
 
 export async function POST(req: Request) {
   try {
-    const { searchParams } = new URL(req.url)
-    const query: any = {}
-
-    searchParams.forEach((value, key) => {
-      query[key] = value
-    })
-
     const { cart, shipping } = await req.json()
 
-    const promotions = await prisma.promotion.findMany({
-      where: {
-        status: 'ACTIVE',
-        startDate: {
-          lte: new Date(),
-        },
-        endDate: {
-          gte: new Date(),
-        },
-        ...query,
-      },
-      orderBy: {
-        priority: 'desc',
-      },
+    const promotions = await getAllCollection<Promotion>({
+      collection: CollectionsName.Promotions,
+      filters: [
+        new QueryFilter('status', '==', 'ACTIVE'),
+        new QueryFilter('startDate', '>=', new Date().toISOString()),
+        new QueryFilter('endDate', '<=', new Date().toISOString()),
+      ],
     })
 
     const calculator = new PromotionCalculator(cart, shipping, promotions)

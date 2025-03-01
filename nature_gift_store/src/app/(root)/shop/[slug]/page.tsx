@@ -5,10 +5,7 @@ import { RelatedProducts } from '@/components/Shop/ProductDetail/RelatedProducts
 import { RelatedBlogs } from '@/components/Shop/ProductDetail/RelatedBlogs'
 import { ActivePromotions } from '@/components/Shop/ProductDetail/ActivePromotions'
 import { ProductReviews } from '@/components/Shop/ProductDetail/ProductReviews'
-import { fetchProductBySlug, fetchRelatedProducts, getProducts } from '@/lib/api/products'
-import { getPromotions } from '@/lib/api/promotions'
 import GeneralCTAComponent from '@/components/Cta/GeneralCta'
-import { fetchBlogsByQuery } from '@/lib/api/blogs'
 import Loader from '@/components/Loader'
 import {
   BlogsLoading,
@@ -17,19 +14,39 @@ import {
   ProductsLoading,
 } from '@/components/Loading'
 import { AutoAddToCart } from './autoAddToCart'
-import { ProductSeoMetadata } from '@/lib/type'
+import { getAllCollection, getAllRelatedCollection, getDocumentBySlug } from '@/lib/api/utils'
+import { CollectionsName } from '@/lib/firebase/collection-name'
+import {
+  Blog,
+  BlogStatus,
+  Product,
+  ProductStatus,
+  Promotion,
+  PromotionStatus,
+  Review,
+} from '@/lib/firebase/models'
+import { QueryFilter } from '@spreeloop/database'
 
-export async function generateStaticParams() {
-  const product = await getProducts()
+// export async function generateStaticParams() {
+//   const product = await getAllCollection<Product>({
+//     collection: CollectionsName.Products,
+//     filters: [
+//       new QueryFilter('status', '==', ProductStatus.PUBLISHED),
+//       new QueryFilter('visibility', '==', true),
+//     ],
+//   })
 
-  return product.map(post => ({
-    slug: post.slug,
-  }))
-}
+//   return product.map(post => ({
+//     slug: post.slug,
+//   }))
+// }
 
 export async function generateMetadata({ params }: Props) {
-  const product = await fetchProductBySlug({ slug: (await params).slug })
-  const metadata = product?.metadata as undefined | ProductSeoMetadata
+  const product = await getDocumentBySlug<Product>({
+    collection: CollectionsName.Products,
+    slug: (await params).slug,
+  })
+  const metadata = product?.metadata
   return {
     title: metadata.seoTitle,
     description: metadata.seoDescription,
@@ -39,8 +56,8 @@ export async function generateMetadata({ params }: Props) {
       description: metadata.seoDescription,
       url: process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL,
       siteName: 'Nature Gift',
-      images: product?.media.reverse().map(m => ({
-        url: m.media.url,
+      images: product?.medias.reverse().map(m => ({
+        url: m.url,
         width: 800,
         height: 600,
       })),
@@ -93,12 +110,22 @@ export default async function ProductDetailPage(props: Props) {
 }
 
 async function ActivePromotionsLoader() {
-  const activePromotions = await getPromotions()
+  const activePromotions = await getAllCollection<Promotion>({
+    collection: CollectionsName.Promotions,
+    filters: [
+      new QueryFilter('status', '==', PromotionStatus.ACTIVE),
+      new QueryFilter('startDate', '>=', new Date().toISOString()),
+      new QueryFilter('endDate', '<=', new Date().toISOString()),
+    ],
+  })
 
   return <ActivePromotions activePromotions={activePromotions} />
 }
 async function AutoAddToCartLoader({ slug }: { slug: string }) {
-  const product = await fetchProductBySlug({ slug: slug })
+  const product = await getDocumentBySlug<Product>({
+    collection: CollectionsName.Products,
+    slug: slug,
+  })
 
   if (!product) return null
 
@@ -109,7 +136,14 @@ async function AutoAddToCartLoader({ slug }: { slug: string }) {
   )
 }
 async function FeaturedProductLoader({ slug }: { slug: string }) {
-  const product = await fetchProductBySlug({ slug: slug })
+  const product = await getDocumentBySlug<Product>({
+    collection: CollectionsName.Products,
+    slug: slug,
+  })
+  const reviews = await getAllCollection<Review>({
+    collection: CollectionsName.Reviews,
+    filters: [new QueryFilter('productPath', '==', product?.path)],
+  })
 
   if (!product) return null
 
@@ -120,33 +154,58 @@ async function FeaturedProductLoader({ slug }: { slug: string }) {
       className="grid grid-cols-1 lg:grid-cols-2 gap-8"
     >
       <ProductGallery product={product} />
-      <ProductInfo product={product} />
+      <ProductInfo product={product} reviews={reviews} />
     </div>
   )
 }
 
 async function FeaturedProductsLoader({ slug }: { slug: string }) {
-  const product = await fetchProductBySlug({ slug: slug })
+  const product = await getDocumentBySlug<Product>({
+    collection: CollectionsName.Products,
+    slug: slug,
+  })
   if (!product) return null
   return <FeaturesForProducts product={product} />
 }
 
 async function FeaturedProductReviewLoader({ slug }: { slug: string }) {
-  const product = await fetchProductBySlug({ slug: slug })
+  const product = await getDocumentBySlug<Product>({
+    collection: CollectionsName.Products,
+    slug: slug,
+  })
+
   if (!product) return null
-  return <ProductReviews product={product} />
+  const reviews = await getAllCollection<Review>({
+    collection: CollectionsName.Reviews,
+    filters: [new QueryFilter('productPath', '==', product?.path)],
+  })
+  return <ProductReviews product={product} reviews={reviews} />
 }
 
 async function RelatedProductLoader({ slug }: { slug: string }) {
-  const relatedProducts = await fetchRelatedProducts(slug)
+  const relatedProducts = await getAllRelatedCollection<Product>({
+    collection: CollectionsName.Products,
+    slug: slug,
+    filters: [
+      new QueryFilter('status', '==', ProductStatus.PUBLISHED),
+      new QueryFilter('visibility', '==', true),
+    ],
+  })
   if (!relatedProducts) return null
   return <RelatedProducts relatedProducts={relatedProducts || []} />
 }
 
 async function RelatedBlogLoader({ slug }: { slug: string }) {
-  const product = await fetchProductBySlug({ slug: slug })
-  const relatedBlogs = await fetchBlogsByQuery({
-    query: { categories: product?.categories.map(c => c.categoryId).join(',') },
+  const product = await getDocumentBySlug<Product>({
+    collection: CollectionsName.Products,
+    slug: slug,
+  })
+  const relatedBlogs = await getAllCollection<Blog>({
+    collection: CollectionsName.Blogs,
+    filters: [
+      new QueryFilter('status', '==', BlogStatus.PUBLISHED),
+      new QueryFilter('categories', 'in', product?.categories.join(',')),
+    ],
   })
   if (!relatedBlogs) return null
   return <RelatedBlogs relatedBlogs={relatedBlogs || []} />

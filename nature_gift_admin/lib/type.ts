@@ -1,4 +1,4 @@
-import { BlogContentType, ProductContentType, PromotionActionType } from '@prisma/client'
+import { BlogContentType, ProductContentType, PromotionActionType } from './firebase/models'
 
 export type SeoMetadata = {
   seoTitle?: string

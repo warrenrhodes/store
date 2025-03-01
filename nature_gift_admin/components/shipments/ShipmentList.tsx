@@ -6,9 +6,9 @@ import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '../custom-ui/DataTable'
 import { shipmentColumns } from './ShipmentColumns'
-import { Prisma } from '@prisma/client'
+import { IShipment } from '@/lib/actions/server'
 interface ShipmentListProps {
-  shipments: Prisma.ShipmentGetPayload<object>[]
+  shipments: IShipment[]
 }
 
 export function ShipmentList({ shipments }: ShipmentListProps) {

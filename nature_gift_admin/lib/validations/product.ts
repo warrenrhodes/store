@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { MediaType, ProductStatus } from '../firebase/models'
 
 export const ContentSchema = z.object({
   contentType: z.enum(['TEXT', 'HTML']).default('TEXT'),
@@ -34,13 +35,25 @@ const productSchema = z.object({
   title: z.string().min(2).max(50),
   slug: z.string(),
   description: ContentSchema,
-  media: z.array(z.string()).min(1),
-  categoryIds: z.array(z.string()).min(1),
+  medias: z
+    .array(
+      z.object({
+        fileName: z.string(),
+        url: z.string(),
+        type: z.enum([MediaType.IMAGE, MediaType.VIDEO]),
+        blurDataUrl: z.string().optional().nullable(),
+        cloudinaryPublicPath: z.string().optional().nullable(),
+      }),
+    )
+    .min(1),
+  categories: z.array(z.string()).min(1),
   tags: z.array(z.string()).optional().nullable(),
   price: PriceSchema,
   blogUrl: z.string().optional().nullable(),
   features: z.array(FeatureSchema).optional().nullable(),
-  status: z.enum(['draft', 'published', 'archived']).default('draft'),
+  status: z
+    .enum([ProductStatus.DRAFT, ProductStatus.PUBLISHED, ProductStatus.ARCHIVED])
+    .default(ProductStatus.DRAFT),
   visibility: z.boolean().default(true),
   isFeature: z.boolean().default(false),
   isNewProduct: z.boolean().default(false),
@@ -63,12 +76,12 @@ const productVerificationForm = (values: ProductSchemaType): string | undefined 
   }
 
   // Media validation
-  if (values.media.length === 0) {
+  if (values.medias.length === 0) {
     return 'At least one image is required.'
   }
 
   // Categories validation
-  if (values.categoryIds.length === 0) {
+  if (values.categories.length === 0) {
     return 'At least one category is required.'
   }
 

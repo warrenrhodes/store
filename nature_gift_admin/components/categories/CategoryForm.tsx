@@ -5,7 +5,6 @@ import { Loader2, Trash2, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useAuth } from '@clerk/nextjs'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -31,19 +30,20 @@ import { cn } from '@/lib/utils'
 import { generateSlug } from '@/lib/utils/slugify'
 import { CategorySchemaType, categorySchema } from '@/lib/validations/category'
 import CustomAccordion from '../accordion/CustomAccordion'
-import { FileType } from '../accordion/CustomAccordionItem'
-import { MediaIdentity, FileUploader } from '../custom-ui/FileUploader'
-import { Prisma } from '@prisma/client'
+import { FileUploader } from '../custom-ui/FileUploader'
+import { Media, MediaType } from '@/lib/firebase/models'
+import { ICategory } from '@/lib/actions/server'
+import { getDocumentId } from '@spreeloop/database'
 
 interface CategoryFormProps {
-  initialData?: any
-  categories?: Prisma.CategoryGetPayload<object>[]
+  category?: ICategory
+  categories?: ICategory[]
 }
 
-export function CategoryForm({ initialData, categories }: CategoryFormProps) {
+export function CategoryForm({ category, categories }: CategoryFormProps) {
   const router = useRouter()
   const { toast } = useToast()
-  const { getToken } = useAuth()
+  const initialData = useMemo(() => category?.data, [category])
 
   const [isLoading, setIsLoading] = useState(false)
 
@@ -57,8 +57,8 @@ export function CategoryForm({ initialData, categories }: CategoryFormProps) {
               slug: initialData.slug || '',
               description: initialData.description || '',
               featured: initialData.featured || false,
-              parentId: initialData.parentId || null,
-              imageId: initialData.imageId || null,
+              parentPath: initialData.parentPath || null,
+              image: initialData.image || null,
               seoMetadata: {
                 seoTitle: initialData.seoMetadata?.seoTitle || '',
                 seoDescription: initialData.seoMetadata?.seoDescription || '',
@@ -70,8 +70,8 @@ export function CategoryForm({ initialData, categories }: CategoryFormProps) {
               slug: '',
               description: '',
               featured: false,
-              parentId: null,
               image: null,
+              parentPath: null,
               seoMetadata: {
                 seoTitle: '',
                 seoDescription: '',
@@ -91,27 +91,23 @@ export function CategoryForm({ initialData, categories }: CategoryFormProps) {
   // Filter out the current category and its children to prevent circular references
   const availableParentCategories = (categories || []).filter(
     category =>
-      category.id !== initialData?.id &&
-      (!category.parentId || category.parentId !== initialData?.id),
+      category.path !== category?.path &&
+      (!category.data.parentPath || category.data.parentPath !== category?.path),
   )
 
   async function onSubmit(data: CategorySchemaType) {
     setIsLoading(true)
     try {
-      const url = initialData ? `/api/categories/${initialData.id}` : `/api/categories`
+      const url = category ? `/api/categories/${getDocumentId(category.path)}` : `/api/categories`
 
       const res = await fetch(url, {
-        method: initialData ? 'PUT' : 'POST',
+        method: category ? 'PUT' : 'POST',
         body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${await getToken()}`,
-        },
       })
       if (res.ok) {
         toast({
           variant: 'default',
-          description: `Category ${initialData ? 'updated' : 'created'}`,
+          description: `Category ${category ? 'updated' : 'created'}`,
         })
         window.location.href = '/categories'
         router.push('/categories')
@@ -185,16 +181,15 @@ export function CategoryForm({ initialData, categories }: CategoryFormProps) {
 
         <FormField
           control={form.control}
-          name="imageId"
+          name="image"
           render={({ field }) => (
             <FormItem>
               <CustomAccordion title="Category Image">
                 <FileUploader
-                  mediaIds={field.value ? [field.value] : []}
-                  setContent={(value: string[]) => field.onChange(value[0])}
-                  fileType={FileType.IMAGE}
+                  medias={field.value ? [field.value] : []}
+                  setContent={(value: Media[]) => field.onChange(value[0])}
+                  fileType={MediaType.IMAGE}
                   maxFiles={1}
-                  targetType={MediaIdentity.ID}
                 />
               </CustomAccordion>
               <FormMessage className="text-red-1" />
@@ -206,7 +201,7 @@ export function CategoryForm({ initialData, categories }: CategoryFormProps) {
           {availableParentCategories.length > 0 && (
             <FormField
               control={form.control}
-              name="parentId"
+              name="parentPath"
               render={({ field }) => (
                 <FormItem className=" flex flex-col gap-3">
                   <FormLabel>Parent</FormLabel>
@@ -219,9 +214,9 @@ export function CategoryForm({ initialData, categories }: CategoryFormProps) {
                       </FormControl>
 
                       <SelectContent>
-                        {availableParentCategories.map(category => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
+                        {availableParentCategories.map(avCategory => (
+                          <SelectItem key={avCategory.path} value={avCategory.path}>
+                            {avCategory.data.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -312,9 +307,9 @@ export function CategoryForm({ initialData, categories }: CategoryFormProps) {
         <div className="flex justify-between">
           <Button type="submit" disabled={isLoading}>
             {isLoading && <Loader2 className="animate-spin" />}
-            {initialData ? 'Update' : 'Create'} Category
+            {category ? 'Update' : 'Create'} Category
           </Button>
-          {initialData && (
+          {category && (
             <Button
               type="button"
               variant="destructive"
@@ -322,7 +317,7 @@ export function CategoryForm({ initialData, categories }: CategoryFormProps) {
               onClick={async () => {
                 setIsLoading(true)
                 try {
-                  await fetch(`/api/categories/${initialData.id}`, {
+                  await fetch(`/api/categories/${getDocumentId(category.path)}`, {
                     method: 'DELETE',
                   })
                   router.refresh()

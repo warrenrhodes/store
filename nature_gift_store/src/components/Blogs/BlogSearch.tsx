@@ -7,11 +7,11 @@ import { motion } from 'framer-motion'
 import { AnimatePresence } from 'framer-motion'
 import { Card, CardContent } from '../ui/card'
 import Link from 'next/link'
-import { IBlog } from '@/lib/api/blogs'
 import { useLocalization } from '@/hooks/useLocalization'
 import { BlogContent } from '@/lib/type'
+import { Blog } from '@/lib/firebase/models'
 
-export function BlogSearch({ blogs }: { blogs: IBlog[] }) {
+export function BlogSearch({ blogs }: { blogs: Blog[] }) {
   const [query, setQuery] = useState('')
   const { localization } = useLocalization()
   const blogsFiltered = blogs.filter(blog => blog.title.toLowerCase().includes(query.toLowerCase()))
@@ -50,7 +50,7 @@ export function BlogSearch({ blogs }: { blogs: IBlog[] }) {
                 <div className="flex flex-col gap-2 max-h-96 overflow-y-scroll">
                   {blogsFiltered.map(e => (
                     <motion.div
-                      key={e.id}
+                      key={e.slug}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}

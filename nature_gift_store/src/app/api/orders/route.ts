@@ -1,6 +1,8 @@
+import { CollectionsName } from '@/lib/firebase/collection-name'
+import { backend } from '@/lib/firebase/firebase-server/firebase'
+import { Order, OrderStatus } from '@/lib/firebase/models'
 import { FlockNotifier } from '@/lib/notifications/flock/flock'
 import { sendEmailNotifications, sendSmsNotifications } from '@/lib/notifications/sendNotifications'
-import { prisma } from '@/lib/prisma'
 import { format } from 'date-fns'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -9,53 +11,38 @@ const flockNotifier = new FlockNotifier({
 })
 /// Request to create new order.
 export const POST = async (req: NextRequest) => {
-  const { order, cartItems, user } = await req.json()
+  const { order, cartItems } = await req.json()
+
+  const data = {
+    deliveryInfo: order.deliveryInfo,
+    userData: order.userData,
+    status: OrderStatus.PENDING,
+    orderPrices: order.orderPrices,
+    partnersPaths: cartItems.map((item: any) => item.product.partnersPaths),
+    items: cartItems.map((item: any) => ({
+      product: {
+        medias: item.product.medias,
+        title: item.product.title,
+        path: item.product.path,
+        price: item.product.price,
+        partnerPath: item.product.partnerPath,
+      },
+      quantity: item.quantity,
+      price: item.price,
+    })),
+    promotions: order.promotions,
+  }
 
   try {
-    const newOrder = await prisma.order.create({
-      data: {
-        deliveryInfo: order.deliveryInfo,
-        userData: order.userData,
-        status: 'PENDING',
-        orderPrices: order.orderPrices,
-        items: {
-          create: cartItems.map((item: any) => ({
-            product: {
-              connect: { id: item.product.id },
-            },
-            quantity: item.quantity,
-            price: item.price,
-          })),
-        },
-        promotions: order.promotions,
-        user: {
-          connect: {
-            id: user.id,
-          },
-        },
-      },
-      include: {
-        items: {
-          include: {
-            product: {
-              include: {
-                media: {
-                  include: {
-                    media: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    })
+    const newOrderPath = await backend.database.createRecord(CollectionsName.Orders, data)
 
-    if (!newOrder) {
+    if (!newOrderPath) {
       return NextResponse.json({ error: 'Failed to create order' }, { status: 500 })
     }
+    const newOrder = await backend.database.getRecord<Order>(newOrderPath)
+
     try {
-      await flockNotifier.sendOrderNotification(newOrder)
+      await flockNotifier.sendOrderNotification({ ...newOrder.data, path: newOrder.path })
     } catch (error) {
       console.error('Error sending Flock notification:', error)
     }
@@ -107,7 +94,7 @@ export const POST = async (req: NextRequest) => {
       }
     }
 
-    return NextResponse.json(newOrder, { status: 201 })
+    return NextResponse.json({ ...newOrder.data, path: newOrder.path }, { status: 201 })
   } catch (error) {
     console.error('[ORDERS_POST]', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })

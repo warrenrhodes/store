@@ -9,10 +9,11 @@ import { ArrowUpDown, Edit } from 'lucide-react'
 import { Badge } from '../ui/badge'
 import { cn } from '@/lib/utils'
 import { priceFormatted } from '@/lib/utils/utils'
-import { Prisma } from '@prisma/client'
 import { Inventory, Price } from '@/lib/type'
+import { getDocumentId } from '@spreeloop/database'
+import { IProduct } from '@/lib/actions/server'
 
-export const productColumns: ColumnDef<Prisma.ProductGetPayload<object>>[] = [
+export const productColumns: ColumnDef<IProduct>[] = [
   {
     id: 'select',
     header: ({ table }) => (
@@ -56,12 +57,12 @@ export const productColumns: ColumnDef<Prisma.ProductGetPayload<object>>[] = [
       <div>
         <Badge
           className={cn({
-            'bg-green-500 ': row.original.status === 'published',
-            'bg-gray-500': row.original.status === 'draft',
-            'bg-red-500': row.original.status === 'archived',
+            'bg-green-500 ': row.original.data.status === 'published',
+            'bg-gray-500': row.original.data.status === 'draft',
+            'bg-red-500': row.original.data.status === 'archived',
           })}
         >
-          {row.original.status}
+          {row.original.data.status}
         </Badge>
       </div>
     ),
@@ -73,11 +74,11 @@ export const productColumns: ColumnDef<Prisma.ProductGetPayload<object>>[] = [
       <div>
         <Badge
           className={cn({
-            'bg-blue-500 ': row.original.visibility === true,
-            'bg-gray-500': !row.original.visibility,
+            'bg-blue-500 ': row.original.data.visibility === true,
+            'bg-gray-500': !row.original.data.visibility,
           })}
         >
-          {row.original.visibility === true ? 'Visible' : 'Hidden'}
+          {row.original.data.visibility === true ? 'Visible' : 'Hidden'}
         </Badge>
       </div>
     ),
@@ -86,7 +87,7 @@ export const productColumns: ColumnDef<Prisma.ProductGetPayload<object>>[] = [
     accessorKey: 'price',
     header: 'Price (FCFA)',
     cell: ({ row }) => (
-      <div>{priceFormatted((row.original.price as unknown as Price).regular)}</div>
+      <div>{priceFormatted((row.original.data.price as unknown as Price).regular)}</div>
     ),
   },
   {
@@ -94,9 +95,9 @@ export const productColumns: ColumnDef<Prisma.ProductGetPayload<object>>[] = [
     header: 'Inventory',
     cell: ({ row }) => (
       <div>
-        {(row.original.inventory as Inventory).quantity}
-        {(row.original.inventory as Inventory).quantity <=
-          (row.original.inventory as Inventory).lowStockThreshold && (
+        {(row.original.data.inventory as Inventory).quantity}
+        {(row.original.data.inventory as Inventory).quantity <=
+          (row.original.data.inventory as Inventory).lowStockThreshold && (
           <Badge variant="destructive" className="ml-2">
             Low Stock
           </Badge>
@@ -108,9 +109,8 @@ export const productColumns: ColumnDef<Prisma.ProductGetPayload<object>>[] = [
     id: 'actions',
     enableHiding: false,
     cell: ({ row }) => {
-      const product = row.original
       const onDelete = async (): Promise<boolean> => {
-        const res = await fetch(`/api/products/${product.id}`, {
+        const res = await fetch(`/api/products/${getDocumentId(row.original.path)}`, {
           method: 'DELETE',
         })
         return res.ok
@@ -118,7 +118,7 @@ export const productColumns: ColumnDef<Prisma.ProductGetPayload<object>>[] = [
 
       return (
         <div>
-          <Link href={`/products/${product.id}`}>
+          <Link href={`/products/${getDocumentId(row.original.path)}`}>
             <div className="flex gap-3 items-center">
               <Edit className="w-4 h-4" />
               Edit

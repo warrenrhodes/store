@@ -5,15 +5,15 @@ import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { format, subDays } from 'date-fns'
-import { IBlog } from '@/lib/api/blogs'
 import Link from 'next/link'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import Image from 'next/image'
 import { useLocalization } from '@/hooks/useLocalization'
 import { BlogContent, BlogMetadata } from '@/lib/type'
+import { Blog } from '@/lib/firebase/models'
 
 interface RelatedBlogsProps {
-  relatedBlogs: IBlog[]
+  relatedBlogs: Blog[]
 }
 
 export function RelatedBlogs({ relatedBlogs }: RelatedBlogsProps) {
@@ -29,7 +29,7 @@ export function RelatedBlogs({ relatedBlogs }: RelatedBlogsProps) {
           const content = blog.content as BlogContent
           return (
             <motion.div
-              key={`${blog.id}`}
+              key={`${blog.slug}`}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}

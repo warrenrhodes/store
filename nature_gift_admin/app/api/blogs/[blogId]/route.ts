@@ -1,126 +1,52 @@
-import { getUserByClerkId } from '@/lib/actions/server'
+import { deleteData, getDataById, putData } from '@/lib/actions/server'
 import { blogSchema } from '@/lib/validations/blog'
-import { auth } from '@clerk/nextjs/server'
-import { prisma } from '@/lib/prisma'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { CollectionsName } from '@/lib/firebase/collection-name'
 
-export async function GET(req: Request, props: { params: Promise<{ blogId: string }> }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ blogId: string }> }) {
   const params = await props.params
   try {
-    const { userId } = await auth()
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const blog = await prisma.blog.findUnique({
-      where: { id: params.blogId, creatorId: _currentUser.id },
-      include: {
-        categories: {
-          include: {
-            category: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-              },
-            },
-          },
-        },
-      },
-    })
-
-    if (!blog) {
-      return NextResponse.json({ error: 'Blog not found' }, { status: 404 })
-    }
-
-    return NextResponse.json(blog)
+    return getDataById(req, CollectionsName.Blogs, params.blogId)
   } catch (error) {
     console.error('[BLOG_GET]', error)
     return NextResponse.json({ error: 'Failed to fetch blog' }, { status: 500 })
   }
 }
 
-export async function PUT(req: Request, props: { params: Promise<{ blogId: string }> }) {
+export async function PUT(req: NextRequest, props: { params: Promise<{ blogId: string }> }) {
   const params = await props.params
   try {
-    const { userId } = await auth()
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const json = await req.json()
-
-    const body = blogSchema.partial().parse(json)
-
-    // Handle categories separately if they exist in the update
-    const { categoryIds: categoryIds, ...updateData } = body
-
-    const blog = await prisma.blog.update({
-      where: { id: params.blogId, creatorId: _currentUser.id },
-      data: {
-        ...updateData,
-        customFields: [],
-        ...(categoryIds && {
-          categories: {
-            deleteMany: {}, // Remove existing categories
-            create: categoryIds.map(categoryId => ({
-              category: { connect: { id: categoryId } },
-            })),
-          },
-        }),
-      },
-      include: {
-        categories: {
-          include: {
-            category: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-              },
-            },
-          },
+    const json = await req.clone().json()
+    const readTime = calculateReadingTime(json.content.content)
+    const newRequest = new NextRequest(req, {
+      body: JSON.stringify({
+        ...json,
+        metadata: {
+          ...json.metadata,
+          readingTime: readTime,
         },
-      },
+        updatedAt: new Date().toISOString(),
+      }),
     })
-
-    return NextResponse.json(blog)
+    return putData(newRequest, blogSchema, CollectionsName.Blogs, params.blogId)
   } catch (error) {
     console.error('[BLOG_PATCH]', error)
     return NextResponse.json({ error: 'Failed to update blog' }, { status: 500 })
   }
 }
 
-export async function DELETE(req: Request, props: { params: Promise<{ blogId: string }> }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ blogId: string }> }) {
   const params = await props.params
   try {
-    const { userId } = await auth()
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    await prisma.blog.delete({
-      where: { id: params.blogId, creatorId: _currentUser.id },
-    })
-
-    return NextResponse.json({ message: 'Blog deleted successfully' })
+    return deleteData(req, CollectionsName.Blogs, params.blogId)
   } catch (error) {
     console.error('[BLOG_DELETE]', error)
     return NextResponse.json({ error: 'Failed to delete blog' }, { status: 500 })
   }
+}
+
+function calculateReadingTime(content: string): number {
+  const wordsPerMinute = 200
+  const wordCount = content.split(/\s+/).length
+  return Math.ceil(wordCount / wordsPerMinute)
 }

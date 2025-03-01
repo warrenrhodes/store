@@ -42,7 +42,7 @@ export function CartItem({ item, increaseQuantity, decreaseQuantity, onRemove }:
             <div className="text-center">
               <p className="mb-4">{localization.removeConfirmation}</p>
               <div className="flex gap-2 justify-center">
-                <Button variant="destructive" onClick={() => onRemove(item.product.id as string)}>
+                <Button variant="destructive" onClick={() => onRemove(item.product.path as string)}>
                   {localization.remove}
                 </Button>
                 <Button variant="outline" onClick={() => setIsRemoving(false)}>
@@ -56,13 +56,13 @@ export function CartItem({ item, increaseQuantity, decreaseQuantity, onRemove }:
           <div className="flex gap-4">
             <div className="relative aspect-square w-24 rounded-lg overflow-hidden">
               <Image
-                src={item.product.media[0].media.url}
+                src={item.product.medias[0].url}
                 fill
                 alt={(item.product.metadata as ProductSeoMetadata).seoTitle}
                 className="object-cover w-full h-full"
                 onError={() => console.log('Image not found')}
                 placeholder="blur"
-                blurDataURL={item.product.media[0].media.blurDataUrl || FAKE_BLUR}
+                blurDataURL={item.product.medias[0].blurDataUrl || FAKE_BLUR}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
               {item.product.isFeature && (
@@ -84,7 +84,7 @@ export function CartItem({ item, increaseQuantity, decreaseQuantity, onRemove }:
                     variant="outline"
                     size="icon"
                     onClick={() =>
-                      decreaseQuantity(item.product.id, Math.max(1, item.quantity - 1))
+                      decreaseQuantity(item.product.path, Math.max(1, item.quantity - 1))
                     }
                     disabled={item.quantity <= 1}
                   >
@@ -94,7 +94,7 @@ export function CartItem({ item, increaseQuantity, decreaseQuantity, onRemove }:
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => increaseQuantity(item.product.id, item.quantity + 1)}
+                    onClick={() => increaseQuantity(item.product.path, item.quantity + 1)}
                     disabled={
                       item.quantity >= ((item.product.inventory as Inventory).stockQuantity || 0)
                     }

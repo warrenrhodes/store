@@ -5,9 +5,9 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '../custom-ui/DataTable'
 import { blogsColumns } from './BlogColumn'
-import { Prisma } from '@prisma/client'
+import { IBlog } from '@/lib/actions/server'
 interface BlogListProps {
-  blogs: Prisma.BlogGetPayload<object>[]
+  blogs: IBlog[]
 }
 
 export function BlogList({ blogs }: BlogListProps) {

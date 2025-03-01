@@ -10,7 +10,6 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import CustomRichTextEditor from '@/components/accordion/CustomRichText'
 import { Textarea } from '@/components/ui/textarea'
 import { Path, PathValue, UseFormReturn } from 'react-hook-form'
-import useAuthToken from '@/hooks/useAuthToken'
 
 interface ContentEditorProps<T extends Record<string, any>> {
   form: UseFormReturn<T>
@@ -25,8 +24,6 @@ export const ContentEditor = <T extends Record<string, any>>({
   contentFieldKey,
   label,
 }: ContentEditorProps<T>) => {
-  const { token } = useAuthToken()
-
   return (
     <div className="flex flex-col gap-2 w-full">
       <FormLabel>{label}</FormLabel>
@@ -58,7 +55,7 @@ export const ContentEditor = <T extends Record<string, any>>({
           </FormItem>
         )}
       />
-      {form.watch(contentTypeFieldKey) === 'HTML' && token ? (
+      {form.watch(contentTypeFieldKey) === 'HTML' ? (
         <FormField
           control={form.control}
           name={contentFieldKey}
@@ -67,7 +64,6 @@ export const ContentEditor = <T extends Record<string, any>>({
               <FormControl>
                 <div className="flex gap-2">
                   <CustomRichTextEditor
-                    token={token}
                     content={(field.value || '') as string}
                     onSave={field.onChange}
                   />

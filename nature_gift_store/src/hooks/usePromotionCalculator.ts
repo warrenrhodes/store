@@ -1,37 +1,20 @@
 'use client'
 
 import { useCallback, useState } from 'react'
-import { IPromotion } from '@/lib/api/promotions'
-import { IDeliveryInfo } from '@/lib/api/orders'
 import { CartItem } from './useCart'
+import { IDeliveryInfo } from '@/lib/firebase/models'
 
-const calculatePromotion = async (
-  cart: CartItem[],
-  deliveryInfo?: Partial<IDeliveryInfo>,
-  query?: Partial<{ [key in keyof IPromotion]: string }>,
-) => {
-  const searchParams = new URLSearchParams()
-  if (query) {
-    for (const [key, value] of Object.entries(query)) {
-      if (value !== undefined) {
-        searchParams.append(key, value)
-      }
-    }
-  }
-
-  const response = await fetch(
-    `/api/promotions/calculate${query ? '?' + new URLSearchParams(query).toString() : ''}`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        cart,
-        shipping: deliveryInfo,
-      }),
+const calculatePromotion = async (cart: CartItem[], deliveryInfo?: Partial<IDeliveryInfo>) => {
+  const response = await fetch(`/api/promotions/calculate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
     },
-  )
+    body: JSON.stringify({
+      cart,
+      shipping: deliveryInfo,
+    }),
+  })
   return await response.json()
 }
 
@@ -40,27 +23,19 @@ export function usePromotionCalculator() {
   const [error, setError] = useState<string | null>(null)
 
   const _calculatePromotion = useCallback(
-    async (
-      cart: CartItem[],
-      deliveryInfo?: Partial<IDeliveryInfo>,
-      query?: Partial<{ [key in keyof IPromotion]: string }>,
-    ) => {
-      return await calculatePromotion(cart, deliveryInfo, query)
+    async (cart: CartItem[], deliveryInfo?: Partial<IDeliveryInfo>) => {
+      return await calculatePromotion(cart, deliveryInfo)
     },
     [],
   )
 
   const calculatePromotions = useCallback(
-    async (
-      cart: CartItem[],
-      deliveryInfo?: Partial<IDeliveryInfo>,
-      query?: Partial<{ [key in keyof IPromotion]: string }>,
-    ) => {
+    async (cart: CartItem[], deliveryInfo?: Partial<IDeliveryInfo>) => {
       setIsCalculating(true)
       setError(null)
 
       try {
-        const result = await _calculatePromotion(cart, deliveryInfo, query)
+        const result = await _calculatePromotion(cart, deliveryInfo)
 
         if (result.error) {
           setError(result.error)

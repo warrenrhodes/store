@@ -22,28 +22,28 @@ import MultiText from '../custom-ui/MultiText'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Switch } from '../ui/switch'
 import { SubmitButton } from './components/SubmitButton'
-import { Prisma } from '@prisma/client'
-import { useAuth } from '@clerk/nextjs'
+import { IShipment } from '@/lib/actions/server'
+import { getDocumentId } from '@spreeloop/database'
+import { ShipmentMethod } from '@/lib/firebase/models'
 interface ShipmentFormProps {
-  initialData?: Prisma.ShipmentGetPayload<object> | null
-  shipments?: Prisma.ShipmentGetPayload<object>[]
+  initialData?: IShipment
+  shipments?: IShipment[]
 }
 
 const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) => {
-  const { getToken } = useAuth()
   const router = useRouter()
   const [isLoading, setLoading] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
   const form = useForm<ShipmentSchemaType>({
     resolver: zodResolver(shipmentSchema),
-    defaultValues: initialData
+    defaultValues: initialData?.data
       ? {
-          ...initialData,
+          ...initialData.data,
         }
       : {
           locations: [],
-          method: 'DELIVERY',
+          method: ShipmentMethod.DELIVERY,
           isActive: false,
           cost: 0,
         },
@@ -60,7 +60,9 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
   const onSubmit = async (values: ShipmentSchemaType) => {
     try {
       setLoading(true)
-      const url = initialData ? `/api/shipments/${initialData.id}` : '/api/shipments'
+      const url = initialData
+        ? `/api/shipments/${getDocumentId(initialData.path)}`
+        : '/api/shipments'
       console.log('📤 [shipments_POST] Submitting:', {
         url,
         method: initialData ? 'PUT' : 'POST',
@@ -68,10 +70,6 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
       })
       const res = await fetch(url, {
         method: initialData ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${await getToken()}`,
-        },
         body: JSON.stringify(values),
       })
 
@@ -114,35 +112,33 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
   }
 
   const onDelete = async () => {
-    try {
-      setIsDeleting(true)
-      const res = await fetch(`/api/shipments/${initialData?.id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${await getToken()}`,
-        },
-      })
+    if (initialData)
+      try {
+        setIsDeleting(true)
+        const res = await fetch(`/api/shipments/${getDocumentId(initialData.path)}`, {
+          method: 'DELETE',
+        })
 
-      if (!res.ok) {
-        throw new Error(await res.text())
+        if (!res.ok) {
+          throw new Error(await res.text())
+        }
+
+        toast({
+          description: 'Shipment deleted successfully',
+          variant: 'success',
+        })
+
+        router.refresh() // Refresh the page data
+        router.push('/shipments')
+      } catch (err) {
+        console.error('[shipments_DELETE]', err)
+        toast({
+          description: err instanceof Error ? err.message : 'Failed to delete shipment',
+          variant: 'destructive',
+        })
+      } finally {
+        setIsDeleting(false)
       }
-
-      toast({
-        description: 'Shipment deleted successfully',
-        variant: 'success',
-      })
-
-      router.refresh() // Refresh the page data
-      router.push('/shipments')
-    } catch (err) {
-      console.error('[shipments_DELETE]', err)
-      toast({
-        description: err instanceof Error ? err.message : 'Failed to delete shipment',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsDeleting(false)
-    }
   }
 
   return (
@@ -183,8 +179,8 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
                     onChange={tag => {
                       if (
                         shipments
-                          ?.filter(shipment => shipment.method === form.watch('method'))
-                          .map(e => e.locations)
+                          ?.filter(shipment => shipment.data.method === form.watch('method'))
+                          .map(e => e.data.locations)
                           .flat()
                           .map(location => location.toLowerCase())
                           .includes(tag.toLowerCase())

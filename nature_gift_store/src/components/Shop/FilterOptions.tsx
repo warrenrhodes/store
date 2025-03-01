@@ -5,16 +5,15 @@ import { Slider } from '@/components/ui/slider'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion'
 import { Separator } from '../ui/separator'
 import { Checkbox } from '../ui/checkbox'
-import { ICategory } from '@/lib/api/categories'
-import { Filters } from '@/lib/api/products'
 import { useLocalization } from '@/hooks/useLocalization'
+import { Category, Filters } from '@/lib/firebase/models'
 
 interface FilterOptionsProps {
   filters: Filters
   setFilters: (filters: Filters) => void
   minPrice: number
   maxPrice: number
-  categories: ICategory[]
+  categories: Category[]
 }
 
 export function FilterOptions({
@@ -66,22 +65,22 @@ export function FilterOptions({
               <AccordionContent>
                 <div className="space-y-4 pt-2">
                   {categories.map(category => (
-                    <div key={`${category.id}`} className="flex items-center space-x-2">
+                    <div key={`${category.path}`} className="flex items-center space-x-2">
                       <Checkbox
-                        id={`${category.id}`}
-                        checked={filters.categories.includes(category.id)}
+                        id={`${category.path}`}
+                        checked={filters.categories.includes(category.slug)}
                         onCheckedChange={e =>
                           setFilters({
                             ...filters,
                             categories:
                               e === false
-                                ? filters.categories.filter(c => c !== category.id)
-                                : [...filters.categories, category.id],
+                                ? filters.categories.filter(c => c !== category.slug)
+                                : [...filters.categories, category.slug],
                           })
                         }
                       />
                       <label
-                        htmlFor={`${category.id}`}
+                        htmlFor={`${category.path}`}
                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1"
                       >
                         {category.name}

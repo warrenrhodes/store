@@ -25,12 +25,12 @@ import { DeliveryFormData } from '@/lib/utils/validation-form'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { cn } from '@/lib/utils/utils'
 import { useCartDeliveryInfo } from '@/hooks/useCart'
-import { IShipment } from '@/lib/api/shipments'
 
 import { useLocalization } from '@/hooks/useLocalization'
+import { Shipment } from '@/lib/firebase/models'
 interface DeliveryFormProps {
   onSubmit: (data: DeliveryFormData) => void
-  shipment: IShipment[]
+  shipment: Shipment[]
   form: UseFormReturn<DeliveryFormData>
 }
 const TIME_IN_HOUR_BEFORE_DELIVERY = 3

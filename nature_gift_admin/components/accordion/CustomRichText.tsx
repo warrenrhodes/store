@@ -11,7 +11,6 @@ import RichTextV1 from './rich_text/RichTextV1'
 interface CustomRichTextProps {
   content: string
   onSave: (value: string) => void
-  token: string
 }
 
 function CustomRichTextEditor(props: CustomRichTextProps) {

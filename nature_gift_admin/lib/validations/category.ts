@@ -1,4 +1,5 @@
 import * as z from 'zod'
+import { MediaType } from '../firebase/models'
 
 export const categorySchema = z.object({
   name: z
@@ -7,19 +8,26 @@ export const categorySchema = z.object({
     .max(50, 'Name must be less than 50 characters'),
   slug: z.string(),
   description: z.string().optional().nullable(),
-  imageId: z.string().optional().nullable(),
-  featured: z.boolean().default(false),
-  parentId: z.string().optional().nullable(),
-  seoMetadata: z
+  image: z
     .object({
-      seoTitle: z.string().optional().nullable(),
-      seoDescription: z.string().optional().nullable(),
-      keywords: z.array(z.string()).optional().nullable(),
+      fileName: z.string(),
+      url: z.string(),
+      type: z.enum([MediaType.IMAGE, MediaType.VIDEO]),
+      blurDataUrl: z.string().optional().nullable(),
+      cloudinaryPublicPath: z.string().optional().nullable(),
     })
     .optional()
     .nullable(),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
+  featured: z.boolean().default(false),
+  parentPath: z.string().optional().nullable(),
+  seoMetadata: z
+    .object({
+      seoTitle: z.string(),
+      seoDescription: z.string(),
+      keywords: z.array(z.string()),
+    })
+    .optional()
+    .nullable(),
 })
 
 export type CategorySchemaType = z.infer<typeof categorySchema>

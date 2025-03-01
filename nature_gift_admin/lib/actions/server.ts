@@ -1,32 +1,28 @@
-import { Prisma } from '@prisma/client'
-import { prisma } from '@/lib/prisma'
-import { currentUser, auth } from '@clerk/nextjs/server'
 import { OrderPrices } from '../type'
+import { getTokens, Tokens } from 'next-firebase-auth-edge'
+import { cookies } from 'next/headers'
+import { clientConfig, serverConfig } from '@/config'
+import { backend } from '../firebase/firebase-server/firebase'
+import { DatabaseDocument, getDatabasePath, QueryFilter } from '@spreeloop/database'
+import { CollectionsName } from '../firebase/collection-name'
+import { Blog, Category, Order, Product, Promotion, Review, Shipment } from '../firebase/models'
+import { NextRequest, NextResponse } from 'next/server'
+import z from 'zod'
 
-export type IOrder = Prisma.OrderGetPayload<{
-  include: {
-    items: {
-      include: {
-        product: {
-          include: {
-            media: {
-              include: {
-                media: true
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}>
+export type ICategory = DatabaseDocument<Category>
+export type IShipment = DatabaseDocument<Shipment>
+export type IReview = DatabaseDocument<Review>
+export type IBlog = DatabaseDocument<Blog>
+export type IPromotion = DatabaseDocument<Promotion>
+export type IProduct = DatabaseDocument<Product>
+export type IOrder = DatabaseDocument<Order>
 
 export const getTotalSales = async () => {
   const orders = await getOrders()
 
   const totalOrders = orders.length
   const totalRevenue = orders.reduce(
-    (acc, order) => acc + ((order?.orderPrices as OrderPrices | undefined)?.total || 0) || 0,
+    (acc, order) => acc + ((order?.data.orderPrices as OrderPrices | undefined)?.total || 0) || 0,
     0,
   )
   return { totalOrders, totalRevenue }
@@ -42,9 +38,10 @@ export const getSalesPerMonth = async () => {
   const orders = await getOrders()
 
   const salesPerMonth = orders.reduce<Record<number, number>>((acc, order) => {
-    const monthIndex = new Date(order.createdAt).getMonth()
+    const monthIndex = new Date(order.data.createdAt).getMonth()
     acc[monthIndex] =
-      (acc[monthIndex] || 0) + ((order?.orderPrices as OrderPrices | undefined)?.total || 0) || 0
+      (acc[monthIndex] || 0) + ((order?.data.orderPrices as OrderPrices | undefined)?.total || 0) ||
+      0
     return acc
   }, {})
 
@@ -56,22 +53,16 @@ export const getSalesPerMonth = async () => {
   return graphData
 }
 
-export async function getProducts(): Promise<Prisma.ProductGetPayload<{}>[]> {
+export async function getProducts(): Promise<IProduct[]> {
   try {
-    const { userId } = await auth()
-    if (!userId) return []
+    const token = await getUserTokens()
+    if (!token?.decodedToken.uid) return []
 
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) return []
-
-    const products = await prisma.product.findMany({
-      where: {
-        creatorId: _currentUser.id,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
+    const products = await backend.database.getCollection<Product>({
+      collectionPath: CollectionsName.Products,
+      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
     })
+
     return products
   } catch (error) {
     console.error('Failed to fetch products:', error)
@@ -79,409 +70,68 @@ export async function getProducts(): Promise<Prisma.ProductGetPayload<{}>[]> {
   }
 }
 
-export async function getCategoriesOnProduct(): Promise<
-  Prisma.CategoriesOnProductsGetPayload<{}>[]
-> {
+export async function getProductById(productId: string): Promise<IProduct | undefined> {
+  const productPath = getDatabasePath(CollectionsName.Products, productId)
   try {
-    const { userId } = await auth()
-    if (!userId) return []
+    const token = await getUserTokens()
+    if (!token?.decodedToken.uid) return
 
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) return []
-
-    const categories = await prisma.categoriesOnProducts.findMany({
-      where: {
-        product: {
-          creatorId: _currentUser.id,
-        },
-      },
+    const products = await backend.database.getCollection<Product>({
+      collectionPath: CollectionsName.Products,
+      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
     })
-    return categories
-  } catch (error) {
-    console.error('Failed to fetch categories:', error)
-    return []
-  }
-}
 
-export async function getProductId(id: string): Promise<Prisma.ProductGetPayload<{}> | null> {
-  try {
-    const { userId } = await auth()
-    if (!userId) return null
-
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) return null
-
-    const product = await prisma.product.findUnique({
-      where: {
-        id,
-        creatorId: _currentUser.id,
-      },
-    })
-    return product
+    return products.find(product => product.path === productPath)
   } catch (error) {
     console.error('Failed to fetch product:', error)
-    return null
+    return
   }
 }
 
-export async function getCategories(): Promise<Prisma.CategoryGetPayload<{}>[]> {
+export async function getCategories(): Promise<ICategory[]> {
   try {
-    const { userId } = await auth()
-    if (!userId) return []
+    const token = await getUserTokens()
+    if (!token?.decodedToken.uid) return []
 
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) return []
-
-    const categories = await prisma.category.findMany({
-      where: {
-        creatorId: _currentUser.id,
-      },
+    const categories = await backend.database.getCollection<Category>({
+      collectionPath: CollectionsName.Categories,
+      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
     })
+
     return categories
   } catch (error) {
     console.error('Failed to fetch categories:', error)
     return []
   }
 }
-
-export async function getCategoriesOfProduct(
-  productId: string,
-): Promise<Prisma.CategoriesOnProductsGetPayload<{}>[]> {
+export async function getCategoryById(categoryId: string): Promise<ICategory | undefined> {
+  const categoryPath = getDatabasePath(CollectionsName.Categories, categoryId)
   try {
-    const { userId } = await auth()
-    if (!userId) return []
+    const token = await getUserTokens()
+    if (!token?.decodedToken.uid) return
 
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) return []
-
-    const categories = await prisma.categoriesOnProducts.findMany({
-      where: {
-        productId,
-        product: {
-          creatorId: _currentUser.id,
-        },
-      },
+    const category = await backend.database.getCollection<Category>({
+      collectionPath: CollectionsName.Categories,
+      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
     })
-    return categories
-  } catch (error) {
-    console.error(`Failed to fetch categories of productId ${productId}:`, error)
-    return []
-  }
-}
 
-export async function getCategoryById(
-  categoryId: string,
-): Promise<Prisma.CategoryGetPayload<{}> | null> {
-  try {
-    const { userId } = await auth()
-    if (!userId) return null
-
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) return null
-
-    const category = await prisma.category.findUnique({
-      where: {
-        id: categoryId,
-        creatorId: _currentUser.id,
-      },
-    })
-    return category
+    return category.find(category => category.path === categoryPath)
   } catch (error) {
     console.error('Failed to fetch category:', error)
-    return null
+    return
   }
 }
 
-export async function getCategoriesOfBlog(
-  blogId: string,
-): Promise<Prisma.CategoriesOnBlogsGetPayload<{}>[]> {
+export async function getShipments(): Promise<IShipment[]> {
   try {
-    const { userId } = await auth()
-    if (!userId) return []
+    const token = await getUserTokens()
+    if (!token?.decodedToken.uid) return []
 
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) return []
-
-    const categories = await prisma.categoriesOnBlogs.findMany({
-      where: {
-        blogId,
-        blog: {
-          creatorId: _currentUser.id,
-        },
-      },
+    const shipments = await backend.database.getCollection<Shipment>({
+      collectionPath: CollectionsName.Shipments,
+      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
     })
-    return categories
-  } catch (error) {
-    console.error(`Failed to fetch categories of blog ${blogId}:`, error)
-    return []
-  }
-}
 
-export async function getBlogById(blogId: string): Promise<Prisma.BlogGetPayload<{}> | null> {
-  try {
-    const { userId } = await auth()
-    if (!userId) return null
-
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) return null
-
-    const blogPost = await prisma.blog.findUnique({
-      where: {
-        id: blogId,
-        creatorId: _currentUser.id,
-      },
-    })
-    return blogPost
-  } catch (error) {
-    console.error('Failed to fetch blog post:', error)
-    return null
-  }
-}
-
-export async function getBlogs(): Promise<Prisma.BlogGetPayload<{}>[]> {
-  try {
-    const { userId } = await auth()
-    if (!userId) return []
-
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) return []
-
-    const blogs = await prisma.blog.findMany({
-      where: {
-        creatorId: _currentUser.id,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    })
-    return blogs
-  } catch (error) {
-    console.error('Failed to fetch blogs:', error)
-    return []
-  }
-}
-
-export async function getMedias(): Promise<Prisma.MediaGetPayload<{}>[]> {
-  try {
-    const { userId } = await auth()
-    if (!userId) return []
-
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) return []
-
-    const medias = await prisma.media.findMany({
-      where: {
-        creatorId: _currentUser.id,
-      },
-    })
-    return medias
-  } catch (error) {
-    console.error('Failed to fetch medias:', error)
-    return []
-  }
-}
-
-export async function getReviews(): Promise<Prisma.ReviewGetPayload<{}>[]> {
-  try {
-    const { userId } = await auth()
-    if (!userId) return []
-
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) return []
-
-    const reviews = await prisma.review.findMany({
-      where: {
-        creatorId: _currentUser.id,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    })
-    return reviews
-  } catch (error) {
-    console.error('Failed to fetch reviews:', error)
-    return []
-  }
-}
-
-export async function getReviewById(reviewId: string): Promise<Prisma.ReviewGetPayload<{}> | null> {
-  try {
-    const { userId } = await auth()
-    if (!userId) return null
-
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) return null
-
-    const review = await prisma.review.findUnique({
-      where: {
-        id: reviewId,
-        creatorId: _currentUser.id,
-      },
-    })
-    return review
-  } catch (error) {
-    console.error('Failed to fetch review:', error)
-    return null
-  }
-}
-
-export async function getOrders(): Promise<IOrder[]> {
-  try {
-    const { userId } = await auth()
-    if (!userId) return []
-
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) return []
-
-    const orders = await prisma.order.findMany({
-      where: {
-        items: {
-          some: {
-            product: {
-              partnerId: _currentUser.id,
-            },
-          },
-        },
-      },
-      include: {
-        user: true,
-        items: {
-          where: {
-            product: {
-              partnerId: _currentUser.id,
-            },
-          },
-          include: {
-            product: {
-              include: {
-                media: {
-                  include: {
-                    media: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    })
-    return orders
-  } catch (error) {
-    console.error('Failed to fetch orders:', error)
-    return []
-  }
-}
-
-export async function getOrderItemsOfOrder(params: {
-  orderId: string
-}): Promise<Prisma.OrderItemGetPayload<{}>[]> {
-  try {
-    const { userId } = await auth()
-    if (!userId) return []
-
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) return []
-
-    const orderItems = await prisma.orderItem.findMany({
-      where: {
-        orderId: params.orderId,
-      },
-    })
-    return orderItems
-  } catch (error) {
-    console.error(`Failed to fetch orderItems of orderId ${params.orderId}:`, error)
-    return []
-  }
-}
-
-export async function getMediasOfProduct(
-  productId: string,
-): Promise<Prisma.MediasOnProductsGetPayload<{}>[]> {
-  try {
-    const { userId } = await auth()
-    if (!userId) return []
-
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) return []
-
-    const medias = await prisma.mediasOnProducts.findMany({
-      where: {
-        productId,
-        product: {
-          creatorId: _currentUser.id,
-        },
-      },
-    })
-    return medias
-  } catch (error) {
-    console.error(`Failed to fetch medias of productId ${productId}:`, error)
-    return []
-  }
-}
-
-export async function getPromotions(): Promise<Prisma.PromotionGetPayload<{}>[]> {
-  try {
-    const { userId } = await auth()
-    if (!userId) return []
-
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) return []
-
-    const promotions = await prisma.promotion.findMany({
-      where: {
-        creatorId: _currentUser.id,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    })
-    return promotions
-  } catch (error) {
-    console.error('Failed to fetch promotions:', error)
-    return []
-  }
-}
-
-export async function getPromotionById(
-  promotionId: string,
-): Promise<Prisma.PromotionGetPayload<{}> | null> {
-  try {
-    const { userId } = await auth()
-    if (!userId) return null
-
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) return null
-
-    const promotion = await prisma.promotion.findUnique({
-      where: {
-        id: promotionId,
-        creatorId: _currentUser.id,
-      },
-    })
-    return promotion
-  } catch (error) {
-    console.error('Failed to fetch promotion:', error)
-    return null
-  }
-}
-export async function getShipments(): Promise<Prisma.ShipmentGetPayload<{}>[]> {
-  try {
-    const { userId } = await auth()
-    if (!userId) return []
-
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) return []
-    const shipments = prisma.shipment.findMany({
-      where: {
-        creatorId: _currentUser.id,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    })
     return shipments
   } catch (error) {
     console.error('Failed to fetch shipments:', error)
@@ -489,67 +139,293 @@ export async function getShipments(): Promise<Prisma.ShipmentGetPayload<{}>[]> {
   }
 }
 
-export async function getShipmentById(
-  shipmentById: string,
-): Promise<Prisma.ShipmentGetPayload<{}> | null> {
+export async function getBlogs(): Promise<IBlog[]> {
   try {
-    const { userId } = await auth()
-    if (!userId) return null
+    const token = await getUserTokens()
+    if (!token?.decodedToken.uid) return []
 
-    const _currentUser = await getUserByClerkId(userId)
-    if (!_currentUser?.id) return null
-
-    const shipment = await prisma.shipment.findUnique({
-      where: {
-        id: shipmentById,
-        creatorId: _currentUser.id,
-      },
+    const blogs = await backend.database.getCollection<Blog>({
+      collectionPath: CollectionsName.Blogs,
+      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
     })
-    return shipment
+
+    return blogs
   } catch (error) {
-    console.error('Failed to fetch shipment:', error)
-    return null
+    console.error('Failed to fetch blogs:', error)
+    return []
   }
 }
 
-export async function getUserByClerkId(clerkId: string): Promise<Prisma.UserGetPayload<{}> | null> {
+export async function getBlogById(blogId: string): Promise<IBlog | undefined> {
+  const blogPath = getDatabasePath(CollectionsName.Blogs, blogId)
   try {
-    const user = await prisma.user.findUnique({
-      where: {
-        clerkId: clerkId,
-      },
+    const token = await getUserTokens()
+    if (!token?.decodedToken.uid) return
+
+    const blogs = await backend.database.getCollection<Blog>({
+      collectionPath: CollectionsName.Blogs,
+      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
     })
-    return user || createNewUser()
+
+    return blogs.find(blog => blog.path === blogPath)
+  } catch (error) {
+    console.error('Failed to fetch blog post:', error)
+    return
+  }
+}
+
+export async function getReviews(): Promise<IReview[]> {
+  try {
+    const token = await getUserTokens()
+    if (!token?.decodedToken.uid) return []
+
+    const reviews = await backend.database.getCollection<Review>({
+      collectionPath: CollectionsName.Reviews,
+      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
+    })
+
+    return reviews
+  } catch (error) {
+    console.error('Failed to fetch reviews:', error)
+    return []
+  }
+}
+
+export async function getReviewById(reviewId: string): Promise<IReview | undefined> {
+  const reviewPath = getDatabasePath(CollectionsName.Reviews, reviewId)
+  try {
+    const token = await getUserTokens()
+    if (!token?.decodedToken.uid) return
+
+    const reviews = await backend.database.getCollection<Review>({
+      collectionPath: CollectionsName.Reviews,
+      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
+    })
+
+    return reviews.find(review => review.path === reviewPath)
+  } catch (error) {
+    console.error('Failed to fetch review:', error)
+    return
+  }
+}
+
+export async function getOrders(): Promise<IOrder[]> {
+  try {
+    const token = await getUserTokens()
+    if (!token?.decodedToken.uid) return []
+
+    const orders = await backend.database.getCollection<Order>({
+      collectionPath: CollectionsName.Orders,
+      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
+    })
+
+    return orders.filter(order =>
+      order.data.partnersPaths.includes(
+        getDatabasePath(CollectionsName.Users, token?.decodedToken.uid),
+      ),
+    )
+  } catch (error) {
+    console.error('Failed to fetch orders:', error)
+    return []
+  }
+}
+
+export async function getPromotions(): Promise<IPromotion[]> {
+  try {
+    const token = await getUserTokens()
+    if (!token?.decodedToken.uid) return []
+
+    const promotions = await backend.database.getCollection<Promotion>({
+      collectionPath: CollectionsName.Promotions,
+      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
+    })
+
+    return promotions
+  } catch (error) {
+    console.error('Failed to fetch promotions:', error)
+    return []
+  }
+}
+
+export async function getPromotionById(promotionId: string): Promise<IPromotion | undefined> {
+  const promotionPath = getDatabasePath(CollectionsName.Promotions, promotionId)
+  try {
+    const token = await getUserTokens()
+    if (!token?.decodedToken.uid) return
+
+    const promotions = await backend.database.getCollection<Promotion>({
+      collectionPath: CollectionsName.Promotions,
+      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
+    })
+
+    return promotions.find(promotion => promotion.path === promotionPath)
   } catch (error) {
     console.error('Failed to fetch promotion:', error)
-    return createNewUser()
+    return
   }
 }
 
-export async function createNewUser(): Promise<Prisma.UserGetPayload<{}> | null> {
+export async function getShipmentById(shipmentId: string): Promise<IShipment | undefined> {
+  const shipmentPath = getDatabasePath(CollectionsName.Shipments, shipmentId)
   try {
-    const clerkUser = await currentUser()
+    const token = await getUserTokens()
+    if (!token?.decodedToken.uid) return
 
-    if (!clerkUser) {
-      return null
-    }
-
-    const newUser = await prisma.user.upsert({
-      where: { clerkId: clerkUser.id },
-      update: {},
-      create: {
-        clerkId: clerkUser.id,
-        email: clerkUser.primaryEmailAddress?.emailAddress,
-        fullName: `${clerkUser.firstName} ${clerkUser.lastName}`.trim(),
-        phone: clerkUser.primaryPhoneNumber?.phoneNumber,
-        avatar: clerkUser.imageUrl,
-        isAnonymous: false,
-      },
+    const shipment = await backend.database.getCollection<Shipment>({
+      collectionPath: CollectionsName.Shipments,
+      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
     })
 
-    return newUser
+    return shipment.find(shipment => shipment.path === shipmentPath)
   } catch (error) {
-    console.error('Failed to create new user:', error)
-    return null
+    console.error('Failed to fetch shipment:', error)
+    return
   }
+}
+
+const getUserTokens = async (): Promise<Tokens | undefined> => {
+  const tokens = await getTokens(await cookies(), {
+    apiKey: clientConfig.apiKey,
+    cookieName: serverConfig.cookieName,
+    cookieSignatureKeys: serverConfig.cookieSignatureKeys,
+    serviceAccount: serverConfig.serviceAccount,
+  })
+
+  if (!tokens) {
+    return
+  }
+  return tokens
+}
+
+export const checkDocumentExists = async (
+  collection: string,
+  field: string,
+  value: string,
+): Promise<boolean> => {
+  const snapshot = await backend.database.getCollection({
+    collectionPath: collection,
+    filters: [new QueryFilter(field, '==', value)],
+  })
+
+  return snapshot.length > 0
+}
+
+export const getUserTokensOnApiRoute = async (
+  request: NextRequest,
+): Promise<Tokens | undefined> => {
+  const tokens = await getTokens(request.cookies, {
+    apiKey: clientConfig.apiKey,
+    cookieName: serverConfig.cookieName,
+    cookieSignatureKeys: serverConfig.cookieSignatureKeys,
+    serviceAccount: serverConfig.serviceAccount,
+  })
+
+  if (!tokens) {
+    return
+  }
+  return tokens
+}
+
+export const postData = async (
+  req: NextRequest,
+  schema: z.ZodSchema,
+  collection: string,
+  verifyRecordExists?: boolean,
+  uniqueField?: string,
+  value: string = '',
+) => {
+  const token = await getUserTokensOnApiRoute(req)
+
+  if (!token) {
+    return new NextResponse('Unauthorized', { status: 403 })
+  }
+
+  const json = await req.json()
+  schema.parse(json)
+
+  if (verifyRecordExists && uniqueField) {
+    const existingCategory = await checkDocumentExists(collection, uniqueField, value)
+
+    if (existingCategory) {
+      return new NextResponse(`${collection} already exists`, { status: 409 })
+    }
+  }
+
+  const result = await backend.database.createRecord(collection, {
+    ...json,
+    creatorId: token.decodedToken.uid,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  })
+
+  if (!result) {
+    return new NextResponse(`Failed to create ${collection}`, { status: 500 })
+  }
+  return new NextResponse(null, { status: 200 })
+}
+
+export const getDataById = async <T>(req: NextRequest, collection: string, id: string) => {
+  const token = await getUserTokensOnApiRoute(req)
+
+  if (!token) {
+    return new NextResponse('Unauthorized', { status: 403 })
+  }
+  const path = getDatabasePath(collection, id)
+
+  const result = await backend.database.getCollection<T>({
+    collectionPath: collection,
+    filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
+  })
+
+  const data = result.find(shipment => shipment.path === path)
+
+  if (!data) {
+    return new NextResponse(`${collection} not found`, { status: 404 })
+  }
+  return NextResponse.json(data, { status: 200 })
+}
+
+export const putData = async (
+  req: NextRequest,
+  schema: z.ZodSchema,
+  collection: string,
+  id: string,
+) => {
+  const token = await getUserTokensOnApiRoute(req)
+
+  if (!token) {
+    return new NextResponse('Unauthorized', { status: 403 })
+  }
+
+  const json = await req.json()
+  schema.parse(json)
+  const result = await backend.database.setRecord(getDatabasePath(collection, id), {
+    ...json,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  })
+
+  if (!result) {
+    return new NextResponse(`${collection} not found`, { status: 404 })
+  }
+
+  return NextResponse.json(result, { status: 200 })
+}
+export const deleteData = async (req: NextRequest, collection: string, id: string) => {
+  const token = await getUserTokensOnApiRoute(req)
+
+  if (!token) {
+    return new NextResponse('Unauthorized', { status: 403 })
+  }
+
+  const dataRef = backend.db.collection(collection).doc(id)
+  const dataDoc = await dataRef.get()
+
+  if (!dataDoc.exists || dataDoc?.data()?.creatorId !== token.decodedToken.uid) {
+    return new NextResponse('Not Found or Unauthorized', { status: 404 })
+  }
+
+  await dataRef.delete()
+
+  return NextResponse.json(null, { status: 200 })
 }

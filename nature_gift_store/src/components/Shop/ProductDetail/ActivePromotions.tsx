@@ -4,8 +4,8 @@ import { motion } from 'framer-motion'
 import { Tag, Timer } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { getDetailedExpiresIn } from '@/lib/utils/utils'
-import { IPromotion } from '@/lib/api/promotions'
 import { useLocalization } from '@/hooks/useLocalization'
+import { Promotion } from '@/lib/firebase/models'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -28,7 +28,7 @@ const itemVariants = {
   },
 }
 
-export function ActivePromotions({ activePromotions }: { activePromotions: IPromotion[] }) {
+export function ActivePromotions({ activePromotions }: { activePromotions: Promotion[] }) {
   const { localization } = useLocalization()
 
   if (activePromotions.length === 0) {
@@ -46,9 +46,9 @@ export function ActivePromotions({ activePromotions }: { activePromotions: IProm
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
       >
         {activePromotions.map(promo => {
-          const expiresIn = getDetailedExpiresIn(promo.endDate)
+          const expiresIn = getDetailedExpiresIn(new Date(promo.endDate))
           return (
-            <motion.div key={`${promo.id}`} variants={itemVariants} className="h-full">
+            <motion.div key={`${promo.path}`} variants={itemVariants} className="h-full">
               <Card className="h-full">
                 <CardHeader>
                   <div className="flex items-center gap-2 text-primary mb-2">

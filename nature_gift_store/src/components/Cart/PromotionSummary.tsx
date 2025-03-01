@@ -7,9 +7,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { usePromotionCalculator } from '@/hooks/usePromotionCalculator'
 import { priceFormatted } from '@/lib/utils/utils'
 import { Tag } from 'lucide-react'
-import { IDeliveryInfo, OrderSummary } from '@/lib/api/orders'
 import { CartItem } from '@/hooks/useCart'
 import { useLocalization } from '@/hooks/useLocalization'
+import { IDeliveryInfo, OrderSummary } from '@/lib/firebase/models'
 
 interface PromotionSummaryProps {
   cartItems: CartItem[]

@@ -13,11 +13,11 @@ import {
   ProductsLoading,
   PromotionLoading,
 } from '@/components/Loading'
-import { fetchAllBlogs } from '@/lib/api/blogs'
-import { getCategories } from '@/lib/api/categories'
-import { fetchProductsByQuery } from '@/lib/api/products'
-import { getPromotions } from '@/lib/api/promotions'
+import { getAllCollection, getAllValidPromotion } from '@/lib/api/utils'
+import { CollectionsName } from '@/lib/firebase/collection-name'
+import { Blog, BlogStatus, Category, Product, ProductStatus } from '@/lib/firebase/models'
 import { BlogMetadata } from '@/lib/type'
+import { QueryFilter } from '@spreeloop/database'
 
 export default function Home() {
   return (
@@ -46,41 +46,52 @@ export default function Home() {
 }
 
 async function Categories() {
-  const categories = (await getCategories()) || []
-  const filteredCategories = categories.filter(category => category.parentId === null)
+  const categories =
+    (await getAllCollection<Category>({ collection: CollectionsName.Categories })) || []
+  const filteredCategories = categories.filter(category => category.parentPath === null)
   return <CategoryShowcase categories={filteredCategories} />
 }
 
 async function FeaturedProductsLoader() {
   const featuredProducts =
-    (await fetchProductsByQuery({
-      query: {
-        isFeature: 'true',
-      },
+    (await getAllCollection<Product>({
+      collection: CollectionsName.Products,
+      filters: [
+        new QueryFilter('isFeatured', '==', true),
+        new QueryFilter('visibility', '==', true),
+        new QueryFilter('status', '==', ProductStatus.PUBLISHED),
+      ],
     })) || []
 
   return <FeaturedProducts products={featuredProducts.slice(0, 6)} />
 }
 
 async function PromotionBannerLoader() {
-  const promotionBanner = (await getPromotions()) || []
+  const promotionBanner = await getAllValidPromotion()
 
   return <PromotionBanner promotions={promotionBanner} />
 }
 
 async function NewArrivalsLoader() {
   const newArrivals =
-    (await fetchProductsByQuery({
-      query: {
-        isNewProduct: 'true',
-      },
+    (await getAllCollection<Product>({
+      collection: CollectionsName.Products,
+      filters: [
+        new QueryFilter('isNewProduct', '==', true),
+        new QueryFilter('visibility', '==', true),
+        new QueryFilter('status', '==', ProductStatus.PUBLISHED),
+      ],
     })) || []
 
   return <NewArrivals products={newArrivals.slice(0, 6)} />
 }
 
 async function FeaturedBlogsLoader() {
-  const featuredBlogs = (await fetchAllBlogs()) || []
+  const featuredBlogs =
+    (await getAllCollection<Blog>({
+      collection: CollectionsName.Blogs,
+      filters: [new QueryFilter('status', '==', BlogStatus.PUBLISHED)],
+    })) || []
 
   return (
     <FeaturedBlogs blogs={featuredBlogs.filter(blog => (blog.metadata as BlogMetadata).featured)} />

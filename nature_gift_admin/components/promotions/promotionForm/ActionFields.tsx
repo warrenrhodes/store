@@ -204,7 +204,7 @@ export function ActionFields({ form }: ActionFieldsProps) {
                       {...field}
                       value={field.value ?? ''}
                       onKeyDown={handleKeyPress}
-                      onChange={e => field.onChange(e.target.value)}
+                      onChange={e => field.onChange(parseInt(e.target.value))}
                     />
                   </FormControl>
                   <FormMessage />

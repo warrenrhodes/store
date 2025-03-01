@@ -7,14 +7,14 @@ import {
   differenceInHours,
   format,
 } from 'date-fns'
-import { IProduct } from '../api/products'
 import { Price } from '../type'
+import { Product, Review } from '../firebase/models'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export const getPrice = (product: IProduct): number => {
+export const getPrice = (product: Product): number => {
   const now = new Date()
   const price = product.price as unknown as Price
 
@@ -27,7 +27,7 @@ export const getPrice = (product: IProduct): number => {
   return price.regular
 }
 
-export const getReviewAverage = (reviews: IProduct['reviews']) => {
+export const getReviewAverage = (reviews: Review[]) => {
   if (reviews.length === 0) {
     return 0
   }
@@ -39,7 +39,7 @@ export const priceFormatted = (price: number) => {
   return price.toLocaleString('en-US', { style: 'currency', currency: 'XAF' })
 }
 
-export const getRegularPrice = (product: IProduct) => {
+export const getRegularPrice = (product: Product) => {
   const price = product.price as unknown as Price
 
   if (price.sale && canDisplayPromoPrice(product)) {
@@ -80,7 +80,7 @@ export function getDetailedExpiresIn(endDate: Date): string {
   return `expired in ${yearsDiff} year${yearsDiff !== 1 ? 's' : ''}`
 }
 
-export const canDisplayPromoPrice = (product: IProduct) => {
+export const canDisplayPromoPrice = (product: Product) => {
   const now = new Date()
   const price = product.price as unknown as Price
   if (!price.saleStartDate || !price.saleEndDate) return false

@@ -18,7 +18,7 @@ export default async function EditCategoryPage(props: { params: Promise<{ catego
         <h1 className="text-3xl font-bold">Edit Category</h1>
         <p className="text-muted-foreground">Make changes to your category</p>
       </div>
-      <CategoryForm initialData={category} categories={categories} />
+      <CategoryForm category={category} categories={categories} />
     </div>
   )
 }

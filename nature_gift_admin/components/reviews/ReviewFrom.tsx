@@ -3,7 +3,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
-import { useAuth } from '@clerk/nextjs'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -26,27 +25,26 @@ import { Checkbox } from '../ui/checkbox'
 import { Label } from '../ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Textarea } from '../ui/textarea'
-import { Prisma } from '@prisma/client'
+import { IProduct, IReview } from '@/lib/actions/server'
+import { getDocumentId } from '@spreeloop/database'
 interface ReviewFormProps {
-  initialData?: Prisma.ReviewGetPayload<object> | null
-  products: Prisma.ProductGetPayload<object>[]
+  initialData?: IReview | null
+  products: IProduct[]
 }
 
 const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
   const router = useRouter()
-  const { getToken } = useAuth()
   const { toast } = useToast()
   const [imagePreview, setImagePreview] = useState<File | null>(null)
   const [isLoading, setLoading] = useState(false)
 
   const form = useForm<ReviewSchemaType>({
     resolver: zodResolver(reviewSchema),
-    defaultValues: initialData
+    defaultValues: initialData?.data
       ? {
-          ...initialData,
-          productId: initialData.productId || '',
-          notHelpful: initialData.notHelpful ?? 0,
-          helpful: initialData.helpful ?? 0,
+          ...initialData?.data,
+          notHelpful: initialData?.data.notHelpful ?? 0,
+          helpful: initialData?.data.helpful ?? 0,
         }
       : {
           userName: '',
@@ -54,7 +52,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
           comment: '',
           helpful: 0,
           verify: false,
-          productId: '',
+          productPath: '',
           notHelpful: 0,
         },
   })
@@ -71,7 +69,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
     try {
       setLoading(true)
       if (imagePreview) {
-        const imageUrl = await uploadImages([imagePreview], (await getToken()) || '')
+        const imageUrl = await uploadImages([imagePreview])
         if (imageUrl) {
           values.imageUrl = imageUrl
         } else {
@@ -83,13 +81,11 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
           return
         }
       }
-      const url = initialData ? `/api/reviews/${initialData.id}` : '/api/reviews'
+      const url = initialData
+        ? `/api/reviews/${getDocumentId(initialData.path || '')}`
+        : '/api/reviews'
       const res = await fetch(url, {
         method: initialData ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${await getToken()}`,
-        },
         body: JSON.stringify(values),
       })
       if (res.ok) {
@@ -118,11 +114,8 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
   }
 
   const onDelete = async (): Promise<boolean> => {
-    const res = await fetch(`/api/reviews/${initialData?.id}`, {
+    const res = await fetch(`/api/reviews/${getDocumentId(initialData?.path || '')}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${await getToken()}`,
-      },
     })
     return res.ok
   }
@@ -153,7 +146,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
           />
           <FormField
             control={form.control}
-            name="productId"
+            name="productPath"
             render={({ field }) => (
               <FormItem className=" flex flex-col gap-3">
                 <FormLabel>Product</FormLabel>
@@ -169,8 +162,8 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
 
                       <SelectContent>
                         {products.map(product => (
-                          <SelectItem key={product.id} value={product.id}>
-                            {product.title}
+                          <SelectItem key={product.path} value={product.path}>
+                            {product.data.title}
                           </SelectItem>
                         ))}
                       </SelectContent>

@@ -7,15 +7,13 @@ import {
   CarTaxiFrontIcon,
   Gift,
   LayoutDashboard,
+  LogIn,
   LogOut,
-  LucideImage,
   Shapes,
   ShoppingBag,
   Stars,
   Tag,
-  UsersRound,
 } from 'lucide-react'
-import { SignedIn, SignOutButton, useUser } from '@clerk/nextjs'
 import {
   Sidebar,
   SidebarContent,
@@ -26,8 +24,11 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
 import { NavMain } from './NavMain'
-import { NavUser } from './NavUser'
 import Link from 'next/link'
+import { useAuthStore } from '@/hooks/auth-store'
+import { ROUTES } from '@/lib/router'
+import { NavUser } from './NavUser'
+import { useRouter } from 'next/navigation'
 
 const data = {
   navMain: [
@@ -52,21 +53,21 @@ const data = {
       icon: Gift,
       title: 'Promotions',
     },
-    {
-      url: '/medias',
-      icon: LucideImage,
-      title: 'Medias',
-    },
+    // {
+    //   url: '/medias',
+    //   icon: LucideImage,
+    //   title: 'Medias',
+    // },
     {
       url: '/orders',
       icon: ShoppingBag,
       title: 'Orders',
     },
-    {
-      url: '/customers',
-      icon: UsersRound,
-      title: 'Customers',
-    },
+    // {
+    //   url: '/customers',
+    //   icon: UsersRound,
+    //   title: 'Customers',
+    // },
     {
       url: '/blogs',
       icon: BookOpenTextIcon,
@@ -86,8 +87,8 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { isSignedIn, user } = useUser()
-
+  const { user, logout } = useAuthStore()
+  const router = useRouter()
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -111,30 +112,35 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        {isSignedIn && (
+        {user && (
           <NavUser
             user={{
-              name: user.fullName || user.emailAddresses[0].emailAddress,
-              email: user.emailAddresses[0].emailAddress,
-              avatar: user.imageUrl,
+              name: user.displayName || '',
+              email: user?.email || '',
+              avatar: user.photoURL || '',
             }}
           />
         )}
-        {isSignedIn && (
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <SignedIn>
-                  <SignOutButton redirectUrl="/sign-in">
-                    <span className="flex items-center gap-3 w-full cursor-pointer">
-                      <LogOut className="h-4 w-4" />
-                      Sign Out
-                    </span>
-                  </SignOutButton>
-                </SignedIn>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+        {user && (
+          <div
+            onClick={async () => {
+              await logout()
+              router.replace(ROUTES.signIn)
+            }}
+            className="flex items-center gap-3 w-full justify-start p-0 bg-transparent pl-2 cursor-pointer"
+          >
+            <LogOut className="h-4 w-4" />
+            Sign out
+          </div>
+        )}
+        {!user && (
+          <Link
+            href={ROUTES.signIn}
+            className="flex items-center gap-3 w-full justify-start p-0 bg-transparent pl-2 cursor-pointer"
+          >
+            <LogIn className="h-4 w-4" />
+            Sign In
+          </Link>
         )}
       </SidebarFooter>
     </Sidebar>

@@ -3,16 +3,16 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/comp
 import { ProductSchemaType } from '@/lib/validations/product'
 import { AlertTriangle } from 'lucide-react'
 import { UseFormReturn } from 'react-hook-form'
-import { Prisma } from '@prisma/client'
+import { ICategory } from '@/lib/actions/server'
 interface CategoriesFieldsProps {
   form: UseFormReturn<ProductSchemaType>
-  categories: Prisma.CategoryGetPayload<object>[]
+  categories: ICategory[]
 }
 export const CategoriesForm: React.FC<CategoriesFieldsProps> = ({ form, categories }) => {
   return (
     <FormField
       control={form.control}
-      name="categoryIds"
+      name="categories"
       render={({ field }) => (
         <FormItem>
           <FormLabel>Categories*</FormLabel>
@@ -24,17 +24,17 @@ export const CategoriesForm: React.FC<CategoriesFieldsProps> = ({ form, categori
                   return {
                     value,
                     label: categories.find(category => {
-                      return category.id === value
-                    })?.name as string,
+                      return category.path === value
+                    })?.data.name as string,
                   }
                 })}
                 values={categories.map(category => {
                   return {
-                    value: category.id,
-                    label: category.name,
+                    value: category.path,
+                    label: category.data.name,
                   }
                 })}
-                onChange={values => field.onChange([...values.map(value => value.value)])}
+                onChange={values => field.onChange([...values.map(value => value.label)])}
               />
             ) : (
               <div className="text-red-500 flex items-center gap-3 justify-center">

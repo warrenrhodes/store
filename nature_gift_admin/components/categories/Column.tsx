@@ -5,8 +5,9 @@ import Delete from '../custom-ui/Delete'
 import { ArrowUpDown, Edit } from 'lucide-react'
 import { Badge } from '../ui/badge'
 import Link from 'next/link'
-import { Prisma } from '@prisma/client'
-export const categoryColumns: ColumnDef<Prisma.CategoryGetPayload<object>>[] = [
+import { ICategory } from '@/lib/actions/server'
+import { getDocumentId } from '@spreeloop/database'
+export const categoryColumns: ColumnDef<ICategory>[] = [
   {
     id: 'select',
     header: ({ table }) => (
@@ -41,17 +42,17 @@ export const categoryColumns: ColumnDef<Prisma.CategoryGetPayload<object>>[] = [
         </Button>
       )
     },
-    cell: ({ row }) => <div className="lowercase">{row.getValue('name')}</div>,
+    cell: ({ row }) => <div className="lowercase">{row.original.data.name}</div>,
   },
   {
     accessorKey: 'description',
     header: 'Description',
-    cell: ({ row }) => <div className="capitalize">{row.getValue('description')}</div>,
+    cell: ({ row }) => <div className="capitalize">{row.original.data.description}</div>,
   },
   {
     accessorKey: 'featured',
     header: 'Featured',
-    cell: ({ row }) => <div>{row.original.featured && <Badge>Featured</Badge>}</div>,
+    cell: ({ row }) => <div>{row.original.data.featured && <Badge>Featured</Badge>}</div>,
   },
   {
     id: 'actions',
@@ -59,7 +60,7 @@ export const categoryColumns: ColumnDef<Prisma.CategoryGetPayload<object>>[] = [
     cell: ({ row }) => {
       const category = row.original
       const onDelete = async (): Promise<boolean> => {
-        const res = await fetch(`/api/categories/${category.id}`, {
+        const res = await fetch(`/api/categories/${getDocumentId(category.path)}`, {
           method: 'DELETE',
         })
         return res.ok
@@ -67,7 +68,7 @@ export const categoryColumns: ColumnDef<Prisma.CategoryGetPayload<object>>[] = [
 
       return (
         <div>
-          <Link href={`/categories/${category.id}`}>
+          <Link href={`/categories/${getDocumentId(category.path)}`}>
             <div className="flex gap-3 items-center">
               <Edit className="w-4 h-4" />
               Edit

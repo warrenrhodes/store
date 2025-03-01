@@ -1,23 +1,22 @@
 import { CartItem } from '@/hooks/useCart'
-import { IDeliveryInfo, OrderSummary } from '../api/orders'
-import { IPromotion } from '../api/promotions'
 import { PromotionAction, PromotionCondition } from '../type'
+import { IDeliveryInfo, OrderSummary, Promotion } from '../firebase/models'
 
-// type IPromotionCondition = IPromotion['conditions'][0]
-// type IPromotionAction = IPromotion['actions'][0]
+// type IPromotionCondition = Promotion['conditions'][0]
+// type IPromotionAction = Promotion['actions'][0]
 
 export class PromotionCalculator {
   private cart: CartItem[]
   private deliveryInfo?: Partial<IDeliveryInfo>
-  private promotions: IPromotion[]
+  private promotions: Promotion[]
 
-  constructor(cart: CartItem[], shipping: Partial<IDeliveryInfo>, promotions: IPromotion[]) {
+  constructor(cart: CartItem[], shipping: Partial<IDeliveryInfo>, promotions: Promotion[]) {
     this.cart = cart
     this.deliveryInfo = shipping
     this.promotions = this.filterValidPromotions(promotions)
   }
 
-  private filterValidPromotions(promotions: IPromotion[]): IPromotion[] {
+  private filterValidPromotions(promotions: Promotion[]): Promotion[] {
     const now = new Date()
     return promotions
       .filter(
@@ -41,7 +40,7 @@ export class PromotionCalculator {
 
       case 'SPECIFIC_PRODUCTS':
         const productIds = Array.isArray(conditionValue) ? conditionValue : [conditionValue]
-        return this.cart.some(item => productIds.includes(item.product.id))
+        return this.cart.some(item => productIds.includes(item.product.path))
 
       case 'DELIVERY_METHOD':
         return this.deliveryInfo?.deliveryMethod === conditionValue
@@ -85,7 +84,7 @@ export class PromotionCalculator {
 
       case 'FREE_PRODUCT': {
         const freeProductId = actionValue.toString()
-        const freeProduct = this.cart.find(item => item.product.id === freeProductId)
+        const freeProduct = this.cart.find(item => item.product.path === freeProductId)
         return freeProduct ? freeProduct.price : 0
       }
 
@@ -125,7 +124,7 @@ export class PromotionCalculator {
         if (discountAmount > 0) {
           totalDiscount += discountAmount
           appliedPromotions.push({
-            id: promotion.id,
+            id: promotion.path,
             code: promotion.code,
             discountAmount,
             type: action.type,

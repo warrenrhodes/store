@@ -11,15 +11,15 @@ import { useCart } from '@/hooks/useCart'
 import { priceFormatted, getRegularPrice } from '@/lib/utils/utils'
 import Image from 'next/image'
 import Link from 'next/link'
-import { IProduct } from '@/lib/api/products'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
 import { ProductSeoMetadata } from '@/lib/type'
+import { Product } from '@/lib/firebase/models'
 
 export function SearchBar() {
   const [query, setQuery] = useState('')
   const [isFocused, setIsFocused] = useState(false)
-  const [products, setProducts] = useState<IProduct[]>([])
+  const [products, setProducts] = useState<Product[]>([])
   const { localization } = useLocalization()
 
   const fetchData = useCallback(async () => {
@@ -78,7 +78,7 @@ export function SearchBar() {
               {productsFiltered.length > 0 ? (
                 <div className="flex flex-col gap-2 max-h-[400px] overflow-y-scroll">
                   {productsFiltered.map(e => (
-                    <ItemResult product={e} key={e.id} />
+                    <ItemResult product={e} key={e.path} />
                   ))}
                 </div>
               ) : (
@@ -92,7 +92,7 @@ export function SearchBar() {
   )
 }
 
-const ItemResult = ({ product }: { product: IProduct }) => {
+const ItemResult = ({ product }: { product: Product }) => {
   const cart = useCart()
   const { localization } = useLocalization()
 
@@ -110,13 +110,13 @@ const ItemResult = ({ product }: { product: IProduct }) => {
             <Link href={`/shop/${product.slug}`}>
               <div className="relative aspect-square w-24 rounded-lg overflow-hidden">
                 <Image
-                  src={product.media[0].media.url}
+                  src={product.medias[0].url}
                   fill
                   alt={(product.metadata as ProductSeoMetadata).seoTitle}
                   className="object-cover w-full h-full"
                   onError={() => console.log('Image not found')}
                   placeholder="blur"
-                  blurDataURL={product.media[0].media.blurDataUrl || FAKE_BLUR}
+                  blurDataURL={product.medias[0].blurDataUrl || FAKE_BLUR}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
                 {product.isFeature && (

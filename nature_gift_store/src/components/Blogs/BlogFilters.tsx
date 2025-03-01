@@ -9,8 +9,8 @@ import {
 } from '@/components/ui/accordion'
 import useBlogFilter from '@/hooks/useBlogFilter'
 import { Checkbox } from '../ui/checkbox'
-import { IBlog } from '@/lib/api/blogs'
 import { useLocalization } from '@/hooks/useLocalization'
+import { Blog } from '@/lib/firebase/models'
 
 export function BlogFilters({
   categories,
@@ -18,7 +18,7 @@ export function BlogFilters({
 }: {
   categories: string[]
   tags: string[]
-  blogs: IBlog[]
+  blogs: Blog[]
 }) {
   const { filters, setFilters, clearFilters } = useBlogFilter()
   const { localization } = useLocalization()
@@ -63,12 +63,7 @@ export function BlogFilters({
                     </label>
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    (
-                    {
-                      blogs.filter(c => c.categories.map(e => e.category.name).includes(category))
-                        .length
-                    }
-                    )
+                    ({blogs.filter(c => c.categories.includes(category)).length})
                   </span>
                 </div>
               ))}

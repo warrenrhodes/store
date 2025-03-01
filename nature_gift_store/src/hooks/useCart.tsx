@@ -1,16 +1,15 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { toast } from '@/hooks/use-toast'
-import { IDeliveryInfo } from '@/lib/api/orders'
-import { IProduct } from '@/lib/api/products'
 import { sendGTMEvent } from '@next/third-parties/google'
+import { IDeliveryInfo, Product } from '@/lib/firebase/models'
 export interface CartShipment {
   method: 'DELIVERY' | 'EXPEDITION'
   cost: number
   location: string
 }
 export interface CartItem {
-  product: IProduct
+  product: Product
   quantity: number
   price: number
 }
@@ -54,7 +53,7 @@ const useCart = create(
       addItem: (data: CartItem) => {
         const { product, quantity, price } = data
         const currentItems = get().cartItems
-        const isExisting = currentItems.find(cartItem => cartItem.product.id === product.id)
+        const isExisting = currentItems.find(cartItem => cartItem.product.path === product.path)
 
         if (isExisting) {
           return toast({
@@ -73,16 +72,18 @@ const useCart = create(
           value: currentItems.reduce((acc, e) => acc + e.price * e.quantity, 0),
           items: currentItems.map(e => {
             return {
-              item_id: e.product.id,
+              item_id: e.product.path,
               item_name: e.product.title,
               quantity: e.quantity,
-              category: e.product.categories[0].category.name,
+              category: e.product.categories[0],
             }
           }),
         })
       },
       removeItem: (idToRemove: string) => {
-        const newCartItems = get().cartItems.filter(cartItem => cartItem.product.id !== idToRemove)
+        const newCartItems = get().cartItems.filter(
+          cartItem => cartItem.product.path !== idToRemove,
+        )
         set({ cartItems: newCartItems })
 
         if (get().cartItems.length === 0) {
@@ -94,17 +95,17 @@ const useCart = create(
           value: newCartItems.reduce((acc, e) => acc + e.price * e.quantity, 0),
           items: newCartItems.map(e => {
             return {
-              item_id: e.product.id,
+              item_id: e.product.path,
               item_name: e.product.title,
               quantity: e.quantity,
-              category: e.product.categories[0].category.name,
+              category: e.product.categories[0],
             }
           }),
         })
       },
       increaseQuantity: (idToIncrease: string) => {
         const newCartItems = get().cartItems.map(cartItem =>
-          cartItem.product.id === idToIncrease
+          cartItem.product.path === idToIncrease
             ? { ...cartItem, quantity: cartItem.quantity + 1 }
             : cartItem,
         )
@@ -112,7 +113,7 @@ const useCart = create(
       },
       decreaseQuantity: (idToDecrease: string) => {
         const newCartItems = get().cartItems.map(cartItem => {
-          if (cartItem.product.id === idToDecrease) {
+          if (cartItem.product.path === idToDecrease) {
             return { ...cartItem, quantity: cartItem.quantity - 1 }
           }
           return cartItem

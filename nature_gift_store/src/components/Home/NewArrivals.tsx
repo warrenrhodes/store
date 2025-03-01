@@ -7,8 +7,8 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Price } from '../Price'
 import Link from 'next/link'
 import { cn } from '@/lib/utils/utils'
-import { IProduct } from '@/lib/api/products'
 import { useLocalization } from '@/hooks/useLocalization'
+import { Product } from '@/lib/firebase/models'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -31,7 +31,7 @@ const itemVariants = {
   },
 }
 
-export function NewArrivals({ products }: { products: IProduct[] }) {
+export function NewArrivals({ products }: { products: Product[] }) {
   const { localization } = useLocalization()
 
   return (
@@ -65,13 +65,13 @@ export function NewArrivals({ products }: { products: IProduct[] }) {
           className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
         >
           {products.map(product => (
-            <motion.div key={`${product.id}`} variants={itemVariants}>
+            <motion.div key={`${product.path}`} variants={itemVariants}>
               <Card className="group cursor-pointer h-full overflow-hidden">
                 <CardHeader className="p-0">
                   <div className="relative aspect-[4/5] overflow-hidden">
                     <div
                       className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-                      style={{ backgroundImage: `url(${product.media[0].media.url})` }}
+                      style={{ backgroundImage: `url(${product.medias[0].url})` }}
                     />
                   </div>
                 </CardHeader>

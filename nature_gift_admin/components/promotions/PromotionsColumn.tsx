@@ -11,6 +11,7 @@ import Delete from '../custom-ui/Delete'
 import { cn } from '@/lib/utils'
 import { getDocumentId } from '@spreeloop/database'
 import { IPromotion } from '@/lib/actions/server'
+import { PromotionStatus } from '@/lib/firebase/models'
 
 export const promotionsColumns: ColumnDef<IPromotion>[] = [
   {
@@ -72,10 +73,10 @@ export const promotionsColumns: ColumnDef<IPromotion>[] = [
         <div>
           <Badge
             className={cn({
-              'bg-green-500': row.original.data.status !== 'ACTIVE',
-              'bg-blue-500': row.original.data.status === 'DRAFT',
-              'bg-red-500': row.original.data.status === 'EXPIRED',
-              'bg-gray-500': row.original.data.status === 'DISABLED',
+              'bg-green-500': row.original.data.status !== PromotionStatus.ACTIVE,
+              'bg-blue-500': row.original.data.status === PromotionStatus.DRAFT,
+              'bg-red-500': row.original.data.status === PromotionStatus.EXPIRED,
+              'bg-gray-500': row.original.data.status === PromotionStatus.DISABLED,
             })}
           >
             {row.original.data.status}

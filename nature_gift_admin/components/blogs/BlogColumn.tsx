@@ -9,6 +9,7 @@ import { Button } from '../ui/button'
 import { BlogMetadata } from '@/lib/type'
 import { IBlog } from '@/lib/actions/server'
 import { getDocumentId } from '@spreeloop/database'
+import { BlogStatus } from '@/lib/firebase/models'
 
 export const blogsColumns: ColumnDef<IBlog>[] = [
   {
@@ -44,9 +45,9 @@ export const blogsColumns: ColumnDef<IBlog>[] = [
         <div>
           <Badge
             className={cn({
-              'bg-blue-500': row.original.data.status === 'DRAFT',
-              'bg-red-500': row.original.data.status === 'ARCHIVED',
-              'bg-green-500': row.original.data.status === 'PUBLISHED',
+              'bg-blue-500': row.original.data.status === BlogStatus.DRAFT,
+              'bg-red-500': row.original.data.status === BlogStatus.ARCHIVED,
+              'bg-green-500': row.original.data.status === BlogStatus.PUBLISHED,
             })}
           >
             {row.original.data.status}

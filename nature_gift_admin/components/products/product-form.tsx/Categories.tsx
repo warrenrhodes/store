@@ -24,13 +24,13 @@ export const CategoriesForm: React.FC<CategoriesFieldsProps> = ({ form, categori
                   return {
                     value,
                     label: categories.find(category => {
-                      return category.path === value
+                      return category.data.name === value
                     })?.data.name as string,
                   }
                 })}
                 values={categories.map(category => {
                   return {
-                    value: category.path,
+                    value: category.data.name,
                     label: category.data.name,
                   }
                 })}

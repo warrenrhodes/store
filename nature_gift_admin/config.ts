@@ -1,5 +1,5 @@
 export const serverConfig = {
-  cookieName: 'AuthToken',
+  cookieName: 'NatureGiftAdminToken',
   cookieSignatureKeys: [
     process.env.AUTH_COOKIE_SIGNATURE_KEY_CURRENT!,
     process.env.AUTH_COOKIE_SIGNATURE_KEY_PREVIOUS!,

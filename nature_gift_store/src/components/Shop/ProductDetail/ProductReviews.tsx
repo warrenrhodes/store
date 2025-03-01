@@ -94,7 +94,7 @@ export function ProductReviews({ reviews }: { product: Product; reviews: Review[
           >
             <div className="flex items-start gap-4">
               <Avatar>
-                <AvatarImage src={review.image.url || undefined} alt={review.userName} />
+                <AvatarImage src={review.imageUrl || undefined} alt={review.userName} />
                 <AvatarFallback>
                   {review.userName
                     .split(' ')

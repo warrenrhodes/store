@@ -35,7 +35,7 @@ import MultiSelect from '../custom-ui/MultiSelect'
 import MultiText from '../custom-ui/MultiText'
 import { ContentEditor } from '../custom-ui/ContentEditor'
 import { toast } from '@/hooks/use-toast'
-import { Media, MediaType } from '@/lib/firebase/models'
+import { BlogStatus, Media, MediaType } from '@/lib/firebase/models'
 import { IBlog, ICategory } from '@/lib/actions/server'
 import { getDocumentId } from '@spreeloop/database'
 
@@ -207,13 +207,13 @@ export function BlogForm({ initialData, categories }: BlogFormProps) {
                         return {
                           value,
                           label: categories.find(category => {
-                            return category.path === value
+                            return category.data.name === value
                           })?.data.name as string,
                         }
                       })}
                       values={categories.map(category => {
                         return {
-                          value: category.path,
+                          value: category.data.name,
                           label: category.data.name,
                         }
                       })}
@@ -243,9 +243,9 @@ export function BlogForm({ initialData, categories }: BlogFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="DRAFT">Draft</SelectItem>
-                      <SelectItem value="PUBLISHED">Published</SelectItem>
-                      <SelectItem value="ARCHIVED">Archived</SelectItem>
+                      <SelectItem value={BlogStatus.DRAFT}>Draft</SelectItem>
+                      <SelectItem value={BlogStatus.PUBLISHED}>Published</SelectItem>
+                      <SelectItem value={BlogStatus.ARCHIVED}>Archived</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

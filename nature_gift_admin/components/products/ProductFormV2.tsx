@@ -38,7 +38,7 @@ import { PriceFields } from './product-form.tsx/PriceFields'
 import { VariantFields } from './product-form.tsx/Variant'
 import { getDocumentId } from '@spreeloop/database'
 import { ICategory, IProduct } from '@/lib/actions/server'
-import { Media, MediaType } from '@/lib/firebase/models'
+import { Media, MediaType, ProductStatus } from '@/lib/firebase/models'
 interface ProductFormProps {
   initialData?: IProduct | null
   categories: ICategory[]
@@ -261,9 +261,9 @@ export function ProductFormV2({ initialData, categories }: ProductFormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="published">Published</SelectItem>
-                  <SelectItem value="archived">Archived</SelectItem>
+                  <SelectItem value={ProductStatus.DRAFT}>Draft</SelectItem>
+                  <SelectItem value={ProductStatus.PUBLISHED}>Published</SelectItem>
+                  <SelectItem value={ProductStatus.ARCHIVED}>Archived</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

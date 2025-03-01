@@ -27,9 +27,9 @@ export enum ShipmentMethod {
 }
 
 export enum ProductStatus {
-  DRAFT = 'draft',
-  PUBLISHED = 'published',
-  ARCHIVED = 'archived',
+  DRAFT = 'DRAFT',
+  PUBLISHED = 'PUBLISHED',
+  ARCHIVED = 'ARCHIVED',
 }
 
 export enum BlogStatus {
@@ -292,7 +292,7 @@ export interface Review extends CreatorDocument {
   userName: string
   rating: number
   comment: string
-  image?: Media | null
+  imageUrl?: string | null
   helpful: number
   notHelpful: number
   verify: boolean

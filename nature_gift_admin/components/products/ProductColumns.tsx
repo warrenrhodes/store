@@ -12,6 +12,7 @@ import { priceFormatted } from '@/lib/utils/utils'
 import { Inventory, Price } from '@/lib/type'
 import { getDocumentId } from '@spreeloop/database'
 import { IProduct } from '@/lib/actions/server'
+import { ProductStatus } from '@/lib/firebase/models'
 
 export const productColumns: ColumnDef<IProduct>[] = [
   {
@@ -48,7 +49,7 @@ export const productColumns: ColumnDef<IProduct>[] = [
         </Button>
       )
     },
-    cell: ({ row }) => <div className="lowercase">{row.getValue('title')}</div>,
+    cell: ({ row }) => <div className="lowercase">{row.original.data.title}</div>,
   },
   {
     accessorKey: 'status',
@@ -57,9 +58,9 @@ export const productColumns: ColumnDef<IProduct>[] = [
       <div>
         <Badge
           className={cn({
-            'bg-green-500 ': row.original.data.status === 'published',
-            'bg-gray-500': row.original.data.status === 'draft',
-            'bg-red-500': row.original.data.status === 'archived',
+            'bg-green-500 ': row.original.data.status === ProductStatus.PUBLISHED,
+            'bg-gray-500': row.original.data.status === ProductStatus.DRAFT,
+            'bg-red-500': row.original.data.status === ProductStatus.ARCHIVED,
           })}
         >
           {row.original.data.status}

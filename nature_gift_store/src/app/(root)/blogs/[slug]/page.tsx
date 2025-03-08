@@ -1,8 +1,7 @@
 import BlogDetail from '@/components/Blogs/BlockDetail/BlockDetail'
 import { getAllRelatedCollection, getDocumentBySlug } from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
-import { Blog, BlogStatus } from '@/lib/firebase/models'
-import { BlogMetadata } from '@/lib/type'
+import { Blog, BlogMetadata, BlogStatus } from '@/lib/firebase/models'
 import { QueryFilter } from '@spreeloop/database'
 import { notFound } from 'next/navigation'
 
@@ -41,7 +40,7 @@ export async function generateMetadata({ params }: Props) {
       siteName: 'Nature Gift',
       images: [
         {
-          url: metadata.coverImageURL,
+          url: metadata.coverImage.url,
         },
       ],
       publishedTime: blog?.publishedAt,

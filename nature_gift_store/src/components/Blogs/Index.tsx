@@ -10,8 +10,7 @@ import { BlogGrid } from './BlogGrid'
 import { BlogSearch } from './BlogSearch'
 import useBlogFilter from '@/hooks/useBlogFilter'
 import { useLocalization } from '@/hooks/useLocalization'
-import { BlogMetadata } from '@/lib/type'
-import { Blog } from '@/lib/firebase/models'
+import { Blog, BlogMetadata } from '@/lib/firebase/models'
 
 export default function Blogs({ blogs }: { blogs: Blog[] }) {
   const { filters } = useBlogFilter()

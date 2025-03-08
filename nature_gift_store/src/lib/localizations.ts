@@ -373,12 +373,12 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     fr: 'Promotions Disponibles',
   },
   advancedFeatures: {
-    en: 'Advanced Features',
-    fr: 'Fonctionnalités Avancées',
+    en: 'A few benefit',
+    fr: 'Quelques avantages',
   },
   discoverMessage: {
-    en: 'Discover what makes our Smart Fitness Watch Pro stand out',
-    fr: 'Découvrez ce qui rend notre Smart Fitness Watch Pro unique',
+    en: 'Discover what makes our',
+    fr: 'Découvrez ce qui rend notre',
   },
   new: {
     en: 'New',
@@ -596,9 +596,14 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     en: 'Blog',
     fr: 'Article',
   },
+  standOut: {
+    en: 'stand out',
+    fr: 'unique',
+  },
 }
 
 export const enum DictWords {
+  standOut = 'standOut',
   blog = 'blog',
   blogsDescription = 'blogsDescription',
   searchProducts = 'searchProducts',

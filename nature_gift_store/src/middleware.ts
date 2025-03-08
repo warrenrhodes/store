@@ -3,21 +3,24 @@ import { NextRequest, NextResponse } from 'next/server'
 import { authMiddleware, redirectToHome, redirectToLogin } from 'next-firebase-auth-edge'
 import { clientConfig, serverConfig } from '../config'
 
+const UN_AUTH_PUBLIC_PATHS = ['/reset-password', '/sign-in', '/sign-up']
 const PUBLIC_PATHS = [
   '/',
   '/(api|trpc)(.*)',
   '/shop',
-  '/shop/(.*)',
+  new RegExp('^/shop/.*$'),
   '/blogs',
-  '/blogs/(.*)',
+  new RegExp('^/blogs/.*$'),
   '/order/success',
   '/cart',
   '/sitemap.xml',
   '/robots.txt',
   '/checkout',
   '/contact',
-  '/sign-in(.*)',
-  '/sign-up(.*)',
+  '/not-found',
+  '/reset-password',
+  '/sign-in',
+  '/sign-up',
 ]
 
 export async function middleware(request: NextRequest) {
@@ -42,7 +45,7 @@ export async function middleware(request: NextRequest) {
     checkRevoked: true,
     authorizationHeaderName: 'Authorization',
     handleValidToken: async ({ token, decodedToken }, headers) => {
-      if (PUBLIC_PATHS.includes(request.nextUrl.pathname)) {
+      if (UN_AUTH_PUBLIC_PATHS.includes(request.nextUrl.pathname)) {
         return redirectToHome(request)
       }
 

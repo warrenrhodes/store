@@ -15,8 +15,7 @@ import { DotButton, useDotButton } from './EmblaCarouselDotButton'
 import Image from 'next/image'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
-import { BlogContent, BlogMetadata } from '@/lib/type'
-import { Blog } from '@/lib/firebase/models'
+import { Blog, BlogContent, BlogMetadata } from '@/lib/firebase/models'
 
 interface FeaturedBlogCarouselProps {
   blogs: Blog[]
@@ -111,12 +110,12 @@ export function FeaturedBlogCarousel({ blogs }: FeaturedBlogCarouselProps) {
           >
             <div className="absolute inset-0  aspect-[16/9] overflow-hidden rounded-t-lg">
               <Image
-                src={metadata.coverImageURL || ''}
+                src={metadata.coverImage.url || ''}
                 alt={blog.title}
                 fill
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
                 placeholder="blur"
-                blurDataURL={metadata.blurDataUrl || FAKE_BLUR}
+                blurDataURL={metadata.coverImage.blurDataUrl || FAKE_BLUR}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
             </div>

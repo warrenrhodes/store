@@ -151,7 +151,7 @@ interface Inventory {
 }
 
 // Blog Related
-interface BlogContent {
+export interface BlogContent {
   type: BlogContentType
   content: string
   excerpt?: string | null
@@ -163,7 +163,7 @@ interface BlogAuthor {
   avatar?: string | null
 }
 
-interface BlogMetadata {
+export interface BlogMetadata {
   title: string
   description?: string | null
   keywords: string[]

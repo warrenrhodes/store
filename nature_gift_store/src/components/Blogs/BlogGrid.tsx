@@ -10,7 +10,6 @@ import { format, subDays } from 'date-fns'
 import { GlobalPagination } from '../GlobalPagination'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import Image from 'next/image'
-import { BlogContent, BlogMetadata } from '@/lib/type'
 import { Blog } from '@/lib/firebase/models'
 
 const itemVariants = {
@@ -49,8 +48,8 @@ export function BlogGrid({ blogs }: BlogGridProps) {
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
           {blogList.map(blog => {
-            const metadata = blog.metadata as BlogMetadata
-            const content = blog.content as BlogContent
+            const metadata = blog.metadata
+            const content = blog.content
             return (
               <motion.div key={`${`${blog.slug}`}`} variants={itemVariants}>
                 <Link href={`/blogs/${blog.slug}`}>
@@ -58,12 +57,12 @@ export function BlogGrid({ blogs }: BlogGridProps) {
                     <CardHeader className="p-0">
                       <div className="relative aspect-[16/9] overflow-hidden rounded-t-lg">
                         <Image
-                          src={metadata.coverImageURL || ''}
+                          src={metadata.coverImage.url || ''}
                           alt={blog.title}
                           fill
                           className="object-cover transition-transform duration-300 group-hover:scale-105"
                           placeholder="blur"
-                          blurDataURL={metadata.blurDataUrl || FAKE_BLUR}
+                          blurDataURL={metadata.coverImage.blurDataUrl || FAKE_BLUR}
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         />
                       </div>

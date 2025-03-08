@@ -1,4 +1,4 @@
-import { PromotionActionType, BlogContentType, ProductContentType } from './firebase/models'
+import { PromotionActionType, ProductContentType } from './firebase/models'
 
 export type SeoMetadata = {
   seoTitle?: string
@@ -33,29 +33,6 @@ export type Metadata = {
 export type UsageLimit = {
   perCustomer?: number
   total?: number
-}
-
-export type BlogContent = {
-  type: BlogContentType
-  content: string
-  excerpt?: string
-}
-
-type BlogAuthor = {
-  name: string
-  bio?: string
-  avatar?: string
-}
-
-export type BlogMetadata = {
-  title: string
-  description?: string
-  keywords: string[]
-  author: BlogAuthor
-  readingTime?: number
-  coverImageURL?: string
-  blurDataUrl?: string
-  featured?: boolean
 }
 
 export type CustomFields = {

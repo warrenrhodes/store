@@ -16,7 +16,6 @@ import {
 import { getAllCollection, getAllValidPromotion } from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { Blog, BlogStatus, Category, Product, ProductStatus } from '@/lib/firebase/models'
-import { BlogMetadata } from '@/lib/type'
 import { QueryFilter } from '@spreeloop/database'
 
 export default function Home() {
@@ -93,7 +92,5 @@ async function FeaturedBlogsLoader() {
       filters: [new QueryFilter('status', '==', BlogStatus.PUBLISHED)],
     })) || []
 
-  return (
-    <FeaturedBlogs blogs={featuredBlogs.filter(blog => (blog.metadata as BlogMetadata).featured)} />
-  )
+  return <FeaturedBlogs blogs={featuredBlogs.filter(blog => blog.metadata.featured)} />
 }

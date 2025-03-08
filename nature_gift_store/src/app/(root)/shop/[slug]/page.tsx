@@ -140,12 +140,12 @@ async function FeaturedProductLoader({ slug }: { slug: string }) {
     collection: CollectionsName.Products,
     slug: slug,
   })
+  if (!product) return null
+
   const reviews = await getAllCollection<Review>({
     collection: CollectionsName.Reviews,
     filters: [new QueryFilter('productPath', '==', product?.path)],
   })
-
-  if (!product) return null
 
   return (
     <div
@@ -204,7 +204,7 @@ async function RelatedBlogLoader({ slug }: { slug: string }) {
     collection: CollectionsName.Blogs,
     filters: [
       new QueryFilter('status', '==', BlogStatus.PUBLISHED),
-      new QueryFilter('categories', 'in', product?.categories.join(',')),
+      new QueryFilter('categories', 'in', product?.categories),
     ],
   })
   if (!relatedBlogs) return null

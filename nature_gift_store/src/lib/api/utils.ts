@@ -38,7 +38,6 @@ export async function getDocumentBySlug<T>(props: {
     return
   }
 }
-
 export const getAllCollection = async <T>(props: {
   collection: string
   filters?: QueryFilter[]
@@ -48,7 +47,6 @@ export const getAllCollection = async <T>(props: {
       collectionPath: props.collection,
       filters: props.filters,
     })
-    console.log('collection ', props.collection, data)
     return data.map(item => ({ ...item.data, path: item.path }))
   } catch (error) {
     console.error(`Failed to fetch ${props.collection}:`, error)

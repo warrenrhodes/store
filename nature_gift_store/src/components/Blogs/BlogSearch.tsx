@@ -8,7 +8,6 @@ import { AnimatePresence } from 'framer-motion'
 import { Card, CardContent } from '../ui/card'
 import Link from 'next/link'
 import { useLocalization } from '@/hooks/useLocalization'
-import { BlogContent } from '@/lib/type'
 import { Blog } from '@/lib/firebase/models'
 
 export function BlogSearch({ blogs }: { blogs: Blog[] }) {
@@ -62,7 +61,7 @@ export function BlogSearch({ blogs }: { blogs: Blog[] }) {
                           <CardContent className="p-4">
                             <h1 className="font-bold">{e.title}</h1>
                             <p className="line-clamp-2 text-muted-foreground">
-                              {(e.content as BlogContent).excerpt}
+                              {e.content.excerpt}
                             </p>
                           </CardContent>
                         </Card>

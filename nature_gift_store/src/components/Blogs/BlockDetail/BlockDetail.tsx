@@ -11,14 +11,13 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
-import { BlogContent, BlogMetadata } from '@/lib/type'
 import { title } from 'process'
 import { Blog } from '@/lib/firebase/models'
 
 const BlogDetail = ({ blog, relatedBlogs }: { blog: Blog; relatedBlogs: Blog[] }) => {
   const { localization } = useLocalization()
-  const metadata = blog.metadata as BlogMetadata
-  const content = blog.content as BlogContent
+  const metadata = blog.metadata
+  const content = blog.content
 
   return (
     <motion.div
@@ -37,15 +36,15 @@ const BlogDetail = ({ blog, relatedBlogs }: { blog: Blog; relatedBlogs: Blog[] }
         {metadata.featured && <Badge className="mb-4">{localization.featuredArticle}</Badge>}
         <h1 className="text-5xl font-bold tracking-tight">{title}</h1>
         <p className="text-muted-foreground">{content.excerpt}</p>
-        {metadata.coverImageURL && (
+        {metadata.coverImage.url && (
           <div className="relative aspect-video overflow-hidden rounded-lg ">
             <Image
-              src={metadata.coverImageURL}
+              src={metadata.coverImage.url}
               alt={blog.title}
               fill
               className="object-cover"
               placeholder="blur"
-              blurDataURL={metadata.blurDataUrl || FAKE_BLUR}
+              blurDataURL={metadata.coverImage.blurDataUrl || FAKE_BLUR}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </div>

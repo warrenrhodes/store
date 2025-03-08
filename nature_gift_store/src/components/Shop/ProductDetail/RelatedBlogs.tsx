@@ -9,7 +9,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
-import { BlogMetadata, BlogContent } from '@/lib/type'
 import { Blog } from '@/lib/firebase/models'
 
 const containerVariants = {
@@ -51,20 +50,20 @@ export function RelatedBlogs({ relatedBlogs }: { relatedBlogs: Blog[] }) {
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
       >
         {relatedBlogs.slice(0, 3).map(blog => {
-          const metadata = blog.metadata as BlogMetadata
-          const content = blog.content as BlogContent
+          const metadata = blog.metadata
+          const content = blog.content
           return (
             <motion.div key={`${blog.slug}`} variants={itemVariants}>
               <Card className="group h-full flex flex-col">
                 <CardHeader className="p-0">
                   <div className="relative aspect-video overflow-hidden rounded-t-lg">
                     <Image
-                      src={metadata.coverImageURL || ''}
+                      src={metadata.coverImage.url || ''}
                       alt={metadata.title}
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
                       placeholder="blur"
-                      blurDataURL={metadata.blurDataUrl || FAKE_BLUR}
+                      blurDataURL={metadata.coverImage.blurDataUrl || FAKE_BLUR}
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                   </div>

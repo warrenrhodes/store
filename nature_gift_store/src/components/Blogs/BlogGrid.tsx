@@ -70,7 +70,11 @@ export function BlogGrid({ blogs }: BlogGridProps) {
                     <CardContent className="p-6">
                       <div className="flex flex-wrap gap-2 mb-4">
                         {blog.categories.slice(0, 3).map(category => (
-                          <Badge key={`${category}`} variant="outline">
+                          <Badge
+                            key={`${category}`}
+                            variant="outline"
+                            className="flex-none line-clamp-1"
+                          >
                             {category}
                           </Badge>
                         ))}

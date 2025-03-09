@@ -6,9 +6,9 @@ import { clientConfig, serverConfig } from '../config'
 const UN_AUTH_PUBLIC_PATHS = ['/reset-password', '/sign-in', '/sign-up']
 const PUBLIC_PATHS = [
   '/',
-  '/(api|trpc)(.*)',
   '/shop',
   new RegExp('^/shop/.*$'),
+  new RegExp('^/(api|trpc)/.*$'),
   '/blogs',
   new RegExp('^/blogs/.*$'),
   '/order/success',

@@ -10,8 +10,9 @@ import { SearchBar } from './SearchBar'
 import { navItems } from '@/lib/utils/navItems'
 import { useLocalization } from '@/hooks/useLocalization'
 import { useLocale } from '@/hooks/useLocale'
+import { Product } from '@/lib/firebase/models'
 
-export function MobileNav() {
+export function MobileNav(props: { products: Product[] }) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
   const { localization } = useLocalization()
@@ -35,7 +36,7 @@ export function MobileNav() {
             </Button>
           </div>
           <div className="py-4">
-            <SearchBar />
+            <SearchBar products={props.products} />
           </div>
           <nav className="flex flex-col gap-2">
             {navItems.map(item => (

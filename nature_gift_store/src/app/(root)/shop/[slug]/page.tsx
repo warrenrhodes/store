@@ -183,7 +183,13 @@ async function FeaturedProductReviewLoader({ slug }: { slug: string }) {
 }
 
 async function RelatedProductLoader({ slug }: { slug: string }) {
-  const relatedProducts = await getAllRelatedCollection<Product>({
+  const product = await getDocumentBySlug<Product>({
+    collection: CollectionsName.Products,
+    slug: slug,
+  })
+
+  if (!product) return []
+  const productWithoutTarget = await getAllRelatedCollection<Product>({
     collection: CollectionsName.Products,
     slug: slug,
     filters: [
@@ -191,6 +197,9 @@ async function RelatedProductLoader({ slug }: { slug: string }) {
       new QueryFilter('visibility', '==', true),
     ],
   })
+  const relatedProducts = productWithoutTarget.filter(e =>
+    e.categories.some(category => product.categories.includes(category)),
+  )
   if (!relatedProducts) return null
   return <RelatedProducts relatedProducts={relatedProducts || []} />
 }
@@ -200,13 +209,13 @@ async function RelatedBlogLoader({ slug }: { slug: string }) {
     collection: CollectionsName.Products,
     slug: slug,
   })
-  const relatedBlogs = await getAllCollection<Blog>({
+  const allBlog = await getAllCollection<Blog>({
     collection: CollectionsName.Blogs,
-    filters: [
-      new QueryFilter('status', '==', BlogStatus.PUBLISHED),
-      new QueryFilter('categories', 'in', product?.categories),
-    ],
+    filters: [new QueryFilter('status', '==', BlogStatus.PUBLISHED)],
   })
+  const relatedBlogs = allBlog.filter(e =>
+    e.categories.some(category => product.categories.includes(category)),
+  )
   if (!relatedBlogs) return null
   return <RelatedBlogs relatedBlogs={relatedBlogs || []} />
 }

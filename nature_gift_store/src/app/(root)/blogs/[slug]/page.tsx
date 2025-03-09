@@ -55,15 +55,18 @@ export default async function BlogDetailPage(props: Props) {
     collection: CollectionsName.Blogs,
     slug: params.slug,
   })
-  const relatedBlogs = await getAllRelatedCollection<Blog>({
+  if (!blog) {
+    notFound()
+  }
+
+  const allBlog = await getAllRelatedCollection<Blog>({
     collection: CollectionsName.Blogs,
     slug: params.slug,
     filters: [new QueryFilter('status', '==', BlogStatus.PUBLISHED)],
   })
-
-  if (!blog) {
-    notFound()
-  }
+  const relatedBlogs = allBlog.filter(e =>
+    e.categories.some(category => blog.categories.includes(category)),
+  )
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

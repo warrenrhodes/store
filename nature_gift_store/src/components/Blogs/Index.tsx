@@ -3,7 +3,13 @@
 import { useEffect, useState } from 'react'
 import { Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 import { FeaturedBlogCarousel } from '../BlogFeatured'
 import { BlogFilters } from './BlogFilters'
 import { BlogGrid } from './BlogGrid'
@@ -61,6 +67,8 @@ export default function Blogs({ blogs }: { blogs: Blog[] }) {
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-8">
               <BlogSearch blogs={blogs} />
               <Sheet open={isMobileFiltersOpen} onOpenChange={setIsMobileFiltersOpen}>
+                <SheetTitle></SheetTitle>
+                <SheetDescription></SheetDescription>
                 <SheetTrigger asChild>
                   <Button variant="outline" className="lg:hidden">
                     <Filter className="mr-2 h-4 w-4" />

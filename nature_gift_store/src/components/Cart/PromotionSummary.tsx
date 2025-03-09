@@ -46,20 +46,7 @@ export function PromotionSummary({ cartItems, deliveryInfo }: PromotionSummaryPr
     )
   }
 
-  if (error) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{localization.promotions}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-destructive">{localization.failedToLoadPromotions}</p>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  if (!summary) {
+  if (!summary || error) {
     return null
   }
 

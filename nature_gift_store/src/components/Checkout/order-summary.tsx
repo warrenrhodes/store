@@ -52,20 +52,7 @@ export function OrderSummary({
     )
   }
 
-  if (error) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Promotions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-destructive">{localization.failedToLoadPromotions}</p>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  if (!summary) {
+  if (!summary || error) {
     return null
   }
 

@@ -34,7 +34,7 @@ export const getUserById = async (id: string) => {
 }
 
 export const setUser = async (data: any) => {
-  const user = await fetch(`/api/users`, {
+  const user = await fetch(`/api/user`, {
     method: 'POST',
     body: JSON.stringify(data),
   })

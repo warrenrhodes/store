@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, ShoppingCart } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -16,28 +16,14 @@ import { useLocalization } from '@/hooks/useLocalization'
 import { ProductSeoMetadata } from '@/lib/type'
 import { Product } from '@/lib/firebase/models'
 
-export function SearchBar() {
+export function SearchBar(props: { products: Product[] }) {
   const [query, setQuery] = useState('')
   const [isFocused, setIsFocused] = useState(false)
-  const [products, setProducts] = useState<Product[]>([])
   const { localization } = useLocalization()
 
-  const fetchData = useCallback(async () => {
-    const result = await fetch('/api/products')
-    if (!result.ok) {
-      return
-    }
+  if (props.products.length === 0) return null
 
-    setProducts(await result.json())
-  }, [])
-
-  useEffect(() => {
-    if (products.length > 0) return
-    fetchData()
-  }, [fetchData, products.length])
-  if (products.length === 0) return null
-
-  const productsFiltered = products.filter(product =>
+  const productsFiltered = props.products.filter(product =>
     product.title.toLowerCase().includes(query.toLowerCase()),
   )
 

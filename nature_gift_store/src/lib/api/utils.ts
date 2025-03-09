@@ -41,7 +41,7 @@ export async function getDocumentBySlug<T>(props: {
 export const getAllCollection = async <T>(props: {
   collection: string
   filters?: QueryFilter[]
-}): Promise<T[] | undefined> => {
+}): Promise<T[]> => {
   try {
     const data = await backend.database.getCollection<T>({
       collectionPath: props.collection,
@@ -50,7 +50,7 @@ export const getAllCollection = async <T>(props: {
     return data.map(item => ({ ...item.data, path: item.path }))
   } catch (error) {
     console.error(`Failed to fetch ${props.collection}:`, error)
-    return
+    return []
   }
 }
 
@@ -58,7 +58,7 @@ export const getAllRelatedCollection = async <T extends { slug: string }>(props:
   collection: string
   slug: string
   filters?: QueryFilter[]
-}): Promise<T[] | undefined> => {
+}): Promise<T[]> => {
   try {
     const data = await backend.database.getCollection<T>({
       collectionPath: props.collection,
@@ -68,7 +68,7 @@ export const getAllRelatedCollection = async <T extends { slug: string }>(props:
     return data.filter(item => item.data.slug != props.slug).map(e => ({ ...e.data, path: e.path }))
   } catch (error) {
     console.error(`Failed to fetch ${props.collection}:`, error)
-    return
+    return []
   }
 }
 

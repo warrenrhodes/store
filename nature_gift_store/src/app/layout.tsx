@@ -6,6 +6,10 @@ import Footer from '@/components/Footer'
 import { Toaster } from '@/components/ui/toaster'
 import { Header } from '@/components/Header/Index'
 import { GoogleTagManager } from '@next/third-parties/google'
+import { getAllCollection } from '@/lib/api/utils'
+import { CollectionsName } from '@/lib/firebase/collection-name'
+import { Product, ProductStatus } from '@/lib/firebase/models'
+import { QueryFilter } from '@spreeloop/database'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -39,6 +43,13 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const products = await getAllCollection<Product>({
+    collection: CollectionsName.Products,
+    filters: [
+      new QueryFilter('status', '==', ProductStatus.PUBLISHED),
+      new QueryFilter('visibility', '==', true),
+    ],
+  })
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -52,7 +63,7 @@ export default async function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}>
         <div>
           <ToasterProvider />
-          <Header />
+          <Header products={products} />
           {children}
           <Footer />
           <Toaster />

@@ -225,12 +225,12 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     fr: 'Voir nos produits',
   },
   ctaTitle: {
-    en: 'Find Your Perfect Match',
-    fr: 'Trouver votre correspondance parfait',
+    en: 'Match Made Perfect',
+    fr: 'Correspondance parfaite',
   },
   ctaDescription: {
-    en: 'Discover quality products for every need. From gourmet coffee to the latest tech and baby essentials, we have it all. Browse our collection and find what fits your life best!',
-    fr: " Découvrez des produits de qualité pour tous les besoins. Du café gourmet aux dernières technologies en passant par les de bébé, nous avons tout ce qu'il faut. Parcourez notre collection et trouvez ce qui correspond le mieux à votre vie !",
+    en: 'Find your ideal products with ease. From gourmet delights to the latest tech and baby essentials, discover a world of quality choices tailored just for you!',
+    fr: 'Trouvez facilement les produits qui vous conviennent. Des délices gastronomiques aux dernières technologies en passant par les articles de puériculture, découvrez un monde de choix de qualité conçus spécialement pour vous !',
   },
   store: {
     en: 'Store',
@@ -258,7 +258,7 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
   },
   signOut: {
     en: 'Sign Out',
-    fr: 'Se d&eacute;connecter',
+    fr: 'Se déconnecter',
   },
   orders: {
     en: 'Orders',

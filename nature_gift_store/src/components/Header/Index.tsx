@@ -8,8 +8,9 @@ import { SearchBar } from './SearchBar'
 import { UserNav } from './UserNav'
 import { CartSidebar } from '../Cart/CartSidebar'
 import { LocaleSelector } from './LocaleSelector'
+import { Product } from '@/lib/firebase/models'
 
-export function Header() {
+export function Header(props: { products: Product[] }) {
   return (
     <motion.header
       className={cn(
@@ -23,14 +24,14 @@ export function Header() {
         <div className="flex h-16 items-center justify-between gap-4 md:gap-8">
           <MainNav />
           <div className="hidden md:flex md:flex-1">
-            <SearchBar />
+            <SearchBar products={props.products} />
           </div>
           <div className="flex items-center gap-4">
             <LocaleSelector />
             <CartSidebar />
             <UserNav />
           </div>
-          <MobileNav />
+          <MobileNav products={props.products} />
         </div>
       </div>
     </motion.header>

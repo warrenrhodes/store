@@ -36,7 +36,6 @@ export function ProductCard({ product }: ProductCardProps) {
       setReviews(s)
     }
   }, [])
-
   useEffect(() => {
     fetchReview()
   }, [fetchReview])
@@ -89,8 +88,8 @@ export function ProductCard({ product }: ProductCardProps) {
         <CardContent className="flex-1 p-2">
           <div className="flex items-center mb-2 gap-2">
             {product.categories.slice(0, 3).map(category => (
-              <Badge variant="outline" key={`${category}`}>
-                {category}
+              <Badge variant="outline" key={`${category}`} className="flex-none line-clamp-1">
+                <p> {category}</p>
               </Badge>
             ))}
 

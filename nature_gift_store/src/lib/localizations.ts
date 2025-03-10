@@ -172,8 +172,8 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     fr: 'Expedition',
   },
   shipmentMethod: {
-    en: 'Shipment Method',
-    fr: 'Méthode de livraison',
+    en: 'Sending option',
+    fr: "Méthode d'envoie",
   },
   pickADate: {
     en: 'Pick a date',
@@ -498,7 +498,7 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
   },
   startShopping: {
     en: 'Start Shopping',
-    fr: 'Commencer à magasiner',
+    fr: 'Products',
   },
   proceedToCheckout: {
     en: 'Proceed to Checkout',
@@ -513,8 +513,8 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     fr: 'Merci pour votre achat!',
   },
   confirmationEmailSent: {
-    en: 'A confirmation email has been sent with your order details.',
-    fr: 'Un e-mail de confirmation a été envoyé avec les détails de votre commande.',
+    en: ' ',
+    fr: ' ',
   },
   createAccountMessage: {
     en: 'Create an account to track your orders and get exclusive offers!',
@@ -600,9 +600,39 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     en: 'stand out',
     fr: 'unique',
   },
+  signInBeforeTrack: {
+    en: 'You need to log in first if you want to track your order.',
+    fr: 'Vous devez vous connecter au préalable si vous souhaitez suivre votre commande.',
+  },
+  PENDING: {
+    en: 'PENDING',
+    fr: 'EN ATTENTE',
+  },
+  ACCEPTED: {
+    en: 'ACCEPTED',
+    fr: 'ACCEPTÉ',
+  },
+  REJECTED: {
+    en: 'REJECTED',
+    fr: 'REJETÉ',
+  },
+  CANCELED: {
+    en: 'CANCELED',
+    fr: 'ANNULÉ',
+  },
+  COMPLETED: {
+    en: 'COMPLETED',
+    fr: 'COMPLÉTÉ',
+  },
 }
 
 export const enum DictWords {
+  PENDING = 'PENDING',
+  CANCELED = 'CANCELED',
+  COMPLETED = 'COMPLETED',
+  REJECTED = 'REJECTED',
+  ACCEPTED = 'ACCEPTED',
+  signInBeforeTrack = 'signInBeforeTrack',
   standOut = 'standOut',
   blog = 'blog',
   blogsDescription = 'blogsDescription',

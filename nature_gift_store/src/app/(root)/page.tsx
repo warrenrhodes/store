@@ -56,12 +56,11 @@ async function FeaturedProductsLoader() {
     (await getAllCollection<Product>({
       collection: CollectionsName.Products,
       filters: [
-        new QueryFilter('isFeatured', '==', true),
+        new QueryFilter('isFeature', '==', true),
         new QueryFilter('visibility', '==', true),
         new QueryFilter('status', '==', ProductStatus.PUBLISHED),
       ],
     })) || []
-
   return <FeaturedProducts products={featuredProducts.slice(0, 6)} />
 }
 

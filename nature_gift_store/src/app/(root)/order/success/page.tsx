@@ -42,7 +42,7 @@ const OrderSuccessPage = () => {
           </Button>
 
           <Button variant="outline" className="w-full" asChild>
-            <Link href="/sign-in">
+            <Link href="/profile?tab=orders">
               <ShoppingBag className="mr-2 h-4 w-4" />
               {localization.createAccount}
             </Link>

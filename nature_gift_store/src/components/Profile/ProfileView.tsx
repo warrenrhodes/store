@@ -18,7 +18,8 @@ import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
 import { OrderPrices } from '@/lib/type'
 import { useAuthStore } from '@/hooks/store/auth-store'
-import { Order, OrderItem } from '@/lib/firebase/models'
+import { Order, OrderItem, OrderStatus } from '@/lib/firebase/models'
+import { getDocumentId } from '@spreeloop/database'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -86,6 +87,18 @@ function TabsWrapper({ orders }: { orders: Order[] }) {
           ) : (
             orders?.map(order => {
               const orderPrices = order.orderPrices as OrderPrices
+              let status = ''
+              if (order.status === OrderStatus.PENDING) {
+                status = localization.PENDING
+              } else if (order.status === OrderStatus.ACCEPTED) {
+                status = localization.ACCEPTED
+              } else if (order.status === OrderStatus.REJECTED) {
+                status = localization.REJECTED
+              } else if (order.status === OrderStatus.COMPLETED) {
+                status = localization.COMPLETED
+              } else if (order.status === OrderStatus.CANCELED) {
+                status = localization.CANCELED
+              }
 
               return (
                 <motion.div key={order.path} variants={itemVariants} className="mb-6">
@@ -93,7 +106,7 @@ function TabsWrapper({ orders }: { orders: Order[] }) {
                     <CardHeader>
                       <div className="flex justify-between items-center">
                         <CardTitle className="text-lg">
-                          {localization.order} #{order.path}
+                          {localization.order} #{getDocumentId(order.path).substring(0, 5) + '...'}
                         </CardTitle>
                         <Badge
                           className={cn({
@@ -104,7 +117,7 @@ function TabsWrapper({ orders }: { orders: Order[] }) {
                               order.status === 'CANCELED' || order.status === 'REJECTED',
                           })}
                         >
-                          {order.status}
+                          {status}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">
@@ -145,10 +158,12 @@ function TabsWrapper({ orders }: { orders: Order[] }) {
                           <span>{localization.shipping}</span>
                           <span>{priceFormatted(orderPrices.shipping)}</span>
                         </div>
-                        <div className="flex justify-between text-sm mb-2">
-                          <span>{localization.discount}</span>
-                          <span>-{priceFormatted(orderPrices.discount)}</span>
-                        </div>
+                        {orderPrices.discount > 0 && (
+                          <div className="flex justify-between text-sm mb-2">
+                            <span>{localization.discount}</span>
+                            <span>-{priceFormatted(orderPrices.discount)}</span>
+                          </div>
+                        )}
                         <div className="flex justify-between font-medium mt-4">
                           <span>{localization.total}</span>
                           <span>{priceFormatted(orderPrices.total)}</span>
@@ -173,7 +188,7 @@ function TabsWrapper({ orders }: { orders: Order[] }) {
               <label className="text-sm font-medium text-muted-foreground">
                 {localization.fullName}
               </label>
-              <p className="mt-1">{user?.displayName}</p>
+              <p className="mt-1">{user?.displayName ?? '/'}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">
@@ -185,7 +200,7 @@ function TabsWrapper({ orders }: { orders: Order[] }) {
               <label className="text-sm font-medium text-muted-foreground">
                 {localization.phone}
               </label>
-              <p className="mt-1">{user?.phoneNumber}</p>
+              <p className="mt-1">{user?.phoneNumber ?? '/'}</p>
             </div>
           </CardContent>
         </Card>
@@ -208,11 +223,10 @@ function TabsWrapper({ orders }: { orders: Order[] }) {
 export default function ProfileView(props: { orders: Order[] }) {
   const { user } = useAuthStore()
   const { localization } = useLocalization()
-
-  if (user?.isAnonymous) {
+  if (!user || user?.isAnonymous) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center">
+      <div className="flex items-center justify-center min-h-[350px] flex-col gap-2">
+        <div className="text-center flex items-center gap-2 flex-col">
           <h3 className="mt-4 text-lg font-medium">{localization.notSignedIn}</h3>
           <p className="mt-2 text-sm text-muted-foreground">{localization.notSignedInMessage}</p>
         </div>

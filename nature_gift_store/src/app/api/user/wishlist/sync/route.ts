@@ -9,17 +9,16 @@ export async function POST(request: Request) {
     const { userId, currentItems } = await request.json()
 
     const userPath = getDatabasePath(CollectionsName.Users, userId)
-
     const user = await backend.database.getRecord<User>(userPath)
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    const currentWhitelists = new Set([...user.data.whitelists, ...currentItems])
+    const currentWhitelists = new Set([...(user.data?.whitelists ?? []), ...currentItems])
 
     await backend.database.setRecord(getDatabasePath(CollectionsName.Users, userId), {
-      whitelists: currentWhitelists,
+      whitelists: Array.from(currentWhitelists),
     })
 
     return NextResponse.json({ success: true })

@@ -40,7 +40,7 @@ function GeneralCTAComponent() {
               className="px-8 py-4 bg-[#b91e77] text-white rounded-xl text-lg font-semibold hover:bg-[#a01a69] transition-colors focus:outline-none focus:ring-2 focus:ring-[#b91e77] focus:ring-offset-2"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => router.push('/products')}
+              onClick={() => router.push('/shop')}
             >
               {localization.ctaButton}
             </motion.button>

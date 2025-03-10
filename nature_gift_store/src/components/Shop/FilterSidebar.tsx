@@ -41,10 +41,10 @@ export function FilterSidebar({
     })
   }
 
-  const handleCategoryChange = (categoryId: string, checked: boolean) => {
+  const handleCategoryChange = (categoryName: string, checked: boolean) => {
     const newCategories = checked
-      ? [...filters.categories, categoryId]
-      : filters.categories.filter(id => id !== categoryId)
+      ? [...filters.categories, categoryName]
+      : filters.categories.filter(id => id !== categoryName)
     onFilterChange({ ...filters, categories: newCategories })
   }
 
@@ -80,9 +80,9 @@ export function FilterSidebar({
               <div key={`${category.path}`} className="flex items-center space-x-2">
                 <Checkbox
                   id={`${category.path}`}
-                  checked={filters.categories.includes(category.slug)}
+                  checked={filters.categories.includes(category.name)}
                   onCheckedChange={checked =>
-                    handleCategoryChange(category.slug, checked as boolean)
+                    handleCategoryChange(category.name, checked as boolean)
                   }
                 />
                 <Label htmlFor={`${category.path}`} className="text-sm">

@@ -86,10 +86,10 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         </CardHeader>
         <CardContent className="flex-1 p-2">
-          <div className="flex items-center mb-2 gap-2">
+          <div className="flex items-center mb-2 gap-2 w-full">
             {product.categories.slice(0, 3).map(category => (
-              <Badge variant="outline" key={`${category}`} className="flex-none line-clamp-1">
-                <p> {category}</p>
+              <Badge variant="outline" key={`${category}`} className="line-clamp-1 text-center">
+                {category}
               </Badge>
             ))}
 

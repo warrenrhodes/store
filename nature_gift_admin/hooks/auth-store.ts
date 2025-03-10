@@ -73,7 +73,7 @@ const useAuthStore = create(
           // Store user in firebase
           const userData = {
             email: email,
-            name: name,
+            fullName: name,
             authId: userCredential.user.uid,
             photoURL: null,
             userType: UserType.PARTNER,
@@ -111,7 +111,7 @@ const useAuthStore = create(
           if (!isUserExist) {
             const result = await setUser({
               email: userCredential.user.email,
-              name: userCredential.user.displayName,
+              fullName: userCredential.user.displayName,
               authId: userCredential.user.uid,
               photoURL: userCredential.user.photoURL,
               userType: UserType.PARTNER,

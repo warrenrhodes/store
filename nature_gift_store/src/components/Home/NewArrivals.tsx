@@ -50,7 +50,7 @@ export function NewArrivals({ products }: { products: Product[] }) {
             <p className="mt-2 text-lg text-gray-600">{localization.latestAdditions}</p>
           </div>
           <Button variant="ghost" className="group" asChild>
-            <Link href="/products">
+            <Link href="/shop">
               View All
               <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>

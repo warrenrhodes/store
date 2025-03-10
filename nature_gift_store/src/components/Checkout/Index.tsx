@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Check, Loader2, ShoppingBag } from 'lucide-react'
+import { AlertCircle, ArrowLeft, Check, Loader2, ShoppingBag } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { DeliveryForm } from '@/components/Checkout/delivery-form'
@@ -23,6 +23,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useAuthStore } from '@/hooks/store/auth-store'
 import { getDocumentId } from '@spreeloop/database'
+import { Alert, AlertDescription } from '../ui/alert'
 
 const steps = [
   { id: 'delivery', title: 'Delivery' },
@@ -153,15 +154,16 @@ export default function CheckoutPageView(props: { shipments: Shipment[] }) {
 
     toast({
       title: 'Order created!',
-      description: `Order created successfully ${user?.isAnonymous ? '\n Sign in to track your order' : ''}`,
+      description: `Order created successfully ${!user || user?.isAnonymous ? '\n Sign in to track your order' : ''}`,
       variant: 'default',
-      action: !user?.isAnonymous ? (
-        <></>
-      ) : (
-        <ToastAction altText="Sign in">
-          <Link href="/sign-in">Sign in</Link>
-        </ToastAction>
-      ),
+      action:
+        !user || user?.isAnonymous ? (
+          <ToastAction altText="Sign in">
+            <Link href="/sign-in">Sign in</Link>
+          </ToastAction>
+        ) : (
+          <></>
+        ),
     })
     const userData = confirmOrder.userData
     const orderPrices = confirmOrder.orderPrices
@@ -196,12 +198,10 @@ export default function CheckoutPageView(props: { shipments: Shipment[] }) {
 
     setUserData({ ...data })
     clearCart()
-
-    if (!user?.isAnonymous) {
-      router.replace('/profile?tabs=orders')
-      return
+    if (!user || user?.isAnonymous) {
+      router.replace('/order/success')
     }
-    router.replace('/order/success')
+    router.replace('/profile?tabs=orders')
   }
 
   const handleBack = () => {
@@ -244,7 +244,27 @@ export default function CheckoutPageView(props: { shipments: Shipment[] }) {
           </Button>
           <h1 className="text-3xl font-bold tracking-tight">Checkout</h1>
         </div>
-
+        {(!user || user?.isAnonymous) && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="w-full"
+          >
+            <Alert
+              variant="default"
+              className="text-orange-400 border-orange-400 flex items-center flex-col gap-2"
+            >
+              <div className="flex items-center gap-2 justify-center">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{localization.signInBeforeTrack}</AlertDescription>
+              </div>
+              <Button asChild variant="outline">
+                <Link href="/sign-in?redirect=/checkout">Sign in</Link>
+              </Button>
+            </Alert>
+          </motion.div>
+        )}
         <CheckoutSteps steps={steps} currentStep={currentStep} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

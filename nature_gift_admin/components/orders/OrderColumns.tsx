@@ -213,7 +213,7 @@ const OrderView = ({ order }: { order: IOrder }) => {
             </div>
             <div className="flex flex-col gap-3 ml-5">
               {order.data.items.map(item => (
-                <OrderItemView item={item} key={item.productPath} />
+                <OrderItemView item={item} key={item.product.path} />
               ))}
             </div>
             <Separator className="my-3" />
@@ -259,10 +259,14 @@ const OrderView = ({ order }: { order: IOrder }) => {
 
 const OrderItemView = ({ item }: { item: OrderItem }) => {
   return (
-    <div key={item.productPath}>
+    <div key={item.product.path}>
       <div className="flex gap-3">
         <span className="text-muted-foreground">path: </span>
-        <p> {item.productPath}</p>
+        <p> {item.product.path}</p>
+      </div>
+      <div className="flex gap-3">
+        <span className="text-muted-foreground">title: </span>
+        <p> {item.product.title}</p>
       </div>
       <div className="flex gap-3">
         <span className="text-muted-foreground">Count: </span>

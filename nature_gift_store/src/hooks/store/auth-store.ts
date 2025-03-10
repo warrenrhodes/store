@@ -12,7 +12,6 @@ import {
   updateProfile,
   AuthError,
   signInAnonymously,
-  linkWithPopup,
   EmailAuthProvider,
   linkWithCredential,
 } from 'firebase/auth'
@@ -33,7 +32,7 @@ export const getUserById = async (id: string) => {
   return docSnap.data()
 }
 
-export const setUser = async (data: any) => {
+export const setToDatabaseUser = async (data: any) => {
   const user = await fetch(`/api/user`, {
     method: 'POST',
     body: JSON.stringify(data),
@@ -109,7 +108,7 @@ const useAuthStore = create(
             createdAtInUTC: new Date().toISOString(),
           }
 
-          await setUser(userData)
+          await setToDatabaseUser(userData)
           await sendEmailVerification(userCredential.user)
 
           set({ user: userCredential.user })
@@ -162,7 +161,7 @@ const useAuthStore = create(
             createdAtInUTC: new Date().toISOString(),
           }
 
-          const result = await setUser(userData)
+          const result = await setToDatabaseUser(userData)
           if (!result) {
             set({
               error: getAuthErrorMessage('auth/failed-to-add-user'),
@@ -185,21 +184,14 @@ const useAuthStore = create(
           set({ loading: true, error: null })
           const provider = new GoogleAuthProvider()
 
-          const currentUser = auth.currentUser
-          let userCredential
-
-          if (currentUser?.isAnonymous) {
-            userCredential = await linkWithPopup(currentUser, provider)
-          } else {
-            userCredential = await signInWithPopup(auth, provider)
-          }
+          const userCredential = await signInWithPopup(auth, provider)
 
           // Check if user exists in database
           const isUserExist = await getUserById(userCredential.user.uid)
 
           // If user doesn't exist, create them
           if (!isUserExist) {
-            const result = await setUser({
+            const result = await setToDatabaseUser({
               email: userCredential.user.email,
               fullName: userCredential.user.displayName,
               authId: userCredential.user.uid,

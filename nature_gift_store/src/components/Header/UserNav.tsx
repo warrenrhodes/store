@@ -15,7 +15,6 @@ import Link from 'next/link'
 import { useLocalization } from '@/hooks/useLocalization'
 import { useAuthStore } from '@/hooks/store/auth-store'
 import { useRouter } from 'next/navigation'
-import { ROUTES } from '@/lib/utils/router'
 
 export function UserNav() {
   const { user, logout } = useAuthStore()
@@ -30,7 +29,7 @@ export function UserNav() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end">
-        {user ? (
+        {!(!user || user.isAnonymous) ? (
           <>
             <DropdownMenuLabel>
               <Link className="flex flex-col" href="/profile?tabs=info">
@@ -63,7 +62,7 @@ export function UserNav() {
         ) : (
           <>
             <DropdownMenuItem asChild>
-              <Link href={ROUTES.signIn}>{localization.signIn}</Link>
+              <Link href={'/profile?tabs=orders'}>{localization.signIn}</Link>
             </DropdownMenuItem>
           </>
         )}

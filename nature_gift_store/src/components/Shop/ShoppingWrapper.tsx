@@ -56,7 +56,7 @@ export const ShoppingWrapper = ({
 
     if (filters.categories.length > 0) {
       filtered = filtered.filter(product => {
-        return product.categories.some(cat => filters.categories.includes(cat.toLocaleLowerCase()))
+        return product.categories.some(cat => filters.categories.includes(cat))
       })
     }
 

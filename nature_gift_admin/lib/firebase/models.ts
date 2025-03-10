@@ -80,6 +80,7 @@ interface BaseDocument {
 
 interface CreatorDocument extends BaseDocument {
   creatorId: string
+  path: string
 }
 
 // Shared Types
@@ -248,7 +249,6 @@ export interface Product extends CreatorDocument {
   visibility: boolean
   inventory: Inventory
   blogUrl?: string | null
-  partnerPath: string
   metadata: SeoMetadata
 }
 
@@ -278,13 +278,13 @@ export interface Review extends BaseDocument {
 }
 
 export interface OrderItem extends BaseDocument {
-  productPath: string
+  product: Pick<Product, 'medias' | 'title' | 'creatorId' | 'path' | 'price'>
   quantity: number
   price: number
 }
 
-export interface Order extends BaseDocument {
-  userPath: string
+export interface Order extends CreatorDocument {
+  userPath?: string
   deliveryInfo: DeliveryInfo
   userData: UserData
   promotions: OrderPromotion[]
@@ -319,19 +319,3 @@ export interface Wishlist extends BaseDocument {
   productPath: string
   userPath: string
 }
-
-// Relation Interfaces
-// export interface CategoriesOnBlogs extends BaseDocument {
-//   blogPath: string
-//   categoryPath: string
-// }
-
-// export interface CategoriesOnProducts extends BaseDocument {
-//   productPath: string
-//   categoryPath: string
-// }
-
-// export interface MediasOnProducts extends BaseDocument {
-//   productPath: string
-//   mediaPath: string
-// }

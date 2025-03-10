@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertCircle } from 'lucide-react'
 import { useAuthStore } from '@/hooks/store/auth-store'
@@ -17,7 +17,12 @@ interface AuthFormProps {
 export function AuthForm(props: AuthFormProps) {
   const [isLogin, setIsLogin] = useState(props.isLogin)
   const [isResetting, setIsResetting] = useState(props.isResetting)
-  const { error } = useAuthStore()
+  const { error, setLoading, setError } = useAuthStore()
+
+  useEffect(() => {
+    setLoading(false)
+    setError(null)
+  }, [])
 
   const toggleForm = (value: boolean) => {
     setIsLogin(value)

@@ -16,7 +16,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { useToast } from '@/hooks/use-toast'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { AuthCard } from '../Auth/AuthCard'
 import { GoogleIcon } from './components/Google'
 import { useAuthStore } from '@/hooks/store/auth-store'
@@ -36,6 +36,7 @@ export function SignInForm({ onToggleForm, onForgotPassword }: SignInFormProps) 
   const router = useRouter()
   const { toast } = useToast()
   const { signIn, signInWithGoogle, loading, error } = useAuthStore()
+  const searchParams = useSearchParams()
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -52,6 +53,12 @@ export function SignInForm({ onToggleForm, onForgotPassword }: SignInFormProps) 
         title: 'Welcome back!',
         description: 'You have successfully logged in',
       })
+      const redirect = searchParams.get('redirect')
+      if (redirect) {
+        router.replace(redirect)
+        return
+      }
+
       router.replace('/')
     } catch (err) {
       console.error(err)
@@ -69,6 +76,12 @@ export function SignInForm({ onToggleForm, onForgotPassword }: SignInFormProps) 
         title: 'Welcome!',
         description: 'You have successfully signed in with Google',
       })
+      const redirect = searchParams.get('redirect')
+      if (redirect) {
+        router.replace(redirect)
+        return
+      }
+
       router.replace('/')
     } catch (err) {
       console.error(err)

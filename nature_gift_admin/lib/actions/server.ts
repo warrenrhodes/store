@@ -214,16 +214,21 @@ export async function getOrders(): Promise<IOrder[]> {
     const token = await getUserTokens()
     if (!token?.decodedToken.uid) return []
 
-    const orders = await backend.database.getCollection<Order>({
-      collectionPath: CollectionsName.Orders,
-      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
+    const ordersRef = backend.db.collection(CollectionsName.Orders)
+    const ordersSnapshot = await ordersRef
+      .where(
+        'partnersPaths',
+        'array-contains',
+        getDatabasePath(CollectionsName.Users, token?.decodedToken.uid),
+      )
+      .get()
+
+    const orders: IOrder[] = []
+    ordersSnapshot.forEach(doc => {
+      orders.push({ path: doc.id, data: doc.data() } as IOrder)
     })
 
-    return orders.filter(order =>
-      order.data.partnersPaths.includes(
-        getDatabasePath(CollectionsName.Users, token?.decodedToken.uid),
-      ),
-    )
+    return orders
   } catch (error) {
     console.error('Failed to fetch orders:', error)
     return []
@@ -401,7 +406,6 @@ export const putData = async (
   schema.parse(json)
   const result = await backend.database.setRecord(getDatabasePath(collection, id), {
     ...json,
-    createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   })
 

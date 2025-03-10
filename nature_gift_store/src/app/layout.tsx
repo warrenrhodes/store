@@ -10,6 +10,7 @@ import { getAllCollection } from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { Product, ProductStatus } from '@/lib/firebase/models'
 import { QueryFilter } from '@spreeloop/database'
+import { AuthProvider } from '@/components/Auth/AuthProvider'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -64,7 +65,7 @@ export default async function RootLayout({
         <div>
           <ToasterProvider />
           <Header products={products} />
-          {children}
+          <AuthProvider>{children}</AuthProvider>
           <Footer />
           <Toaster />
         </div>

@@ -68,14 +68,14 @@ export function FilterOptions({
                     <div key={`${category.path}`} className="flex items-center space-x-2">
                       <Checkbox
                         id={`${category.path}`}
-                        checked={filters.categories.includes(category.slug)}
+                        checked={filters.categories.includes(category.name)}
                         onCheckedChange={e =>
                           setFilters({
                             ...filters,
                             categories:
                               e === false
-                                ? filters.categories.filter(c => c !== category.slug)
-                                : [...filters.categories, category.slug],
+                                ? filters.categories.filter(c => c !== category.name)
+                                : [...filters.categories, category.name],
                           })
                         }
                       />

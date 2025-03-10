@@ -3,6 +3,7 @@ import { backend } from '@/lib/firebase/firebase-server/firebase'
 import { Order, OrderStatus } from '@/lib/firebase/models'
 import { FlockNotifier } from '@/lib/notifications/flock/flock'
 import { sendEmailNotifications, sendSmsNotifications } from '@/lib/notifications/sendNotifications'
+import { getDatabasePath } from '@spreeloop/database'
 import { format } from 'date-fns'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -14,28 +15,33 @@ export const POST = async (req: NextRequest) => {
   const { order, cartItems } = await req.json()
 
   const data = {
+    userPath: order.userData?.id
+      ? getDatabasePath(CollectionsName.Users, order.userData?.id)
+      : null,
     deliveryInfo: order.deliveryInfo,
     userData: order.userData,
     status: OrderStatus.PENDING,
     orderPrices: order.orderPrices,
-    partnersPaths: cartItems.map((item: any) => item.product.partnersPaths),
+    partnersPaths: cartItems.map((item: any) =>
+      getDatabasePath(CollectionsName.Users, item.product.creatorId),
+    ),
     items: cartItems.map((item: any) => ({
       product: {
         medias: item.product.medias,
         title: item.product.title,
         path: item.product.path,
         price: item.product.price,
-        partnerPath: item.product.partnerPath,
+        creatorId: item.product.creatorId,
       },
       quantity: item.quantity,
       price: item.price,
     })),
     promotions: order.promotions,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   }
-
   try {
     const newOrderPath = await backend.database.createRecord(CollectionsName.Orders, data)
-
     if (!newOrderPath) {
       return NextResponse.json({ error: 'Failed to create order' }, { status: 500 })
     }

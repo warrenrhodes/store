@@ -269,7 +269,6 @@ export interface Product extends CreatorDocument {
   visibility: boolean
   inventory: Inventory
   blogUrl?: string | null
-  partnerPath: string
   metadata: SeoMetadata
 }
 
@@ -299,7 +298,7 @@ export interface Review extends CreatorDocument {
 }
 
 export interface OrderItem extends BaseDocument {
-  product: Pick<Product, 'medias' | 'title' | 'partnerPath' | 'path' | 'price'>
+  product: Pick<Product, 'medias' | 'title' | 'creatorId' | 'path' | 'price'>
   quantity: number
   price: number
 }

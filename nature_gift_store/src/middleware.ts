@@ -45,6 +45,12 @@ export async function middleware(request: NextRequest) {
     checkRevoked: true,
     authorizationHeaderName: 'Authorization',
     handleValidToken: async ({ token, decodedToken }, headers) => {
+      if (!decodedToken.email_verified) {
+        return redirectToLogin(request, {
+          path: '/sign-in',
+          publicPaths: PUBLIC_PATHS,
+        })
+      }
       if (UN_AUTH_PUBLIC_PATHS.includes(request.nextUrl.pathname)) {
         return redirectToHome(request)
       }

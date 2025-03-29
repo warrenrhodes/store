@@ -18,9 +18,16 @@ interface CartItemProps {
   increaseQuantity: (id: string, quantity: number) => void
   decreaseQuantity: (id: string, quantity: number) => void
   onRemove: (id: string) => void
+  canRemoveItem: boolean
 }
 
-export function CartItem({ item, increaseQuantity, decreaseQuantity, onRemove }: CartItemProps) {
+export function CartItem({
+  item,
+  increaseQuantity,
+  decreaseQuantity,
+  onRemove,
+  canRemoveItem = true,
+}: CartItemProps) {
   const [isRemoving, setIsRemoving] = useState(false)
   const { localization } = useLocalization()
 
@@ -54,7 +61,7 @@ export function CartItem({ item, increaseQuantity, decreaseQuantity, onRemove }:
         )}
         <CardContent className="p-4">
           <div className="flex gap-4">
-            <div className="relative aspect-square w-24 rounded-lg overflow-hidden">
+            <div className="relative aspect-square  w-16 h-16 rounded-lg overflow-hidden">
               <Image
                 src={item.product.medias[0].url}
                 fill
@@ -74,11 +81,23 @@ export function CartItem({ item, increaseQuantity, decreaseQuantity, onRemove }:
                 <div>
                   <h3 className="font-medium">{item.product.title}</h3>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => setIsRemoving(true)}>
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                {canRemoveItem && (
+                  <Button variant="ghost" size="icon" onClick={() => setIsRemoving(true)}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
-              <div className="flex items-center justify-between mt-4">
+              <div className="flex md:items-center md:justify-between mt-4 max-md:flex-col">
+                <div className="md:text-right mb-2 md:hidden">
+                  <div className="font-medium">
+                    {priceFormatted(getRegularPrice(item.product) * item.quantity)}
+                  </div>
+                  {item.quantity > 1 && (
+                    <div className="text-sm text-muted-foreground">
+                      {priceFormatted(getRegularPrice(item.product))} {localization.each}
+                    </div>
+                  )}
+                </div>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
@@ -102,7 +121,7 @@ export function CartItem({ item, increaseQuantity, decreaseQuantity, onRemove }:
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
-                <div className="text-right">
+                <div className="text-right max-md:hidden">
                   <div className="font-medium">
                     {priceFormatted(getRegularPrice(item.product) * item.quantity)}
                   </div>

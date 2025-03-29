@@ -34,7 +34,7 @@ export function UserNav() {
             <DropdownMenuLabel>
               <Link className="flex flex-col" href="/profile?tabs=info">
                 <span>{localization.myAccount}</span>
-                <span className="text-muted-foreground">{user?.displayName}</span>
+                <span className="text-muted-foreground">{user?.fullName}</span>
               </Link>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />

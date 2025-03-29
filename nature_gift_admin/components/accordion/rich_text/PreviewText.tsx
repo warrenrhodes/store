@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog'
 import { DialogDescription, DialogTitle } from '@radix-ui/react-dialog'
+import parse from 'html-react-parser'
 
 export const PreviewText = (props: { content: string }) => {
   return (
@@ -15,7 +16,7 @@ export const PreviewText = (props: { content: string }) => {
           <DialogTitle>Preview</DialogTitle>
           <DialogDescription></DialogDescription>
         </DialogHeader>
-        <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: props.content }} />
+        <article className="max-w-none">{parse(props.content)}</article>
       </DialogContent>
     </Dialog>
   )

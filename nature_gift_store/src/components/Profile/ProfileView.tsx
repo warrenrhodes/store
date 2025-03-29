@@ -188,7 +188,7 @@ function TabsWrapper({ orders }: { orders: Order[] }) {
               <label className="text-sm font-medium text-muted-foreground">
                 {localization.fullName}
               </label>
-              <p className="mt-1">{user?.displayName ?? '/'}</p>
+              <p className="mt-1">{user?.fullName ?? '/'}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">
@@ -200,7 +200,7 @@ function TabsWrapper({ orders }: { orders: Order[] }) {
               <label className="text-sm font-medium text-muted-foreground">
                 {localization.phone}
               </label>
-              <p className="mt-1">{user?.phoneNumber ?? '/'}</p>
+              <p className="mt-1">{user?.phone ?? '/'}</p>
             </div>
           </CardContent>
         </Card>
@@ -252,11 +252,11 @@ export default function ProfileView(props: { orders: Order[] }) {
                 <Avatar className="h-24 w-24">
                   <AvatarImage
                     src={user?.photoURL || undefined}
-                    alt={user?.displayName || undefined}
+                    alt={user?.fullName || undefined}
                   />
-                  <AvatarFallback>{(user?.displayName || 'A').charAt(0)}</AvatarFallback>
+                  <AvatarFallback>{(user?.fullName || 'A').charAt(0)}</AvatarFallback>
                 </Avatar>
-                <h2 className="mt-4 text-2xl font-bold">{user?.displayName}</h2>
+                <h2 className="mt-4 text-2xl font-bold">{user?.fullName}</h2>
                 <p className="text-muted-foreground">{user?.email}</p>
               </div>
 

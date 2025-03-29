@@ -1,10 +1,14 @@
 import { BlogForm } from '@/components/blogs/BlogForm'
-import { getBlogById, getCategories } from '@/lib/actions/server'
+import { getBlogById, getCategories, getProducts } from '@/lib/actions/server'
 import { notFound } from 'next/navigation'
 
 export default async function EditBlogPostPage(props: { params: Promise<{ blogId: string }> }) {
   const params = await props.params
-  const [blog, categories] = await Promise.all([getBlogById(params.blogId), getCategories()])
+  const [blog, categories, products] = await Promise.all([
+    getBlogById(params.blogId),
+    getCategories(),
+    getProducts(),
+  ])
 
   if (!blog) {
     notFound()
@@ -16,7 +20,7 @@ export default async function EditBlogPostPage(props: { params: Promise<{ blogId
         <h1 className="text-3xl font-bold">Edit Blog Post</h1>
         <p className="text-muted-foreground">Make changes to your blog post</p>
       </div>
-      <BlogForm initialData={blog} categories={categories} />
+      <BlogForm initialData={blog} categories={categories} products={products} />
     </div>
   )
 }

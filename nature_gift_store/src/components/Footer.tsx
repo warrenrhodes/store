@@ -25,7 +25,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
-            <h3 className="text-xl font-bold text-white">{localization.shopName}</h3>
+            <h3 className="text-xl font-bold text-white">{"Nature's Gift"}</h3>
             <p className="text-sm">{localization.footerDescription}</p>
             <div className="flex space-x-4">
               <Facebook className="w-5 h-5 cursor-pointer hover:text-blue-400 transition-colors" />
@@ -73,7 +73,11 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-center space-x-3">
                 <MapPin className="w-5 h-5" />
-                <span>{"Yaoundé, Ekoudoum, sis à coté de l'Hotel IRIS"}</span>
+                <span>
+                  {
+                    "Yaoundé, Carrefour Ekoudoum, lieu dis restaurant droit chemin, sis à coté de l'Hotel IRIS"
+                  }
+                </span>
               </li>
               <li className="flex items-center space-x-3">
                 <Phone className="w-5 h-5" />

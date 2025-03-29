@@ -105,6 +105,9 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 
   const removeFile = (index: number) => {
     setFiles(files.filter((_, i) => i !== index))
+    if (files.length === 1) {
+      setContent([])
+    }
     setError(null)
   }
   const renderPreview = (file: File | Media, index: number) => {

@@ -553,8 +553,8 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     fr: 'Notre emplacement',
   },
   locationAddress: {
-    en: "Yaoundé, Ekoudoum, sis à côté de l'Hotel IRIS",
-    fr: "Yaoundé, Ekoudoum, sis à côté de l'Hotel IRIS",
+    en: 'Yaoundé, Carrefour Ekoudoum, lieu dis restaurant droit chemin, next to Hotel IRIS',
+    fr: "Yaoundé, Carrefour Ekoudoum, lieu dis restaurant droit chemin, sis à coté de l'Hotel IRIS",
   },
   email: {
     en: 'Email',
@@ -624,9 +624,14 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     en: 'COMPLETED',
     fr: 'COMPLÉTÉ',
   },
+  myOrders: {
+    en: 'My orders',
+    fr: 'Mes commandes',
+  },
 }
 
 export const enum DictWords {
+  myOrders = 'myOrders',
   PENDING = 'PENDING',
   CANCELED = 'CANCELED',
   COMPLETED = 'COMPLETED',

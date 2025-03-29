@@ -6,60 +6,39 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { format, subDays } from 'date-fns'
 import Link from 'next/link'
-import Image from 'next/image'
 import { FAKE_BLUR } from '@/lib/utils/constants'
+import Image from 'next/image'
 import { useLocalization } from '@/hooks/useLocalization'
-import { Blog } from '@/lib/firebase/models'
+import { Blog, BlogContent, BlogMetadata } from '@/lib/firebase/models'
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
+interface RelatedBlogsProps {
+  relatedBlogs: Blog[]
 }
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5,
-    },
-  },
-}
-
-export function RelatedBlogs({ relatedBlogs }: { relatedBlogs: Blog[] }) {
+export function AdsRelatedBlogs({ relatedBlogs }: RelatedBlogsProps) {
   const { localization } = useLocalization()
-
-  if (relatedBlogs.length === 0) {
-    return <></>
-  }
+  if (relatedBlogs.length === 0) return null
 
   return (
     <section>
-      <h2 className="text-2xl font-bold mb-8">{localization.learnMore}</h2>
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: '-100px' }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-      >
-        {relatedBlogs.slice(0, 3).map(blog => {
-          const metadata = blog.metadata
-          const content = blog.content
+      <h2 className="text-2xl font-bold mb-8">{localization.relatedBlogs}</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {relatedBlogs.map(blog => {
+          const metadata = blog.metadata as BlogMetadata
+          const content = blog.content as BlogContent
           return (
-            <motion.div key={`${blog.slug}`} variants={itemVariants}>
-              <Card className="group h-full flex flex-col">
+            <motion.div
+              key={`${blog.slug}`}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <Card className="h-full flex flex-col">
                 <CardHeader className="p-0">
-                  <div className="relative aspect-video overflow-hidden rounded-t-lg">
+                  <div className="relative aspect-[16/9] overflow-hidden rounded-t-lg">
                     <Image
                       src={metadata.coverImage?.url || ''}
-                      alt={metadata.title}
+                      alt={blog.title}
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
                       placeholder="blur"
@@ -88,7 +67,7 @@ export function RelatedBlogs({ relatedBlogs }: { relatedBlogs: Blog[] }) {
             </motion.div>
           )
         })}
-      </motion.div>
+      </div>
     </section>
   )
 }

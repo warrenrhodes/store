@@ -117,7 +117,7 @@ export default function CheckoutPageView(props: { shipments: Shipment[] }) {
         location: data.shipping.location,
       },
       userData: {
-        id: user?.uid || '',
+        id: user?.authId || '',
         email: data.email || '',
         fullName: data.fullName,
         phone: data.phone,
@@ -137,7 +137,7 @@ export default function CheckoutPageView(props: { shipments: Shipment[] }) {
       id: '',
       createdAt: new Date(),
       updatedAt: new Date(),
-      userId: user?.uid || '',
+      userId: user?.authId || '',
     }
     const confirmOrder = await createOrder({ order: order, cartItems: cartItems })
 
@@ -183,7 +183,7 @@ export default function CheckoutPageView(props: { shipments: Shipment[] }) {
           }
         }),
         userInfo: {
-          id: user?.uid,
+          id: user?.authId,
           email: userData?.email,
           full_name: userData?.fullName,
           phone: userData?.phone,
@@ -198,10 +198,7 @@ export default function CheckoutPageView(props: { shipments: Shipment[] }) {
 
     setUserData({ ...data })
     clearCart()
-    if (!user || user?.isAnonymous) {
-      router.replace('/order/success')
-    }
-    router.replace('/profile?tabs=orders')
+    router.replace('/order/success')
   }
 
   const handleBack = () => {

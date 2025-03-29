@@ -38,6 +38,7 @@ export const blogSchema = z.object({
   metadata: blogMetadataSchema,
   categories: z.array(z.string()).min(1),
   tags: z.array(z.string()),
+  associateProductPath: z.string().optional().nullable(),
   status: z
     .enum([BlogStatus.DRAFT, BlogStatus.PUBLISHED, BlogStatus.ARCHIVED])
     .default(BlogStatus.DRAFT),

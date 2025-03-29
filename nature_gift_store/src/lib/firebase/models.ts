@@ -237,8 +237,9 @@ interface UsageLimit {
 export interface User extends BaseDocument {
   email?: string | null
   fullName?: string | null
-  avatar?: string | null
+  photoURL?: string | null
   phone?: string | null
+  authId: string
   isAnonymous: boolean
   userType: UserType
   whitelists: string[]
@@ -282,6 +283,7 @@ export interface Blog extends CreatorDocument {
   status: BlogStatus
   publishedAt?: string | null
   customFields: CustomFields[]
+  associateProductPath?: string | null
   layout: BlogLayout
 }
 

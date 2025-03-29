@@ -36,15 +36,16 @@ import MultiText from '../custom-ui/MultiText'
 import { ContentEditor } from '../custom-ui/ContentEditor'
 import { toast } from '@/hooks/use-toast'
 import { BlogStatus, Media, MediaType } from '@/lib/firebase/models'
-import { IBlog, ICategory } from '@/lib/actions/server'
+import { IBlog, ICategory, IProduct } from '@/lib/actions/server'
 import { getDocumentId } from '@spreeloop/database'
 
 interface BlogFormProps {
   initialData?: IBlog | null
   categories: ICategory[]
+  products: IProduct[]
 }
 
-export function BlogForm({ initialData, categories }: BlogFormProps) {
+export function BlogForm({ initialData, categories, products }: BlogFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -167,6 +168,34 @@ export function BlogForm({ initialData, categories }: BlogFormProps) {
               </FormItem>
             )}
           />
+          {products.length > 0 && (
+            <FormField
+              control={form.control}
+              name="associateProductPath"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Associate Product(optional)</FormLabel>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a product" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {products.map(e => (
+                          <SelectItem key={e.path} value={e.path}>
+                            {e.data.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
           <ContentEditor
             label="Content"
             form={form}
@@ -183,7 +212,9 @@ export function BlogForm({ initialData, categories }: BlogFormProps) {
                   <div className="flex gap-2">
                     <FileUploader
                       medias={field.value ? [field.value] : []}
-                      setContent={(value: Media[]) => field.onChange(value[0])}
+                      setContent={(value: Media[]) =>
+                        value.length == 0 ? field.onChange(null) : field.onChange(value[0])
+                      }
                       fileType={MediaType.IMAGE}
                       maxFiles={1}
                     />

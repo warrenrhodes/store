@@ -215,13 +215,14 @@ export enum UserType {
 
 // Collection Interfaces
 export interface User extends BaseDocument {
-  clerkPath?: string | null
   email?: string | null
   fullName?: string | null
-  avatar?: string | null
+  photoURL?: string | null
   phone?: string | null
+  authId: string
   isAnonymous: boolean
   userType: UserType
+  whitelists: string[]
 }
 
 export interface Category extends CreatorDocument {
@@ -260,6 +261,7 @@ export interface Blog extends CreatorDocument {
   categories: string[]
   tags: string[]
   status: BlogStatus
+  associateProductPath?: string | null
   publishedAt?: string | null
   customFields: CustomFields[]
   layout: BlogLayout

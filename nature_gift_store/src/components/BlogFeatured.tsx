@@ -110,7 +110,7 @@ export function FeaturedBlogCarousel({ blogs }: FeaturedBlogCarouselProps) {
           >
             <div className="absolute inset-0  aspect-[16/9] overflow-hidden rounded-t-lg">
               <Image
-                src={metadata.coverImage.url || ''}
+                src={metadata.coverImage?.url || ''}
                 alt={blog.title}
                 fill
                 className="object-cover transition-transform duration-300 group-hover:scale-105"

@@ -1,24 +1,13 @@
-import BlogDetail from '@/components/Blogs/BlockDetail/BlockDetail'
-import { getAllRelatedCollection, getDocumentBySlug } from '@/lib/api/utils'
+import AdsBlogDetail from '@/components/Blogs/AdsBlockDetail/AdsBlockDetail'
+import { getAllCollection, getDocumentByPath, getDocumentBySlug } from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
-import { Blog, BlogMetadata, BlogStatus } from '@/lib/firebase/models'
-import { QueryFilter } from '@spreeloop/database'
+import { Blog, BlogMetadata, Product, Shipment } from '@/lib/firebase/models'
 import { notFound } from 'next/navigation'
 
 type Props = {
   params: Promise<{ slug: string }>
 }
 
-// export async function generateStaticParams() {
-//   const blogs = await getAllCollection<Blog>({
-//     collection: CollectionsName.Blogs,
-//     filters: [new QueryFilter('status', '==', BlogStatus.PUBLISHED)],
-//   })
-
-//   return blogs.map(post => ({
-//     slug: post.slug,
-//   }))
-// }
 export async function generateMetadata({ params }: Props) {
   const blog = await getDocumentBySlug<Blog>({
     collection: CollectionsName.Blogs,
@@ -49,7 +38,7 @@ export async function generateMetadata({ params }: Props) {
   }
 }
 
-export default async function BlogDetailPage(props: Props) {
+export default async function BlogAdsDetailPage(props: Props) {
   const params = await props.params
   const blog = await getDocumentBySlug<Blog>({
     collection: CollectionsName.Blogs,
@@ -59,18 +48,19 @@ export default async function BlogDetailPage(props: Props) {
     notFound()
   }
 
-  const allBlog = await getAllRelatedCollection<Blog>({
-    collection: CollectionsName.Blogs,
-    slug: params.slug,
-    filters: [new QueryFilter('status', '==', BlogStatus.PUBLISHED)],
-  })
-  const relatedBlogs = allBlog.filter(e =>
-    e.categories.some(category => blog.categories.includes(category)),
-  )
+  let associateProduct: Product | undefined
+  if (blog.associateProductPath) {
+    associateProduct = await getDocumentByPath<Product>({
+      path: blog.associateProductPath ?? '',
+    })
+  }
+
+  const shipments = await getAllCollection<Shipment>({ collection: CollectionsName.Shipments })
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <BlogDetail blog={blog} relatedBlogs={relatedBlogs || []} />
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <AdsBlogDetail blog={blog} shipments={shipments} associateProduct={associateProduct} />
       </div>
     </div>
   )

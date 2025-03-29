@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { useLocalization } from '@/hooks/useLocalization'
+import { useAuthStore } from '@/hooks/store/auth-store'
 
 const OrderSuccessPage = () => {
+  const { user } = useAuthStore()
   const { localization } = useLocalization()
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Card className="w-full max-w-md mx-4">
@@ -28,9 +29,13 @@ const OrderSuccessPage = () => {
             <p className="text-sm">{localization.confirmationEmailSent}</p>
           </div>
 
-          <div className="bg-yellow-50 p-4 rounded-lg mt-4">
-            <p className="text-sm text-yellow-800">{localization.createAccountMessage}</p>
-          </div>
+          {!user || user.isAnonymous ? (
+            <div className="bg-yellow-50 p-4 rounded-lg mt-4">
+              <p className="text-sm text-yellow-800">{localization.createAccountMessage}</p>
+            </div>
+          ) : (
+            <></>
+          )}
         </CardContent>
 
         <CardFooter className="flex flex-col space-y-2">
@@ -40,13 +45,21 @@ const OrderSuccessPage = () => {
               {localization.returnToHome}
             </Link>
           </Button>
-
-          <Button variant="outline" className="w-full" asChild>
-            <Link href="/profile?tab=orders">
-              <ShoppingBag className="mr-2 h-4 w-4" />
-              {localization.createAccount}
-            </Link>
-          </Button>
+          {!user || user.isAnonymous ? (
+            <Button variant="outline" className="w-full" asChild>
+              <Link href="/profile?tab=orders">
+                <ShoppingBag className="mr-2 h-4 w-4" />
+                {localization.createAccount}
+              </Link>
+            </Button>
+          ) : (
+            <Button variant="outline" className="w-full" asChild>
+              <Link href="/profile?tab=orders">
+                <ShoppingBag className="mr-2 h-4 w-4" />
+                {localization.myOrders}
+              </Link>
+            </Button>
+          )}
         </CardFooter>
       </Card>
     </div>

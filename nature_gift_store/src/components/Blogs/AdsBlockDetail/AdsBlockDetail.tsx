@@ -1,23 +1,45 @@
 'use client'
-import { Separator } from '@radix-ui/react-separator'
-import { motion } from 'framer-motion'
-import { Calendar, Clock, User, Tag, ArrowLeft } from 'lucide-react'
-import { BlogAuthor } from './BlogAuthor'
-import { RelatedBlogs } from './RelatedBlogs'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Calendar, Clock, User } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { format, subDays } from 'date-fns'
 import Image from 'next/image'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
-import { Blog } from '@/lib/firebase/models'
-import parse from 'html-react-parser'
+import { Blog, Product, Shipment } from '@/lib/firebase/models'
+import { AdsForm } from './AdsForm'
+import { useCart } from '@/hooks/useCart'
+import { useCallback, useEffect } from 'react'
+import { cn, getRegularPrice } from '@/lib/utils/utils'
+import { CartItem } from '@/components/Cart/CartItem'
 
-const BlogDetail = ({ blog, relatedBlogs }: { blog: Blog; relatedBlogs: Blog[] }) => {
+const AdsBlogDetail = ({
+  blog,
+  shipments,
+  associateProduct,
+}: {
+  blog: Blog
+  shipments: Shipment[]
+  associateProduct?: Product
+}) => {
   const { localization } = useLocalization()
   const metadata = blog.metadata
   const content = blog.content
+
+  const { addItem, cartItems, clearCart, increaseQuantity, decreaseQuantity } = useCart()
+  const addProductToCart = useCallback(async () => {
+    clearCart()
+    if (associateProduct)
+      addItem({
+        product: associateProduct,
+        quantity: 1,
+        price: getRegularPrice(associateProduct),
+      })
+  }, [])
+
+  useEffect(() => {
+    addProductToCart()
+  }, [addProductToCart])
 
   return (
     <motion.div
@@ -25,13 +47,6 @@ const BlogDetail = ({ blog, relatedBlogs }: { blog: Blog; relatedBlogs: Blog[] }
       animate={{ opacity: 1, y: 0 }}
       className="space-y-8"
     >
-      <Button variant="ghost" asChild>
-        <Link href="/blogs" className="flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          {localization.backToBlogs}
-        </Link>
-      </Button>
-
       <div className="space-y-4">
         {metadata.featured && <Badge className="mb-4">{localization.featuredArticle}</Badge>}
         <h1 className="text-5xl font-bold tracking-tight">{blog.title}</h1>
@@ -75,40 +90,42 @@ const BlogDetail = ({ blog, relatedBlogs }: { blog: Blog; relatedBlogs: Blog[] }
       </div>
 
       {content.type === 'HTML' && (
-        <motion.article
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-        >
-          {parse(content.content)}
-        </motion.article>
+          dangerouslySetInnerHTML={{ __html: content.content }}
+        />
       )}
 
       {content.type === 'MARKDOWN' && <div dangerouslySetInnerHTML={{ __html: content.content }} />}
 
       {content.type === 'TEXT' && <div>{content.content}</div>}
 
-      <div className="flex flex-wrap gap-2">
-        {blog.tags.map(tag => (
-          <div key={tag} className="flex items-center text-sm text-muted-foreground">
-            <Tag className="w-4 h-4 mr-1" />#{tag}
-          </div>
-        ))}
-      </div>
-
-      <Separator />
-
-      <BlogAuthor author={metadata.author} />
-
-      <Separator />
-
-      {/* {blog.co && <BlogComments />} */}
-
-      <Separator />
-
-      {relatedBlogs.length > 0 && <RelatedBlogs relatedBlogs={relatedBlogs.slice(0, 5)} />}
+      <AdsForm shipments={shipments} />
+      <motion.footer
+        className={cn(
+          'sticky bottom-0 z-50 w-full backdrop-blur-lg bg-background/80 border-b shadow-sm p-2',
+        )}
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <AnimatePresence initial={false}>
+          {cartItems.map(item => (
+            <CartItem
+              key={`${item.product.path}`}
+              item={item}
+              increaseQuantity={increaseQuantity}
+              decreaseQuantity={decreaseQuantity}
+              onRemove={() => {}}
+              canRemoveItem={false}
+            />
+          ))}
+        </AnimatePresence>
+      </motion.footer>
     </motion.div>
   )
 }
 
-export default BlogDetail
+export default AdsBlogDetail

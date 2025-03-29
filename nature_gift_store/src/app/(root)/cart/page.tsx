@@ -76,6 +76,7 @@ export default function CartPage() {
                         increaseQuantity={increaseQuantity}
                         decreaseQuantity={decreaseQuantity}
                         onRemove={removeCartItem}
+                        canRemoveItem={true}
                       />
                     ))}
                   </AnimatePresence>

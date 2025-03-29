@@ -101,6 +101,7 @@ export function CartSidebar() {
                         increaseQuantity={increaseQuantity}
                         decreaseQuantity={decreaseQuantity}
                         onRemove={removeItem}
+                        canRemoveItem={true}
                       />
                     ))}
                   </AnimatePresence>

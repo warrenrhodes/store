@@ -118,7 +118,6 @@ const useAuthStore = create(
               createdAtInUTC: new Date().toISOString(),
             })
             if (!result) {
-              console.log('ufail to update the userser not exist22222222222')
               set({
                 error: getAuthErrorMessage('auth/failed-to-add-user'),
                 loading: false,

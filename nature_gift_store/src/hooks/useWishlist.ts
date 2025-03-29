@@ -21,7 +21,7 @@ export function useWishlist() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user.uid,
+          userId: user.authId,
           changes: pendingChanges,
           currentItems: Array.from(items),
         }),

@@ -170,9 +170,7 @@ export const AdsForm = (props: { shipments: Shipment[] }) => {
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" id="checkout-form">
-        <div className="lg:col-span-1">
-          <OrderSummary orderSummary={orderSummary} />
-        </div>
+        
         <div className="lg:col-span-2">
           <AnimatePresence mode="wait">
             <motion.div
@@ -201,6 +199,9 @@ export const AdsForm = (props: { shipments: Shipment[] }) => {
               </Button>
             </motion.div>
           </AnimatePresence>
+        </div>
+        <div className="lg:col-span-1">
+          <OrderSummary              orderSummary={orderSummary} />
         </div>
       </div>
     </>

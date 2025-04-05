@@ -152,7 +152,7 @@ export function AdsDeliveryForm({ onSubmit, shipment: shipments, form }: AdsDeli
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email (Optional)</FormLabel>
+                  <FormLabel>Email ({localization.optional})</FormLabel>
                   <FormControl>
                     <Input type="email" {...field} onKeyDown={handleKeyPress} />
                   </FormControl>
@@ -370,7 +370,7 @@ export function AdsDeliveryForm({ onSubmit, shipment: shipments, form }: AdsDeli
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder={localization.additionalNotes}
+                    placeholder={localization.additionalNotesPlaceHolder}
                     {...field}
                     onKeyDown={handleKeyPress}
                   />

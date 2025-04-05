@@ -12,6 +12,7 @@ import { useCart } from '@/hooks/useCart'
 import { useCallback, useEffect } from 'react'
 import { cn, getRegularPrice } from '@/lib/utils/utils'
 import { CartItem } from '@/components/Cart/CartItem'
+import CountdownTimer from '@/components/CountDown'
 
 const AdsBlogDetail = ({
   blog,
@@ -111,6 +112,7 @@ const AdsBlogDetail = ({
         animate={{ y: 0 }}
         transition={{ duration: 0.3 }}
       >
+        <CountdownTimer />
         <AnimatePresence initial={false}>
           {cartItems.map(item => (
             <CartItem

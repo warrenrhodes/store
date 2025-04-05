@@ -140,8 +140,8 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     fr: 'Nom Complet',
   },
   phone: {
-    en: 'Phone',
-    fr: 'Téléphone',
+    en: 'Phone (WhatsApp/Other)',
+    fr: 'Téléphone (WhatsApp/Autre)',
   },
   city: {
     en: 'City',
@@ -628,9 +628,19 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     en: 'My orders',
     fr: 'Mes commandes',
   },
+  countDownMessage: {
+    en: '*Limited time offer. While supplies last',
+    fr: "*Offre limitée dans le temps. Jusqu'à épuisement des stocks",
+  },
+  additionalNotesPlaceHolder: {
+    en: 'Example: Opposite hotel A, behind pharmacy b ...',
+    fr: "Exemple : En face de l'hôtel A, derrière la pharmacie B ...",
+  },
 }
 
 export const enum DictWords {
+  additionalNotesPlaceHolder = 'additionalNotesPlaceHolder',
+  countDownMessage = 'countDownMessage',
   myOrders = 'myOrders',
   PENDING = 'PENDING',
   CANCELED = 'CANCELED',

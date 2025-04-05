@@ -44,7 +44,7 @@ const BlogDetail = ({ blog, relatedBlogs }: { blog: Blog; relatedBlogs: Blog[] }
               fill
               className="object-cover"
               placeholder="blur"
-              blurDataURL={metadata.coverImage.blurDataUrl || FAKE_BLUR}
+              blurDataURL={metadata.coverImage?.blurDataUrl || FAKE_BLUR}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </div>

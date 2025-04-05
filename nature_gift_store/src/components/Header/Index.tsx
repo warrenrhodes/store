@@ -9,6 +9,7 @@ import { UserNav } from './UserNav'
 import { CartSidebar } from '../Cart/CartSidebar'
 import { LocaleSelector } from './LocaleSelector'
 import { Product } from '@/lib/firebase/models'
+import { ProgressBar } from './ProgressBar'
 
 export function Header(props: { products: Product[] }) {
   return (
@@ -34,6 +35,7 @@ export function Header(props: { products: Product[] }) {
           <MobileNav products={props.products} />
         </div>
       </div>
+      <ProgressBar />
     </motion.header>
   )
 }

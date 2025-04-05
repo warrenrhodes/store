@@ -259,7 +259,6 @@ export default function ProfileView(props: { orders: Order[] }) {
                 <h2 className="mt-4 text-2xl font-bold">{user?.fullName}</h2>
                 <p className="text-muted-foreground">{user?.email}</p>
               </div>
-
               <div className="mt-6 space-y-4">
                 <div className="flex items-center gap-3 text-muted-foreground">
                   <Package className="h-5 w-5" />

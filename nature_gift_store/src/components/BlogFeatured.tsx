@@ -115,7 +115,7 @@ export function FeaturedBlogCarousel({ blogs }: FeaturedBlogCarouselProps) {
                 fill
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
                 placeholder="blur"
-                blurDataURL={metadata.coverImage.blurDataUrl || FAKE_BLUR}
+                blurDataURL={metadata.coverImage?.blurDataUrl || FAKE_BLUR}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
             </div>

@@ -12,6 +12,7 @@ import { useCart } from '@/hooks/useCart'
 import { useCallback, useEffect } from 'react'
 import { cn, getRegularPrice } from '@/lib/utils/utils'
 import { CartItem } from '@/components/Cart/CartItem'
+import CountdownTimer from '@/components/CountDown'
 
 const AdsBlogDetail = ({
   blog,
@@ -59,7 +60,7 @@ const AdsBlogDetail = ({
               fill
               className="object-cover"
               placeholder="blur"
-              blurDataURL={metadata.coverImage.blurDataUrl || FAKE_BLUR}
+              blurDataURL={metadata.coverImage?.blurDataUrl || FAKE_BLUR}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </div>
@@ -111,6 +112,7 @@ const AdsBlogDetail = ({
         animate={{ y: 0 }}
         transition={{ duration: 0.3 }}
       >
+        <CountdownTimer />
         <AnimatePresence initial={false}>
           {cartItems.map(item => (
             <CartItem

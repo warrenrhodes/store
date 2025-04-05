@@ -147,19 +147,6 @@ export function AdsDeliveryForm({ onSubmit, shipment: shipments, form }: AdsDeli
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email (Optional)</FormLabel>
-                  <FormControl>
-                    <Input type="email" {...field} onKeyDown={handleKeyPress} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 items-start">
@@ -370,7 +357,7 @@ export function AdsDeliveryForm({ onSubmit, shipment: shipments, form }: AdsDeli
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder={localization.additionalNotes}
+                    placeholder={localization.additionalNotesPlaceHolder}
                     {...field}
                     onKeyDown={handleKeyPress}
                   />

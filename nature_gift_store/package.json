@@ -5,6 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "next dev --turbopack -p 3001",
+    "scan": "npm run dev & npx react-scan@latest localhost:3001",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -49,6 +50,7 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.53.2",
     "react-hot-toast": "^2.4.1",
+    "react-scan": "^0.3.3",
     "tailwind-merge": "^2.5.5",
     "tailwind-scrollbar-hide": "^1.1.7",
     "tailwindcss-animate": "^1.0.7",

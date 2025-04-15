@@ -68,12 +68,14 @@ export function NewArrivals({ products }: { products: Product[] }) {
             <motion.div key={`${product.path}`} variants={itemVariants}>
               <Card className="group cursor-pointer h-full overflow-hidden">
                 <CardHeader className="p-0">
-                  <div className="relative aspect-[4/5] overflow-hidden">
-                    <div
-                      className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-                      style={{ backgroundImage: `url(${product.medias[0].url})` }}
-                    />
-                  </div>
+                  <Link href={`/shop/${product.slug}`}>
+                    <div className="relative aspect-[4/5] overflow-hidden">
+                      <div
+                        className="absolute inset-0 bg-contain bg-no-repeat bg-center transition-transform duration-300 group-hover:scale-105"
+                        style={{ backgroundImage: `url(${product.medias[0].url})` }}
+                      />
+                    </div>
+                  </Link>
                 </CardHeader>
                 <CardContent className="p-6">
                   <h3 className="font-semibold">{product.title}</h3>

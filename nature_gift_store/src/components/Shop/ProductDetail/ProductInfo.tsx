@@ -1,7 +1,16 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Heart, Minus, Plus, Share2, ShoppingCart, Star } from 'lucide-react'
+import {
+  ChevronRight,
+  ChevronsRight,
+  Heart,
+  Minus,
+  Plus,
+  Share2,
+  ShoppingCart,
+  Star,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
@@ -19,6 +28,8 @@ import { useRouter } from 'next/navigation'
 import { useLocalization } from '@/hooks/useLocalization'
 import { Feature, Price, ProductDescription } from '@/lib/type'
 import { Product, Review } from '@/lib/firebase/models'
+import { useState } from 'react'
+import Link from 'next/link'
 
 export function ProductInfo({ product, reviews }: { product: Product; reviews: Review[] }) {
   const {
@@ -29,12 +40,17 @@ export function ProductInfo({ product, reviews }: { product: Product; reviews: R
   } = product
   const cart = useCart()
   const router = useRouter()
+  const [isExpanded, setIsExpanded] = useState(false)
+  const MAX_CHARS = 300
   const cartSideBar = useCartSideBar()
   const cartItem = cart.cartItems.find(item => item.product.path === product.path)
   const { localization } = useLocalization()
   const price: Price | undefined = productPrice as unknown as Price | undefined
   const description = productDescription as ProductDescription
   const features = productFeatures as Feature[]
+
+  const truncatedText = (text: string) => text.slice(0, MAX_CHARS).concat('.....')
+  const shouldTruncate = (text: string) => text.length > MAX_CHARS
 
   const handleClickDecrement = () => {
     if (!cartItem) return
@@ -102,17 +118,34 @@ export function ProductInfo({ product, reviews }: { product: Product; reviews: R
           )}
         </div>
       </div>
-
-      {description.contentType === 'TEXT' ? (
-        <p className="text-muted-foreground">{description.content}</p>
-      ) : (
-        <div
+      <span>
+        <span
           itemProp="description"
           className="prose prose-slate prose-sm sm:prose leading-relaxed text-gray-400"
           dangerouslySetInnerHTML={{
-            __html: description.content,
+            __html: isExpanded ? description.content : truncatedText(description.content),
           }}
         />
+        {shouldTruncate && (
+          <Button variant="link" onClick={() => setIsExpanded(!isExpanded)} className="group">
+            {isExpanded ? localization.showLess : localization.readMore}
+            {
+              <ChevronsRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            }
+          </Button>
+        )}
+      </span>
+      {product.blogUrl && (
+        <div>
+          <Button variant="outline" asChild className="group">
+            <Link href={product.blogUrl}>
+              {localization.getMoreInformation}
+              {
+                <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              }
+            </Link>
+          </Button>
+        </div>
       )}
 
       <div className="space-y-4">
@@ -169,7 +202,7 @@ export function ProductInfo({ product, reviews }: { product: Product; reviews: R
 
       <Separator />
 
-      {features && (
+      {features && features.length > 0 && (
         <div className="space-y-2">
           <h3 className="font-medium">{localization.keyFeatures}</h3>
           <ul className="grid grid-cols-2 gap-2 text-sm">

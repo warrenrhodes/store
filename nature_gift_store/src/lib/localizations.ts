@@ -636,9 +636,19 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     en: 'Example: Opposite hotel A, behind pharmacy b ...',
     fr: "Exemple : En face de l'hôtel A, derrière la pharmacie B ...",
   },
+  showLess: {
+    en: 'Show Less',
+    fr: 'Réduire',
+  },
+  getMoreInformation: {
+    en: 'More information',
+    fr: 'En savoir plus',
+  },
 }
 
 export const enum DictWords {
+  getMoreInformation = 'getMoreInformation',
+  showLess = 'showLess',
   additionalNotesPlaceHolder = 'additionalNotesPlaceHolder',
   countDownMessage = 'countDownMessage',
   myOrders = 'myOrders',

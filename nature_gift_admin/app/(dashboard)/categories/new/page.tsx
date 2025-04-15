@@ -1,8 +1,8 @@
 import { CategoryForm } from '@/components/categories/CategoryForm'
-import { getCategories } from '@/lib/actions/server'
+import { getCategoriesCache } from '@/lib/actions/server'
 
 export default async function NewCategoryPage() {
-  const categories = await getCategories()
+  const categories = await getCategoriesCache()
   return (
     <div className="container py-10">
       <div className="mb-8">

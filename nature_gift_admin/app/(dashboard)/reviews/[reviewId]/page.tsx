@@ -1,9 +1,12 @@
 import ReviewForm from '@/components/reviews/ReviewFrom'
-import { getProducts, getReviewById } from '@/lib/actions/server'
+import { getProductsCache, getReviewByIdCache } from '@/lib/actions/server'
 
 export default async function EditReviewPage(props: { params: Promise<{ reviewId: string }> }) {
   const params = await props.params
-  const [review, products] = await Promise.all([getReviewById(params.reviewId), getProducts()])
+  const [review, products] = await Promise.all([
+    getReviewByIdCache(params.reviewId),
+    getProductsCache(),
+  ])
 
   return (
     <div className="container py-10">

@@ -1,8 +1,8 @@
 import { PromotionsList } from '@/components/promotions/PromotionsList'
-import { getPromotions } from '@/lib/actions/server'
+import { getPromotionsCache } from '@/lib/actions/server'
 
 export default async function PromotionsPage() {
-  const promotions = await getPromotions()
+  const promotions = await getPromotionsCache()
   return (
     <div className="container py-10">
       <PromotionsList promotions={promotions} />

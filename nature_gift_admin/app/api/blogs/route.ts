@@ -1,4 +1,4 @@
-import { getBlogs, getUserTokensOnApiRoute, postData } from '@/lib/actions/server'
+import { getBlogsCache, getUserTokensOnApiRoute, postData } from '@/lib/actions/server'
 import { generateSlug } from '@/lib/utils/slugify'
 import { blogSchema } from '@/lib/validations/blog'
 import { NextRequest, NextResponse } from 'next/server'
@@ -12,7 +12,7 @@ export const GET = async (req: NextRequest) => {
       return new NextResponse('Unauthorized', { status: 403 })
     }
 
-    const blogs = getBlogs()
+    const blogs = getBlogsCache()
 
     return NextResponse.json(blogs)
   } catch (error) {

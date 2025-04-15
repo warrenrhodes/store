@@ -54,8 +54,8 @@ const CountdownTimer = () => {
   ]
 
   return (
-    <div className="flex flex-col items-center justify-center m-3">
-      <div className="flex justify-center items-center gap-4">
+    <div className="flex flex-col items-center justify-center m-3 max-sm:m-1">
+      <div className="flex justify-center  items-center gap-4 max-sm:gap-1 max-sm:h-10">
         {timeUnits.map((unit, index) => (
           <React.Fragment key={unit.label}>
             <motion.div className="flex flex-col items-center justify-center" layout>
@@ -67,19 +67,23 @@ const CountdownTimer = () => {
                 transition={{ duration: 0.3 }}
                 className="flex flex-col items-center"
               >
-                <span className="text-4xl max-md:text-2xl max-sm:text-xl max-xs:text-xs font-bold">
+                <span className="text-4xl max-md:text-2xl max-sm:text-[14px] max-xs:text-xs font-bold">
                   {String(unit.value).padStart(2, '0')}
                 </span>
-                <span className="text-sm mt-1  max-sm:text-xs">{unit.label}</span>
+                <span className="text-sm mt-1 max-sm:text-[8px] max-sm:mt-0">{unit.label}</span>
               </motion.div>
             </motion.div>
 
-            {index < timeUnits.length - 1 && <span className="text-3xl font-bold ">:</span>}
+            {index < timeUnits.length - 1 && (
+              <span className="text-3xl font-bold text-[12px]">:</span>
+            )}
           </React.Fragment>
         ))}
       </div>
 
-      <p className="mt-4 text-md text-gray-600 text-center">{localization.countDownMessage}</p>
+      <p className="mt-4 text-md text-gray-600 text-center max-sm:text-[12px] max-sm:mt-1">
+        {localization.countDownMessage}
+      </p>
     </div>
   )
 }

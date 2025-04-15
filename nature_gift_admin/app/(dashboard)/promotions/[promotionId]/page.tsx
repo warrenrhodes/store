@@ -1,13 +1,13 @@
 import { PromotionFormV2 } from '@/components/promotions/PromotionsFormV2'
-import { getProducts, getPromotionById } from '@/lib/actions/server'
+import { getProductsCache, getPromotionByIdCache } from '@/lib/actions/server'
 
 export default async function EditPromotionPage(props: {
   params: Promise<{ promotionId: string }>
 }) {
   const params = await props.params
   const [promotion, products] = await Promise.all([
-    getPromotionById(params.promotionId),
-    getProducts(),
+    getPromotionByIdCache(params.promotionId),
+    getProductsCache(),
   ])
 
   return (

@@ -1,8 +1,8 @@
 import { ProductList } from '@/components/products/ProductList'
-import { getProducts } from '@/lib/actions/server'
+import { getProductsCache } from '@/lib/actions/server'
 
 export default async function Products() {
-  const products = await getProducts()
+  const products = await getProductsCache()
 
   return (
     <div className="sm:px-10 px-2 py-5">

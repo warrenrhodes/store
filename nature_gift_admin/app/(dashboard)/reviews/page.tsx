@@ -1,8 +1,8 @@
 import { ReviewList } from '@/components/reviews/ReviewList'
-import { getReviews } from '@/lib/actions/server'
+import { getReviewsCache } from '@/lib/actions/server'
 
 export default async function ReviewsPage() {
-  const reviews = await getReviews()
+  const reviews = await getReviewsCache()
   return (
     <div className="container py-10">
       <ReviewList reviews={reviews} />

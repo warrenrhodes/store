@@ -1,15 +1,20 @@
 import AdsBlogDetail from '@/components/Blogs/AdsBlockDetail/AdsBlockDetail'
-import { getAllCollection, getDocumentByPath, getDocumentBySlug } from '@/lib/api/utils'
+import {
+  getAllCollectionCache,
+  getDocumentByPathCache,
+  getDocumentBySlugCache,
+} from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { Blog, BlogMetadata, Product, Shipment } from '@/lib/firebase/models'
 import { notFound } from 'next/navigation'
 
 type Props = {
   params: Promise<{ slug: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
 export async function generateMetadata({ params }: Props) {
-  const blog = await getDocumentBySlug<Blog>({
+  const blog = await getDocumentBySlugCache<Blog>({
     collection: CollectionsName.Blogs,
     slug: (await params).slug,
   })
@@ -40,7 +45,8 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function BlogAdsDetailPage(props: Props) {
   const params = await props.params
-  const blog = await getDocumentBySlug<Blog>({
+  const searchParams = await props.searchParams
+  const blog = await getDocumentBySlugCache<Blog>({
     collection: CollectionsName.Blogs,
     slug: params.slug,
   })
@@ -50,12 +56,18 @@ export default async function BlogAdsDetailPage(props: Props) {
 
   let associateProduct: Product | undefined
   if (blog.associateProductPath) {
-    associateProduct = await getDocumentByPath<Product>({
+    associateProduct = await getDocumentByPathCache<Product>({
       path: blog.associateProductPath ?? '',
     })
   }
+  if (searchParams?.product) {
+    associateProduct = await getDocumentBySlugCache<Product>({
+      slug: searchParams?.product as string,
+      collection: CollectionsName.Products,
+    })
+  }
 
-  const shipments = await getAllCollection<Shipment>({ collection: CollectionsName.Shipments })
+  const shipments = await getAllCollectionCache<Shipment>({ collection: CollectionsName.Shipments })
 
   return (
     <div className="min-h-screen bg-background">

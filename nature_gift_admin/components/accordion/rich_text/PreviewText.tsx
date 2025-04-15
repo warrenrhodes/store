@@ -1,6 +1,13 @@
+'use client'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog'
-import { DialogDescription, DialogTitle } from '@radix-ui/react-dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import parse from 'html-react-parser'
 
 export const PreviewText = (props: { content: string }) => {

@@ -1,10 +1,10 @@
 import { DataTable } from '@/components/custom-ui/DataTable'
 import { columns } from '@/components/orders/OrderColumns'
 import { Separator } from '@/components/ui/separator'
-import { getOrders } from '@/lib/actions/server'
+import { getOrdersCache } from '@/lib/actions/server'
 
 export default async function Orders() {
-  const orders = await getOrders()
+  const orders = await getOrdersCache()
   return (
     <div className="sm:px-10 px-2 py-5">
       <p className="text-heading2-bold">Orders</p>

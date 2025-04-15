@@ -1,8 +1,8 @@
 import ShipmentForm from '@/components/shipments/ShipmentForm'
-import { getShipments } from '@/lib/actions/server'
+import { getShipmentsCache } from '@/lib/actions/server'
 
 export default async function NewShipmentPage() {
-  const shipments = await getShipments()
+  const shipments = await getShipmentsCache()
   return (
     <div className="container py-10">
       <div className="mb-8">

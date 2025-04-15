@@ -8,6 +8,7 @@ import { CollectionsName } from '../firebase/collection-name'
 import { Blog, Category, Order, Product, Promotion, Review, Shipment } from '../firebase/models'
 import { NextRequest, NextResponse } from 'next/server'
 import z from 'zod'
+import { cache } from 'react'
 
 export type ICategory = DatabaseDocument<Category>
 export type IShipment = DatabaseDocument<Shipment>
@@ -53,7 +54,7 @@ export const getSalesPerMonth = async () => {
   return graphData
 }
 
-export async function getProducts(): Promise<IProduct[]> {
+async function getProducts(): Promise<IProduct[]> {
   try {
     const token = await getUserTokens()
     if (!token?.decodedToken.uid) return []
@@ -70,7 +71,7 @@ export async function getProducts(): Promise<IProduct[]> {
   }
 }
 
-export async function getProductById(productId: string): Promise<IProduct | undefined> {
+async function getProductById(productId: string): Promise<IProduct | undefined> {
   const productPath = getDatabasePath(CollectionsName.Products, productId)
   try {
     const token = await getUserTokens()
@@ -88,7 +89,7 @@ export async function getProductById(productId: string): Promise<IProduct | unde
   }
 }
 
-export async function getCategories(): Promise<ICategory[]> {
+async function getCategories(): Promise<ICategory[]> {
   try {
     const token = await getUserTokens()
     if (!token?.decodedToken.uid) return []
@@ -104,7 +105,7 @@ export async function getCategories(): Promise<ICategory[]> {
     return []
   }
 }
-export async function getCategoryById(categoryId: string): Promise<ICategory | undefined> {
+async function getCategoryById(categoryId: string): Promise<ICategory | undefined> {
   const categoryPath = getDatabasePath(CollectionsName.Categories, categoryId)
   try {
     const token = await getUserTokens()
@@ -122,7 +123,7 @@ export async function getCategoryById(categoryId: string): Promise<ICategory | u
   }
 }
 
-export async function getShipments(): Promise<IShipment[]> {
+async function getShipments(): Promise<IShipment[]> {
   try {
     const token = await getUserTokens()
     if (!token?.decodedToken.uid) return []
@@ -139,7 +140,7 @@ export async function getShipments(): Promise<IShipment[]> {
   }
 }
 
-export async function getBlogs(): Promise<IBlog[]> {
+async function getBlogs(): Promise<IBlog[]> {
   try {
     const token = await getUserTokens()
     if (!token?.decodedToken.uid) return []
@@ -156,7 +157,7 @@ export async function getBlogs(): Promise<IBlog[]> {
   }
 }
 
-export async function getBlogById(blogId: string): Promise<IBlog | undefined> {
+async function getBlogById(blogId: string): Promise<IBlog | undefined> {
   const blogPath = getDatabasePath(CollectionsName.Blogs, blogId)
   try {
     const token = await getUserTokens()
@@ -174,7 +175,7 @@ export async function getBlogById(blogId: string): Promise<IBlog | undefined> {
   }
 }
 
-export async function getReviews(): Promise<IReview[]> {
+async function getReviews(): Promise<IReview[]> {
   try {
     const token = await getUserTokens()
     if (!token?.decodedToken.uid) return []
@@ -191,7 +192,7 @@ export async function getReviews(): Promise<IReview[]> {
   }
 }
 
-export async function getReviewById(reviewId: string): Promise<IReview | undefined> {
+async function getReviewById(reviewId: string): Promise<IReview | undefined> {
   const reviewPath = getDatabasePath(CollectionsName.Reviews, reviewId)
   try {
     const token = await getUserTokens()
@@ -209,7 +210,7 @@ export async function getReviewById(reviewId: string): Promise<IReview | undefin
   }
 }
 
-export async function getOrders(): Promise<IOrder[]> {
+async function getOrders(): Promise<IOrder[]> {
   try {
     const token = await getUserTokens()
     if (!token?.decodedToken.uid) return []
@@ -235,7 +236,7 @@ export async function getOrders(): Promise<IOrder[]> {
   }
 }
 
-export async function getPromotions(): Promise<IPromotion[]> {
+async function getPromotions(): Promise<IPromotion[]> {
   try {
     const token = await getUserTokens()
     if (!token?.decodedToken.uid) return []
@@ -252,7 +253,7 @@ export async function getPromotions(): Promise<IPromotion[]> {
   }
 }
 
-export async function getPromotionById(promotionId: string): Promise<IPromotion | undefined> {
+async function getPromotionById(promotionId: string): Promise<IPromotion | undefined> {
   const promotionPath = getDatabasePath(CollectionsName.Promotions, promotionId)
   try {
     const token = await getUserTokens()
@@ -270,7 +271,7 @@ export async function getPromotionById(promotionId: string): Promise<IPromotion 
   }
 }
 
-export async function getShipmentById(shipmentId: string): Promise<IShipment | undefined> {
+async function getShipmentById(shipmentId: string): Promise<IShipment | undefined> {
   const shipmentPath = getDatabasePath(CollectionsName.Shipments, shipmentId)
   try {
     const token = await getUserTokens()
@@ -433,3 +434,17 @@ export const deleteData = async (req: NextRequest, collection: string, id: strin
 
   return NextResponse.json(null, { status: 200 })
 }
+
+export const getPromotionsCache = cache(getPromotions)
+export const getShipmentByIdCache = cache(getShipmentById)
+export const getPromotionByIdCache = cache(getPromotionById)
+export const getOrdersCache = cache(getOrders)
+export const getReviewByIdCache = cache(getReviewById)
+export const getProductsCache = cache(getProducts)
+export const getProductByIdCache = cache(getProductById)
+export const getCategoriesCache = cache(getCategories)
+export const getCategoryByIdCache = cache(getCategoryById)
+export const getShipmentsCache = cache(getShipments)
+export const getBlogsCache = cache(getBlogs)
+export const getBlogByIdCache = cache(getBlogById)
+export const getReviewsCache = cache(getReviews)

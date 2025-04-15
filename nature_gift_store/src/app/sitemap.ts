@@ -1,4 +1,4 @@
-import { getAllCollection } from '@/lib/api/utils'
+import { getAllCollectionCache } from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { Blog, BlogStatus, Product, ProductStatus } from '@/lib/firebase/models'
 import { QueryFilter } from '@spreeloop/database'
@@ -30,7 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fetch dynamic data with timeout
     const [products, blogs] = await Promise.all([
       Promise.race([
-        getAllCollection<Product>({
+        getAllCollectionCache<Product>({
           collection: CollectionsName.Products,
           filters: [
             new QueryFilter('status', '==', ProductStatus.PUBLISHED),
@@ -40,7 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         new Promise<Product[]>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000)),
       ]),
       Promise.race([
-        getAllCollection<Blog>({
+        getAllCollectionCache<Blog>({
           collection: CollectionsName.Blogs,
           filters: [new QueryFilter('status', '==', BlogStatus.PUBLISHED)],
         }),

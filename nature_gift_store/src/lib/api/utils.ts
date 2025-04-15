@@ -11,6 +11,7 @@ import {
 } from '../firebase/models'
 import { backend } from '../firebase/firebase-server/firebase'
 import { CollectionsName } from '../firebase/collection-name'
+import { cache } from 'react'
 
 export type ICategory = DatabaseDocument<Category>
 export type IShipment = DatabaseDocument<Shipment>
@@ -20,7 +21,7 @@ export type IPromotion = DatabaseDocument<Promotion>
 export type IProduct = Product & { path: string }
 export type IOrder = DatabaseDocument<Order>
 
-export async function getDocumentBySlug<T>(props: {
+async function getDocumentBySlug<T>(props: {
   collection: string
   slug: string
 }): Promise<T | undefined> {
@@ -38,7 +39,7 @@ export async function getDocumentBySlug<T>(props: {
     return
   }
 }
-export const getAllCollection = async <T>(props: {
+const getAllCollection = async <T>(props: {
   collection: string
   filters?: QueryFilter[]
 }): Promise<T[]> => {
@@ -54,7 +55,7 @@ export const getAllCollection = async <T>(props: {
   }
 }
 
-export const getAllRelatedCollection = async <T extends { slug: string }>(props: {
+const getAllRelatedCollection = async <T extends { slug: string }>(props: {
   collection: string
   slug: string
   filters?: QueryFilter[]
@@ -72,7 +73,7 @@ export const getAllRelatedCollection = async <T extends { slug: string }>(props:
   }
 }
 
-export const getDocumentByPath = async <T>(props: { path: string }): Promise<T | undefined> => {
+const getDocumentByPath = async <T>(props: { path: string }): Promise<T | undefined> => {
   try {
     const data = await backend.database.getRecord<T>(props.path)
 
@@ -83,7 +84,7 @@ export const getDocumentByPath = async <T>(props: { path: string }): Promise<T |
   }
 }
 
-export const getAllValidPromotion = async (): Promise<Promotion[]> => {
+const getAllValidPromotion = async (): Promise<Promotion[]> => {
   try {
     const query = backend.db.collection(CollectionsName.Promotions)
     query.where('status', '==', PromotionStatus.ACTIVE)
@@ -101,3 +102,9 @@ export const getAllValidPromotion = async (): Promise<Promotion[]> => {
     return []
   }
 }
+
+export const getAllRelatedCollectionCache = cache(getAllRelatedCollection)
+export const getAllValidPromotionCache = cache(getAllValidPromotion)
+export const getDocumentBySlugCache = cache(getDocumentBySlug)
+export const getDocumentByPathCache = cache(getDocumentByPath)
+export const getAllCollectionCache = cache(getAllCollection)

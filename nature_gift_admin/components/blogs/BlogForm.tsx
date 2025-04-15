@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
-import { AlertTriangle, CalendarIcon, Loader2, Trash2 } from 'lucide-react'
+import { AlertTriangle, CalendarIcon, Loader2, Trash2, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -176,20 +176,32 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
                 <FormItem>
                   <FormLabel>Associate Product(optional)</FormLabel>
                   <FormControl>
-                    <Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a product" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {products.map(e => (
-                          <SelectItem key={e.path} value={e.path}>
-                            {e.data.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex gap-2 items-center">
+                      <Select onValueChange={field.onChange} value={field.value || ''}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a product" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {products.map(e => (
+                            <SelectItem key={e.path} value={e.path}>
+                              {e.data.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <X
+                        size={20}
+                        className={cn(
+                          {
+                            hidden: !field.value,
+                          },
+                          'text-red-500 cursor-pointer',
+                        )}
+                        onClick={() => field.onChange(null)}
+                      />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

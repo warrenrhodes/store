@@ -1,8 +1,8 @@
 import { BlogForm } from '@/components/blogs/BlogForm'
-import { getCategories, getProducts } from '@/lib/actions/server'
+import { getCategoriesCache, getProductsCache } from '@/lib/actions/server'
 
 export default async function NewBlogPage() {
-  const [categories, products] = await Promise.all([getCategories(), getProducts()])
+  const [categories, products] = await Promise.all([getCategoriesCache(), getProductsCache()])
   return (
     <div className="container py-10">
       <div className="mb-8">

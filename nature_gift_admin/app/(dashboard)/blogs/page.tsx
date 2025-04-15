@@ -1,8 +1,8 @@
 import { BlogList } from '@/components/blogs/BlogList'
-import { getBlogs } from '@/lib/actions/server'
+import { getBlogsCache } from '@/lib/actions/server'
 
 export default async function BlogPage() {
-  const blogs = await getBlogs()
+  const blogs = await getBlogsCache()
   return (
     <div className="py-10">
       <BlogList blogs={blogs} />

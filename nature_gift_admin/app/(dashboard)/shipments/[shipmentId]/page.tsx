@@ -1,9 +1,9 @@
 import ShipmentForm from '@/components/shipments/ShipmentForm'
-import { getShipmentById } from '@/lib/actions/server'
+import { getShipmentByIdCache } from '@/lib/actions/server'
 
 export default async function EditShipmentPage(props: { params: Promise<{ shipmentId: string }> }) {
   const params = await props.params
-  const [shipment] = await Promise.all([getShipmentById(params.shipmentId)])
+  const [shipment] = await Promise.all([getShipmentByIdCache(params.shipmentId)])
 
   return (
     <div className="container py-10">

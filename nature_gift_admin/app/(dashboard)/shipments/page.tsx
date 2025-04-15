@@ -1,8 +1,8 @@
 import { ShipmentList } from '@/components/shipments/ShipmentList'
-import { getShipments } from '@/lib/actions/server'
+import { getShipmentsCache } from '@/lib/actions/server'
 
 export default async function ShipmentsPage() {
-  const shipments = await getShipments()
+  const shipments = await getShipmentsCache()
   return (
     <div className="container py-10">
       <ShipmentList shipments={shipments} />

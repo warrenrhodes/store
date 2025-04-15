@@ -1,8 +1,8 @@
 import { CategoryList } from '@/components/categories/CategoryList'
-import { getCategories } from '@/lib/actions/server'
+import { getCategoriesCache } from '@/lib/actions/server'
 
 export default async function CategoriesPage() {
-  const categories = await getCategories()
+  const categories = await getCategoriesCache()
   return (
     <div className="container py-10">
       <CategoryList categories={categories} />

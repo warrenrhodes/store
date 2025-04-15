@@ -6,7 +6,7 @@ import Footer from '@/components/Footer'
 import { Toaster } from '@/components/ui/toaster'
 import { Header } from '@/components/Header/Index'
 import { GoogleTagManager } from '@next/third-parties/google'
-import { getAllCollection } from '@/lib/api/utils'
+import { getAllCollectionCache } from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { Product, ProductStatus } from '@/lib/firebase/models'
 import { QueryFilter } from '@spreeloop/database'
@@ -44,7 +44,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const products = await getAllCollection<Product>({
+  const products = await getAllCollectionCache<Product>({
     collection: CollectionsName.Products,
     filters: [
       new QueryFilter('status', '==', ProductStatus.PUBLISHED),

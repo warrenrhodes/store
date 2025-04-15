@@ -1,12 +1,12 @@
 import { CategoryForm } from '@/components/categories/CategoryForm'
-import { getCategories, getCategoryById } from '@/lib/actions/server'
+import { getCategoriesCache, getCategoryByIdCache } from '@/lib/actions/server'
 import { notFound } from 'next/navigation'
 
 export default async function EditCategoryPage(props: { params: Promise<{ categoryId: string }> }) {
   const params = await props.params
   const [category, categories] = await Promise.all([
-    getCategoryById(params.categoryId),
-    getCategories(),
+    getCategoryByIdCache(params.categoryId),
+    getCategoriesCache(),
   ])
 
   if (!category) {

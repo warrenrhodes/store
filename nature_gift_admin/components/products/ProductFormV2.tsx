@@ -1,7 +1,7 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2, Trash2 } from 'lucide-react'
+import { Loader2, Trash2, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -37,14 +37,16 @@ import { MetadataFields } from './product-form.tsx/MetadataFields'
 import { PriceFields } from './product-form.tsx/PriceFields'
 import { VariantFields } from './product-form.tsx/Variant'
 import { getDocumentId } from '@spreeloop/database'
-import { ICategory, IProduct } from '@/lib/actions/server'
+import { IBlog, ICategory, IProduct } from '@/lib/actions/server'
 import { Media, MediaType, ProductStatus } from '@/lib/firebase/models'
+import { cn } from '@/lib/utils'
 interface ProductFormProps {
   initialData?: IProduct | null
   categories: ICategory[]
+  blogs: IBlog[]
 }
 
-export function ProductFormV2({ initialData, categories }: ProductFormProps) {
+export function ProductFormV2({ initialData, categories, blogs }: ProductFormProps) {
   const { toast } = useToast()
 
   const router = useRouter()
@@ -291,19 +293,61 @@ export function ProductFormV2({ initialData, categories }: ProductFormProps) {
         </div>
 
         <MetadataFields form={form} />
-        <FormField
-          control={form.control}
-          name="blogUrl"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="!mt-0">Blog Url</FormLabel>
-              <FormControl>
-                <Input {...field} type="url" onKeyDown={handleKeyPress} value={field.value || ''} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {blogs && blogs.length > 0 && form.watch('slug') && (
+          <FormField
+            control={form.control}
+            name="blogUrl"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="!mt-0">Blog Url</FormLabel>
+                <FormControl>
+                  <div className="flex gap-2 items-center">
+                    <Select onValueChange={field.onChange} value={field.value ?? undefined}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select blog url" unselectable="on" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent unselectable="on">
+                        {blogs.map(e => (
+                          <SelectItem
+                            value={`${new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').protocol}//${new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').hostname}/blogs/${e.data.slug}`}
+                            key={`blogs: ${e.data.slug}`}
+                          >
+                            {'blogs: '}
+                            {e.data.title}
+                          </SelectItem>
+                        ))}
+                        {blogs
+                          .filter(e => !e.data.associateProductPath)
+                          .map(e => (
+                            <SelectItem
+                              value={`${new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').protocol}//${new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').hostname}/blogs-ads/${e.data.slug}?product=${form.watch('slug')}`}
+                              key={`blogs-ads: ${e.data.slug}`}
+                            >
+                              {'blogs-ads: '}
+                              {e.data.title}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    <X
+                      size={20}
+                      className={cn(
+                        {
+                          hidden: !field.value,
+                        },
+                        'text-red-500 cursor-pointer',
+                      )}
+                      onClick={() => field.onChange(null)}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <div className="flex justify-between">
           <Button disabled={isLoading} onClick={() => onSubmit(form.getValues())}>

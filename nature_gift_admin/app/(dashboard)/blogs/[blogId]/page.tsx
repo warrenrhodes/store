@@ -1,13 +1,13 @@
 import { BlogForm } from '@/components/blogs/BlogForm'
-import { getBlogById, getCategories, getProducts } from '@/lib/actions/server'
+import { getBlogByIdCache, getCategoriesCache, getProductsCache } from '@/lib/actions/server'
 import { notFound } from 'next/navigation'
 
 export default async function EditBlogPostPage(props: { params: Promise<{ blogId: string }> }) {
   const params = await props.params
   const [blog, categories, products] = await Promise.all([
-    getBlogById(params.blogId),
-    getCategories(),
-    getProducts(),
+    getBlogByIdCache(params.blogId),
+    getCategoriesCache(),
+    getProductsCache(),
   ])
 
   if (!blog) {

@@ -1,8 +1,8 @@
 import { PromotionFormV2 } from '@/components/promotions/PromotionsFormV2'
-import { getProducts } from '@/lib/actions/server'
+import { getProductsCache } from '@/lib/actions/server'
 
 export default async function NewPromotionPage() {
-  const [products] = await Promise.all([getProducts()])
+  const [products] = await Promise.all([getProductsCache()])
   return (
     <div className="container py-10">
       <div className="mb-8">

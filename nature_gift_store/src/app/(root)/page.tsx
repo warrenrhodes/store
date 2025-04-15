@@ -13,7 +13,7 @@ import {
   ProductsLoading,
   PromotionLoading,
 } from '@/components/Loading'
-import { getAllCollection, getAllValidPromotion } from '@/lib/api/utils'
+import { getAllCollectionCache, getAllValidPromotionCache } from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { Blog, BlogStatus, Category, Product, ProductStatus } from '@/lib/firebase/models'
 import { QueryFilter } from '@spreeloop/database'
@@ -46,14 +46,14 @@ export default function Home() {
 
 async function Categories() {
   const categories =
-    (await getAllCollection<Category>({ collection: CollectionsName.Categories })) || []
+    (await getAllCollectionCache<Category>({ collection: CollectionsName.Categories })) || []
   const filteredCategories = categories.filter(category => category.parentPath === null)
   return <CategoryShowcase categories={filteredCategories} />
 }
 
 async function FeaturedProductsLoader() {
   const featuredProducts =
-    (await getAllCollection<Product>({
+    (await getAllCollectionCache<Product>({
       collection: CollectionsName.Products,
       filters: [
         new QueryFilter('isFeature', '==', true),
@@ -65,14 +65,14 @@ async function FeaturedProductsLoader() {
 }
 
 async function PromotionBannerLoader() {
-  const promotionBanner = await getAllValidPromotion()
+  const promotionBanner = await getAllValidPromotionCache()
 
   return <PromotionBanner promotions={promotionBanner} />
 }
 
 async function NewArrivalsLoader() {
   const newArrivals =
-    (await getAllCollection<Product>({
+    (await getAllCollectionCache<Product>({
       collection: CollectionsName.Products,
       filters: [
         new QueryFilter('isNewProduct', '==', true),
@@ -86,7 +86,7 @@ async function NewArrivalsLoader() {
 
 async function FeaturedBlogsLoader() {
   const featuredBlogs =
-    (await getAllCollection<Blog>({
+    (await getAllCollectionCache<Blog>({
       collection: CollectionsName.Blogs,
       filters: [new QueryFilter('status', '==', BlogStatus.PUBLISHED)],
     })) || []

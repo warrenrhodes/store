@@ -14,7 +14,11 @@ import {
   ProductsLoading,
 } from '@/components/Loading'
 import { AutoAddToCart } from './autoAddToCart'
-import { getAllCollection, getAllRelatedCollection, getDocumentBySlug } from '@/lib/api/utils'
+import {
+  getAllCollectionCache,
+  getAllRelatedCollectionCache,
+  getDocumentBySlugCache,
+} from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import {
   Blog,
@@ -28,7 +32,7 @@ import {
 import { QueryFilter } from '@spreeloop/database'
 
 // export async function generateStaticParams() {
-//   const product = await getAllCollection<Product>({
+//   const product = await getAllCollectionCache<Product>({
 //     collection: CollectionsName.Products,
 //     filters: [
 //       new QueryFilter('status', '==', ProductStatus.PUBLISHED),
@@ -42,7 +46,7 @@ import { QueryFilter } from '@spreeloop/database'
 // }
 
 export async function generateMetadata({ params }: Props) {
-  const product = await getDocumentBySlug<Product>({
+  const product = await getDocumentBySlugCache<Product>({
     collection: CollectionsName.Products,
     slug: (await params).slug,
   })
@@ -110,7 +114,7 @@ export default async function ProductDetailPage(props: Props) {
 }
 
 async function ActivePromotionsLoader() {
-  const activePromotions = await getAllCollection<Promotion>({
+  const activePromotions = await getAllCollectionCache<Promotion>({
     collection: CollectionsName.Promotions,
     filters: [
       new QueryFilter('status', '==', PromotionStatus.ACTIVE),
@@ -122,7 +126,7 @@ async function ActivePromotionsLoader() {
   return <ActivePromotions activePromotions={activePromotions} />
 }
 async function AutoAddToCartLoader({ slug }: { slug: string }) {
-  const product = await getDocumentBySlug<Product>({
+  const product = await getDocumentBySlugCache<Product>({
     collection: CollectionsName.Products,
     slug: slug,
   })
@@ -136,13 +140,13 @@ async function AutoAddToCartLoader({ slug }: { slug: string }) {
   )
 }
 async function FeaturedProductLoader({ slug }: { slug: string }) {
-  const product = await getDocumentBySlug<Product>({
+  const product = await getDocumentBySlugCache<Product>({
     collection: CollectionsName.Products,
     slug: slug,
   })
   if (!product) return null
 
-  const reviews = await getAllCollection<Review>({
+  const reviews = await getAllCollectionCache<Review>({
     collection: CollectionsName.Reviews,
     filters: [new QueryFilter('productPath', '==', product?.path)],
   })
@@ -160,7 +164,7 @@ async function FeaturedProductLoader({ slug }: { slug: string }) {
 }
 
 async function FeaturedProductsLoader({ slug }: { slug: string }) {
-  const product = await getDocumentBySlug<Product>({
+  const product = await getDocumentBySlugCache<Product>({
     collection: CollectionsName.Products,
     slug: slug,
   })
@@ -169,13 +173,13 @@ async function FeaturedProductsLoader({ slug }: { slug: string }) {
 }
 
 async function FeaturedProductReviewLoader({ slug }: { slug: string }) {
-  const product = await getDocumentBySlug<Product>({
+  const product = await getDocumentBySlugCache<Product>({
     collection: CollectionsName.Products,
     slug: slug,
   })
 
   if (!product) return null
-  const reviews = await getAllCollection<Review>({
+  const reviews = await getAllCollectionCache<Review>({
     collection: CollectionsName.Reviews,
     filters: [new QueryFilter('productPath', '==', product?.path)],
   })
@@ -183,13 +187,13 @@ async function FeaturedProductReviewLoader({ slug }: { slug: string }) {
 }
 
 async function RelatedProductLoader({ slug }: { slug: string }) {
-  const product = await getDocumentBySlug<Product>({
+  const product = await getDocumentBySlugCache<Product>({
     collection: CollectionsName.Products,
     slug: slug,
   })
 
   if (!product) return []
-  const productWithoutTarget = await getAllRelatedCollection<Product>({
+  const productWithoutTarget = await getAllRelatedCollectionCache<Product>({
     collection: CollectionsName.Products,
     slug: slug,
     filters: [
@@ -205,11 +209,11 @@ async function RelatedProductLoader({ slug }: { slug: string }) {
 }
 
 async function RelatedBlogLoader({ slug }: { slug: string }) {
-  const product = await getDocumentBySlug<Product>({
+  const product = await getDocumentBySlugCache<Product>({
     collection: CollectionsName.Products,
     slug: slug,
   })
-  const allBlog = await getAllCollection<Blog>({
+  const allBlog = await getAllCollectionCache<Blog>({
     collection: CollectionsName.Blogs,
     filters: [new QueryFilter('status', '==', BlogStatus.PUBLISHED)],
   })

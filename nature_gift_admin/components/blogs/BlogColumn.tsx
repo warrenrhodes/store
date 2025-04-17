@@ -9,17 +9,7 @@ import { Button } from '../ui/button'
 import { BlogMetadata } from '@/lib/type'
 import { IBlog } from '@/lib/actions/server'
 import { getDocumentId } from '@spreeloop/database'
-import { Blog, BlogStatus } from '@/lib/firebase/models'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '../ui/dialog'
-import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from '../ui/select'
-import { useState } from 'react'
+import { BlogStatus } from '@/lib/firebase/models'
 
 export const blogsColumns: ColumnDef<IBlog>[] = [
   {
@@ -96,23 +86,26 @@ export const blogsColumns: ColumnDef<IBlog>[] = [
         return res.ok
       }
 
+      const copyLink = (code: string) => {
+        navigator.clipboard.writeText(code)
+        toast({ description: 'Link copied to clipboard!' })
+      }
+
       return (
         <div className="flex flex-col items-center gap-2 w-full">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="w-full" size="sm">
-                Copy link
-                <Copy className="ml-2 h-4 w-4" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Edit Url</DialogTitle>
-                <DialogDescription></DialogDescription>
-              </DialogHeader>
-              <CopyContent blog={blogs.data} />
-            </DialogContent>
-          </Dialog>
+          <Button
+            variant="outline"
+            className="w-full"
+            size="sm"
+            onClick={() =>
+              copyLink(
+                `${new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').protocol}//${new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').hostname}/blogs/${blogs.data.slug}`,
+              )
+            }
+          >
+            Copy link
+            <Copy className="ml-2 h-4 w-4" />
+          </Button>
 
           <Button variant="outline" size="sm" className="w-full" asChild>
             <Link href={`/blogs/${getDocumentId(blogs.path)}`}>
@@ -128,47 +121,3 @@ export const blogsColumns: ColumnDef<IBlog>[] = [
     },
   },
 ]
-
-const CopyContent = (props: { blog: Blog }): JSX.Element => {
-  const [blogQuery, setBlogQuery] = useState<string>('blogs')
-  const copyLink = (code: string) => {
-    navigator.clipboard.writeText(code)
-    toast({ description: 'Link copied to clipboard!' })
-  }
-  return (
-    <div>
-      <div className="flex gap-3 py-4 items-center justify-center">
-        <span>
-          {new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').protocol}
-          {'//'}
-          {new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').hostname} {'/'}
-        </span>
-        <span>
-          <Select onValueChange={setBlogQuery} defaultValue={blogQuery}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Select a fruit" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="blogs">blogs</SelectItem>
-              <SelectItem value="blogs-ads">blogs-ads</SelectItem>
-            </SelectContent>
-          </Select>
-        </span>
-        <span>
-          {'/'}
-          {props.blog.slug}
-        </span>
-      </div>
-
-      <Button
-        onClick={() =>
-          copyLink(
-            `${new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').protocol}//${new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').hostname}/${blogQuery}/${props.blog.slug}`,
-          )
-        }
-      >
-        Copy
-      </Button>
-    </div>
-  )
-}

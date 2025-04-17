@@ -37,7 +37,7 @@ export function RelatedBlogs({ relatedBlogs }: RelatedBlogsProps) {
                 <CardHeader className="p-0">
                   <div className="relative aspect-[16/9] overflow-hidden rounded-t-lg">
                     <Image
-                      src={metadata.coverImage?.url || ''}
+                      src={metadata.coverImage?.url || '/default-image.png'}
                       alt={blog.title}
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"

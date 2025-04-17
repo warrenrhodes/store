@@ -1,12 +1,20 @@
-import BlogDetail from '@/components/Blogs/BlockDetail/BlockDetail'
-import { getAllRelatedCollectionCache, getDocumentBySlugCache } from '@/lib/api/utils'
+import AdsBlogDetail from '@/components/Blogs/AdsBlockDetail/AdsBlockDetail'
+import Loader from '@/components/Loader'
+import BlogSkeleton from '@/components/Loading'
+import {
+  getAllCollectionCache,
+  getAllRelatedCollectionCache,
+  getDocumentByPathCache,
+  getDocumentBySlugCache,
+} from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
-import { Blog, BlogMetadata, BlogStatus } from '@/lib/firebase/models'
+import { Blog, BlogMetadata, BlogStatus, Product, Shipment } from '@/lib/firebase/models'
 import { QueryFilter } from '@spreeloop/database'
 import { notFound } from 'next/navigation'
 
 type Props = {
   params: Promise<{ slug: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
 export async function generateMetadata({ params }: Props) {
@@ -39,8 +47,9 @@ export async function generateMetadata({ params }: Props) {
   }
 }
 
-export default async function BlogDetailPage(props: Props) {
+export default async function BlogAdsDetailPage(props: Props) {
   const params = await props.params
+  const searchParams = await props.searchParams
   const blog = await getDocumentBySlugCache<Blog>({
     collection: CollectionsName.Blogs,
     slug: params.slug,
@@ -57,10 +66,33 @@ export default async function BlogDetailPage(props: Props) {
   const relatedBlogs = allBlog.filter(e =>
     e.categories.some(category => blog.categories.includes(category)),
   )
+
+  let associateProduct: Product | undefined
+  if (blog.associateProductPath) {
+    associateProduct = await getDocumentByPathCache<Product>({
+      path: blog.associateProductPath ?? '',
+    })
+  }
+  if (searchParams?.product) {
+    associateProduct = await getDocumentBySlugCache<Product>({
+      slug: searchParams?.product as string,
+      collection: CollectionsName.Products,
+    })
+  }
+
+  const shipments = await getAllCollectionCache<Shipment>({ collection: CollectionsName.Shipments })
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <BlogDetail blog={blog} relatedBlogs={relatedBlogs || []} />
+        <Loader loading={<BlogSkeleton />}>
+          <AdsBlogDetail
+            blog={blog}
+            shipments={shipments}
+            associateProduct={associateProduct}
+            relatedBlogs={relatedBlogs}
+          />
+        </Loader>
       </div>
     </div>
   )

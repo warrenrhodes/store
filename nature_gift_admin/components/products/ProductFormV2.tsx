@@ -314,21 +314,9 @@ export function ProductFormV2({ initialData, categories, blogs }: ProductFormPro
                             value={`${new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').protocol}//${new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').hostname}/blogs/${e.data.slug}`}
                             key={`blogs: ${e.data.slug}`}
                           >
-                            {'blogs: '}
                             {e.data.title}
                           </SelectItem>
                         ))}
-                        {blogs
-                          .filter(e => !e.data.associateProductPath)
-                          .map(e => (
-                            <SelectItem
-                              value={`${new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').protocol}//${new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').hostname}/blogs-ads/${e.data.slug}?product=${form.watch('slug')}`}
-                              key={`blogs-ads: ${e.data.slug}`}
-                            >
-                              {'blogs-ads: '}
-                              {e.data.title}
-                            </SelectItem>
-                          ))}
                       </SelectContent>
                     </Select>
                     <X

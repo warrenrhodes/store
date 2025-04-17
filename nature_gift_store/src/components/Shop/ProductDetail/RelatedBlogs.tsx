@@ -58,7 +58,7 @@ export function RelatedBlogs({ relatedBlogs }: { relatedBlogs: Blog[] }) {
                 <CardHeader className="p-0">
                   <div className="relative aspect-video overflow-hidden rounded-t-lg">
                     <Image
-                      src={metadata.coverImage?.url || ''}
+                      src={metadata.coverImage?.url || '/default-image.png'}
                       alt={metadata.title}
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"

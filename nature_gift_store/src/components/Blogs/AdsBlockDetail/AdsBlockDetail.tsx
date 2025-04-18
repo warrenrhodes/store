@@ -71,7 +71,7 @@ const AdsBlogDetail = ({
         {metadata.featured && <Badge className="mb-4">{localization.featuredArticle}</Badge>}
         <h1 className="text-5xl font-bold tracking-tight">{blog.title}</h1>
         <p className="text-muted-foreground">{content.excerpt}</p>
-        {metadata.coverImage?.url && (
+        {metadata.coverImage?.url && !associateProduct && (
           <div className="relative aspect-video overflow-hidden rounded-lg ">
             <Image
               src={metadata.coverImage?.url}

@@ -60,11 +60,13 @@ export async function generateMetadata({ params }: Props) {
       description: metadata.seoDescription,
       url: process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL,
       siteName: 'Nature Gift',
-      images: product?.medias.reverse().map(m => ({
-        url: m.url,
-        width: 800,
-        height: 600,
-      })),
+      images: [
+        ...product?.medias.reverse().map(m => ({
+          url: m.url,
+          width: 800,
+          height: 600,
+        })),
+      ],
     },
     type: 'product',
   }
@@ -201,9 +203,9 @@ async function RelatedProductLoader({ slug }: { slug: string }) {
       new QueryFilter('visibility', '==', true),
     ],
   })
-  const relatedProducts = productWithoutTarget.filter(e =>
-    e.categories.some(category => product.categories.includes(category)),
-  )
+  const relatedProducts = productWithoutTarget
+    .filter(e => e.categories.some(category => product.categories.includes(category)))
+    .slice(0, 5)
   if (!relatedProducts) return null
   return <RelatedProducts relatedProducts={relatedProducts || []} />
 }
@@ -217,9 +219,9 @@ async function RelatedBlogLoader({ slug }: { slug: string }) {
     collection: CollectionsName.Blogs,
     filters: [new QueryFilter('status', '==', BlogStatus.PUBLISHED)],
   })
-  const relatedBlogs = allBlog.filter(e =>
-    e.categories.some(category => product.categories.includes(category)),
-  )
+  const relatedBlogs = allBlog
+    .filter(e => e.categories.some(category => product.categories.includes(category)))
+    .slice(0, 5)
   if (!relatedBlogs) return null
   return <RelatedBlogs relatedBlogs={relatedBlogs || []} />
 }

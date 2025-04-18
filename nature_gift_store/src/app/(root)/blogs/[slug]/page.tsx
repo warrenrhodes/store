@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: Props) {
       siteName: 'Nature Gift',
       images: [
         {
-          url: metadata.coverImage?.url,
+          url: metadata.coverImage?.url ?? '/default-image.png',
         },
       ],
       publishedTime: blog?.publishedAt,
@@ -63,9 +63,9 @@ export default async function BlogAdsDetailPage(props: Props) {
     slug: params.slug,
     filters: [new QueryFilter('status', '==', BlogStatus.PUBLISHED)],
   })
-  const relatedBlogs = allBlog.filter(e =>
-    e.categories.some(category => blog.categories.includes(category)),
-  )
+  const relatedBlogs = allBlog
+    .filter(e => e.categories.some(category => blog.categories.includes(category)))
+    .slice(0, 5)
 
   let associateProduct: Product | undefined
   if (blog.associateProductPath) {

@@ -8,16 +8,16 @@ import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
 import { Blog, Product, Shipment } from '@/lib/firebase/models'
 import { AdsForm } from './AdsForm'
-import { useCart } from '@/hooks/useCart'
+import { CartItem as CartItemType, useCart } from '@/hooks/useCart'
 import { useCallback, useEffect } from 'react'
 import { cn, getRegularPrice } from '@/lib/utils/utils'
-import { CartItem } from '@/components/Cart/CartItem'
 import CountdownTimer from '@/components/CountDown'
 import { Button } from '@/components/ui/button'
 
 import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
 import { RelatedBlogs } from '../BlockDetail/RelatedBlogs'
+import { InternalItem } from './InternalCartItems'
 
 const AdsBlogDetail = ({
   blog,
@@ -49,6 +49,11 @@ const AdsBlogDetail = ({
       addProductToCart()
     }
   }, [addProductToCart, associateProduct])
+
+  let cartItem: CartItemType | null = null
+  if (associateProduct) {
+    cartItem = cartItems.find(e => e.product.path === associateProduct.path)
+  }
 
   return (
     <motion.div
@@ -124,11 +129,11 @@ const AdsBlogDetail = ({
 
       {content.type === 'TEXT' && <div>{content.content}</div>}
 
-      {associateProduct && <AdsForm shipments={shipments} />}
-      {associateProduct && (
+      {associateProduct && cartItem && <AdsForm shipments={shipments} />}
+      {associateProduct && cartItem && (
         <motion.footer
           className={cn(
-            'sticky bottom-0 z-50 w-full backdrop-blur-lg bg-background/80 border-b shadow-sm p-2',
+            'sticky bottom-0 z-50 w-full backdrop-blur-lg bg-background/80 border-b shadow-sm',
           )}
           initial={{ y: -100 }}
           animate={{ y: 0 }}
@@ -136,18 +141,23 @@ const AdsBlogDetail = ({
         >
           <CountdownTimer />
           <AnimatePresence initial={false}>
-            {cartItems.map(item => (
-              <CartItem
-                key={`${item.product.path}`}
-                item={item}
+            {cartItem && (
+              <InternalItem
+                key={`${cartItem.product.path}`}
+                item={cartItem}
                 increaseQuantity={increaseQuantity}
                 decreaseQuantity={decreaseQuantity}
                 onRemove={() => {}}
                 canRemoveItem={false}
               />
-            ))}
+            )}
           </AnimatePresence>
         </motion.footer>
+      )}
+      {associateProduct && !cartItem && (
+        <Button id="checkout-form" onClick={addProductToCart} className="w-full">
+          {localization.addToCart}
+        </Button>
       )}
       <Separator />
       {relatedBlogs.length > 0 && <RelatedBlogs relatedBlogs={relatedBlogs.slice(0, 5)} />}

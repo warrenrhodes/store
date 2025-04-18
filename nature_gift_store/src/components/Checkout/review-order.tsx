@@ -60,7 +60,7 @@ export function ReviewOrder({ formData, onBack, onSubmit, isLoading }: ReviewOrd
                   {format(delivery.deliveryDate, 'PPP')} {delivery.deliveryTime}
                 </p>
               </div>
-              {delivery.city && (
+              {/* {delivery.city && (
                 <div className="flex gap-3">
                   <span className="text-muted-foreground">{localization.city}: </span>
                   <p> {delivery.city}</p>
@@ -81,7 +81,7 @@ export function ReviewOrder({ formData, onBack, onSubmit, isLoading }: ReviewOrd
               <div className="flex gap-3">
                 <span className="text-muted-foreground">{localization.additionalNotes}: </span>
                 <p> {delivery.additionalNotes}</p>
-              </div>
+              </div> */}
             </div>
           </CardContent>
         </Card>

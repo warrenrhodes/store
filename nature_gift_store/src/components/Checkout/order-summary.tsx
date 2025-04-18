@@ -78,10 +78,12 @@ export function OrderSummary({
             <span>{localization.subtotal}</span>
             <span>{priceFormatted(summary.subtotal)}</span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span>{localization.shipping}</span>
-            <span>{priceFormatted(summary.shipping)}</span>
-          </div>
+          {summary.shipping > 0 && (
+            <div className="flex justify-between text-sm">
+              <span>{localization.shipping}</span>
+              <span>{priceFormatted(summary.shipping)}</span>
+            </div>
+          )}
           {summary.discount > 0 && (
             <div className="flex justify-between text-sm text-green-600">
               <span>{localization.discount}</span>

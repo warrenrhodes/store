@@ -153,37 +153,6 @@ interface CustomFields {
   value: string
 }
 
-// Order Related
-interface UserData {
-  id: string
-  email: string
-  fullName: string
-  phone: string
-}
-
-interface OrderPromotion {
-  promotionPath: string
-  discountAmount: number
-  code: string
-}
-
-interface OrderPrices {
-  subtotal: number
-  shipping: number
-  discount: number
-  total: number
-}
-
-interface DeliveryInfo {
-  address: string
-  deliveryDate: string
-  deliveryTime: string
-  city?: string | null
-  additionalNotes?: string | null
-  deliveryMethod?: string | null
-  location?: string | null
-}
-
 // Promotion Related
 interface PromotionAction {
   type: PromotionActionType
@@ -285,11 +254,40 @@ export interface OrderItem extends BaseDocument {
   price: number
 }
 
+interface DeliveryInfo {
+  address?: string | null
+  deliveryDate?: string | null
+  deliveryTime?: string | null
+  city?: string | null
+  additionalNotes?: string | null
+  deliveryMethod?: string | null
+  location?: string | null
+}
+
+interface UserData {
+  id: string
+  email?: string | null
+  fullName: string
+  phone?: string | null
+}
+
+interface OrderPromotion {
+  promotionPath: string
+  discountAmount: number
+  code: string
+}
+
+interface OrderPrices {
+  subtotal: number
+  shipping: number
+  discount: number
+  total: number
+}
 export interface Order extends CreatorDocument {
   userPath?: string
   deliveryInfo: DeliveryInfo
   userData: UserData
-  promotions: OrderPromotion[]
+  promotions?: OrderPromotion[] | null
   items: OrderItem[]
   orderPrices: OrderPrices
   status: OrderStatus

@@ -15,7 +15,6 @@ const CountdownTimer = () => {
     const timer = setInterval(() => {
       setTimeLeft(prevTime => {
         let { days, hours, minutes, seconds } = prevTime
-
         if (seconds > 0) {
           seconds -= 1
         } else {
@@ -38,11 +37,9 @@ const CountdownTimer = () => {
             }
           }
         }
-
         return { days, hours, minutes, seconds }
       })
     }, 1000)
-
     return () => clearInterval(timer)
   }, [])
 
@@ -55,10 +52,10 @@ const CountdownTimer = () => {
 
   return (
     <div className="flex flex-col items-center justify-center m-3 max-sm:m-1">
-      <div className="flex justify-center  items-center gap-4 max-sm:gap-1 max-sm:h-10">
+      <div className="flex justify-center items-center gap-4 max-sm:gap-1">
         {timeUnits.map((unit, index) => (
           <React.Fragment key={unit.label}>
-            <motion.div className="flex flex-col items-center justify-center" layout>
+            <motion.div layout>
               <motion.div
                 key={`${unit.label}-${unit.value}`}
                 initial={{ opacity: 0, scale: 0.8, y: 10 }}
@@ -67,7 +64,7 @@ const CountdownTimer = () => {
                 transition={{ duration: 0.3 }}
                 className="flex flex-col items-center"
               >
-                <span className="text-4xl max-md:text-2xl max-sm:text-[14px] max-xs:text-xs font-bold">
+                <span className="text-3xl max-md:text-2xl max-sm:text-[14px] max-xs:text-xs font-bold  !leading-none">
                   {String(unit.value).padStart(2, '0')}
                 </span>
                 <span className="text-sm mt-1 max-sm:text-[8px] max-sm:mt-0">{unit.label}</span>
@@ -81,7 +78,7 @@ const CountdownTimer = () => {
         ))}
       </div>
 
-      <p className="mt-4 text-md text-gray-600 text-center max-sm:text-[12px] max-sm:mt-1">
+      <p className="mt-4 text-md text-gray-600 text-center max-sm:text-[12px] max-sm:mt-1 font-bold">
         {localization.countDownMessage}
       </p>
     </div>

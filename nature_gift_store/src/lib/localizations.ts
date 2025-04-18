@@ -136,8 +136,8 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     fr: "Veuillez choisir une date d'achat",
   },
   fullName: {
-    en: 'Full Name',
-    fr: 'Nom Complet',
+    en: 'Name',
+    fr: 'Nom',
   },
   phone: {
     en: 'Phone (WhatsApp/Other)',
@@ -150,6 +150,10 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
   deliveryDate: {
     en: 'Delivery Date',
     fr: 'Date de livraison',
+  },
+  whenToGetTheProduct: {
+    en: 'Get the product today or tomorrow',
+    fr: "Recevoir le produit aujourd'hui ou demain",
   },
   deliveryTime: {
     en: 'Delivery Time',
@@ -629,8 +633,8 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     fr: 'Mes commandes',
   },
   countDownMessage: {
-    en: '*Limited time offer. While supplies last',
-    fr: "*Offre limitée dans le temps. Jusqu'à épuisement des stocks",
+    en: '*Offer valid until tomorrow',
+    fr: "*Offre valable jusqu'a demain",
   },
   additionalNotesPlaceHolder: {
     en: 'Example: Opposite hotel A, behind pharmacy b ...',
@@ -647,6 +651,7 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
 }
 
 export const enum DictWords {
+  whenToGetTheProduct = 'whenToGetTheProduct',
   getMoreInformation = 'getMoreInformation',
   showLess = 'showLess',
   additionalNotesPlaceHolder = 'additionalNotesPlaceHolder',

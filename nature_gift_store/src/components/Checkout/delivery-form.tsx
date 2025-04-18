@@ -1,7 +1,7 @@
 'use client'
 
 import { UseFormReturn } from 'react-hook-form'
-import { ArrowRight, Calendar, Clock } from 'lucide-react'
+import { ArrowRight, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { addDays, differenceInHours, format, isBefore, isToday } from 'date-fns'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
@@ -14,13 +14,6 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { DeliveryFormData } from '@/lib/utils/validation-form'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { cn } from '@/lib/utils/utils'
@@ -120,7 +113,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, form }: DeliveryFo
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold">{localization.deliveryInformation}</h2>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             <FormField
               control={form.control}
               name="fullName"
@@ -147,28 +140,15 @@ export function DeliveryForm({ onSubmit, shipment: shipments, form }: DeliveryFo
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email (Optional)</FormLabel>
-                  <FormControl>
-                    <Input type="email" {...field} onKeyDown={handleKeyPress} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 items-start">
+          <div className="grid items-start">
             <FormField
               control={form.control}
               name="deliveryDate"
               render={({ field }) => (
                 <FormItem className="space-y-1">
-                  <FormLabel>{localization.deliveryDate}</FormLabel>
+                  <FormLabel>{localization.whenToGetTheProduct}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -194,15 +174,16 @@ export function DeliveryForm({ onSubmit, shipment: shipments, form }: DeliveryFo
                         selected={field.value}
                         onSelect={date => {
                           field.onChange(date)
-                          form.setValue('deliveryTime', '')
+                          // form.setValue('deliveryTime', '')
                         }}
                         disabled={date => {
                           if (
                             isToday(date) &&
                             differenceInHours(date.setHours(MAX_DELIVERY_HOURS), TODAY) <
                               TIME_IN_HOUR_BEFORE_DELIVERY
-                          )
+                          ) {
                             return true
+                          }
                           return isBefore(date, TODAY) || isBefore(maxDate, date)
                         }}
                         initialFocus
@@ -213,52 +194,13 @@ export function DeliveryForm({ onSubmit, shipment: shipments, form }: DeliveryFo
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="deliveryTime"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel>{localization.deliveryTime}</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={!form.watch('deliveryDate')}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={localization.deliveryTime}>
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4" />
-                            <span>{field.value || 'Select time'}</span>
-                          </div>
-                        </SelectValue>
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {form.watch('deliveryDate') ? (
-                        generateTimeSlots(form.watch('deliveryDate')).map(time => (
-                          <SelectItem key={time} value={time}>
-                            {time}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="Time disabled" disabled>
-                          {localization.selectDateFirst}
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
           <FormField
             control={form.control}
             name="address"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Address</FormLabel>
+                <FormLabel>Votre address exact</FormLabel>
                 <FormControl>
                   <Input {...field} onKeyDown={handleKeyPress} />
                 </FormControl>
@@ -285,102 +227,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, form }: DeliveryFo
               )}
             />
           </div>
-          <div
-            className={cn({
-              hidden: shipments.length === 0,
-              'grid gap-4 sm:grid-cols-2 items-start': shipments.length > 0,
-            })}
-          >
-            <FormField
-              control={form.control}
-              name="shipping.method"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{localization.shipmentMethod}</FormLabel>
-                  <Select
-                    onValueChange={e => {
-                      field.onChange(e)
-                      form.setValue('shipping.location', '')
-                    }}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select method" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="DELIVERY">{localization.delivery}</SelectItem>
-                      <SelectItem value="EXPEDITION">{localization.expedition}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {shipments.length > 0 && (
-              <FormField
-                control={form.control}
-                name="shipping.location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{localization.location}</FormLabel>
-                    <Select
-                      onValueChange={e => {
-                        field.onChange(e)
-                        handleLocationChange(e)
-                      }}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={localization.location} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {(form.watch('shipping.method') === 'DELIVERY'
-                          ? deliveriesLocation
-                          : expeditionLocation
-                        ).map(location => (
-                          <SelectItem key={location} value={location}>
-                            {location}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {getShipmentCostByLocation(form.watch('shipping.location')) && (
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {localization.shipmentCost}:{' '}
-                        {getShipmentCostByLocation(form.watch('shipping.location'))}
-                      </p>
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-          </div>
-          <FormField
-            control={form.control}
-            name="additionalNotes"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  {localization.additionalNotes} ({localization.optional})
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder={localization.additionalNotes}
-                    {...field}
-                    onKeyDown={handleKeyPress}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
         </div>
-
         <Button type="submit" className="w-full">
           {localization.reviewOrder}
           <ArrowRight className="ml-2 h-4 w-4" />

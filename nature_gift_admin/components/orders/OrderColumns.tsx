@@ -185,12 +185,14 @@ const OrderView = ({ order }: { order: IOrder }) => {
               <span className="text-muted-foreground">Address: </span>
               <p> {deliveryInfo.address}</p>
             </div>
-            <div className="flex gap-3">
-              <span className="text-muted-foreground">Delivery Date: </span>
-              <p>
-                {format(deliveryInfo.deliveryDate, 'PPP')} {deliveryInfo.deliveryTime}
-              </p>
-            </div>
+            {deliveryInfo?.deliveryDate && (
+              <div className="flex gap-3">
+                <span className="text-muted-foreground">Delivery Date: </span>
+                <p>
+                  {format(deliveryInfo.deliveryDate, 'PPP')} {deliveryInfo.deliveryTime}
+                </p>
+              </div>
+            )}
             {deliveryInfo.city && (
               <div className="flex gap-3">
                 <span className="text-muted-foreground">City: </span>
@@ -217,23 +219,27 @@ const OrderView = ({ order }: { order: IOrder }) => {
               ))}
             </div>
             <Separator className="my-3" />
-            <div className="flex gap-3">
-              <span className="text-muted-foreground">Promotions: </span>
-            </div>
-            <div className="flex flex-col gap-3 ml-5">
-              {promotions.map(item => (
-                <div key={item.promotionPath}>
-                  <div className="flex gap-3">
-                    <span className="text-muted-foreground">Promo Code: </span>
-                    <p> {item.code}</p>
+            {promotions && (
+              <div className="flex gap-3">
+                <span className="text-muted-foreground">Promotions: </span>
+              </div>
+            )}
+            {promotions && (
+              <div className="flex flex-col gap-3 ml-5">
+                {promotions.map(item => (
+                  <div key={item.promotionPath}>
+                    <div className="flex gap-3">
+                      <span className="text-muted-foreground">Promo Code: </span>
+                      <p> {item.code}</p>
+                    </div>
+                    <div className="flex gap-3">
+                      <span className="text-muted-foreground">Discount: </span>
+                      <p> {item.discountAmount}</p>
+                    </div>
                   </div>
-                  <div className="flex gap-3">
-                    <span className="text-muted-foreground">Discount: </span>
-                    <p> {item.discountAmount}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
             <Separator className="my-3" />
             <div className="flex gap-3">
               <span className="text-muted-foreground">SubTotal: </span>

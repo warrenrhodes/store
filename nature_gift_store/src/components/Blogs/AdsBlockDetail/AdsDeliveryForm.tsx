@@ -1,7 +1,7 @@
 'use client'
 
 import { UseFormReturn } from 'react-hook-form'
-import { Calendar, Clock } from 'lucide-react'
+import { Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { addDays, differenceInHours, format, isBefore, isToday } from 'date-fns'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
@@ -14,13 +14,6 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { DeliveryFormData } from '@/lib/utils/validation-form'
 import { cn } from '@/lib/utils/utils'
 import { useCartDeliveryInfo } from '@/hooks/useCart'
@@ -39,73 +32,73 @@ const TODAY = new Date()
 export function AdsDeliveryForm({ onSubmit, shipment: shipments, form }: AdsDeliveryFormProps) {
   const cartDeliveryInfo = useCartDeliveryInfo()
   const { localization } = useLocalization()
-  const maxDate = addDays(TODAY, 7)
+  const maxDate = addDays(TODAY, 3)
 
-  const generateTimeSlots = (selectedDate: Date) => {
-    const now = new Date()
-    const startHour = isToday(selectedDate) ? now.getHours() + 1 : 9
-    const endHour = 19
+  // const generateTimeSlots = (selectedDate: Date) => {
+  //   const now = new Date()
+  //   const startHour = isToday(selectedDate) ? now.getHours() + 1 : 9
+  //   const endHour = 19
 
-    const timeSlots: string[] = []
+  //   const timeSlots: string[] = []
 
-    for (let hour = startHour; hour < endHour; hour++) {
-      timeSlots.push(`${hour.toString().padStart(2, '0')}:00`)
-      timeSlots.push(`${hour.toString().padStart(2, '0')}:30`)
-    }
+  //   for (let hour = startHour; hour < endHour; hour++) {
+  //     timeSlots.push(`${hour.toString().padStart(2, '0')}:00`)
+  //     timeSlots.push(`${hour.toString().padStart(2, '0')}:30`)
+  //   }
 
-    if (isToday(selectedDate) && now.getHours() >= endHour - 1) {
-      return []
-    }
+  //   if (isToday(selectedDate) && now.getHours() >= endHour - 1) {
+  //     return []
+  //   }
 
-    return timeSlots
-  }
+  //   return timeSlots
+  // }
 
-  const getShipmentCostByLocation = (location: string): number | undefined => {
-    return shipments.find(item => item.locations.includes(location))?.cost
-  }
+  // const getShipmentCostByLocation = (location: string): number | undefined => {
+  //   return shipments.find(item => item.locations.includes(location))?.cost
+  // }
 
-  const deliveriesLocation =
-    shipments.length > 0
-      ? Array.from(
-          new Set(
-            shipments
-              .filter(shipment => shipment.method === 'DELIVERY')
-              .map(e => e.locations)
-              .flat(),
-          ),
-        )
-      : []
-  const expeditionLocation =
-    shipments.length > 0
-      ? Array.from(
-          new Set(
-            shipments
-              .filter(shipment => shipment.method === 'EXPEDITION')
-              .map(e => e.locations)
-              .flat(),
-          ),
-        )
-      : []
+  // const deliveriesLocation =
+  //   shipments.length > 0
+  //     ? Array.from(
+  //         new Set(
+  //           shipments
+  //             .filter(shipment => shipment.method === 'DELIVERY')
+  //             .map(e => e.locations)
+  //             .flat(),
+  //         ),
+  //       )
+  //     : []
+  // const expeditionLocation =
+  //   shipments.length > 0
+  //     ? Array.from(
+  //         new Set(
+  //           shipments
+  //             .filter(shipment => shipment.method === 'EXPEDITION')
+  //             .map(e => e.locations)
+  //             .flat(),
+  //         ),
+  //       )
+  //     : []
 
-  const handleLocationChange = (location: string) => {
-    if (!location) {
-      cartDeliveryInfo.setShipment(undefined)
-      return
-    }
-    const shipment = shipments.find(
-      item => item.locations.includes(location) && form.watch('shipping.method') === item.method,
-    )
+  // const handleLocationChange = (location: string) => {
+  //   if (!location) {
+  //     cartDeliveryInfo.setShipment(undefined)
+  //     return
+  //   }
+  //   const shipment = shipments.find(
+  //     item => item.locations.includes(location) && form.watch('shipping.method') === item.method,
+  //   )
 
-    if (!shipment) {
-      return
-    }
-    cartDeliveryInfo.setShipment({
-      ...cartDeliveryInfo.cartDeliveryInfo,
-      deliveryMethod: form.watch('shipping.method'),
-      cost: shipment.cost,
-      location: location,
-    })
-  }
+  //   if (!shipment) {
+  //     return
+  //   }
+  //   cartDeliveryInfo.setShipment({
+  //     ...cartDeliveryInfo.cartDeliveryInfo,
+  //     deliveryMethod: form.watch('shipping.method'),
+  //     cost: shipment.cost,
+  //     location: location,
+  //   })
+  // }
 
   const handleKeyPress = (
     e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
@@ -120,7 +113,7 @@ export function AdsDeliveryForm({ onSubmit, shipment: shipments, form }: AdsDeli
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold">{localization.deliveryInformation}</h2>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             <FormField
               control={form.control}
               name="fullName"
@@ -149,13 +142,13 @@ export function AdsDeliveryForm({ onSubmit, shipment: shipments, form }: AdsDeli
             />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 items-start">
+          <div className="grid items-start">
             <FormField
               control={form.control}
               name="deliveryDate"
               render={({ field }) => (
                 <FormItem className="space-y-1">
-                  <FormLabel>{localization.deliveryDate}</FormLabel>
+                  <FormLabel>{localization.whenToGetTheProduct}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -181,15 +174,16 @@ export function AdsDeliveryForm({ onSubmit, shipment: shipments, form }: AdsDeli
                         selected={field.value}
                         onSelect={date => {
                           field.onChange(date)
-                          form.setValue('deliveryTime', '')
+                          // form.setValue('deliveryTime', '')
                         }}
                         disabled={date => {
                           if (
                             isToday(date) &&
                             differenceInHours(date.setHours(MAX_DELIVERY_HOURS), TODAY) <
                               TIME_IN_HOUR_BEFORE_DELIVERY
-                          )
+                          ) {
                             return true
+                          }
                           return isBefore(date, TODAY) || isBefore(maxDate, date)
                         }}
                         initialFocus
@@ -200,7 +194,7 @@ export function AdsDeliveryForm({ onSubmit, shipment: shipments, form }: AdsDeli
                 </FormItem>
               )}
             />
-            <FormField
+            {/* <FormField
               control={form.control}
               name="deliveryTime"
               render={({ field }) => (
@@ -238,14 +232,14 @@ export function AdsDeliveryForm({ onSubmit, shipment: shipments, form }: AdsDeli
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> */}
           </div>
           <FormField
             control={form.control}
             name="address"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Address</FormLabel>
+                <FormLabel>Vôtre address exact</FormLabel>
                 <FormControl>
                   <Input {...field} onKeyDown={handleKeyPress} />
                 </FormControl>
@@ -253,26 +247,7 @@ export function AdsDeliveryForm({ onSubmit, shipment: shipments, form }: AdsDeli
               </FormItem>
             )}
           />
-          <div
-            className={cn({
-              hidden: shipments.length > 0,
-            })}
-          >
-            <FormField
-              control={form.control}
-              name="city"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{localization.city}</FormLabel>
-                  <FormControl>
-                    <Input {...field} onKeyDown={handleKeyPress} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          <div
+          {/* <div
             className={cn({
               hidden: shipments.length === 0,
               'grid gap-4 sm:grid-cols-2 items-start': shipments.length > 0,
@@ -365,7 +340,7 @@ export function AdsDeliveryForm({ onSubmit, shipment: shipments, form }: AdsDeli
                 <FormMessage />
               </FormItem>
             )}
-          />
+          /> */}
         </div>
       </form>
     </Form>

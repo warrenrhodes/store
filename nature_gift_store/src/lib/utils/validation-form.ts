@@ -2,25 +2,25 @@ import * as z from 'zod'
 
 const shipmentSchema = z.object({
   method: z.enum(['DELIVERY', 'EXPEDITION']).default('DELIVERY'),
-  location: z.string().min(1, 'Please select an location.'),
+  location: z.string().default(''),
 })
 
 export const deliverySchema = z.object({
-  fullName: z.string().min(2, 'FullName name is required'),
-  email: z.string().email().optional(),
+  fullName: z.string().min(2, 'Le nom est requis'),
+  email: z.string().email().optional().nullable(),
   phone: z
     .string()
-    .min(9, 'Invalid phone number')
+    .min(9, 'Numéro invalide')
     .transform(val => val.replace(/\s+/g, ''))
-    .pipe(z.string().regex(/^(?:\+237|237)?6[2,5,8,9,7]\d{7}$/, 'Invalid Cameroon phone number')),
-  address: z.string().min(5, 'Address is required'),
+    .pipe(z.string().regex(/^(?:\+237|237)?6[2,5,8,9,7]\d{7}$/, 'Numero camerounais invalide')),
+  address: z.string().min(1, 'Veuillez ajouter une address'),
   deliveryDate: z.date({
-    required_error: 'Please select a delivery date',
+    required_error: 'Veuillez sélectionné une date',
   }),
-  deliveryTime: z.string().min(1, 'Please select a delivery time'),
+  deliveryTime: z.string().optional().nullable(),
   shipping: shipmentSchema,
-  additionalNotes: z.string().optional(),
-  city: z.string(),
+  additionalNotes: z.string().optional().nullable(),
+  city: z.string().optional().nullable(),
 })
 
 export const paymentSchema = z.object({

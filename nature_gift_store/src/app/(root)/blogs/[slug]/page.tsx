@@ -84,7 +84,7 @@ export default async function BlogAdsDetailPage(props: Props) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="px-2 lg:px-8 py-12">
         <Loader loading={<BlogSkeleton />}>
           <AdsBlogDetail
             blog={blog}

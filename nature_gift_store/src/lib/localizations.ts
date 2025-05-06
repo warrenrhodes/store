@@ -633,8 +633,8 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     fr: 'Mes commandes',
   },
   countDownMessage: {
-    en: '*Offer valid until tomorrow',
-    fr: "*Offre valable jusqu'a demain",
+    en: '*Offer valid until midnight',
+    fr: "*Offre valable jusqu'a minuit",
   },
   additionalNotesPlaceHolder: {
     en: 'Example: Opposite hotel A, behind pharmacy b ...',

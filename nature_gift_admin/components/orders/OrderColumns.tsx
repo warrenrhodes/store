@@ -17,7 +17,7 @@ import {
   AlertDialogTrigger,
 } from '../ui/alert-dialog'
 import { Separator } from '@radix-ui/react-separator'
-import { ChevronDown, Eye } from 'lucide-react'
+import { ArrowUpDown, ChevronDown, Eye } from 'lucide-react'
 import { Button } from '../ui/button'
 import {
   DropdownMenu,
@@ -119,7 +119,10 @@ export const columns: ColumnDef<IOrder>[] = [
     header: 'Delivery Date',
     cell: ({ row }) => (
       <div>
-        {format((row.original.data.deliveryInfo as unknown as DeliveryInfo).deliveryDate, 'PPP')}{' '}
+        {format(
+          (row.original.data.deliveryInfo as unknown as DeliveryInfo).deliveryDate,
+          'dd MMMM yyyy',
+        )}{' '}
         {(row.original.data.deliveryInfo as unknown as DeliveryInfo).deliveryTime}
       </div>
     ),
@@ -133,8 +136,22 @@ export const columns: ColumnDef<IOrder>[] = [
   },
   {
     accessorKey: 'createdAt',
-    header: 'Created At',
-    cell: ({ row }) => <div>{format(row.original.data.createdAt || new Date(), 'PPP')}</div>,
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
+          {'Create At'}
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+    cell: ({ row }) => (
+      <div>
+        {row.original.data.createdAt ? format(row.original.data.createdAt, 'dd MMMM yyyy') : '/'}
+      </div>
+    ),
   },
   {
     id: 'actions',

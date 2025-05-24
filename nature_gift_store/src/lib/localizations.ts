@@ -140,8 +140,8 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     fr: 'Nom',
   },
   phone: {
-    en: 'Phone (WhatsApp/Other)',
-    fr: 'Téléphone (WhatsApp/Autre)',
+    en: 'WhatsApp Phone Number',
+    fr: 'Numero De Téléphone Whatsapp',
   },
   city: {
     en: 'City',

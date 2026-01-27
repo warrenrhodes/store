@@ -1,46 +1,24 @@
 'use client'
-import { create } from 'zustand'
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
-  sendEmailVerification,
-  sendPasswordResetEmail,
-  signOut,
-  updateProfile,
-  AuthError,
-  signInAnonymously,
-  EmailAuthProvider,
-  linkWithCredential,
-} from 'firebase/auth'
+import { checkUserExists, saveUserToDatabase } from '@/actions/user'
 import { getAuthErrorMessage } from '@/lib/firebase/firebase-client/error-handler'
-import { auth, db } from '@/lib/firebase/firebase-client/firebase'
-import { doc, getDoc } from 'firebase/firestore'
-import { CollectionsName } from '@/lib/firebase/collection-name'
-import { getDatabasePath } from '@spreeloop/database'
+import { auth } from '@/lib/firebase/firebase-client/firebase'
 import { User, UserType } from '@/lib/firebase/models'
+import {
+    AuthError,
+    createUserWithEmailAndPassword,
+    EmailAuthProvider,
+    GoogleAuthProvider,
+    linkWithCredential,
+    sendEmailVerification,
+    sendPasswordResetEmail,
+    signInAnonymously,
+    signInWithEmailAndPassword,
+    signInWithPopup,
+    signOut,
+    updateProfile,
+} from 'firebase/auth'
+import { create } from 'zustand'
 import { getEdgeToken } from './get_token.action'
-
-export const getUserById = async (id: string) => {
-  const userRef = doc(db, getDatabasePath(CollectionsName.Users, id))
-  const docSnap = await getDoc(userRef)
-  if (!docSnap.exists()) {
-    return null
-  }
-  return docSnap.data()
-}
-
-export const setToDatabaseUser = async (data: any) => {
-  const user = await fetch(`/api/user`, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
-  if (user.ok) {
-    return true
-  }
-  return false
-}
 
 interface AuthState {
   user: Omit<User, 'whitelists' | 'createdAt' | 'updatedAt'> | null
@@ -115,7 +93,11 @@ const useAuthStore = create<AuthState>(set => ({
         createdAtInUTC: new Date().toISOString(),
       }
 
-      await setToDatabaseUser(userData)
+      const success = await saveUserToDatabase(userData)
+      if (!success) {
+         throw new Error('Failed to save user to database')
+      }
+
       await sendEmailVerification(userCredential.user)
 
       set({ user: userData })
@@ -177,7 +159,7 @@ const useAuthStore = create<AuthState>(set => ({
         createdAtInUTC: new Date().toISOString(),
       }
 
-      const result = await setToDatabaseUser(userData)
+      const result = await saveUserToDatabase(userData)
       if (!result) {
         set({
           error: getAuthErrorMessage('auth/failed-to-add-user'),
@@ -203,7 +185,7 @@ const useAuthStore = create<AuthState>(set => ({
       const userCredential = await signInWithPopup(auth, provider)
 
       // Check if user exists in database
-      const isUserExist = await getUserById(userCredential.user.uid)
+      const isUserExist = await checkUserExists(userCredential.user.uid)
       const userData = {
         email: userCredential.user.email,
         fullName: userCredential.user.displayName,
@@ -215,7 +197,7 @@ const useAuthStore = create<AuthState>(set => ({
       }
       // If user doesn't exist, create them
       if (!isUserExist) {
-        const result = await setToDatabaseUser({
+        const result = await saveUserToDatabase({
           ...userData,
         })
         if (!result) {

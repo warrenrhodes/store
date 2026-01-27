@@ -1,14 +1,14 @@
 'use client'
 
+import { submitContactForm } from '@/actions/contact'
+import { useToast } from '@/hooks/use-toast'
+import { useLocalization } from '@/hooks/useLocalization'
 import { motion } from 'framer-motion'
 import { Send } from 'lucide-react'
 import { useState } from 'react'
-import { useToast } from '@/hooks/use-toast'
-import { Textarea } from '../ui/textarea'
-import { Input } from '../ui/input'
 import { Button } from '../ui/button'
-import { sendEmailNotifications } from '@/lib/notifications/sendNotifications'
-import { useLocalization } from '@/hooks/useLocalization'
+import { Input } from '../ui/input'
+import { Textarea } from '../ui/textarea'
 
 export function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -26,37 +26,29 @@ export function ContactForm() {
     const subject = formData.get('subject') as string
     const message = formData.get('message') as string
 
-    // Send notifications
-    const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.split(',') || []
+    const result = await submitContactForm({
+      name,
+      email,
+      subject,
+      message,
+    })
 
-    if (adminEmails.length > 0) {
-      const notificationData = {
-        subject: subject,
-        message: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
-      }
-
-      try {
-        await Promise.all(
-          adminEmails.map(email =>
-            sendEmailNotifications({
-              email,
-              notificationId: 'new_message',
-              data: notificationData,
-            }),
-          ),
-        )
-        toast({
-          variant: 'success',
-          title: 'Message sent!',
-          description: "We'll get back to you as soon as possible.",
-        })
-      } catch (error) {
-        console.error('Failed to send email notifications:', error)
-      }
+    if (result.success) {
+      toast({
+        variant: 'success',
+        title: 'Message sent!',
+        description: "We'll get back to you as soon as possible.",
+      })
+      ;(e.target as HTMLFormElement).reset()
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to send message. Please try again later.',
+      })
     }
 
     setIsSubmitting(false)
-    ;(e.target as HTMLFormElement).reset()
   }
 
   return (

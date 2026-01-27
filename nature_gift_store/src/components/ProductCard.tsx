@@ -1,22 +1,23 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { getReviewsForProduct } from '@/actions/review'
 import { Badge } from '@/components/ui/badge'
-import { Heart, ShoppingCart, Star } from 'lucide-react'
-import { cn, getRegularPrice, getReviewAverage } from '@/lib/utils/utils'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCart } from '@/hooks/useCart'
-import { Button } from './ui/button'
-import { Price } from './Price'
-import Link from 'next/link'
-import Image from 'next/image'
-import { FAKE_BLUR } from '@/lib/utils/constants'
-import { useWishlist } from '@/hooks/useWishlist'
 import { useLocalization } from '@/hooks/useLocalization'
-import { Inventory } from '@/lib/type'
+import { useWishlist } from '@/hooks/useWishlist'
 import { Product, Review } from '@/lib/firebase/models'
-import { useCallback, useEffect, useState } from 'react'
+import { Inventory } from '@/lib/type'
+import { FAKE_BLUR } from '@/lib/utils/constants'
+import { cn, getRegularPrice, getReviewAverage } from '@/lib/utils/utils'
 import { getDocumentId } from '@spreeloop/database'
+import { motion } from 'framer-motion'
+import { Heart, ShoppingCart, Star } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useCallback, useEffect, useState } from 'react'
+import { Price } from './Price'
+import { Button } from './ui/button'
 
 interface ProductCardProps {
   product: Product
@@ -29,13 +30,10 @@ export function ProductCard({ product }: ProductCardProps) {
   const { localization } = useLocalization()
 
   const fetchReview = useCallback(async () => {
-    const reviews = await fetch(`/api/reviews/filter?productId=${getDocumentId(product.path)}`)
+    const reviews = await getReviewsForProduct(getDocumentId(product.path))
+    setReviews(reviews)
+  }, [product.path])
 
-    if (reviews.ok) {
-      const s = await reviews.json()
-      setReviews(s)
-    }
-  }, [])
   useEffect(() => {
     fetchReview()
   }, [fetchReview])

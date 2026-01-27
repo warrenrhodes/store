@@ -1,31 +1,56 @@
 'use client'
 
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Search, ShoppingCart } from 'lucide-react'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '../ui/card'
-import { Badge } from '../ui/badge'
+import { Input } from '@/components/ui/input'
 import { useCart } from '@/hooks/useCart'
-import { priceFormatted, getRegularPrice } from '@/lib/utils/utils'
+import { useDebounce } from '@/hooks/useDebounce'
+import { useLocalization } from '@/hooks/useLocalization'
+import { Product } from '@/lib/firebase/models'
+import { ProductSeoMetadata } from '@/lib/type'
+import { FAKE_BLUR } from '@/lib/utils/constants'
+import { getRegularPrice, priceFormatted } from '@/lib/utils/utils'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Search, ShoppingCart } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { FAKE_BLUR } from '@/lib/utils/constants'
-import { useLocalization } from '@/hooks/useLocalization'
-import { ProductSeoMetadata } from '@/lib/type'
-import { Product } from '@/lib/firebase/models'
+import { useEffect, useState } from 'react'
+import { Badge } from '../ui/badge'
+import { Card, CardContent } from '../ui/card'
 
-export function SearchBar(props: { products: Product[] }) {
+export function SearchBar() {
   const [query, setQuery] = useState('')
+  const [results, setResults] = useState<Product[]>([])
+  const [loading, setLoading] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
   const { localization } = useLocalization()
+  
+  // Custom hook for debounce (assuming you prefer defining it inline if not importing)
+  // or use the one we just made.
+  // Let's import the one we made.
+  const debouncedQuery = useDebounce(query, 300)
 
-  if (props.products.length === 0) return null
+  useEffect(() => {
+    async function fetchProducts() {
+      if (!debouncedQuery) {
+        setResults([])
+        return
+      }
+      
+      setLoading(true)
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(debouncedQuery)}`)
+        const data = await res.json()
+        setResults(data)
+      } catch (error) {
+        console.error('Failed to search products', error)
+        setResults([])
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  const productsFiltered = props.products.filter(product =>
-    product.title.toLowerCase().includes(query.toLowerCase()),
-  )
+    fetchProducts()
+  }, [debouncedQuery])
 
   const handleKeyPress = (
     e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
@@ -48,7 +73,10 @@ export function SearchBar(props: { products: Product[] }) {
             setQuery(e.target.value)
           }}
           onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onBlur={() => {
+            // Delay closing to allow clicking on results
+            setTimeout(() => setIsFocused(false), 200)
+          }}
         />
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       </div>
@@ -61,9 +89,11 @@ export function SearchBar(props: { products: Product[] }) {
             className="absolute top-full left-0 right-0 z-50 mt-2 rounded-md border bg-background shadow-lg"
           >
             <div className="p-4">
-              {productsFiltered.length > 0 ? (
+              {loading ? (
+                <p className="text-sm text-muted-foreground text-center">Loading...</p>
+              ) : results.length > 0 ? (
                 <div className="flex flex-col gap-2 max-h-[400px] overflow-y-scroll">
-                  {productsFiltered.map(e => (
+                  {results.map(e => (
                     <ItemResult product={e} key={e.path} />
                   ))}
                 </div>

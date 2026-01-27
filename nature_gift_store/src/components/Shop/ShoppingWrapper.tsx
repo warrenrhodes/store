@@ -1,15 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { FilterBar } from '@/components/Shop/FilterBar'
+import { FilterOptions } from '@/components/Shop/FilterOptions'
 import { ProductGrid } from '@/components/Shop/ProductGrid'
 import { ProductHero } from '@/components/Shop/ProductHero'
 import { ShoppingCartButton } from '@/components/Shop/ShoppingCartButton'
-import { getPrice } from '@/lib/utils/utils'
-import { FilterOptions } from '@/components/Shop/FilterOptions'
 import useFilter from '@/hooks/useFilter'
-import { ProductDescription } from '@/lib/type'
 import { Category, Product } from '@/lib/firebase/models'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 interface ProductPageData {
   categories: Category[]
@@ -25,65 +24,66 @@ export const ShoppingWrapper = ({
   categories: Category[]
 }) => {
   const { filters, MAX_PRICE, MIN_PRICE, setFilters, clearFilters } = useFilter()
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [pageData] = useState<ProductPageData>({
     categories: categories,
     products: productList,
     tags: Array.from(new Set(productList.map(product => product.tags?.flat() || []).flat())),
   })
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(productList)
+  
+  // Note: productList is now the ALREADY filtered list from server.
+  const filteredProducts = productList
   const [activeFilters, setActiveFilters] = useState(0)
 
+  // Sync URL to State on Mount / URL Change
   useEffect(() => {
+    const search = searchParams.get('search') || ''
+    const categoryParam = searchParams.getAll('category')
+    const tagsParam = searchParams.getAll('tags')
+    const minPrice = searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : MIN_PRICE
+    const maxPrice = searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : MAX_PRICE
+    const sort = searchParams.get('sort') || 'newest'
+
+    setFilters({
+      search,
+      categories: categoryParam,
+      tags: tagsParam,
+      priceRange: [minPrice, maxPrice],
+      sortBy: sort as any,
+      colors: [],
+    })
+  }, [searchParams, setFilters, MIN_PRICE, MAX_PRICE])
+
+  // Sync State to URL
+  useEffect(() => {
+    const params = new URLSearchParams()
+    
+    if (filters.search) params.set('search', filters.search)
+    
+    filters.categories.forEach(cat => params.append('category', cat))
+    filters.tags.forEach(tag => params.append('tags', tag))
+    
+    if (filters.priceRange[0] > MIN_PRICE) params.set('minPrice', filters.priceRange[0].toString())
+    if (filters.priceRange[1] < MAX_PRICE) params.set('maxPrice', filters.priceRange[1].toString())
+    
+    if (filters.sortBy && filters.sortBy !== 'newest') params.set('sort', filters.sortBy)
+
+    const queryString = params.toString()
+    const currentQuery = searchParams.toString()
+
+    if (queryString !== currentQuery) {
+        router.push(`?${queryString}`, { scroll: false })
+    }
+    
     let count = 0
     if (filters.categories.length > 0) count++
     if (filters.tags.length > 0) count++
     if (filters.priceRange[0] > MIN_PRICE || filters.priceRange[1] < MAX_PRICE) count++
     if (filters.search) count++
     setActiveFilters(count)
-  }, [MAX_PRICE, MIN_PRICE, filters])
 
-  useEffect(() => {
-    let filtered = [...(pageData?.products || [])]
-
-    if (filters.search) {
-      const searchTerm = filters.search.toLowerCase()
-      filtered = filtered.filter(
-        product =>
-          product.title.toLowerCase().includes(searchTerm) ||
-          (product.description as ProductDescription).content.toLowerCase().includes(searchTerm),
-      )
-    }
-
-    if (filters.categories.length > 0) {
-      filtered = filtered.filter(product => {
-        return product.categories.some(cat => filters.categories.includes(cat))
-      })
-    }
-
-    filtered = filtered.filter(
-      product =>
-        getPrice(product) >= filters.priceRange[0] && getPrice(product) <= filters.priceRange[1],
-    )
-
-    if (filters.tags.length > 0) {
-      filtered = filtered.filter(product => product.tags?.some(tag => filters.tags.includes(tag)))
-    }
-
-    filtered.sort((a, b) => {
-      switch (filters.sortBy) {
-        case 'price-asc':
-          return getPrice(a) - getPrice(b)
-        case 'price-desc':
-          return getPrice(b) - getPrice(a)
-        case 'newest':
-          return new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
-        default:
-          return 0
-      }
-    })
-
-    setFilteredProducts(filtered)
-  }, [filters, pageData?.products])
+  }, [filters, MIN_PRICE, MAX_PRICE, router, searchParams])
 
   return (
     <div className="min-h-screen bg-background">

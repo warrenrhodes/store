@@ -16,7 +16,7 @@
     "noImplicitAny": false,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "moduleResolution": "bundler",
     "plugins": [
@@ -35,8 +35,11 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
-, "src/components/FacebookPixel.jsx", "src/app/layout.tsx"  ],
+    ".next/types/**/*.ts",
+    "src/components/FacebookPixel.jsx",
+    "src/app/layout.tsx",
+    ".next/dev/types/**/*.ts"
+  ],
   "exclude": [
     "node_modules"
   ]

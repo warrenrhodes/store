@@ -1,18 +1,17 @@
 'use client'
 
-import Link from 'next/link'
-import { useState } from 'react'
-import { Menu, Package, X } from 'lucide-react'
-import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet'
-import { usePathname } from 'next/navigation'
-import { Button } from '../ui/button'
-import { SearchBar } from './SearchBar'
-import { navItems } from '@/lib/utils/navItems'
-import { useLocalization } from '@/hooks/useLocalization'
 import { useLocale } from '@/hooks/useLocale'
-import { Product } from '@/lib/firebase/models'
+import { useLocalization } from '@/hooks/useLocalization'
+import { navItems } from '@/lib/utils/navItems'
+import { Menu, Package, X } from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useState } from 'react'
+import { Button } from '../ui/button'
+import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet'
+import { SearchBar } from './SearchBar'
 
-export function MobileNav(props: { products: Product[] }) {
+export function MobileNav() {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
   const { localization } = useLocalization()
@@ -36,7 +35,7 @@ export function MobileNav(props: { products: Product[] }) {
             </Button>
           </div>
           <div className="py-4">
-            <SearchBar products={props.products} />
+            <SearchBar />
           </div>
           <nav className="flex flex-col gap-2">
             {navItems.map(item => (

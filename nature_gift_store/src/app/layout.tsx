@@ -1,19 +1,14 @@
+import { AuthProvider } from '@/components/Auth/AuthProvider'
+import Footer from '@/components/Footer'
+import { Header } from '@/components/Header/Index'
+import { Toaster } from '@/components/ui/toaster'
+import ToasterProvider from '@/lib/providers/ToasterProvider'
+import { GoogleTagManager } from '@next/third-parties/google'
 import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import './globals.css'
-import ToasterProvider from '@/lib/providers/ToasterProvider'
-import Footer from '@/components/Footer'
-import { Toaster } from '@/components/ui/toaster'
-import { Header } from '@/components/Header/Index'
-import { GoogleTagManager } from '@next/third-parties/google'
-import { getAllCollectionCache } from '@/lib/api/utils'
-import { CollectionsName } from '@/lib/firebase/collection-name'
-import { Product, ProductStatus } from '@/lib/firebase/models'
-import { QueryFilter } from '@spreeloop/database'
-import { AuthProvider } from '@/components/Auth/AuthProvider'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 0
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -44,13 +39,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const products = await getAllCollectionCache<Product>({
-    collection: CollectionsName.Products,
-    filters: [
-      new QueryFilter('status', '==', ProductStatus.PUBLISHED),
-      new QueryFilter('visibility', '==', true),
-    ],
-  })
   return (
     <html lang="en" suppressHydrationWarning className="!scroll-smooth">
       <head>
@@ -64,7 +52,7 @@ export default async function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}>
         <div>
           <ToasterProvider />
-          <Header products={products} />
+          <Header />
           <AuthProvider>{children}</AuthProvider>
           <Footer />
           <Toaster />

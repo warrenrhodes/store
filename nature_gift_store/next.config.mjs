@@ -2,9 +2,7 @@
 const nextConfig = {
   output: 'standalone',
   productionBrowserSourceMaps: true,
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+
   images: {
     remotePatterns: [
       {
@@ -31,15 +29,6 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react'],
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
-      },
-      resolveExtensions: ['.tsx', '.ts', '.jsx', '.js'],
-    },
   },
 }
 

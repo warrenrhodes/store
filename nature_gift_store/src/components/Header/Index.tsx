@@ -1,17 +1,16 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils/utils'
-import { MainNav } from './MainNav'
-import { MobileNav } from './NavMobile'
-import { SearchBar } from './SearchBar'
-import { UserNav } from './UserNav'
+import { motion } from 'framer-motion'
 import { CartSidebar } from '../Cart/CartSidebar'
 import { LocaleSelector } from './LocaleSelector'
-import { Product } from '@/lib/firebase/models'
+import { MainNav } from './MainNav'
+import { MobileNav } from './NavMobile'
 import { ProgressBar } from './ProgressBar'
+import { SearchBar } from './SearchBar'
+import { UserNav } from './UserNav'
 
-export function Header(props: { products: Product[] }) {
+export function Header() {
   return (
     <motion.header
       className={cn(
@@ -25,14 +24,14 @@ export function Header(props: { products: Product[] }) {
         <div className="flex h-16 items-center justify-between gap-4 md:gap-8">
           <MainNav />
           <div className="hidden md:flex md:flex-1">
-            <SearchBar products={props.products} />
+            <SearchBar />
           </div>
           <div className="flex items-center gap-4">
             <LocaleSelector />
             <CartSidebar />
             <UserNav />
           </div>
-          <MobileNav products={props.products} />
+          <MobileNav />
         </div>
       </div>
       <ProgressBar />

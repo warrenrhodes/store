@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useCallback } from 'react'
-import { useWishlistStore } from './store/useWishlistStore'
+import { syncWishlist } from '@/actions/wishlist'
+import { useCallback, useEffect } from 'react'
 import { useAuthStore } from './store/auth-store'
+import { useWishlistStore } from './store/useWishlistStore'
 
 const SYNC_INTERVAL = 5000 // 5 seconds
 
@@ -17,17 +18,9 @@ export function useWishlist() {
     if (pendingChanges.length === 0) return
 
     try {
-      const response = await fetch('/api/user/wishlist/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.authId,
-          changes: pendingChanges,
-          currentItems: Array.from(items),
-        }),
-      })
+      const result = await syncWishlist(user.authId, Array.from(items))
 
-      if (response.ok) {
+      if (result.success) {
         pendingChanges.forEach(({ productId }) => clearPendingChange(productId))
       }
     } catch (error) {

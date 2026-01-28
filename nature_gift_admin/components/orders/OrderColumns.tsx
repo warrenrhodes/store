@@ -1,35 +1,36 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
+import { toast } from '@/hooks/use-toast'
+import { updateOrderStatus } from '@/lib/actions/orders.actions'
+import { IOrder } from '@/lib/actions/server'
+import { OrderItem } from '@/lib/firebase/models'
+import { DeliveryInfo, OrderPrices, UserData } from '@/lib/type'
 import { cn } from '@/lib/utils'
 import { priceFormatted } from '@/lib/utils/utils'
-import { format } from 'date-fns'
-import { IOrder } from '@/lib/actions/server'
-import Link from 'next/link'
-import { Badge } from '../ui/badge'
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '../ui/alert-dialog'
 import { Separator } from '@radix-ui/react-separator'
+import { getDocumentId } from '@spreeloop/database'
+import { ColumnDef } from '@tanstack/react-table'
+import { format } from 'date-fns'
 import { ArrowUpDown, ChevronDown, Eye } from 'lucide-react'
+import Link from 'next/link'
+import router from 'next/router'
+import {
+    AlertDialog,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '../ui/alert-dialog'
+import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
-import { toast } from '@/hooks/use-toast'
-import router from 'next/router'
-import { DeliveryInfo, OrderPrices, UserData } from '@/lib/type'
-import { getDocumentId } from '@spreeloop/database'
-import { OrderItem } from '@/lib/firebase/models'
 
 const statusTransitions = {
   PENDING: ['ACCEPTED', 'REJECTED'],
@@ -59,14 +60,8 @@ export const columns: ColumnDef<IOrder>[] = [
       const allowedTransitions = statusTransitions[currentStatus]
 
       const handleStatusChange = async (newStatus: string) => {
-        const res = await fetch(`/api/orders/${getDocumentId(row.original.path)}`, {
-          method: 'PUT',
-          body: JSON.stringify({ status: newStatus }),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-        if (res.ok) {
+        const res = await updateOrderStatus(getDocumentId(row.original.path), newStatus)
+        if (res.success) {
           toast({
             variant: 'success',
             description: `Changing status from ${currentStatus} to ${newStatus}`,
@@ -76,7 +71,7 @@ export const columns: ColumnDef<IOrder>[] = [
         } else {
           toast({
             variant: 'destructive',
-            description: 'Failed to update status',
+            description: res.error || 'Failed to update status',
           })
         }
       }

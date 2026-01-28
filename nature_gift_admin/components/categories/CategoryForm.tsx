@@ -8,32 +8,33 @@ import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
+import { createCategory, deleteCategory, updateCategory } from '@/lib/actions/categories.actions'
+import { ICategory } from '@/lib/actions/server'
+import { Media, MediaType } from '@/lib/firebase/models'
 import { cn } from '@/lib/utils'
 import { generateSlug } from '@/lib/utils/slugify'
 import { CategorySchemaType, categorySchema } from '@/lib/validations/category'
+import { getDocumentId } from '@spreeloop/database'
 import CustomAccordion from '../accordion/CustomAccordion'
 import { FileUploader } from '../custom-ui/FileUploader'
-import { Media, MediaType } from '@/lib/firebase/models'
-import { ICategory } from '@/lib/actions/server'
-import { getDocumentId } from '@spreeloop/database'
 
 interface CategoryFormProps {
   category?: ICategory
@@ -98,27 +99,31 @@ export function CategoryForm({ category, categories }: CategoryFormProps) {
   async function onSubmit(data: CategorySchemaType) {
     setIsLoading(true)
     try {
-      const url = category ? `/api/categories/${getDocumentId(category.path)}` : `/api/categories`
+      let res;
+      if (category) {
+        res = await updateCategory(getDocumentId(category.path), data)
+      } else {
+        res = await createCategory(data)
+      }
 
-      const res = await fetch(url, {
-        method: category ? 'PUT' : 'POST',
-        body: JSON.stringify(data),
-      })
-      if (res.ok) {
+      if (res.success) {
         toast({
           variant: 'default',
           description: `Category ${category ? 'updated' : 'created'}`,
         })
-        window.location.href = '/categories'
         router.push('/categories')
       } else {
         toast({
           variant: 'destructive',
-          description: 'Something went wrong! Please try again.',
+          description: res.error || 'Something went wrong! Please try again.',
         })
       }
     } catch (error) {
       console.error(error)
+      toast({
+        variant: 'destructive',
+        description: 'An unexpected error occurred.',
+      })
     } finally {
       setIsLoading(false)
     }
@@ -317,11 +322,16 @@ export function CategoryForm({ category, categories }: CategoryFormProps) {
               onClick={async () => {
                 setIsLoading(true)
                 try {
-                  await fetch(`/api/categories/${getDocumentId(category.path)}`, {
-                    method: 'DELETE',
-                  })
-                  router.refresh()
-                  router.push('/categories')
+                  const res = await deleteCategory(getDocumentId(category.path))
+                  if (res.success) {
+                    router.refresh()
+                    router.push('/categories')
+                  } else {
+                     toast({
+                      variant: 'destructive',
+                      description: res.error || 'Failed to delete',
+                    })
+                  }
                 } catch (error) {
                   console.error(error)
                 } finally {

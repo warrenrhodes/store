@@ -1,14 +1,14 @@
-import { OrderPrices } from '../type'
+import { clientConfig, serverConfig } from '@/config'
+import { DatabaseDocument, getDatabasePath, QueryFilter } from '@spreeloop/database'
 import { getTokens, Tokens } from 'next-firebase-auth-edge'
 import { cookies } from 'next/headers'
-import { clientConfig, serverConfig } from '@/config'
-import { backend } from '../firebase/firebase-server/firebase'
-import { DatabaseDocument, getDatabasePath, QueryFilter } from '@spreeloop/database'
-import { CollectionsName } from '../firebase/collection-name'
-import { Blog, Category, Order, Product, Promotion, Review, Shipment } from '../firebase/models'
 import { NextRequest, NextResponse } from 'next/server'
-import z from 'zod'
 import { cache } from 'react'
+import z from 'zod'
+import { CollectionsName } from '../firebase/collection-name'
+import { backend } from '../firebase/firebase-server/firebase'
+import { Blog, Category, Order, Product, Promotion, Review, Shipment } from '../firebase/models'
+import { OrderPrices } from '../type'
 
 export type ICategory = DatabaseDocument<Category>
 export type IShipment = DatabaseDocument<Shipment>
@@ -289,7 +289,7 @@ async function getShipmentById(shipmentId: string): Promise<IShipment | undefine
   }
 }
 
-const getUserTokens = async (): Promise<Tokens | undefined> => {
+export const getUserTokens = async (): Promise<Tokens | undefined> => {
   const tokens = await getTokens(await cookies(), {
     apiKey: clientConfig.apiKey,
     cookieName: serverConfig.cookieName,

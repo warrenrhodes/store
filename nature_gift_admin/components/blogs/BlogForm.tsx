@@ -10,21 +10,21 @@ import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { toast } from '@/hooks/use-toast'
@@ -64,7 +64,7 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
             content: '',
             excerpt: '',
           },
-          publishedAt: new Date(),
+          publishedAt: new Date().toISOString(),
           metadata: {
             title: '',
             keywords: [],
@@ -127,6 +127,8 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
     }
   }
 
+  console.log(initialData)
+
   return (
     <div className="sm:p-10">
       <Form {...form}>
@@ -139,7 +141,9 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
                 <FormItem>
                   <FormLabel>Title</FormLabel>
                   <FormControl>
-                    <Input {...field} onChange={onTitleChange} onKeyDown={handleKeyPress} />
+                    <Input {...field} 
+                    value={field.value || ''}
+                    onChange={onTitleChange} onKeyDown={handleKeyPress} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

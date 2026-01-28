@@ -43,6 +43,7 @@ const statusTransitions = {
 export const columns: ColumnDef<IOrder>[] = [
   {
     accessorKey: 'id',
+    accessorFn: row => getDocumentId(row.path),
     header: 'Order',
     cell: ({ row }) => {
       return (
@@ -54,6 +55,7 @@ export const columns: ColumnDef<IOrder>[] = [
   },
   {
     accessorKey: 'status',
+    accessorFn: row => row.data.status,
     header: 'Status',
     cell: ({ row }) => {
       const currentStatus = row.original.data.status
@@ -111,6 +113,7 @@ export const columns: ColumnDef<IOrder>[] = [
   },
   {
     accessorKey: 'deliveryInfo',
+    accessorFn: row => (row.data.deliveryInfo as unknown as DeliveryInfo).deliveryDate,
     header: 'Delivery Date',
     cell: ({ row }) => (
       <div>
@@ -124,6 +127,7 @@ export const columns: ColumnDef<IOrder>[] = [
   },
   {
     accessorKey: 'orderPrices',
+    accessorFn: row => (row.data.orderPrices as OrderPrices).total,
     header: 'Total (FCFA)',
     cell: ({ row }) => (
       <div>{priceFormatted((row.original.data.orderPrices as OrderPrices).total)}</div>
@@ -131,6 +135,7 @@ export const columns: ColumnDef<IOrder>[] = [
   },
   {
     accessorKey: 'createdAt',
+    accessorFn: row => row.data.createdAt,
     header: ({ column }) => {
       return (
         <Button

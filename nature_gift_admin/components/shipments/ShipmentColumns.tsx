@@ -1,12 +1,12 @@
+import { IShipment } from '@/lib/actions/server'
+import { cn } from '@/lib/utils'
+import { getDocumentId } from '@spreeloop/database'
 import { ColumnDef } from '@tanstack/react-table'
 import { Edit } from 'lucide-react'
-import { Checkbox } from '../ui/checkbox'
-import Delete from '../custom-ui/Delete'
 import Link from 'next/link'
-import { cn } from '@/lib/utils'
+import Delete from '../custom-ui/Delete'
 import { Badge } from '../ui/badge'
-import { IShipment } from '@/lib/actions/server'
-import { getDocumentId } from '@spreeloop/database'
+import { Checkbox } from '../ui/checkbox'
 
 export const shipmentColumns: ColumnDef<IShipment>[] = [
   {
@@ -32,11 +32,13 @@ export const shipmentColumns: ColumnDef<IShipment>[] = [
   },
   {
     accessorKey: 'method',
+    accessorFn: row => row.data.method,
     header: 'Method',
     cell: ({ row }) => <div className="lowercase">{row.original.data.method}</div>,
   },
   {
     accessorKey: 'isActive',
+    accessorFn: row => row.data.isActive,
     header: 'Is Active',
     cell: ({ row }) => (
       <div>
@@ -53,6 +55,7 @@ export const shipmentColumns: ColumnDef<IShipment>[] = [
   },
   {
     accessorKey: 'locations',
+    accessorFn: row => row.data.locations.join(', '),
     header: 'Locations',
     cell: ({ row }) => <span>{row.original.data.locations.join(', ')}</span>,
   },

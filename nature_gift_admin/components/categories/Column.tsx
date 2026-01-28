@@ -1,12 +1,12 @@
-import { ColumnDef } from '@tanstack/react-table'
-import { Checkbox } from '../ui/checkbox'
-import { Button } from '../ui/button'
-import Delete from '../custom-ui/Delete'
-import { ArrowUpDown, Edit } from 'lucide-react'
-import { Badge } from '../ui/badge'
-import Link from 'next/link'
 import { ICategory } from '@/lib/actions/server'
 import { getDocumentId } from '@spreeloop/database'
+import { ColumnDef } from '@tanstack/react-table'
+import { ArrowUpDown, Edit } from 'lucide-react'
+import Link from 'next/link'
+import Delete from '../custom-ui/Delete'
+import { Badge } from '../ui/badge'
+import { Button } from '../ui/button'
+import { Checkbox } from '../ui/checkbox'
 export const categoryColumns: ColumnDef<ICategory>[] = [
   {
     id: 'select',
@@ -31,6 +31,7 @@ export const categoryColumns: ColumnDef<ICategory>[] = [
   },
   {
     accessorKey: 'name',
+    accessorFn: row => row.data.name,
     header: ({ column }) => {
       return (
         <Button
@@ -46,11 +47,13 @@ export const categoryColumns: ColumnDef<ICategory>[] = [
   },
   {
     accessorKey: 'description',
+    accessorFn: row => row.data.description,
     header: 'Description',
     cell: ({ row }) => <div className="capitalize">{row.original.data.description}</div>,
   },
   {
     accessorKey: 'featured',
+    accessorFn: row => row.data.featured,
     header: 'Featured',
     cell: ({ row }) => <div>{row.original.data.featured && <Badge>Featured</Badge>}</div>,
   },

@@ -1,14 +1,14 @@
 import { type ClassValue, clsx } from 'clsx'
-import { twMerge } from 'tailwind-merge'
 import {
   differenceInDays,
-  differenceInYears,
-  differenceInMonths,
   differenceInHours,
+  differenceInMonths,
+  differenceInYears,
   format,
 } from 'date-fns'
-import { Price } from '../type'
+import { twMerge } from 'tailwind-merge'
 import { Product, Review } from '../firebase/models'
+import { Price } from '../type'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -19,7 +19,9 @@ export const getPrice = (product: Product): number => {
   const price = product.price as unknown as Price
 
   if (price.sale && price.saleStartDate && price.saleEndDate) {
-    if (now >= price.saleStartDate && now <= price.saleEndDate) {
+    const startDate = new Date(price.saleStartDate)
+    const endDate = new Date(price.saleEndDate)
+    if (now >= startDate && now <= endDate) {
       return price.sale
     }
   }
@@ -92,3 +94,4 @@ export const canDisplayPromoPrice = (product: Product) => {
 }
 
 export const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+

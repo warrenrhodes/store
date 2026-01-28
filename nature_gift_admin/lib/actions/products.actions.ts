@@ -28,8 +28,21 @@ export async function createProduct(data: ProductSchemaType) {
       return { success: false, error: 'Product with this slug already exists' }
     }
 
-    const result = await backend.database.createRecord(CollectionsName.Products, {
+    const productData = {
       ...validatedData,
+      price: {
+        ...validatedData.price,
+        saleStartDate: validatedData.price.saleStartDate
+          ? new Date(validatedData.price.saleStartDate).toISOString()
+          : null,
+        saleEndDate: validatedData.price.saleEndDate
+          ? new Date(validatedData.price.saleEndDate).toISOString()
+          : null,
+      },
+    }
+
+    const result = await backend.database.createRecord(CollectionsName.Products, {
+      ...productData,
       creatorId: token.decodedToken.uid,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -63,8 +76,21 @@ export async function updateProduct(productId: string, data: ProductSchemaType) 
     // but typical admin usage assumes access. 
     // Ideally we should check if product exists and creatorId matches or user is admin.
 
-    const result = await backend.database.setRecord(productPath, {
+    const productData = {
       ...validatedData,
+      price: {
+        ...validatedData.price,
+        saleStartDate: validatedData.price.saleStartDate
+          ? new Date(validatedData.price.saleStartDate).toISOString()
+          : null,
+        saleEndDate: validatedData.price.saleEndDate
+          ? new Date(validatedData.price.saleEndDate).toISOString()
+          : null,
+      },
+    }
+
+    const result = await backend.database.setRecord(productPath, {
+      ...productData,
       updatedAt: new Date().toISOString(),
     })
 

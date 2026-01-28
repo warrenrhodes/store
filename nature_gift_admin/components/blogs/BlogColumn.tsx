@@ -1,19 +1,20 @@
 import { toast } from '@/hooks/use-toast'
+import { IBlog } from '@/lib/actions/server'
+import { BlogStatus } from '@/lib/firebase/models'
+import { BlogMetadata } from '@/lib/type'
 import { cn } from '@/lib/utils'
+import { getDocumentId } from '@spreeloop/database'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown, Copy, Edit } from 'lucide-react'
 import Link from 'next/link'
 import Delete from '../custom-ui/Delete'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
-import { BlogMetadata } from '@/lib/type'
-import { IBlog } from '@/lib/actions/server'
-import { getDocumentId } from '@spreeloop/database'
-import { BlogStatus } from '@/lib/firebase/models'
 
 export const blogsColumns: ColumnDef<IBlog>[] = [
   {
     accessorKey: 'title',
+    accessorFn: row => row.data.title,
     header: ({ column }) => {
       return (
         <Button
@@ -29,6 +30,7 @@ export const blogsColumns: ColumnDef<IBlog>[] = [
   },
   {
     accessorKey: 'status',
+    accessorFn: row => row.data.status,
     header: ({ column }) => {
       return (
         <Button
@@ -58,6 +60,7 @@ export const blogsColumns: ColumnDef<IBlog>[] = [
   },
   {
     accessorKey: 'publishedAt',
+    accessorFn: row => row.data.publishedAt,
     header: 'Published At',
     cell: ({ row }) =>
       row.original.data.publishedAt ? (
@@ -68,6 +71,7 @@ export const blogsColumns: ColumnDef<IBlog>[] = [
   },
   {
     accessorKey: 'readingTime',
+    accessorFn: row => (row.data.metadata as BlogMetadata).readingTime,
     header: 'Reading Time (min)',
     cell: ({ row }) => (
       <span>{(row.original.data.metadata as BlogMetadata).readingTime || 'N/A'}</span>

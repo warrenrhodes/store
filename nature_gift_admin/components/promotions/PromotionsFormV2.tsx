@@ -1,13 +1,14 @@
 'use client'
 
-import { useCallback, useState } from 'react'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { format, subDays } from 'date-fns'
 import { CalendarIcon, Loader2, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { format, subDays } from 'date-fns'
+import { useCallback, useState } from 'react'
+import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
 import {
   Form,
   FormControl,
@@ -17,7 +18,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -25,18 +26,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Textarea } from '@/components/ui/textarea'
+import { useToast } from '@/hooks/use-toast'
+import { IProduct, IPromotion } from '@/lib/actions/server'
 import { cn } from '@/lib/utils'
-import { promotionSchema, validatePromotionFrom } from '@/lib/validations/promotions'
-import { PromotionSchemaType } from '@/lib/validations/promotions'
+import { generatePromoCode } from '@/lib/utils/generate-promo'
+import { promotionSchema, PromotionSchemaType, validatePromotionFrom } from '@/lib/validations/promotions'
+import { getDocumentId } from '@spreeloop/database'
+import { ToastAction } from '../ui/toast'
 import { ActionFields } from './promotionForm/ActionFields'
 import { ConditionFields } from './promotionForm/ConditionFields'
-import { generatePromoCode } from '@/lib/utils/generate-promo'
-import { useToast } from '@/hooks/use-toast'
-import { ToastAction } from '../ui/toast'
-import { IProduct, IPromotion } from '@/lib/actions/server'
-import { getDocumentId } from '@spreeloop/database'
 
 interface PromotionFormProps {
   initialData?: IPromotion | null
@@ -54,8 +53,8 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
       code: '',
       name: '',
       description: '',
-      startDate: new Date(),
-      endDate: new Date(),
+      startDate: new Date().toISOString(),
+      endDate: new Date().toISOString(),
       conditions: [],
       actions: [],
       status: 'DRAFT',

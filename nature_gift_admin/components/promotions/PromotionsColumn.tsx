@@ -1,26 +1,28 @@
 'use client'
 
-import Link from 'next/link'
-import { ArrowUpDown, Edit } from 'lucide-react'
 import { format } from 'date-fns'
+import { ArrowUpDown, Edit } from 'lucide-react'
+import Link from 'next/link'
 
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ColumnDef } from '@tanstack/react-table'
-import Delete from '../custom-ui/Delete'
-import { cn } from '@/lib/utils'
-import { getDocumentId } from '@spreeloop/database'
+import { Button } from '@/components/ui/button'
 import { IPromotion } from '@/lib/actions/server'
 import { PromotionStatus } from '@/lib/firebase/models'
+import { cn } from '@/lib/utils'
+import { getDocumentId } from '@spreeloop/database'
+import { ColumnDef } from '@tanstack/react-table'
+import Delete from '../custom-ui/Delete'
 
 export const promotionsColumns: ColumnDef<IPromotion>[] = [
   {
     accessorKey: 'code',
+    accessorFn: row => row.data.code,
     header: 'Code',
     cell: ({ row }) => <div className="font-mono leading-none">{row.original.data.code}</div>,
   },
   {
     accessorKey: 'name',
+    accessorFn: row => row.data.name,
     header: ({ column }) => {
       return (
         <Button
@@ -57,6 +59,7 @@ export const promotionsColumns: ColumnDef<IPromotion>[] = [
   },
   {
     accessorKey: 'status',
+    accessorFn: row => row.data.status,
     header: ({ column }) => {
       return (
         <Button
@@ -87,6 +90,7 @@ export const promotionsColumns: ColumnDef<IPromotion>[] = [
   },
   {
     accessorKey: 'priority',
+    accessorFn: row => row.data.priority,
     header: 'Priority',
     cell: ({ row }) => <div className="font-medium">{row.original.data.priority}</div>,
   },

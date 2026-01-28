@@ -1,18 +1,18 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
-import Delete from '../custom-ui/Delete'
-import Link from 'next/link'
-import { Checkbox } from '../ui/checkbox'
-import { Button } from '../ui/button'
-import { ArrowUpDown, Edit } from 'lucide-react'
-import { Badge } from '../ui/badge'
-import { cn } from '@/lib/utils'
-import { priceFormatted } from '@/lib/utils/utils'
-import { Inventory, Price } from '@/lib/type'
-import { getDocumentId } from '@spreeloop/database'
 import { IProduct } from '@/lib/actions/server'
 import { ProductStatus } from '@/lib/firebase/models'
+import { Inventory, Price } from '@/lib/type'
+import { cn } from '@/lib/utils'
+import { priceFormatted } from '@/lib/utils/utils'
+import { getDocumentId } from '@spreeloop/database'
+import { ColumnDef } from '@tanstack/react-table'
+import { ArrowUpDown, Edit } from 'lucide-react'
+import Link from 'next/link'
+import Delete from '../custom-ui/Delete'
+import { Badge } from '../ui/badge'
+import { Button } from '../ui/button'
+import { Checkbox } from '../ui/checkbox'
 
 export const productColumns: ColumnDef<IProduct>[] = [
   {
@@ -38,6 +38,7 @@ export const productColumns: ColumnDef<IProduct>[] = [
   },
   {
     accessorKey: 'title',
+    accessorFn: row => row.data.title,
     header: ({ column }) => {
       return (
         <Button
@@ -53,6 +54,7 @@ export const productColumns: ColumnDef<IProduct>[] = [
   },
   {
     accessorKey: 'status',
+    accessorFn: row => row.data.status,
     header: 'Status',
     cell: ({ row }) => (
       <div>
@@ -70,6 +72,7 @@ export const productColumns: ColumnDef<IProduct>[] = [
   },
   {
     accessorKey: 'visibility',
+    accessorFn: row => row.data.visibility,
     header: 'Visibility',
     cell: ({ row }) => (
       <div>
@@ -86,6 +89,7 @@ export const productColumns: ColumnDef<IProduct>[] = [
   },
   {
     accessorKey: 'price',
+    accessorFn: row => (row.data.price as unknown as Price).regular,
     header: 'Price (FCFA)',
     cell: ({ row }) => (
       <div>{priceFormatted((row.original.data.price as unknown as Price).regular)}</div>
@@ -93,6 +97,7 @@ export const productColumns: ColumnDef<IProduct>[] = [
   },
   {
     accessorKey: 'inventory',
+    accessorFn: row => (row.data.inventory as Inventory).quantity,
     header: 'Inventory',
     cell: ({ row }) => (
       <div>

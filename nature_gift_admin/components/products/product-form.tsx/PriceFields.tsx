@@ -1,16 +1,16 @@
 'use client'
 
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { ProductSchemaType } from '@/lib/validations/product'
-import { UseFormReturn } from 'react-hook-form'
-import { addDays, format, isAfter, set, sub } from 'date-fns'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { CalendarIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
+import { ProductSchemaType } from '@/lib/validations/product'
+import { addDays, format, isAfter, set, sub } from 'date-fns'
+import { CalendarIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { UseFormReturn } from 'react-hook-form'
 
 interface PriceFieldsProps {
   form: UseFormReturn<ProductSchemaType>

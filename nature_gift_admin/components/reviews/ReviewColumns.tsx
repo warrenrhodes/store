@@ -1,11 +1,11 @@
-import { ColumnDef } from '@tanstack/react-table'
-import { ArrowUpDown, Edit } from 'lucide-react'
-import { Checkbox } from '../ui/checkbox'
-import { Button } from '../ui/button'
-import Delete from '../custom-ui/Delete'
-import Link from 'next/link'
 import { IReview } from '@/lib/actions/server'
 import { getDocumentId } from '@spreeloop/database'
+import { ColumnDef } from '@tanstack/react-table'
+import { ArrowUpDown, Edit } from 'lucide-react'
+import Link from 'next/link'
+import Delete from '../custom-ui/Delete'
+import { Button } from '../ui/button'
+import { Checkbox } from '../ui/checkbox'
 
 export const reviewColumns: ColumnDef<IReview>[] = [
   {
@@ -31,6 +31,7 @@ export const reviewColumns: ColumnDef<IReview>[] = [
   },
   {
     accessorKey: 'userName',
+    accessorFn: row => row.data.userName,
     header: ({ column }) => {
       return (
         <Button
@@ -46,11 +47,13 @@ export const reviewColumns: ColumnDef<IReview>[] = [
   },
   {
     accessorKey: 'product',
+    accessorFn: row => row.data.productPath,
     header: 'Product',
     cell: ({ row }) => <p>{row.original.data.productPath}</p>,
   },
   {
     accessorKey: 'rating',
+    accessorFn: row => row.data.rating,
     header: 'Rating',
     cell: ({ row }) => <p>{row.original.data.rating}</p>,
   },

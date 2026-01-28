@@ -6,7 +6,7 @@ import { clientConfig, serverConfig } from './config'
 
 const PUBLIC_PATHS = ['/sign-in', '/sign-up']
 
-export async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   return authMiddleware(request, {
     loginPath: '/api/login',
     logoutPath: '/api/logout',

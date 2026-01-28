@@ -8,38 +8,39 @@ import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { generateSlug } from '@/lib/utils/slugify'
 import {
-  productSchema,
-  ProductSchemaType,
-  productVerificationForm,
+    productSchema,
+    ProductSchemaType,
+    productVerificationForm,
 } from '@/lib/validations/product'
 
 import { useToast } from '@/hooks/use-toast'
+import { createProduct, deleteProduct, updateProduct } from '@/lib/actions/products.actions'
+import { IBlog, ICategory, IProduct } from '@/lib/actions/server'
+import { Media, MediaType, ProductStatus } from '@/lib/firebase/models'
+import { cn } from '@/lib/utils'
+import { getDocumentId } from '@spreeloop/database'
 import CustomAccordion from '../accordion/CustomAccordion'
+import { ContentEditor } from '../custom-ui/ContentEditor'
 import { FileUploader } from '../custom-ui/FileUploader'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Switch } from '../ui/switch'
 import { ToastAction } from '../ui/toast'
 import { CategoriesForm } from './product-form.tsx/Categories'
-import { ContentEditor } from '../custom-ui/ContentEditor'
 import { FeaturesForm } from './product-form.tsx/Features'
 import { InventoryFields } from './product-form.tsx/InventoryFields'
 import { MetadataFields } from './product-form.tsx/MetadataFields'
 import { PriceFields } from './product-form.tsx/PriceFields'
 import { VariantFields } from './product-form.tsx/Variant'
-import { getDocumentId } from '@spreeloop/database'
-import { IBlog, ICategory, IProduct } from '@/lib/actions/server'
-import { Media, MediaType, ProductStatus } from '@/lib/firebase/models'
-import { cn } from '@/lib/utils'
 interface ProductFormProps {
   initialData?: IProduct | null
   categories: ICategory[]
@@ -110,39 +111,52 @@ export function ProductFormV2({ initialData, categories, blogs }: ProductFormPro
     }
     setIsLoading(true)
     try {
-      const url = initialData
-        ? `/api/products/${getDocumentId(initialData.path || '')}`
-        : `/api/products`
-      const res = await fetch(url, {
-        method: initialData ? 'PUT' : 'POST',
-        body: JSON.stringify(data),
-      })
-      if (res.ok) {
+      let res;
+      if (initialData) {
+        res = await updateProduct(getDocumentId(initialData.path || ''), data)
+      } else {
+        res = await createProduct(data)
+      }
+
+      if (res.success) {
         toast({
           variant: 'success',
-          description: `Products ${initialData ? 'updated' : 'created'}`,
+          description: `Product ${initialData ? 'updated' : 'created'}`,
         })
-        window.location.href = '/products'
         router.push('/products')
       } else {
         toast({
           variant: 'destructive',
-          description: 'Something went wrong! Please try again.',
+          description: res.error || 'Something went wrong! Please try again.',
         })
-        console.log(res.body)
       }
     } catch (error) {
       console.error(error)
+      toast({
+        variant: 'destructive',
+        description: 'An unexpected error occurred.',
+      })
     } finally {
       setIsLoading(false)
     }
   }
 
   const onDelete = async (): Promise<boolean> => {
-    const res = await fetch(`/api/products/${getDocumentId(initialData?.path || '')}`, {
-      method: 'DELETE',
-    })
-    return res.ok
+    const res = await deleteProduct(getDocumentId(initialData?.path || ''))
+    if (res.success) {
+      toast({
+         variant: "success",
+         description: "Product deleted"
+      })
+      router.push('/products')
+      return true
+    } else {
+       toast({
+        variant: 'destructive',
+        description: res.error || 'Failed to delete',
+      })
+      return false
+    }
   }
 
   const handleKeyPress = (

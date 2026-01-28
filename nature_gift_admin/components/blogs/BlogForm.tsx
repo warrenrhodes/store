@@ -10,34 +10,35 @@ import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { toast } from '@/hooks/use-toast'
+import { createBlog, deleteBlog, updateBlog } from '@/lib/actions/blogs.actions'
+import { IBlog, ICategory, IProduct } from '@/lib/actions/server'
+import { BlogStatus, Media, MediaType } from '@/lib/firebase/models'
 import { cn } from '@/lib/utils'
 import { generateSlug } from '@/lib/utils/slugify'
 import { blogSchema, BlogSchemaType } from '@/lib/validations/blog'
+import { getDocumentId } from '@spreeloop/database'
+import { ContentEditor } from '../custom-ui/ContentEditor'
 import { FileUploader } from '../custom-ui/FileUploader'
 import MultiSelect from '../custom-ui/MultiSelect'
 import MultiText from '../custom-ui/MultiText'
-import { ContentEditor } from '../custom-ui/ContentEditor'
-import { toast } from '@/hooks/use-toast'
-import { BlogStatus, Media, MediaType } from '@/lib/firebase/models'
-import { IBlog, ICategory, IProduct } from '@/lib/actions/server'
-import { getDocumentId } from '@spreeloop/database'
 
 interface BlogFormProps {
   initialData?: IBlog | null
@@ -88,27 +89,31 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
     setIsLoading(true)
 
     try {
-      const url = initialData ? `/api/blogs/${getDocumentId(initialData.path)}` : `/api/blogs`
+      let res;
+      if (initialData) {
+        res = await updateBlog(getDocumentId(initialData.path), data)
+      } else {
+        res = await createBlog(data)
+      }
 
-      const res = await fetch(url, {
-        method: initialData ? 'PUT' : 'POST',
-        body: JSON.stringify(data),
-      })
-      if (res.ok) {
+      if (res.success) {
         toast({
           variant: 'success',
-          description: `Blogs ${initialData ? 'updated' : 'created'}`,
+          description: `Blog ${initialData ? 'updated' : 'created'}`,
         })
-        window.location.href = '/blogs'
         router.push('/blogs')
       } else {
         toast({
           variant: 'destructive',
-          description: 'Something went wrong! Please try again.',
+          description: res.error || 'Something went wrong! Please try again.',
         })
       }
     } catch (error) {
-      console.error(error)
+       console.error(error)
+       toast({
+        variant: 'destructive',
+        description: 'An unexpected error occurred.',
+      })
     } finally {
       setIsLoading(false)
     }
@@ -441,11 +446,16 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
                 onClick={async () => {
                   setIsLoading(true)
                   try {
-                    await fetch(`/api/blogs/${getDocumentId(initialData.path)}`, {
-                      method: 'DELETE',
-                    })
-                    router.refresh()
-                    router.push('/blogs')
+                    const res = await deleteBlog(getDocumentId(initialData.path))
+                    if (res.success) {
+                        router.refresh()
+                        router.push('/blogs')
+                    } else {
+                         toast({
+                          variant: 'destructive',
+                          description: res.error || 'Failed to delete',
+                        })
+                    }
                   } catch (error) {
                     console.error(error)
                   } finally {

@@ -6,25 +6,26 @@ import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { toast } from '@/hooks/use-toast'
+import { IShipment } from '@/lib/actions/server'
+import { createShipment, deleteShipment, updateShipment } from '@/lib/actions/shipments.actions'
+import { ShipmentMethod } from '@/lib/firebase/models'
 import { shipmentSchema, ShipmentSchemaType } from '@/lib/validations/shipment'
+import { getDocumentId } from '@spreeloop/database'
 import { Loader2, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import MultiText from '../custom-ui/MultiText'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Switch } from '../ui/switch'
 import { SubmitButton } from './components/SubmitButton'
-import { IShipment } from '@/lib/actions/server'
-import { getDocumentId } from '@spreeloop/database'
-import { ShipmentMethod } from '@/lib/firebase/models'
 interface ShipmentFormProps {
   initialData?: IShipment
   shipments?: IShipment[]
@@ -60,33 +61,19 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
   const onSubmit = async (values: ShipmentSchemaType) => {
     try {
       setLoading(true)
-      const url = initialData
-        ? `/api/shipments/${getDocumentId(initialData.path)}`
-        : '/api/shipments'
-      console.log('📤 [shipments_POST] Submitting:', {
-        url,
-        method: initialData ? 'PUT' : 'POST',
-        values,
-      })
-      const res = await fetch(url, {
-        method: initialData ? 'PUT' : 'POST',
-        body: JSON.stringify(values),
-      })
-
-      const responseText = await res.text()
-      console.log('📥 [shipments_POST] Raw response:', responseText)
-
-      if (!res.ok) {
-        console.error('❌ [shipments_POST] Error response:', {
-          status: res.status,
-          statusText: res.statusText,
-          body: responseText,
-        })
-        throw new Error(responseText)
+      let res;
+      if (initialData) {
+        res = await updateShipment(getDocumentId(initialData.path), values)
+      } else {
+        res = await createShipment(values)
       }
 
-      const data = responseText ? JSON.parse(responseText) : null
-      console.log('✅ [shipments_POST] Success:', data)
+      if (!res.success) {
+        console.error('❌ [shipments_POST] Error:', res.error)
+        throw new Error(res.error)
+      }
+
+      console.log('✅ [shipments_POST] Success')
 
       toast({
         description: `Shipment ${initialData ? 'updated' : 'created'} successfully`,
@@ -115,12 +102,10 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
     if (initialData)
       try {
         setIsDeleting(true)
-        const res = await fetch(`/api/shipments/${getDocumentId(initialData.path)}`, {
-          method: 'DELETE',
-        })
+        const res = await deleteShipment(getDocumentId(initialData.path))
 
-        if (!res.ok) {
-          throw new Error(await res.text())
+        if (!res.success) {
+          throw new Error(res.error)
         }
 
         toast({
@@ -130,7 +115,7 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
 
         router.refresh() // Refresh the page data
         router.push('/shipments')
-      } catch (err) {
+      } catch (err: any) {
         console.error('[shipments_DELETE]', err)
         toast({
           description: err instanceof Error ? err.message : 'Failed to delete shipment',

@@ -1,14 +1,14 @@
-import { OrderPrices } from '../type'
+import { clientConfig, serverConfig } from '@/config'
+import { DatabaseDocument, getDatabasePath, QueryFilter } from '@spreeloop/database'
 import { getTokens, Tokens } from 'next-firebase-auth-edge'
 import { cookies } from 'next/headers'
-import { clientConfig, serverConfig } from '@/config'
-import { backend } from '../firebase/firebase-server/firebase'
-import { DatabaseDocument, getDatabasePath, QueryFilter } from '@spreeloop/database'
-import { CollectionsName } from '../firebase/collection-name'
-import { Blog, Category, Order, Product, Promotion, Review, Shipment } from '../firebase/models'
 import { NextRequest, NextResponse } from 'next/server'
-import z from 'zod'
 import { cache } from 'react'
+import z from 'zod'
+import { CollectionsName } from '../firebase/collection-name'
+import { backend } from '../firebase/firebase-server/firebase'
+import { Blog, Category, Order, Product, Promotion, Review, Shipment } from '../firebase/models'
+import { OrderPrices } from '../type'
 
 export type ICategory = DatabaseDocument<Category>
 export type IShipment = DatabaseDocument<Shipment>
@@ -64,7 +64,7 @@ async function getProducts(): Promise<IProduct[]> {
       filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
     })
 
-    return products
+    return JSON.parse(JSON.stringify(products))
   } catch (error) {
     console.error('Failed to fetch products:', error)
     return []
@@ -82,7 +82,7 @@ async function getProductById(productId: string): Promise<IProduct | undefined> 
       filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
     })
 
-    return products.find(product => product.path === productPath)
+    return JSON.parse(JSON.stringify(products.find(product => product.path === productPath)))
   } catch (error) {
     console.error('Failed to fetch product:', error)
     return
@@ -99,7 +99,7 @@ async function getCategories(): Promise<ICategory[]> {
       filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
     })
 
-    return categories
+    return JSON.parse(JSON.stringify(categories))
   } catch (error) {
     console.error('Failed to fetch categories:', error)
     return []
@@ -116,7 +116,7 @@ async function getCategoryById(categoryId: string): Promise<ICategory | undefine
       filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
     })
 
-    return category.find(category => category.path === categoryPath)
+    return JSON.parse(JSON.stringify(category.find(category => category.path === categoryPath)))
   } catch (error) {
     console.error('Failed to fetch category:', error)
     return
@@ -133,7 +133,7 @@ async function getShipments(): Promise<IShipment[]> {
       filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
     })
 
-    return shipments
+    return JSON.parse(JSON.stringify(shipments))
   } catch (error) {
     console.error('Failed to fetch shipments:', error)
     return []
@@ -150,7 +150,7 @@ async function getBlogs(): Promise<IBlog[]> {
       filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
     })
 
-    return blogs
+    return JSON.parse(JSON.stringify(blogs))
   } catch (error) {
     console.error('Failed to fetch blogs:', error)
     return []
@@ -168,7 +168,7 @@ async function getBlogById(blogId: string): Promise<IBlog | undefined> {
       filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
     })
 
-    return blogs.find(blog => blog.path === blogPath)
+    return JSON.parse(JSON.stringify(blogs.find(blog => blog.path === blogPath)))
   } catch (error) {
     console.error('Failed to fetch blog post:', error)
     return
@@ -185,7 +185,7 @@ async function getReviews(): Promise<IReview[]> {
       filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
     })
 
-    return reviews
+    return JSON.parse(JSON.stringify(reviews))
   } catch (error) {
     console.error('Failed to fetch reviews:', error)
     return []
@@ -203,7 +203,7 @@ async function getReviewById(reviewId: string): Promise<IReview | undefined> {
       filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
     })
 
-    return reviews.find(review => review.path === reviewPath)
+    return JSON.parse(JSON.stringify(reviews.find(review => review.path === reviewPath)))
   } catch (error) {
     console.error('Failed to fetch review:', error)
     return
@@ -229,7 +229,7 @@ async function getOrders(): Promise<IOrder[]> {
       orders.push({ path: doc.id, data: doc.data() } as IOrder)
     })
 
-    return orders
+    return JSON.parse(JSON.stringify(orders))
   } catch (error) {
     console.error('Failed to fetch orders:', error)
     return []
@@ -246,7 +246,7 @@ async function getPromotions(): Promise<IPromotion[]> {
       filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
     })
 
-    return promotions
+    return JSON.parse(JSON.stringify(promotions))
   } catch (error) {
     console.error('Failed to fetch promotions:', error)
     return []
@@ -264,7 +264,7 @@ async function getPromotionById(promotionId: string): Promise<IPromotion | undef
       filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
     })
 
-    return promotions.find(promotion => promotion.path === promotionPath)
+    return JSON.parse(JSON.stringify(promotions.find(promotion => promotion.path === promotionPath)))
   } catch (error) {
     console.error('Failed to fetch promotion:', error)
     return
@@ -282,14 +282,14 @@ async function getShipmentById(shipmentId: string): Promise<IShipment | undefine
       filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
     })
 
-    return shipment.find(shipment => shipment.path === shipmentPath)
+    return JSON.parse(JSON.stringify(shipment.find(shipment => shipment.path === shipmentPath)))
   } catch (error) {
     console.error('Failed to fetch shipment:', error)
     return
   }
 }
 
-const getUserTokens = async (): Promise<Tokens | undefined> => {
+export const getUserTokens = async (): Promise<Tokens | undefined> => {
   const tokens = await getTokens(await cookies(), {
     apiKey: clientConfig.apiKey,
     cookieName: serverConfig.cookieName,

@@ -1,16 +1,16 @@
 'use client'
 
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { ProductSchemaType } from '@/lib/validations/product'
-import { UseFormReturn } from 'react-hook-form'
-import { addDays, format, isAfter, set, sub } from 'date-fns'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { CalendarIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
+import { ProductSchemaType } from '@/lib/validations/product'
+import { addDays, format, isAfter, set, sub } from 'date-fns'
+import { CalendarIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { UseFormReturn } from 'react-hook-form'
 
 interface PriceFieldsProps {
   form: UseFormReturn<ProductSchemaType>
@@ -24,8 +24,14 @@ export function PriceFields({ form }: PriceFieldsProps) {
     from: Date
     to: Date
   }>({
-    from: saleStartDate ? new Date(saleStartDate) : new Date(),
-    to: saleEndDate ? new Date(saleEndDate) : addDays(new Date(), 20),
+    from:
+      saleStartDate && !isNaN(new Date(saleStartDate).getTime())
+        ? new Date(saleStartDate)
+        : new Date(),
+    to:
+      saleEndDate && !isNaN(new Date(saleEndDate).getTime())
+        ? new Date(saleEndDate)
+        : addDays(new Date(), 20),
   })
 
   useEffect(() => {
@@ -104,10 +110,18 @@ export function PriceFields({ form }: PriceFieldsProps) {
               {date?.from ? (
                 date.to ? (
                   <>
-                    {format(date.from, 'LLL dd, y')} - {format(date.to, 'LLL dd, y')}
+                    {date.from && !isNaN(date.from.getTime())
+                      ? format(date.from, 'LLL dd, y')
+                      : 'Pick a date'}{' '}
+                    -{' '}
+                    {date.to && !isNaN(date.to.getTime())
+                      ? format(date.to, 'LLL dd, y')
+                      : 'Pick a date'}
                   </>
-                ) : (
+                ) : date.from && !isNaN(date.from.getTime()) ? (
                   format(date.from, 'LLL dd, y')
+                ) : (
+                  <span>Pick a date</span>
                 )
               ) : (
                 <span>Pick a date</span>

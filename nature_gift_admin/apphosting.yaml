@@ -8,7 +8,7 @@ env:
   - variable: USE_SECURE_COOKIES
     value: "true"
   - variable: NEXT_PUBLIC_ADMIN_DASHBOARD_URL
-    value: "https://nature-gift-admin--nature-s-gift.europe-west4.hosted.app"
+    value: "https://nature-gift-admin--nature-s-gift.us-east4.hosted.app"
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_ADMIN_EMAIL
     value: "webanalyse237@gmail.com, naturesgift.busines@gmail.com"
@@ -20,7 +20,7 @@ env:
     value: "dhpyekjmh"
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_ECOMMERCE_STORE_URL
-    value: "https://nature-gift-store--nature-s-gift.europe-west4.hosted.app"
+    value: "https://store--nature-s-gift.us-east4.hosted.app"
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
     value: "AIzaSyCohQ9FJ0q2VRCivBrBuRKjwBcw4K7Pv3o"

@@ -11,7 +11,7 @@ case "${1:-}" in
   *) echo "usage: $0 prod|dev" >&2; exit 1 ;;
 esac
 export NODE_ENV
-STORE=nature-gift-store
+STORE=store
 ADMIN=nature-gift-admin
 
 # Reads a value from an app's .env/.env.$NODE_ENV the same way Next.js does.

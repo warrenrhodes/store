@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "main": "dist/server.js",
+  "engines": {
+    "node": "22"
+  },
   "scripts": {
     "dev": "next dev --turbopack -p 3000",
     "seed": "tsc --project tsconfig.seed.json && node dist/scripts/seed.js",

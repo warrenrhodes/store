@@ -1,17 +1,24 @@
 #!/usr/bin/env bash
 # Pushes App Hosting secrets to Cloud Secret Manager from the local .env files,
-# then grants both backends access. Run once after creating the backends.
+# then grants both backends access. Run once per environment after creating the backends.
+# usage: scripts/apphosting-secrets.sh prod|dev
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-PROJECT=nature-s-gift
+case "${1:-}" in
+  prod) PROJECT=nature-s-gift; NODE_ENV=production ;;
+  dev) PROJECT=nature-s-gift-dev; NODE_ENV=development ;;
+  *) echo "usage: $0 prod|dev" >&2; exit 1 ;;
+esac
+export NODE_ENV
 STORE=nature-gift-store
 ADMIN=nature-gift-admin
 
-# Reads a value from an app's .env/.env.production the same way Next.js does.
+# Reads a value from an app's .env/.env.$NODE_ENV the same way Next.js does.
+# Admin env files hold the Firebase creds for both projects (.env = dev, .env.production = prod).
 val() {
-  NODE_ENV=production node -e '
-    const { combinedEnv } = require(process.argv[1] + "/node_modules/@next/env").loadEnvConfig(process.argv[1], false, { info() {}, error() {} })
+  node -e '
+    const { combinedEnv } = require(process.argv[1] + "/node_modules/@next/env").loadEnvConfig(process.argv[1], process.env.NODE_ENV !== "production", { info() {}, error() {} })
     process.stdout.write(combinedEnv[process.argv[2]] ?? "")' "$PWD/$1" "$2"
 }
 

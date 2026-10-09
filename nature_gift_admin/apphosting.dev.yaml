@@ -1,0 +1,27 @@
+# Overrides apphosting.yaml for backends whose environment name is "dev" (project nature-s-gift-dev).
+# Secrets keep the same names, with dev values in the dev project.
+env:
+  - variable: NEXT_PUBLIC_ECOMMERCE_STORE_URL
+    value: "https://nature-gift-store--nature-s-gift-dev.europe-west4.hosted.app"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_ADMIN_DASHBOARD_URL
+    value: "https://nature-gift-admin--nature-s-gift-dev.europe-west4.hosted.app"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: "AIzaSyCE2T-DWYnBVIz1J8muO-VUOUQiXgZwtjg"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: "nature-s-gift-dev.firebaseapp.com"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: "nature-s-gift-dev"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: "nature-s-gift-dev.firebasestorage.app"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "305128493545"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:305128493545:web:d6094b4cb7c659edd7fb78"
+    availability: [BUILD, RUNTIME]

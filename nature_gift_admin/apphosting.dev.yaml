@@ -2,10 +2,10 @@
 # Secrets keep the same names, with dev values in the dev project.
 env:
   - variable: NEXT_PUBLIC_ECOMMERCE_STORE_URL
-    value: "https://nature-gift-store--nature-s-gift-dev.europe-west4.hosted.app"
+    value: "https://store--nature-s-gift-dev.us-east4.hosted.app"
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_ADMIN_DASHBOARD_URL
-    value: "https://nature-gift-admin--nature-s-gift-dev.europe-west4.hosted.app"
+    value: "https://nature-gift-admin--nature-s-gift-dev.us-east4.hosted.app"
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
     value: "AIzaSyCE2T-DWYnBVIz1J8muO-VUOUQiXgZwtjg"

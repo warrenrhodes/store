@@ -1,0 +1,63 @@
+# Firebase App Hosting config. NEXT_PUBLIC_* values end up in the browser bundle anyway.
+# Secrets live in Cloud Secret Manager (see scripts/apphosting-secrets.sh at repo root).
+runConfig:
+  minInstances: 0
+  maxInstances: 2
+
+env:
+  - variable: USE_SECURE_COOKIES
+    value: "true"
+  - variable: NEXT_PUBLIC_ADMIN_DASHBOARD_URL
+    value: "https://nature-gift-admin--nature-s-gift.europe-west4.hosted.app"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_ADMIN_EMAIL
+    value: "webanalyse237@gmail.com, naturesgift.busines@gmail.com"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_ADMIN_PHONE_NUMBER
+    value: "+237696689073,+237694579519"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+    value: "dhpyekjmh"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_ECOMMERCE_STORE_URL
+    value: "https://nature-gift-store--nature-s-gift.europe-west4.hosted.app"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: "AIzaSyCohQ9FJ0q2VRCivBrBuRKjwBcw4K7Pv3o"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:540223944399:web:69c7f6a48e5143cd6729ba"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: "nature-s-gift.firebaseapp.com"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "540223944399"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: "nature-s-gift"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: "nature-s-gift.firebasestorage.app"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_NOTIFICATIONAPI_CLIENT_ID
+    value: "2ldisojs05o7o3av8e4rp2xsjv"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_NOTIFICATIONAPI_CLIENT_SECRET
+    value: "hi40l6noacet9umzici8kr8wyeztvkqsyk1zpnkuymjykxgl5k29awjo1g"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_RICH_TEXT_VERSION
+    value: "v1"
+    availability: [BUILD, RUNTIME]
+  - variable: FIREBASE_CLIENT_EMAIL
+    secret: FIREBASE_CLIENT_EMAIL
+  - variable: FIREBASE_PRIVATE_KEY
+    secret: FIREBASE_PRIVATE_KEY
+  - variable: AUTH_COOKIE_SIGNATURE_KEY_CURRENT
+    secret: AUTH_COOKIE_SIGNATURE_KEY_CURRENT
+  - variable: AUTH_COOKIE_SIGNATURE_KEY_PREVIOUS
+    secret: AUTH_COOKIE_SIGNATURE_KEY_PREVIOUS
+  - variable: CLOUDINARY_API_KEY
+    secret: CLOUDINARY_API_KEY
+  - variable: CLOUDINARY_API_SECRET
+    secret: CLOUDINARY_API_SECRET

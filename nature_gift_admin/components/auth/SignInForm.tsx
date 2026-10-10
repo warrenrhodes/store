@@ -18,6 +18,7 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { GoogleIcon } from './components/Google'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { AuthCard } from './AuthCard'
 import { useAuthStore } from '@/hooks/auth-store'
 import { ROUTES } from '@/lib/router'
@@ -37,7 +38,11 @@ interface SignInFormProps {
 export function SignInForm({ onToggleForm, onForgotPassword }: SignInFormProps) {
   const router = useRouter()
   const { toast } = useToast()
-  const { signIn, signInWithGoogle, loading, error } = useAuthStore()
+  const { signIn, signInWithGoogle, loading } = useAuthStore()
+  // Stays true until navigation unmounts the form: `loading` drops back to false as soon
+  // as Firebase answers, which would re-enable the buttons during the redirect.
+  const [redirecting, setRedirecting] = useState(false)
+  const busy = loading || redirecting
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -50,6 +55,7 @@ export function SignInForm({ onToggleForm, onForgotPassword }: SignInFormProps) 
   const onSubmit = async (data: FormData) => {
     try {
       await signIn(data.email, data.password)
+      setRedirecting(true)
       toast({
         title: 'Welcome back!',
         description: 'You have successfully logged in',
@@ -59,7 +65,7 @@ export function SignInForm({ onToggleForm, onForgotPassword }: SignInFormProps) 
       console.error(err)
       form.setError('root', {
         type: 'manual',
-        message: error || 'An unexpected error occurred',
+        message: useAuthStore.getState().error || 'An unexpected error occurred',
       })
     }
   }
@@ -67,6 +73,7 @@ export function SignInForm({ onToggleForm, onForgotPassword }: SignInFormProps) 
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle()
+      setRedirecting(true)
       toast({
         title: 'Welcome!',
         description: 'You have successfully signed in with Google',
@@ -80,62 +87,63 @@ export function SignInForm({ onToggleForm, onForgotPassword }: SignInFormProps) 
   return (
     <AuthCard title="Welcome Back" description="Sign in to your account">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input type="email" placeholder="Enter your email" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <fieldset disabled={busy} aria-busy={busy} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="Enter your email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <Input type="password" placeholder="Enter your password" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="Enter your password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <div className="space-y-4">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Sign In'}
-            </Button>
+            <div className="space-y-4">
+              <Button type="submit" className="w-full">
+                {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Sign In'}
+              </Button>
 
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={handleGoogleSignIn}
-              disabled={loading}
-            >
-              <GoogleIcon className="mr-2 h-4 w-4" />
-              Continue with Google
-            </Button>
-          </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={handleGoogleSignIn}
+              >
+                <GoogleIcon className="mr-2 h-4 w-4" />
+                Continue with Google
+              </Button>
+            </div>
+          </fieldset>
         </form>
       </Form>
 
       <div className="text-center space-y-2">
         <motion.div whileHover={{ scale: 1.05 }}>
-          <Button variant="link" onClick={onToggleForm}>
+          <Button variant="link" onClick={onToggleForm} disabled={busy}>
             {"Don't have an account? Sign Up"}
           </Button>
         </motion.div>
         <motion.div whileHover={{ scale: 1.05 }}>
-          <Button variant="link" onClick={onForgotPassword}>
+          <Button variant="link" onClick={onForgotPassword} disabled={busy}>
             Forgot password?
           </Button>
         </motion.div>

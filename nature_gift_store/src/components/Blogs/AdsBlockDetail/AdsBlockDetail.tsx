@@ -2,7 +2,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, Calendar, Clock, Tag, User } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { format, subDays } from 'date-fns'
 import Image from 'next/image'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
@@ -30,7 +29,7 @@ const AdsBlogDetail = ({
   associateProduct?: Product
   relatedBlogs: Blog[]
 }) => {
-  const { localization } = useLocalization()
+  const { localization, formatDate } = useLocalization()
   const metadata = blog.metadata
   const content = blog.content
 
@@ -88,13 +87,17 @@ const AdsBlogDetail = ({
           {blog.publishedAt && (
             <div className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
-              && <span>{format(blog.publishedAt || subDays(new Date(), 4), 'PPP')}</span>
+              <span>{formatDate(blog.publishedAt)}</span>
             </div>
           )}
-          <div className="flex items-center gap-1">
-            <Clock className="w-4 h-4" />
-            <span>{metadata.readingTime} min read</span>
-          </div>
+          {!!metadata.readingTime && (
+            <div className="flex items-center gap-1">
+              <Clock className="w-4 h-4" />
+              <span>
+                {metadata.readingTime} {localization.minRead}
+              </span>
+            </div>
+          )}
           <div className="flex items-center gap-1">
             <User className="w-4 h-4" />
             <span>{metadata.author.name}</span>

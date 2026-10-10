@@ -1,34 +1,25 @@
-import { motion } from "framer-motion";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import Image from 'next/image'
+
 interface AuthCardProps {
-  children: React.ReactNode;
-  title: string;
-  description?: string;
+  children: React.ReactNode
+  title: string
+  description?: string
 }
-export const AuthCard = ({ children, title, description }: AuthCardProps) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <Card className="md:min-w-[500px] backdrop-blur-lg border-0 shadow-xl p-7">
-        <CardHeader>
-          <CardTitle className="text-center">{title}</CardTitle>
-          {description && (
-            <CardDescription className="text-center">
-              {description}
-            </CardDescription>
-          )}
-        </CardHeader>
-        <CardContent>{children}</CardContent>
-      </Card>
-    </motion.div>
-  );
-};
+
+export const AuthCard = ({ children, title, description }: AuthCardProps) => (
+  <div className="w-full max-w-md">
+    <div className="mb-6 flex items-center justify-center gap-2">
+      <Image src="/logo-wordmark.png" alt="N.Gift" width={258} height={79} priority className="h-8 w-auto" />
+      <span className="rounded-md bg-accent px-1.5 py-0.5 text-xs font-medium text-accent-foreground">
+        Admin
+      </span>
+    </div>
+    <div className="rounded-2xl border bg-card p-6 shadow-sm sm:p-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <div className="mb-6 text-center">
+        <h1 className="text-2xl font-semibold">{title}</h1>
+        {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+      </div>
+      {children}
+    </div>
+  </div>
+)

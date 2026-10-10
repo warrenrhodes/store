@@ -3,6 +3,10 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import { toast } from '@/hooks/use-toast'
 import { sendGTMEvent } from '@next/third-parties/google'
 import { IDeliveryInfo, Product } from '@/lib/firebase/models'
+import { dictionary, type DictWords } from '@/lib/localizations'
+import { useLocale } from './useLocale'
+
+const t = (key: `${DictWords}`) => dictionary[key as DictWords][useLocale.getState().locale]
 export interface CartShipment {
   method: 'DELIVERY' | 'EXPEDITION'
   cost: number
@@ -20,6 +24,7 @@ interface CartStore {
   removeItem: (idToRemove: string) => void
   increaseQuantity: (idToIncrease: string) => void
   decreaseQuantity: (idToDecrease: string) => void
+  setQuantity: (id: string, quantity: number) => void
   clearCart: () => void
 }
 
@@ -56,16 +61,11 @@ const useCart = create(
         const isExisting = currentItems.find(cartItem => cartItem.product.path === product.path)
 
         if (isExisting) {
-          return toast({
-            title: '🛒 Item already in cart',
-            description: 'You can increase or decrease the quantity',
-          })
+          return useCartSideBar.getState().onOpenChange(true)
         }
 
         set({ cartItems: [...currentItems, { product, quantity, price }] })
-        toast({
-          title: '🎉🎉 Item added to cart',
-        })
+        toast({ title: t('itemAdded'), description: product.title })
         sendGTMEvent({
           event: 'add_to_cart',
           currency: 'XAF',
@@ -75,7 +75,7 @@ const useCart = create(
               item_id: e.product.path,
               item_name: e.product.title,
               quantity: e.quantity,
-              category: e.product.categories[0],
+              category: e.product.categories?.[0],
             }
           }),
         })
@@ -98,7 +98,7 @@ const useCart = create(
               item_id: e.product.path,
               item_name: e.product.title,
               quantity: e.quantity,
-              category: e.product.categories[0],
+              category: e.product.categories?.[0],
             }
           }),
         })
@@ -119,6 +119,15 @@ const useCart = create(
           return cartItem
         })
         set({ cartItems: newCartItems })
+      },
+      setQuantity: (id: string, quantity: number) => {
+        set({
+          cartItems: get().cartItems.map(cartItem =>
+            cartItem.product.path === id
+              ? { ...cartItem, quantity: Math.max(1, quantity) }
+              : cartItem,
+          ),
+        })
       },
       clearCart: () => {
         set({ cartItems: [] })

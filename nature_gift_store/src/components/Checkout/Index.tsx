@@ -1,12 +1,10 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { AlertCircle, ArrowLeft, Check, Loader2, ShoppingBag } from 'lucide-react'
+import { ArrowLeft, ShoppingBag } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { DeliveryForm } from '@/components/Checkout/delivery-form'
-import { ReviewOrder } from '@/components/Checkout/review-order'
 import { OrderSummary } from '@/components/Checkout/order-summary'
 import { DeliveryFormData, deliverySchema } from '@/lib/utils/validation-form'
 import { useTemporalUser } from '@/hooks/useTemporalUser'
@@ -14,38 +12,27 @@ import { toast } from '@/hooks/use-toast'
 import { OrderSummary as OrderSummaryType, Shipment } from '@/lib/firebase/models'
 import { useCart } from '@/hooks/useCart'
 import { useRouter } from 'next/navigation'
-import { ToastAction } from '@/components/ui/toast'
 import { createOrder } from '@/lib/api/orders'
-import { CheckoutSteps } from './CheckoutSteps'
 import { useLocalization } from '@/hooks/useLocalization'
 import { sendGTMEvent } from '@next/third-parties/google'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useAuthStore } from '@/hooks/store/auth-store'
 import { getDocumentId } from '@spreeloop/database'
-import { Alert, AlertDescription } from '../ui/alert'
-
-const steps = [
-  { id: 'delivery', title: 'Delivery' },
-  { id: 'review', title: 'Review' },
-]
 
 export default function CheckoutPageView(props: { shipments: Shipment[] }) {
   const router = useRouter()
   const { setUserData } = useTemporalUser()
   const { cartItems, clearCart } = useCart()
-  const [currentStep, setCurrentStep] = useState('delivery')
-  const [formData, setFormData] = useState<DeliveryFormData>()
   const [isLoading, setIsLoading] = useState(false)
   const orderSummary = useRef<OrderSummaryType>()
-  const currentStepIndex = steps.findIndex(step => step.id === currentStep)
   const { user } = useAuthStore()
   const { localization } = useLocalization()
 
   const { temporalUser } = useTemporalUser()
   const form = useForm<DeliveryFormData>({
     resolver: zodResolver(deliverySchema),
-    defaultValues: formData || {
+    defaultValues: {
       fullName: temporalUser?.fullName || '',
       phone: temporalUser?.phone || '',
       email: temporalUser?.email || undefined,
@@ -76,18 +63,10 @@ export default function CheckoutPageView(props: { shipments: Shipment[] }) {
     })
   }, [])
 
-  const handleStepSubmit = (stepId: string, data: DeliveryFormData) => {
-    setFormData(data)
-    const nextStep = steps[currentStepIndex + 1]
-    if (nextStep) {
-      setCurrentStep(nextStep.id)
-    }
-  }
   const onOrderConfirm = async (data: DeliveryFormData) => {
-    setFormData(data)
-    if (!form.formState.isValid || !orderSummary.current) {
+    if (!orderSummary.current) {
       toast({
-        description: 'Please fill the form before submitting your order',
+        description: localization.fillTheForm,
         variant: 'destructive',
       })
       return
@@ -142,29 +121,12 @@ export default function CheckoutPageView(props: { shipments: Shipment[] }) {
     const confirmOrder = await createOrder({ order: order, cartItems: cartItems })
 
     if (!confirmOrder) {
-      toast({
-        title: 'Uh oh! Something went wrong.',
-        description: 'Failed to create order',
-        variant: 'destructive',
-      })
+      toast({ description: localization.orderError, variant: 'destructive' })
       setIsLoading(false)
 
       return
     }
 
-    toast({
-      title: 'Order created!',
-      description: `Order created successfully ${!user || user?.isAnonymous ? '\n Sign in to track your order' : ''}`,
-      variant: 'default',
-      action:
-        !user || user?.isAnonymous ? (
-          <ToastAction altText="Sign in">
-            <Link href="/sign-in">Sign in</Link>
-          </ToastAction>
-        ) : (
-          <></>
-        ),
-    })
     const userData = confirmOrder.userData
     const orderPrices = confirmOrder.orderPrices
     const deliveryInfo = confirmOrder.deliveryInfo
@@ -201,121 +163,51 @@ export default function CheckoutPageView(props: { shipments: Shipment[] }) {
     router.replace('/order/success')
   }
 
-  const handleBack = () => {
-    const prevStep = steps[currentStepIndex - 1]
-    if (prevStep) {
-      setCurrentStep(prevStep.id)
-    }
-  }
-
   if (cartItems.length === 0) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center py-16"
-      >
-        <ShoppingBag className="w-16 h-16 mx-auto text-muted-foreground" />
-        <h1 className="text-3xl font-bold tracking-tight">{localization.checkout}</h1>
-        <h2 className="mt-4 text-xl font-semibold">{localization.cartEmpty}</h2>
+      <div className="flex flex-col items-center py-24 px-4 text-center">
+        <ShoppingBag className="h-14 w-14 text-muted-foreground" aria-hidden />
+        <h1 className="mt-4 text-2xl font-semibold">{localization.cartEmpty}</h1>
         <p className="mt-2 text-muted-foreground">{localization.addItemsToCart}</p>
-        <Button variant="ghost" asChild className="mb-4">
-          <Link href="/cart" className="flex items-center gap-2">
-            <ArrowLeft className="w-4 h-4" />
-            {localization.backToCart}
-          </Link>
+        <Button asChild className="mt-6">
+          <Link href="/shop">{localization.continueShopping}</Link>
         </Button>
-      </motion.div>
+      </div>
     )
   }
 
+  const isGuest = !user || user.isAnonymous
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col gap-8">
-        <div>
-          <Button variant="ghost" asChild className="mb-4">
-            <Link href="/cart" className="flex items-center gap-2">
-              <ArrowLeft className="w-4 h-4" />
-              Back to Cart
-            </Link>
-          </Button>
-          <h1 className="text-3xl font-bold tracking-tight">Checkout</h1>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+      <Link
+        href="/cart"
+        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" aria-hidden />
+        {localization.backToCart}
+      </Link>
+      <h1 className="mt-3 text-3xl font-semibold">{localization.checkout}</h1>
+      {isGuest && (
+        <p className="mt-2 text-sm text-muted-foreground">
+          {localization.signInBeforeTrack}{' '}
+          <Link href="/sign-in?redirect=/checkout" className="font-medium text-primary underline">
+            {localization.signIn}
+          </Link>
+        </p>
+      )}
+
+      <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-5">
+        <div className="order-2 lg:order-1 lg:col-span-3">
+          <DeliveryForm
+            shipment={props.shipments}
+            onSubmit={onOrderConfirm}
+            form={form}
+            isLoading={isLoading}
+          />
         </div>
-        {(!user || user?.isAnonymous) && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="w-full"
-          >
-            <Alert
-              variant="default"
-              className="text-orange-400 border-orange-400 flex items-center flex-col gap-2"
-            >
-              <div className="flex items-center gap-2 justify-center">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{localization.signInBeforeTrack}</AlertDescription>
-              </div>
-              <Button asChild variant="outline">
-                <Link href="/sign-in?redirect=/checkout">Sign in</Link>
-              </Button>
-            </Alert>
-          </motion.div>
-        )}
-        <CheckoutSteps steps={steps} currentStep={currentStep} />
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <AnimatePresence mode="wait">
-              {currentStep === 'delivery' && (
-                <motion.div
-                  key="delivery"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-6"
-                >
-                  <DeliveryForm
-                    shipment={props.shipments}
-                    onSubmit={data => handleStepSubmit('delivery', data)}
-                    form={form}
-                  />
-                  <Button
-                    onClick={form.handleSubmit(onOrderConfirm)}
-                    className="w-full"
-                    disabled={isLoading || !form.formState.isValid}
-                  >
-                    {isLoading ? (
-                      <Loader2 className="animate-spin" />
-                    ) : (
-                      <Check className="mr-2 h-4 w-4" />
-                    )}
-                    {localization.placeOrder}
-                  </Button>
-                </motion.div>
-              )}
-
-              {currentStep === 'review' && formData && (
-                <motion.div
-                  key="review"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                >
-                  <ReviewOrder
-                    formData={formData}
-                    onBack={handleBack}
-                    onSubmit={() => onOrderConfirm(formData)}
-                    isLoading={isLoading}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          <div className="lg:col-span-1">
-            <OrderSummary orderSummary={orderSummary} />
-          </div>
+        <div className="order-1 lg:order-2 lg:col-span-2">
+          <OrderSummary orderSummary={orderSummary} />
         </div>
       </div>
     </div>

@@ -4,7 +4,7 @@ import { getShipmentsCache } from '@/lib/actions/server'
 export default async function ShipmentsPage() {
   const shipments = await getShipmentsCache()
   return (
-    <div className="container py-10">
+    <div className="mx-auto w-full max-w-6xl">
       <ShipmentList shipments={shipments} />
     </div>
   )

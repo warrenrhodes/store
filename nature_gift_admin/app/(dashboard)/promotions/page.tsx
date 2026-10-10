@@ -4,7 +4,7 @@ import { getPromotionsCache } from '@/lib/actions/server'
 export default async function PromotionsPage() {
   const promotions = await getPromotionsCache()
   return (
-    <div className="container py-10">
+    <div className="mx-auto w-full max-w-6xl">
       <PromotionsList promotions={promotions} />
     </div>
   )

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { isoDate } from './date'
 import { MediaType, ProductStatus } from '../firebase/models'
 
 export const ContentSchema = z.object({
@@ -9,8 +10,8 @@ export const ContentSchema = z.object({
 const PriceSchema = z.object({
   regular: z.number().min(0),
   sale: z.number().min(0).optional().nullable(),
-  saleStartDate: z.string().or(z.date()).optional().nullable(),
-  saleEndDate: z.string().or(z.date()).optional().nullable(),
+  saleStartDate: isoDate().optional().nullable(),
+  saleEndDate: isoDate().optional().nullable(),
 })
 
 const FeatureSchema = z.object({

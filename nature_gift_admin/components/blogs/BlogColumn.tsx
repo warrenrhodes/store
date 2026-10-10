@@ -3,6 +3,7 @@ import { IBlog } from '@/lib/actions/server'
 import { BlogStatus } from '@/lib/firebase/models'
 import { BlogMetadata } from '@/lib/type'
 import { cn } from '@/lib/utils'
+import { toDate } from '@/lib/utils/utils'
 import { getDocumentId } from '@spreeloop/database'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown, Copy, Edit } from 'lucide-react'
@@ -47,9 +48,12 @@ export const blogsColumns: ColumnDef<IBlog>[] = [
         <div>
           <Badge
             className={cn({
-              'bg-blue-500': row.original.data.status === BlogStatus.DRAFT,
-              'bg-red-500': row.original.data.status === BlogStatus.ARCHIVED,
-              'bg-green-500': row.original.data.status === BlogStatus.PUBLISHED,
+              'bg-sky-100 text-sky-900 hover:bg-sky-100':
+                row.original.data.status === BlogStatus.DRAFT,
+              'bg-red-100 text-red-900 hover:bg-red-100':
+                row.original.data.status === BlogStatus.ARCHIVED,
+              'bg-emerald-100 text-emerald-900 hover:bg-emerald-100':
+                row.original.data.status === BlogStatus.PUBLISHED,
             })}
           >
             {row.original.data.status}
@@ -63,8 +67,8 @@ export const blogsColumns: ColumnDef<IBlog>[] = [
     accessorFn: row => row.data.publishedAt,
     header: 'Published At',
     cell: ({ row }) =>
-      row.original.data.publishedAt ? (
-        <span>{new Date(row.original.data.publishedAt).toLocaleDateString('en-US')}</span>
+      toDate(row.original.data.publishedAt) ? (
+        <span>{toDate(row.original.data.publishedAt)!.toLocaleDateString('en-GB')}</span>
       ) : (
         <span>Not Published</span>
       ),
@@ -96,30 +100,25 @@ export const blogsColumns: ColumnDef<IBlog>[] = [
       }
 
       return (
-        <div className="flex flex-col items-center gap-2 w-full">
+        <div className="flex items-center justify-end gap-1">
           <Button
-            variant="outline"
-            className="w-full"
-            size="sm"
+            variant="ghost"
+            size="icon"
+            aria-label="Copy link"
             onClick={() =>
               copyLink(
                 `${new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').protocol}//${new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').hostname}/blogs/${blogs.data.slug}`,
               )
             }
           >
-            Copy link
-            <Copy className="ml-2 h-4 w-4" />
+            <Copy className="h-4 w-4" />
           </Button>
-
-          <Button variant="outline" size="sm" className="w-full" asChild>
+          <Button asChild variant="ghost" size="icon" aria-label="Edit">
             <Link href={`/blogs/${getDocumentId(blogs.path)}`}>
-              <Edit className="w-4 h-4" />
-              Edit
+              <Edit className="h-4 w-4" />
             </Link>
           </Button>
-          <Button variant="outline" size="sm" className="w-full">
-            <Delete item="blogs" handleDelete={onDelete} />
-          </Button>
+          <Delete item="blogs" handleDelete={onDelete} />
         </div>
       )
     },

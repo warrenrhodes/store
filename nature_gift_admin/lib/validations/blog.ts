@@ -1,5 +1,6 @@
 import * as z from 'zod'
 import { BlogLayout, BlogStatus, MediaType } from '../firebase/models'
+import { isoDate } from './date'
 const required_error = 'This field cannot be blank'
 const invalid_type_error = 'Invalid type provided for this field'
 
@@ -42,7 +43,9 @@ export const blogSchema = z.object({
   status: z
     .enum([BlogStatus.DRAFT, BlogStatus.PUBLISHED, BlogStatus.ARCHIVED])
     .default(BlogStatus.DRAFT),
-  publishedAt: z.string().or(z.date()).default(new Date()).nullable(),
+  publishedAt: isoDate()
+    .nullable()
+    .default(() => new Date().toISOString()),
   customFields: z.array(z.record(z.string(), z.any())).optional().nullable(),
   layout: z
     .enum([BlogLayout.DEFAULT, BlogLayout.FEATURED, BlogLayout.MINIMAL])

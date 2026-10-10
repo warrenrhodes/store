@@ -4,9 +4,9 @@ import { getProductsCache } from '@/lib/actions/server'
 export default async function NewReviewPage() {
   const [products] = await Promise.all([getProductsCache()])
   return (
-    <div className="container py-10">
+    <div className="mx-auto w-full max-w-6xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Create New Review</h1>
+        <h1 className="text-2xl font-semibold">Create New Review</h1>
         <p className="text-muted-foreground">Add a new review to your store</p>
       </div>
       <ReviewForm products={products} />

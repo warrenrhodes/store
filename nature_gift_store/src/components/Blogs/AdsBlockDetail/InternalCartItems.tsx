@@ -10,7 +10,7 @@ import Image from 'next/image'
 import { CartItem } from '@/hooks/useCart'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
-import { Inventory, ProductSeoMetadata } from '@/lib/type'
+import { Inventory } from '@/lib/type'
 
 interface CartItemProps {
   item: CartItem
@@ -45,7 +45,7 @@ export function InternalItem({
               <Image
                 src={item.product.medias[0].url}
                 fill
-                alt={(item.product.metadata as ProductSeoMetadata).seoTitle}
+                alt={item.product.title}
                 className="object-cover w-full h-full"
                 onError={() => console.log('Image not found')}
                 placeholder="blur"

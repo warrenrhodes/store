@@ -18,13 +18,14 @@ export default async function ProductsPage(props: {
   })
 
   // Fetch all published products (cached)
-  const allProducts = (await getAllCollectionCache<Product>({
-    collection: CollectionsName.Products,
-    filters: [
-      new QueryFilter('status', '==', ProductStatus.PUBLISHED),
-      new QueryFilter('visibility', '==', true),
-    ],
-  })) || []
+  const allProducts =
+    (await getAllCollectionCache<Product>({
+      collection: CollectionsName.Products,
+      filters: [
+        new QueryFilter('status', '==', ProductStatus.PUBLISHED),
+        new QueryFilter('visibility', '==', true),
+      ],
+    })) || []
 
   // --- Server-Side Filtering ---
   let filteredProducts = [...allProducts]
@@ -34,19 +35,21 @@ export default async function ProductsPage(props: {
   if (search) {
     const searchTerm = search.toLowerCase()
     filteredProducts = filteredProducts.filter(
-      (product) =>
+      product =>
         product.title.toLowerCase().includes(searchTerm) ||
-        (product.description as ProductDescription).content.toLowerCase().includes(searchTerm)
+        (product.description as ProductDescription).content.toLowerCase().includes(searchTerm),
     )
   }
 
   // 2. Category Filter
   const categoryParam = searchParams.category
   if (categoryParam) {
-    const categories = Array.isArray(categoryParam) ? categoryParam : [categoryParam]
+    const slugs = Array.isArray(categoryParam) ? categoryParam : [categoryParam]
+    // URL carries slugs, products store category names
+    const categories = slugs.map(s => categoriesData?.find(c => c.slug === s)?.name ?? s)
     if (categories.length > 0) {
-      filteredProducts = filteredProducts.filter((product) =>
-        product.categories.some((cat) => categories.includes(cat))
+      filteredProducts = filteredProducts.filter(product =>
+        product.categories.some(cat => categories.includes(cat)),
       )
     }
   }
@@ -56,7 +59,7 @@ export default async function ProductsPage(props: {
   const maxPrice = searchParams.maxPrice ? Number(searchParams.maxPrice) : 1000000
 
   filteredProducts = filteredProducts.filter(
-    (product) => getPrice(product) >= minPrice && getPrice(product) <= maxPrice
+    product => getPrice(product) >= minPrice && getPrice(product) <= maxPrice,
   )
 
   // 4. Tags Filter
@@ -64,8 +67,8 @@ export default async function ProductsPage(props: {
   if (tagsParam) {
     const tags = Array.isArray(tagsParam) ? tagsParam : [tagsParam]
     if (tags.length > 0) {
-      filteredProducts = filteredProducts.filter((product) =>
-        product.tags?.some((tag) => tags.includes(tag))
+      filteredProducts = filteredProducts.filter(product =>
+        product.tags?.some(tag => tags.includes(tag)),
       )
     }
   }

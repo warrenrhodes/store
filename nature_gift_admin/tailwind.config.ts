@@ -17,7 +17,7 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        sans: ['var(--font-geist-sans)'],
+        sans: ['var(--font-fredoka)', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

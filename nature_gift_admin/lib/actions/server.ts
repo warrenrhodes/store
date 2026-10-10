@@ -7,8 +7,17 @@ import { cache } from 'react'
 import z from 'zod'
 import { CollectionsName } from '../firebase/collection-name'
 import { backend } from '../firebase/firebase-server/firebase'
-import { Blog, Category, Order, Product, Promotion, Review, Shipment } from '../firebase/models'
-import { OrderPrices } from '../type'
+import {
+  Blog,
+  Category,
+  Order,
+  OrderStatus,
+  Product,
+  Promotion,
+  Review,
+  Shipment,
+} from '../firebase/models'
+import { OrderPrices, UserData } from '../type'
 
 export type ICategory = DatabaseDocument<Category>
 export type IShipment = DatabaseDocument<Shipment>
@@ -18,40 +27,53 @@ export type IPromotion = DatabaseDocument<Promotion>
 export type IProduct = DatabaseDocument<Product>
 export type IOrder = DatabaseDocument<Order>
 
-export const getTotalSales = async () => {
+const COUNTED_STATUSES = new Set<string>([
+  OrderStatus.PENDING,
+  OrderStatus.ACCEPTED,
+  OrderStatus.COMPLETED,
+])
+
+/** KPIs for the dashboard. Cancelled and rejected orders are excluded from revenue. */
+export const getDashboardStats = async () => {
   const orders = await getOrders()
+  const total = (o: IOrder) => (o.data.orderPrices as OrderPrices | undefined)?.total || 0
+  const counted = orders.filter(o => COUNTED_STATUSES.has(o.data.status))
 
-  const totalOrders = orders.length
-  const totalRevenue = orders.reduce(
-    (acc, order) => acc + ((order?.data.orderPrices as OrderPrices | undefined)?.total || 0) || 0,
-    0,
-  )
-  return { totalOrders, totalRevenue }
-}
+  const revenue = counted.reduce((acc, o) => acc + total(o), 0)
+  const customers = new Set(
+    orders.map(o => (o.data.userData as UserData | undefined)?.phone).filter(Boolean),
+  ).size
 
-export const getTotalCustomers = async () => {
-  // const customers = await Customer.find();
-  // const totalCustomers = customers.length;
-  return 0
-}
-
-export const getSalesPerMonth = async () => {
-  const orders = await getOrders()
-
-  const salesPerMonth = orders.reduce<Record<number, number>>((acc, order) => {
-    const monthIndex = new Date(order.data.createdAt).getMonth()
-    acc[monthIndex] =
-      (acc[monthIndex] || 0) + ((order?.data.orderPrices as OrderPrices | undefined)?.total || 0) ||
-      0
-    return acc
-  }, {})
-
-  const graphData = Array.from({ length: 12 }, (_, i) => {
-    const month = new Intl.DateTimeFormat('en-US', { month: 'short' }).format(new Date(0, i))
-    return { name: month, sales: salesPerMonth[i] || 0 }
+  // Last 12 calendar months, oldest first, keyed by year+month so years never mix.
+  const now = new Date()
+  const months = Array.from({ length: 12 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1)
+    return {
+      key: `${d.getFullYear()}-${d.getMonth()}`,
+      name: d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+      sales: 0,
+    }
   })
+  const byKey = new Map(months.map(m => [m.key, m]))
+  for (const o of counted) {
+    const d = new Date(o.data.createdAt)
+    const month = byKey.get(`${d.getFullYear()}-${d.getMonth()}`)
+    if (month) month.sales += total(o)
+  }
 
-  return graphData
+  const recentOrders = [...orders]
+    .sort((a, b) => new Date(b.data.createdAt).getTime() - new Date(a.data.createdAt).getTime())
+    .slice(0, 5)
+
+  return {
+    revenue,
+    orderCount: counted.length,
+    pendingCount: orders.filter(o => o.data.status === OrderStatus.PENDING).length,
+    averageOrder: counted.length ? Math.round(revenue / counted.length) : 0,
+    customers,
+    salesByMonth: months.map(({ name, sales }) => ({ name, sales })),
+    recentOrders,
+  }
 }
 
 async function getProducts(): Promise<IProduct[]> {

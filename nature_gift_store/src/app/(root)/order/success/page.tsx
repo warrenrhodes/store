@@ -1,7 +1,6 @@
 'use client'
-import { Check, Home, ShoppingBag } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { useLocalization } from '@/hooks/useLocalization'
 import { useAuthStore } from '@/hooks/store/auth-store'
@@ -9,60 +8,36 @@ import { useAuthStore } from '@/hooks/store/auth-store'
 const OrderSuccessPage = () => {
   const { user } = useAuthStore()
   const { localization } = useLocalization()
+  const isGuest = !user || user.isAnonymous
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md mx-4">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-              <Check className="h-6 w-6 text-green-600" />
-            </div>
-          </div>
-          <CardTitle className="text-2xl font-bold text-green-600">
-            {localization.orderSuccessful}
-          </CardTitle>
-        </CardHeader>
+    <main className="flex min-h-[70vh] items-center justify-center px-4 py-16">
+      <div className="w-full max-w-md text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+          <Check className="h-8 w-8 text-primary" aria-hidden />
+        </div>
+        <h1 className="mt-6 text-3xl font-semibold">{localization.orderSuccessful}</h1>
+        <p className="mt-3 text-lg">{localization.thankYouForYourPurchase}</p>
+        <p className="mt-2 text-muted-foreground">{localization.confirmationEmailSent}</p>
 
-        <CardContent className="text-center space-y-4">
-          <div className="space-y-2 text-gray-600">
-            <p>{localization.thankYouForYourPurchase}</p>
-            <p className="text-sm">{localization.confirmationEmailSent}</p>
-          </div>
+        {isGuest && (
+          <p className="mt-6 rounded-xl bg-muted p-4 text-sm">
+            {localization.createAccountMessage}
+          </p>
+        )}
 
-          {!user || user.isAnonymous ? (
-            <div className="bg-yellow-50 p-4 rounded-lg mt-4">
-              <p className="text-sm text-yellow-800">{localization.createAccountMessage}</p>
-            </div>
-          ) : (
-            <></>
-          )}
-        </CardContent>
-
-        <CardFooter className="flex flex-col space-y-2">
-          <Button className="w-full" asChild>
-            <Link href="/">
-              <Home className="mr-2 h-4 w-4" />
-              {localization.returnToHome}
+        <div className="mt-8 flex flex-col gap-3">
+          <Button className="h-12 w-full text-base" asChild>
+            <Link href="/shop">{localization.continueShopping}</Link>
+          </Button>
+          <Button variant="outline" className="h-12 w-full text-base" asChild>
+            <Link href={isGuest ? '/sign-up' : '/profile?tabs=orders'}>
+              {isGuest ? localization.createAccount : localization.myOrders}
             </Link>
           </Button>
-          {!user || user.isAnonymous ? (
-            <Button variant="outline" className="w-full" asChild>
-              <Link href="/profile?tab=orders">
-                <ShoppingBag className="mr-2 h-4 w-4" />
-                {localization.createAccount}
-              </Link>
-            </Button>
-          ) : (
-            <Button variant="outline" className="w-full" asChild>
-              <Link href="/profile?tab=orders">
-                <ShoppingBag className="mr-2 h-4 w-4" />
-                {localization.myOrders}
-              </Link>
-            </Button>
-          )}
-        </CardFooter>
-      </Card>
-    </div>
+        </div>
+      </div>
+    </main>
   )
 }
 

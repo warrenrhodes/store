@@ -3,7 +3,8 @@
 import { useLocale } from '@/hooks/useLocale'
 import { useLocalization } from '@/hooks/useLocalization'
 import { navItems } from '@/lib/utils/navItems'
-import { Menu, Package, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
@@ -19,7 +20,7 @@ export function MobileNav() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" className="md:hidden" size="icon">
+        <Button variant="ghost" className="md:hidden" size="icon" aria-label={localization.menu}>
           <Menu className="h-5 w-5" />
         </Button>
       </SheetTrigger>
@@ -27,10 +28,20 @@ export function MobileNav() {
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between py-4">
             <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-              <Package className="h-6 w-6" />
-              <span className="font-semibold">{localization.store}</span>
+              <Image
+                src="/logo-wordmark.png"
+                alt="N.Gift"
+                width={258}
+                height={79}
+                className="h-7 w-auto"
+              />
             </Link>
-            <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={localization.cancel}
+              onClick={() => setOpen(false)}
+            >
               <X className="h-5 w-5" />
             </Button>
           </div>
@@ -42,7 +53,7 @@ export function MobileNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`relative px-4 py-2 text-sm font-medium transition-colors hover:text-primary ${
+                className={`relative rounded-md px-4 py-3 text-base font-medium transition-colors hover:text-primary ${
                   pathname === item.href ? 'text-primary bg-primary/10' : 'text-muted-foreground'
                 }`}
                 onClick={() => setOpen(false)}

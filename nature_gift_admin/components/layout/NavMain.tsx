@@ -1,41 +1,48 @@
-"use client";
+'use client'
 
-import { type LucideIcon } from "lucide-react";
+import { type LucideIcon } from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 import {
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-} from "@/components/ui/sidebar";
-import Link from "next/link";
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from '@/components/ui/sidebar'
 
 export function NavMain({
   items,
 }: {
   items: {
-    title: string;
-    url: string;
-    icon: LucideIcon;
-    isActive?: boolean;
-  }[];
+    title: string
+    url: string
+    icon: LucideIcon
+  }[]
 }) {
+  const pathname = usePathname()
+  const isActive = (url: string) =>
+    url === '/' ? pathname === '/' : pathname === url || pathname.startsWith(`${url}/`)
+
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Platform</SidebarGroupLabel>
-      <SidebarMenu>
-        {items.map((item) => (
-          <SidebarMenuSubItem key={item.title} className="mb-3">
-            <SidebarMenuSubButton asChild>
-              <Link href={item.url} className="p-3">
+      <SidebarMenu className="gap-1">
+        {items.map(item => (
+          <SidebarMenuItem key={item.title}>
+            <SidebarMenuButton
+              asChild
+              isActive={isActive(item.url)}
+              tooltip={item.title}
+              className="h-10 data-[active=true]:bg-sidebar-accent data-[active=true]:font-semibold data-[active=true]:text-sidebar-accent-foreground"
+            >
+              <Link href={item.url}>
                 <item.icon />
                 <span>{item.title}</span>
               </Link>
-            </SidebarMenuSubButton>
-          </SidebarMenuSubItem>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         ))}
       </SidebarMenu>
     </SidebarGroup>
-  );
+  )
 }

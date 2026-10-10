@@ -6,6 +6,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
+import { toDate } from '@/lib/utils/utils'
 import { ProductSchemaType } from '@/lib/validations/product'
 import { addDays, format, isAfter, set, sub } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
@@ -24,14 +25,14 @@ export function PriceFields({ form }: PriceFieldsProps) {
     from: Date
     to: Date
   }>({
-    from: saleStartDate ? new Date(saleStartDate) : new Date(),
-    to: saleEndDate ? new Date(saleEndDate) : addDays(new Date(), 20),
+    from: toDate(saleStartDate) ?? new Date(),
+    to: toDate(saleEndDate) ?? addDays(new Date(), 20),
   })
 
   useEffect(() => {
     if (date) {
-      form.setValue('price.saleStartDate', date.from)
-      form.setValue('price.saleEndDate', date.to)
+      form.setValue('price.saleStartDate', date.from?.toISOString())
+      form.setValue('price.saleEndDate', date.to?.toISOString())
     }
   }, [date, form])
 

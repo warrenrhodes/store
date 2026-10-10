@@ -12,5 +12,14 @@ export const useLocalization = () => {
     },
   })
 
-  return { localization }
+  const formatDate = (date?: Date | string | null) =>
+    date
+      ? new Date(date).toLocaleDateString(locale, {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        })
+      : ''
+
+  return { localization, formatDate }
 }

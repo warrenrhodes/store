@@ -3,9 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "main": "dist/server.js",
-  "engines": {
-    "node": "22"
-  },
   "scripts": {
     "dev": "next dev --turbopack -p 3000",
     "seed": "tsc --project tsconfig.seed.json && node dist/scripts/seed.js",
@@ -18,6 +15,7 @@
     "@faker-js/faker": "^9.3.0",
     "@hookform/resolvers": "^3.9.1",
     "@next/eslint-plugin-next": "^15.0.4",
+    "@puckeditor/core": "^0.23.0",
     "@radix-ui/react-accordion": "^1.2.1",
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-avatar": "^1.1.1",

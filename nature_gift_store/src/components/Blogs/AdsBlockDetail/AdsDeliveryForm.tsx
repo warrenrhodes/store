@@ -268,7 +268,7 @@ export function AdsDeliveryForm({ onSubmit, shipment: shipments, form }: AdsDeli
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select method" />
+                        <SelectValue placeholder={localization.selectMethod} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>

@@ -15,14 +15,9 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { useToast } from '@/hooks/use-toast'
-import { AuthCard } from '../Auth/AuthCard'
+import { AuthCard, AuthError } from '../Auth/AuthCard'
+import { useLocalization } from '@/hooks/useLocalization'
 import { useAuthStore } from '@/hooks/store/auth-store'
-
-const formSchema = z.object({
-  email: z.string().email('Invalid email address'),
-})
-
-type FormData = z.infer<typeof formSchema>
 
 interface ResetPasswordFormProps {
   onBack(): void
@@ -30,7 +25,10 @@ interface ResetPasswordFormProps {
 
 export function ResetPasswordForm({ onBack }: ResetPasswordFormProps) {
   const { toast } = useToast()
-  const { resetPassword, loading, error } = useAuthStore()
+  const { resetPassword, loading } = useAuthStore()
+  const { localization } = useLocalization()
+  const formSchema = z.object({ email: z.string().email(localization.invalidEmail) })
+  type FormData = z.infer<typeof formSchema>
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -42,21 +40,20 @@ export function ResetPasswordForm({ onBack }: ResetPasswordFormProps) {
   const onSubmit = async (data: FormData) => {
     try {
       await resetPassword(data.email)
-      toast({
-        title: 'Password reset email sent',
-        description: 'Check your email for further instructions',
-      })
+      toast({ title: localization.resetEmailSent, description: localization.checkEmail })
       onBack()
-    } catch (err) {
+    } catch {
       form.setError('root', {
-        type: 'manual',
-        message: error || 'An unexpected error occurred',
+        message: useAuthStore.getState().error || localization.unexpectedError,
       })
     }
   }
 
   return (
-    <AuthCard title="Reset Password" description="Enter your email to reset your password">
+    <AuthCard
+      title={localization.resetPassword}
+      description={localization.resetPasswordDescription}
+    >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
@@ -64,26 +61,26 @@ export function ResetPasswordForm({ onBack }: ResetPasswordFormProps) {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>{localization.email}</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="Enter your email" {...field} />
+                  <Input type="email" autoComplete="email" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <div className="space-y-4">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Send Reset Link'}
-            </Button>
-          </div>
+          <AuthError message={form.formState.errors.root?.message} />
+          <Button type="submit" className="h-11 w-full" disabled={loading}>
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />}
+            {localization.sendResetLink}
+          </Button>
         </form>
       </Form>
 
       <div className="text-center">
         <Button variant="link" onClick={onBack}>
-          Back to login
+          {localization.backToSignIn}
         </Button>
       </div>
     </AuthCard>

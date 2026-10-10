@@ -33,6 +33,7 @@ import { IBlog, ICategory, IProduct } from '@/lib/actions/server'
 import { BlogStatus, Media, MediaType } from '@/lib/firebase/models'
 import { cn } from '@/lib/utils'
 import { generateSlug } from '@/lib/utils/slugify'
+import { toDate } from '@/lib/utils/utils'
 import { blogSchema, BlogSchemaType } from '@/lib/validations/blog'
 import { getDocumentId } from '@spreeloop/database'
 import { ContentEditor } from '../custom-ui/ContentEditor'
@@ -89,7 +90,7 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
     setIsLoading(true)
 
     try {
-      let res;
+      let res
       if (initialData) {
         res = await updateBlog(getDocumentId(initialData.path), data)
       } else {
@@ -109,8 +110,8 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
         })
       }
     } catch (error) {
-       console.error(error)
-       toast({
+      console.error(error)
+      toast({
         variant: 'destructive',
         description: 'An unexpected error occurred.',
       })
@@ -141,9 +142,12 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
                 <FormItem>
                   <FormLabel>Title</FormLabel>
                   <FormControl>
-                    <Input {...field} 
-                    value={field.value || ''}
-                    onChange={onTitleChange} onKeyDown={handleKeyPress} />
+                    <Input
+                      {...field}
+                      value={field.value || ''}
+                      onChange={onTitleChange}
+                      onKeyDown={handleKeyPress}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -344,7 +348,11 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
                             !field.value && 'text-muted-foreground',
                           )}
                         >
-                          {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                          {toDate(field.value) ? (
+                            format(toDate(field.value)!, 'PPP')
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                       </FormControl>
@@ -352,8 +360,8 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
-                        selected={(field.value && new Date(field.value)) || undefined}
-                        onSelect={field.onChange}
+                        selected={toDate(field.value)}
+                        onSelect={date => field.onChange(date?.toISOString() ?? null)}
                         initialFocus
                       />
                     </PopoverContent>
@@ -379,7 +387,7 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
                     }
                   />
                 </FormControl>
-                <FormMessage className="text-red-1" />
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -452,13 +460,14 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
                   try {
                     const res = await deleteBlog(getDocumentId(initialData.path))
                     if (res.success) {
-                        router.refresh()
-                        router.push('/blogs')
+                      // replace, not refresh + push: refreshing re-requests this
+                      // deleted post (404), and /blogs is dynamic so it reloads anyway.
+                      router.replace('/blogs')
                     } else {
-                         toast({
-                          variant: 'destructive',
-                          description: res.error || 'Failed to delete',
-                        })
+                      toast({
+                        variant: 'destructive',
+                        description: res.error || 'Failed to delete',
+                      })
                     }
                   } catch (error) {
                     console.error(error)

@@ -8,34 +8,13 @@ import { priceFormatted } from '@/lib/utils/utils'
 import { getDocumentId } from '@spreeloop/database'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown, Edit } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import Delete from '../custom-ui/Delete'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
-import { Checkbox } from '../ui/checkbox'
 
 export const productColumns: ColumnDef<IProduct>[] = [
-  {
-    id: 'select',
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')
-        }
-        onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={value => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
   {
     accessorKey: 'title',
     accessorFn: row => row.data.title,
@@ -50,7 +29,20 @@ export const productColumns: ColumnDef<IProduct>[] = [
         </Button>
       )
     },
-    cell: ({ row }) => <div className="lowercase">{row.original.data.title}</div>,
+    cell: ({ row }) => {
+      const media = row.original.data.medias?.[0]?.url
+      return (
+        <Link
+          href={`/products/${getDocumentId(row.original.path)}`}
+          className="flex items-center gap-3 font-medium hover:underline"
+        >
+          <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md border bg-muted">
+            {media && <Image src={media} alt="" fill sizes="40px" className="object-cover" />}
+          </span>
+          <span className="line-clamp-2">{row.original.data.title}</span>
+        </Link>
+      )
+    },
   },
   {
     accessorKey: 'status',
@@ -60,9 +52,12 @@ export const productColumns: ColumnDef<IProduct>[] = [
       <div>
         <Badge
           className={cn({
-            'bg-green-500 ': row.original.data.status === ProductStatus.PUBLISHED,
-            'bg-gray-500': row.original.data.status === ProductStatus.DRAFT,
-            'bg-red-500': row.original.data.status === ProductStatus.ARCHIVED,
+            'bg-emerald-100 text-emerald-900 hover:bg-emerald-100':
+              row.original.data.status === ProductStatus.PUBLISHED,
+            'bg-muted text-muted-foreground hover:bg-muted':
+              row.original.data.status === ProductStatus.DRAFT,
+            'bg-red-100 text-red-900 hover:bg-red-100':
+              row.original.data.status === ProductStatus.ARCHIVED,
           })}
         >
           {row.original.data.status}
@@ -78,8 +73,8 @@ export const productColumns: ColumnDef<IProduct>[] = [
       <div>
         <Badge
           className={cn({
-            'bg-blue-500 ': row.original.data.visibility === true,
-            'bg-gray-500': !row.original.data.visibility,
+            'bg-sky-100 text-sky-900 hover:bg-sky-100': row.original.data.visibility === true,
+            'bg-muted text-muted-foreground hover:bg-muted': !row.original.data.visibility,
           })}
         >
           {row.original.data.visibility === true ? 'Visible' : 'Hidden'}
@@ -123,16 +118,13 @@ export const productColumns: ColumnDef<IProduct>[] = [
       }
 
       return (
-        <div>
-          <Link href={`/products/${getDocumentId(row.original.path)}`}>
-            <div className="flex gap-3 items-center">
-              <Edit className="w-4 h-4" />
-              Edit
-            </div>
-          </Link>
-          <div className="flex gap-3 items-center cursor-pointer">
-            <Delete item="products" handleDelete={onDelete} />
-          </div>
+        <div className="flex items-center justify-end gap-1">
+          <Button asChild variant="ghost" size="icon" aria-label="Edit">
+            <Link href={`/products/${getDocumentId(row.original.path)}`}>
+              <Edit className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Delete item="products" handleDelete={onDelete} />
         </div>
       )
     },

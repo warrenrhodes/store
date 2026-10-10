@@ -7,26 +7,27 @@
  */
 export function getAuthErrorMessage(errorCode: string): string {
   const errorMessages: { [key: string]: string } = {
-    'auth/credential-already-in-use': 'Email already in use',
-    'auth/invalid-email': 'Invalid email address',
-    'auth/email-already-in-use': 'Email already in use',
-    'auth/network-request-failed': 'Network request failed',
-    'auth/user-not-found': 'User not found',
-    'auth/wrong-password': 'Wrong password',
-    'auth/too-many-requests': 'Too many requests',
-    'auth/weak-password': 'Weak password',
-    'auth/popup-closed-by-user': 'Popup closed by user',
-    'auth/operation-not-allowed': 'Operation not allowed',
-    'auth/account-exists-with-different-credential': 'Account exists with different credential',
-    'auth/invalid-credential': 'Invalid credential',
-    'auth/user-disabled': 'User disabled',
-    'auth/requires-recent-login': 'Requires recent login',
-    'auth/provider-already-linked': 'Provider already linked',
-    'auth/invalid-verification-code': 'Invalid verification code',
-    'auth/invalid-verification-id': 'Invalid verification ID',
-    'auth/captcha-check-failed': 'Captcha check failed',
-    'auth/failed-to-add-user': 'Failed to add user',
+    'auth/credential-already-in-use': 'Cette adresse email est déjà utilisée',
+    'auth/invalid-email': 'Adresse email invalide',
+    'auth/email-already-in-use': 'Cette adresse email est déjà utilisée',
+    'auth/network-request-failed': 'Problème de connexion réseau',
+    'auth/user-not-found': 'Aucun compte avec cet email',
+    'auth/wrong-password': 'Mot de passe incorrect',
+    'auth/too-many-requests': 'Trop de tentatives, réessayez plus tard',
+    'auth/weak-password': 'Mot de passe trop faible',
+    'auth/popup-closed-by-user': 'Fenêtre de connexion fermée',
+    'auth/operation-not-allowed': 'Opération non autorisée',
+    'auth/account-exists-with-different-credential':
+      'Un compte existe déjà avec une autre méthode de connexion',
+    'auth/invalid-credential': 'Email ou mot de passe incorrect',
+    'auth/user-disabled': 'Ce compte a été désactivé',
+    'auth/requires-recent-login': 'Veuillez vous reconnecter',
+    'auth/provider-already-linked': 'Ce fournisseur est déjà lié',
+    'auth/invalid-verification-code': 'Code de vérification invalide',
+    'auth/invalid-verification-id': 'Identifiant de vérification invalide',
+    'auth/captcha-check-failed': 'Échec de la vérification captcha',
+    'auth/failed-to-add-user': 'Impossible de créer le compte',
   }
 
-  return errorMessages[errorCode] || 'An unexpected error occurred. Please try again'
+  return errorMessages[errorCode] || "Une erreur inattendue s'est produite. Veuillez réessayer"
 }

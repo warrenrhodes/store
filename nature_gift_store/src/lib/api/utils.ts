@@ -1,3 +1,4 @@
+import { toDate } from '@/lib/utils/utils'
 import { DatabaseDocument, QueryFilter } from '@spreeloop/database'
 import { cache } from 'react'
 import { CollectionsName } from '../firebase/collection-name'
@@ -86,17 +87,19 @@ const getDocumentByPath = async <T>(props: { path: string }): Promise<T | undefi
 
 const getAllValidPromotion = async (): Promise<Promotion[]> => {
   try {
-    const query = backend.db.collection(CollectionsName.Promotions)
-    query.where('status', '==', PromotionStatus.ACTIVE)
-    query.where('startDate', '<=', new Date().toISOString())
-    query.where('endDate', '>=', new Date().toISOString())
-
-    return await query.get().then(querySnapshot => {
-      return querySnapshot.docs.map<Promotion>(doc => ({
-        ...(doc.data() as Promotion),
-        path: doc.ref.path,
-      }))
-    })
+    const now = Date.now()
+    const querySnapshot = await backend.db
+      .collection(CollectionsName.Promotions)
+      .where('status', '==', PromotionStatus.ACTIVE)
+      .get()
+    // Date window filtered in memory: avoids a composite index on startDate/endDate
+    return querySnapshot.docs
+      .map<Promotion>(doc => ({ ...(doc.data() as Promotion), path: doc.ref.path }))
+      .filter(p => {
+        const start = toDate(p.startDate)?.getTime()
+        const end = toDate(p.endDate)?.getTime()
+        return start !== undefined && end !== undefined && start <= now && now <= end
+      })
   } catch (error) {
     console.error('Error fetching promotions:', error)
     return []

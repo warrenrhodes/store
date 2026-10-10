@@ -4,7 +4,7 @@ import { getCategoriesCache } from '@/lib/actions/server'
 export default async function CategoriesPage() {
   const categories = await getCategoriesCache()
   return (
-    <div className="container py-10">
+    <div className="mx-auto w-full max-w-6xl">
       <CategoryList categories={categories} />
     </div>
   )

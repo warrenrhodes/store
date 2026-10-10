@@ -210,9 +210,9 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         <div
           {...getRootProps()}
           className={`relative rounded-lg border-2 border-dashed transition-colors
-              ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}
+              ${isDragActive ? 'border-primary bg-primary/5' : 'border-gray-300'}
               ${error ? 'border-red-500' : ''}
-              hover:border-blue-500`}
+              hover:border-primary`}
         >
           <input {...getInputProps()} id="fileInput" />
           <div className="p-8 text-center">
@@ -225,11 +225,11 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             )}
             <p className="text-base text-gray-600">
               {isDragActive ? (
-                <span className="text-blue-500">Drop files here...</span>
+                <span className="text-primary">Drop files here...</span>
               ) : (
                 <span>
                   Drag & drop {getMediaTypeText(fileType)}, or{' '}
-                  <span className="text-blue-500 cursor-pointer">browse</span>
+                  <span className="text-primary cursor-pointer">browse</span>
                 </span>
               )}
             </p>
@@ -263,7 +263,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
           </Button>
           <Button
             onClick={handleImport}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 rounded-md"
+            className="flex-1 bg-primary hover:bg-primary/90 rounded-md"
             disabled={isLoading || files.length === 0}
           >
             {isLoading ? (

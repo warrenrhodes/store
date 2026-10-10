@@ -5,7 +5,6 @@ import { RelatedProducts } from '@/components/Shop/ProductDetail/RelatedProducts
 import { RelatedBlogs } from '@/components/Shop/ProductDetail/RelatedBlogs'
 import { ActivePromotions } from '@/components/Shop/ProductDetail/ActivePromotions'
 import { ProductReviews } from '@/components/Shop/ProductDetail/ProductReviews'
-import GeneralCTAComponent from '@/components/Cta/GeneralCta'
 import Loader from '@/components/Loader'
 import {
   BlogsLoading,
@@ -17,19 +16,14 @@ import { AutoAddToCart } from './autoAddToCart'
 import {
   getAllCollectionCache,
   getAllRelatedCollectionCache,
+  getAllValidPromotionCache,
   getDocumentBySlugCache,
 } from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
-import {
-  Blog,
-  BlogStatus,
-  Product,
-  ProductStatus,
-  Promotion,
-  PromotionStatus,
-  Review,
-} from '@/lib/firebase/models'
+import { Blog, BlogStatus, Product, ProductStatus, Review } from '@/lib/firebase/models'
 import { QueryFilter } from '@spreeloop/database'
+import { Inventory, Price } from '@/lib/type'
+import { getRegularPrice, getReviewAverage } from '@/lib/utils/utils'
 
 // export async function generateStaticParams() {
 //   const product = await getAllCollectionCache<Product>({
@@ -50,18 +44,20 @@ export async function generateMetadata({ params }: Props) {
     collection: CollectionsName.Products,
     slug: (await params).slug,
   })
-  const metadata = product?.metadata
+  if (!product) return {}
+  const metadata = product.metadata
+  const title = metadata?.seoTitle || product.title
   return {
-    title: metadata.seoTitle,
-    description: metadata.seoDescription,
-    keywords: metadata.keywords,
+    title,
+    description: metadata?.seoDescription,
+    keywords: metadata?.keywords,
     openGraph: {
-      title: metadata.seoTitle,
-      description: metadata.seoDescription,
+      title,
+      description: metadata?.seoDescription,
       url: process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL,
       siteName: 'Nature Gift',
       images: [
-        ...product?.medias.reverse().map(m => ({
+        ...[...product.medias].reverse().map(m => ({
           url: m.url,
           width: 800,
           height: 600,
@@ -82,7 +78,7 @@ export default async function ProductDetailPage(props: Props) {
 
   return (
     <div className="bg-background min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-28 lg:pb-16">
         {searchParams?.autoAddToCart ? (
           <Loader loading={<ProductInfoLoading />}>
             <AutoAddToCartLoader slug={slug} />
@@ -98,13 +94,14 @@ export default async function ProductDetailPage(props: Props) {
             <Loader loading={<ProductsLoading />}>
               <FeaturedProductsLoader slug={slug} />
             </Loader>
-            <Loader loading={<HeroLoading />}>
-              <FeaturedProductReviewLoader slug={slug} />
-            </Loader>
+            <div id="reviews" className="scroll-mt-24">
+              <Loader loading={<HeroLoading />}>
+                <FeaturedProductReviewLoader slug={slug} />
+              </Loader>
+            </div>
             <Loader loading={<ProductsLoading />}>
               <RelatedProductLoader slug={slug} />
             </Loader>
-            <GeneralCTAComponent />
             <Loader loading={<BlogsLoading />}>
               <RelatedBlogLoader slug={slug} />
             </Loader>
@@ -116,14 +113,7 @@ export default async function ProductDetailPage(props: Props) {
 }
 
 async function ActivePromotionsLoader() {
-  const activePromotions = await getAllCollectionCache<Promotion>({
-    collection: CollectionsName.Promotions,
-    filters: [
-      new QueryFilter('status', '==', PromotionStatus.ACTIVE),
-      new QueryFilter('startDate', '>=', new Date().toISOString()),
-      new QueryFilter('endDate', '<=', new Date().toISOString()),
-    ],
-  })
+  const activePromotions = await getAllValidPromotionCache()
 
   return <ActivePromotions activePromotions={activePromotions} />
 }
@@ -153,12 +143,36 @@ async function FeaturedProductLoader({ slug }: { slug: string }) {
     filters: [new QueryFilter('productPath', '==', product?.path)],
   })
 
+  const price = product.price as unknown as Price
+  const stock = (product.inventory as Inventory)?.stockQuantity
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.title,
+    image: product.medias.map(m => m.url),
+    description: product.metadata?.seoDescription,
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'XAF',
+      price: getRegularPrice(product),
+      availability: `https://schema.org/${stock === 0 ? 'OutOfStock' : 'InStock'}`,
+      url: `${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}/shop/${product.slug}`,
+    },
+    ...(reviews.length > 0 && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: getReviewAverage(reviews),
+        reviewCount: reviews.length,
+      },
+    }),
+  }
+
   return (
-    <div
-      itemScope
-      itemType={`${process.env.NEXT_PUBLIC_SCHEMA_URL}/shop/${product.slug}`}
-      className="grid grid-cols-1 lg:grid-cols-2 gap-8"
-    >
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-14">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+      />
       <ProductGallery product={product} />
       <ProductInfo product={product} reviews={reviews} />
     </div>

@@ -5,7 +5,7 @@ export default async function Products() {
   const products = await getProductsCache()
 
   return (
-    <div className="sm:px-10 px-2 py-5">
+    <div className="mx-auto w-full max-w-6xl">
       <ProductList products={products} />
     </div>
   )

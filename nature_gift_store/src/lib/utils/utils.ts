@@ -38,7 +38,11 @@ export const getReviewAverage = (reviews: Review[]) => {
 }
 
 export const priceFormatted = (price: number) => {
-  return price.toLocaleString('en-US', { style: 'currency', currency: 'XAF' })
+  return price.toLocaleString('fr-FR', {
+    style: 'currency',
+    currency: 'XAF',
+    maximumFractionDigits: 0,
+  })
 }
 
 export const getRegularPrice = (product: Product) => {
@@ -85,13 +89,27 @@ export function getDetailedExpiresIn(endDate: Date): string {
 export const canDisplayPromoPrice = (product: Product) => {
   const now = new Date()
   const price = product.price as unknown as Price
-  if (!price.saleStartDate || !price.saleEndDate) return false
-
-  const startDate = new Date(price.saleStartDate)
-  const endDate = new Date(price.saleEndDate)
+  const startDate = toDate(price.saleStartDate)
+  const endDate = toDate(price.saleEndDate)
+  if (!startDate || !endDate) return false
 
   return now >= startDate && now <= endDate
 }
 
 export const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
+/**
+ * Normalizes any stored date shape to a valid Date (or undefined): ISO string, Date, epoch ms,
+ * or a Firestore Timestamp (live, or serialized as {_seconds} / {seconds}).
+ */
+export const toDate = (value: unknown): Date | undefined => {
+  if (!value) return undefined
+  const v = value as { toDate?: () => Date; _seconds?: number; seconds?: number }
+  const date =
+    typeof v.toDate === 'function'
+      ? v.toDate()
+      : typeof v._seconds === 'number' || typeof v.seconds === 'number'
+        ? new Date((v._seconds ?? v.seconds!) * 1000)
+        : new Date(value as string | number | Date)
+  return isNaN(date.getTime()) ? undefined : date
+}

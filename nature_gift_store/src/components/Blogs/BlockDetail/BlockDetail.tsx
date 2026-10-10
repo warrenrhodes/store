@@ -5,7 +5,6 @@ import { Calendar, Clock, User, Tag, ArrowLeft } from 'lucide-react'
 import { BlogAuthor } from './BlogAuthor'
 import { RelatedBlogs } from './RelatedBlogs'
 import { Badge } from '@/components/ui/badge'
-import { format, subDays } from 'date-fns'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -15,7 +14,7 @@ import { Blog } from '@/lib/firebase/models'
 import parse from 'html-react-parser'
 
 const BlogDetail = ({ blog, relatedBlogs }: { blog: Blog; relatedBlogs: Blog[] }) => {
-  const { localization } = useLocalization()
+  const { localization, formatDate } = useLocalization()
   const metadata = blog.metadata
   const content = blog.content
 
@@ -53,13 +52,17 @@ const BlogDetail = ({ blog, relatedBlogs }: { blog: Blog; relatedBlogs: Blog[] }
           {blog.publishedAt && (
             <div className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
-              && <span>{format(blog.publishedAt || subDays(new Date(), 4), 'PPP')}</span>
+              <span>{formatDate(blog.publishedAt)}</span>
             </div>
           )}
-          <div className="flex items-center gap-1">
-            <Clock className="w-4 h-4" />
-            <span>{metadata.readingTime} min read</span>
-          </div>
+          {!!metadata.readingTime && (
+            <div className="flex items-center gap-1">
+              <Clock className="w-4 h-4" />
+              <span>
+                {metadata.readingTime} {localization.minRead}
+              </span>
+            </div>
+          )}
           <div className="flex items-center gap-1">
             <User className="w-4 h-4" />
             <span>{metadata.author.name}</span>
@@ -101,8 +104,6 @@ const BlogDetail = ({ blog, relatedBlogs }: { blog: Blog; relatedBlogs: Blog[] }
       <BlogAuthor author={metadata.author} />
 
       <Separator />
-
-      {/* {blog.co && <BlogComments />} */}
 
       <Separator />
 

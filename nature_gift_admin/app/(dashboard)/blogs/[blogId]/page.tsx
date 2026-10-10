@@ -15,9 +15,9 @@ export default async function EditBlogPostPage(props: { params: Promise<{ blogId
   }
 
   return (
-    <div className="container py-10">
+    <div className="mx-auto w-full max-w-6xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Edit Blog Post</h1>
+        <h1 className="text-2xl font-semibold">Edit Blog Post</h1>
         <p className="text-muted-foreground">Make changes to your blog post</p>
       </div>
       <BlogForm initialData={blog} categories={categories} products={products} />

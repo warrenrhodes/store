@@ -1,10 +1,9 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, ShoppingBag } from 'lucide-react'
+import { ArrowLeft, Lock, ShoppingBag } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { CartItem } from '@/components/Cart/CartItem'
 import { PromotionSummary } from '@/components/Cart/PromotionSummary'
 import { useCart, useCartDeliveryInfo } from '@/hooks/useCart'
@@ -39,16 +38,17 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         <div className="flex flex-col gap-8">
           <div>
-            <Button variant="ghost" asChild className="mb-4">
-              <Link href="/shop" className="flex items-center gap-2">
-                <ArrowLeft className="w-4 h-4" />
-                {localization.continueShopping}
-              </Link>
-            </Button>
-            <h1 className="text-3xl font-bold tracking-tight">{localization.shoppingCart}</h1>
+            <Link
+              href="/shop"
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4" aria-hidden />
+              {localization.continueShopping}
+            </Link>
+            <h1 className="mt-3 text-3xl font-semibold">{localization.shoppingCart}</h1>
           </div>
 
           {cartItems.length === 0 ? (
@@ -83,11 +83,14 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <div className="lg:col-span-1 space-y-6">
+              <div className="lg:col-span-1 space-y-4 lg:sticky lg:top-24 lg:self-start">
                 <PromotionSummary cartItems={cartItems} deliveryInfo={cartDeliveryInfo} />
-                <Separator />
-                <Button size="lg" className="w-full" asChild>
-                  <Link href="/checkout">{localization.proceedToCheckout}</Link>
+                <p className="text-xs text-muted-foreground">{localization.taxesAtCheckout}</p>
+                <Button size="lg" className="h-12 w-full text-base" asChild>
+                  <Link href="/checkout">
+                    <Lock className="mr-2 h-4 w-4" aria-hidden />
+                    {localization.proceedToCheckout}
+                  </Link>
                 </Button>
               </div>
             </div>

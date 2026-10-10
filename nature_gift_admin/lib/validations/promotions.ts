@@ -1,4 +1,5 @@
 import * as z from 'zod'
+import { isoDate } from './date'
 
 export const promotionConditionSchema = z.object({
   type: z.enum(['MINIMUM_QUANTITY', 'SPECIFIC_PRODUCTS', 'DELIVERY_METHOD', 'LOCATION']),
@@ -21,8 +22,8 @@ export const promotionSchema = z.object({
   code: z.string().min(3).max(20),
   name: z.string().min(2).max(50),
   description: z.string().optional().nullable(),
-  startDate: z.string().or(z.date()),
-  endDate: z.string().or(z.date()),
+  startDate: isoDate(),
+  endDate: isoDate(),
   conditions: z.array(promotionConditionSchema),
   actions: z.array(promotionActionSchema),
   usageLimit: z

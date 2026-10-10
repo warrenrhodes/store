@@ -24,7 +24,7 @@ export function VariantFields({ form }: VariantFieldsProps) {
               }
             />
           </FormControl>
-          <FormMessage className="text-red-1" />
+          <FormMessage />
         </FormItem>
       )}
     />

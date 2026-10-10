@@ -17,7 +17,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['var(--font-geist-sans)'],
+        sans: ['var(--font-fredoka)', 'system-ui', 'sans-serif'],
+        heading: ['var(--font-fredoka)', 'system-ui', 'sans-serif'],
       },
       typography: {
         base: {
@@ -70,6 +71,10 @@ export default {
         popover: {
           DEFAULT: 'hsl(var(--popover))',
           foreground: 'hsl(var(--popover-foreground))',
+        },
+        sale: {
+          DEFAULT: 'hsl(var(--sale))',
+          foreground: 'hsl(var(--sale-foreground))',
         },
         card: {
           DEFAULT: 'hsl(var(--card))',

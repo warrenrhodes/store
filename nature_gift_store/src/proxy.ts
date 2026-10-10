@@ -15,6 +15,7 @@ const PUBLIC_PATHS = [
   new RegExp('^/blogs-ads/.*$'),
   '/order/success',
   '/cart',
+  '/favoris',
   '/sitemap.xml',
   '/robots.txt',
   '/checkout',

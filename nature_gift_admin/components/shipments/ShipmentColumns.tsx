@@ -4,32 +4,11 @@ import { getDocumentId } from '@spreeloop/database'
 import { ColumnDef } from '@tanstack/react-table'
 import { Edit } from 'lucide-react'
 import Link from 'next/link'
+import { Button } from '../ui/button'
 import Delete from '../custom-ui/Delete'
 import { Badge } from '../ui/badge'
-import { Checkbox } from '../ui/checkbox'
 
 export const shipmentColumns: ColumnDef<IShipment>[] = [
-  {
-    id: 'select',
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')
-        }
-        onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={value => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
   {
     accessorKey: 'method',
     accessorFn: row => row.data.method,
@@ -44,8 +23,8 @@ export const shipmentColumns: ColumnDef<IShipment>[] = [
       <div>
         <Badge
           className={cn({
-            'bg-blue-500 ': row.original.data.isActive === true,
-            'bg-gray-500': !row.original.data.isActive,
+            'bg-sky-100 text-sky-900 hover:bg-sky-100': row.original.data.isActive === true,
+            'bg-muted text-muted-foreground hover:bg-muted': !row.original.data.isActive,
           })}
         >
           {row.original.data.isActive === true ? 'Active' : 'Inactive'}
@@ -70,16 +49,13 @@ export const shipmentColumns: ColumnDef<IShipment>[] = [
       }
 
       return (
-        <div>
-          <Link href={`/shipments/${getDocumentId(row.original.path)}`}>
-            <div className="flex gap-3 items-center">
-              <Edit className="w-4 h-4" />
-              Edit
-            </div>
-          </Link>
-          <div className="flex gap-3 items-center cursor-pointer">
-            <Delete item="shipments" handleDelete={onDelete} />
-          </div>
+        <div className="flex items-center justify-end gap-1">
+          <Button asChild variant="ghost" size="icon" aria-label="Edit">
+            <Link href={`/shipments/${getDocumentId(row.original.path)}`}>
+              <Edit className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Delete item="shipments" handleDelete={onDelete} />
         </div>
       )
     },

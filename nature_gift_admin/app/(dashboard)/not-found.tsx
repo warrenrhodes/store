@@ -1,18 +1,17 @@
 import Link from 'next/link'
-import { ChevronLeft } from 'lucide-react'
 
 export default function NotFound() {
   return (
-    <div className="min-h-[500px]  flex flex-col items-center justify-center">
-      <h1 className="text-4xl font-bold mb-4">Resource Not Found</h1>
-      <div className="bg-white text-center w-48 rounded-2xl h-14 relative group text-black items-center flex justify-center">
-        <Link href="/">
-          <div className="bg-green-400 rounded-xl h-12 w-1/4 flex items-center justify-center absolute left-1 top-[4px] group-hover:w-[184px] z-10 duration-500">
-            <ChevronLeft />
-          </div>
-        </Link>
-        <p className="translate-x-2 ">Return Home</p>
-      </div>
+    <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
+      <p className="text-6xl font-semibold text-primary">404</p>
+      <h1 className="mt-4 text-2xl font-semibold">Page not found</h1>
+      <p className="mt-2 text-muted-foreground">This page doesn&apos;t exist or you don&apos;t have access to it.</p>
+      <Link
+        href="/"
+        className="mt-6 inline-flex h-10 items-center rounded-lg bg-primary px-5 font-medium text-primary-foreground hover:bg-primary/90"
+      >
+        Back to dashboard
+      </Link>
     </div>
   )
 }

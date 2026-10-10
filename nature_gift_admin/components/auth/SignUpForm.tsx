@@ -19,6 +19,9 @@ import { useToast } from '@/hooks/use-toast'
 import { GoogleIcon } from './components/Google'
 import { AuthCard } from './AuthCard'
 import { useAuthStore } from '@/hooks/auth-store'
+import { ROUTES } from '@/lib/router'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 const formSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -40,7 +43,11 @@ interface SignUpFormProps {
 
 export function SignUpForm({ onToggleForm }: SignUpFormProps) {
   const { toast } = useToast()
-  const { signUp, signInWithGoogle, loading, error } = useAuthStore()
+  const router = useRouter()
+  const { signUp, signInWithGoogle, loading } = useAuthStore()
+  // See SignInForm: keeps the form locked until navigation completes.
+  const [redirecting, setRedirecting] = useState(false)
+  const busy = loading || redirecting
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -63,7 +70,7 @@ export function SignUpForm({ onToggleForm }: SignUpFormProps) {
       console.error(err)
       form.setError('root', {
         type: 'manual',
-        message: error || 'An unexpected error occurred',
+        message: useAuthStore.getState().error || 'An unexpected error occurred',
       })
     }
   }
@@ -71,15 +78,16 @@ export function SignUpForm({ onToggleForm }: SignUpFormProps) {
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle()
+      setRedirecting(true)
       toast({
         title: 'Welcome!',
         description: 'You have successfully signed in with Google',
       })
-      onToggleForm()
-    } catch (err) {
+      router.replace(ROUTES.dashboard)
+    } catch {
       form.setError('root', {
         type: 'manual',
-        message: error || 'An unexpected error occurred',
+        message: useAuthStore.getState().error || 'An unexpected error occurred',
       })
     }
   }
@@ -87,70 +95,71 @@ export function SignUpForm({ onToggleForm }: SignUpFormProps) {
   return (
     <AuthCard title="Create Account" description="Sign up for a new account">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter your name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <fieldset disabled={busy} aria-busy={busy} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter your name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input type="email" placeholder="Enter your email" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="Enter your email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <Input type="password" placeholder="Enter your password" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <div className="space-y-4">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Sign Up'}
-            </Button>
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="Enter your password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="space-y-4">
+              <Button type="submit" className="w-full">
+                {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Sign Up'}
+              </Button>
 
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={handleGoogleSignIn}
-              disabled={loading}
-            >
-              <GoogleIcon className="mr-2 h-4 w-4" />
-              Continue with Google
-            </Button>
-          </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={handleGoogleSignIn}
+              >
+                <GoogleIcon className="mr-2 h-4 w-4" />
+                Continue with Google
+              </Button>
+            </div>
+          </fieldset>
         </form>
       </Form>
 
       <div className="text-center">
         <motion.div whileHover={{ scale: 1.05 }}>
-          <Button variant="link" onClick={onToggleForm}>
+          <Button variant="link" onClick={onToggleForm} disabled={busy}>
             Already have an account? Sign In, Sign-In
           </Button>
         </motion.div>

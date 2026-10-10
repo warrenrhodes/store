@@ -6,11 +6,11 @@ import { Calendar, Clock } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { format, subDays } from 'date-fns'
 import { GlobalPagination } from '../GlobalPagination'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import Image from 'next/image'
 import { Blog } from '@/lib/firebase/models'
+import { useLocalization } from '@/hooks/useLocalization'
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -38,6 +38,7 @@ interface BlogGridProps {
 }
 
 export function BlogGrid({ blogs }: BlogGridProps) {
+  const { localization, formatDate } = useLocalization()
   return (
     <GlobalPagination items={blogs} itemsPerPage={6}>
       {blogList => (
@@ -84,33 +85,41 @@ export function BlogGrid({ blogs }: BlogGridProps) {
                       </h3>
                       <p className="text-muted-foreground line-clamp-2 mb-4">{content?.excerpt}</p>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>{format(blog.publishedAt || subDays(new Date(), 4), 'PPP')}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          <span>{metadata.readingTime} min read</span>
-                        </div>
+                        {blog.publishedAt && (
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            <span>{formatDate(blog.publishedAt)}</span>
+                          </div>
+                        )}
+                        {!!metadata.readingTime && (
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            <span>
+                              {metadata.readingTime} {localization.minRead}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
-                    <CardFooter className="p-6 pt-0">
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage
-                            src={metadata.author.avatar || undefined}
-                            alt={metadata.author.name}
-                          />
-                          <AvatarFallback>
-                            {metadata.author.name
-                              .split(' ')
-                              .map((n: string) => n[0])
-                              .join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-sm font-medium">{metadata.author.name}</span>
-                      </div>
-                    </CardFooter>
+                    {metadata.author?.name && (
+                      <CardFooter className="p-6 pt-0">
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage
+                              src={metadata.author.avatar || undefined}
+                              alt={metadata.author.name}
+                            />
+                            <AvatarFallback>
+                              {metadata.author.name
+                                .split(' ')
+                                .map((n: string) => n[0])
+                                .join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm font-medium">{metadata.author.name}</span>
+                        </div>
+                      </CardFooter>
+                    )}
                   </Card>
                 </Link>
               </motion.div>

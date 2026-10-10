@@ -30,8 +30,13 @@ import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import { IProduct, IPromotion } from '@/lib/actions/server'
 import { cn } from '@/lib/utils'
+import { toDate } from '@/lib/utils/utils'
 import { generatePromoCode } from '@/lib/utils/generate-promo'
-import { promotionSchema, PromotionSchemaType, validatePromotionFrom } from '@/lib/validations/promotions'
+import {
+  promotionSchema,
+  PromotionSchemaType,
+  validatePromotionFrom,
+} from '@/lib/validations/promotions'
 import { getDocumentId } from '@spreeloop/database'
 import { ToastAction } from '../ui/toast'
 import { ActionFields } from './promotionForm/ActionFields'
@@ -193,7 +198,11 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
                           !field.value && 'text-muted-foreground',
                         )}
                       >
-                        {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                        {toDate(field.value) ? (
+                          format(toDate(field.value)!, 'PPP')
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
@@ -201,8 +210,8 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={new Date(field.value)}
-                      onSelect={field.onChange}
+                      selected={toDate(field.value)}
+                      onSelect={date => field.onChange(date?.toISOString())}
                       disabled={date => date < subDays(new Date(), 1)}
                       initialFocus
                     />
@@ -229,7 +238,11 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
                           !field.value && 'text-muted-foreground',
                         )}
                       >
-                        {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                        {toDate(field.value) ? (
+                          format(toDate(field.value)!, 'PPP')
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
@@ -237,9 +250,9 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={new Date(field.value)}
-                      onSelect={field.onChange}
-                      disabled={date => date < form.getValues('startDate')}
+                      selected={toDate(field.value)}
+                      onSelect={date => field.onChange(date?.toISOString())}
+                      disabled={date => date < (toDate(form.getValues('startDate')) ?? new Date(0))}
                       initialFocus
                     />
                   </PopoverContent>
@@ -329,8 +342,7 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
                   await fetch(`/api/promotions/${getDocumentId(initialData.path || '')}`, {
                     method: 'DELETE',
                   })
-                  router.refresh()
-                  router.push('/promotions')
+                  router.replace('/promotions') // list page is dynamic; refresh would re-request this page
                 } catch (error) {
                   console.error(error)
                 } finally {

@@ -11,9 +11,9 @@ export default async function EditPromotionPage(props: {
   ])
 
   return (
-    <div className="container py-10">
+    <div className="mx-auto w-full max-w-6xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Edit Promotion</h1>
+        <h1 className="text-2xl font-semibold">Edit Promotion</h1>
         <p className="text-muted-foreground">Make changes to your promotion</p>
       </div>
       <PromotionFormV2 initialData={promotion} products={products} />

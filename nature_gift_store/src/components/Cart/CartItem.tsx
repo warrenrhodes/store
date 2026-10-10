@@ -5,13 +5,12 @@ import { motion } from 'framer-motion'
 import { Minus, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { getRegularPrice, priceFormatted } from '@/lib/utils/utils'
 import Image from 'next/image'
 import { CartItem as CartItemType } from '@/hooks/useCart'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
-import { Inventory, ProductSeoMetadata } from '@/lib/type'
+import { Inventory } from '@/lib/type'
 
 interface CartItemProps {
   item: CartItemType
@@ -53,7 +52,7 @@ export function CartItem({
                   {localization.remove}
                 </Button>
                 <Button variant="outline" onClick={() => setIsRemoving(false)}>
-                  Cancel
+                  {localization.cancel}
                 </Button>
               </div>
             </div>
@@ -61,28 +60,32 @@ export function CartItem({
         )}
         <CardContent className="p-4">
           <div className="flex gap-4">
-            <div className="relative aspect-square  w-16 h-16 rounded-lg overflow-hidden">
+            <div className="relative aspect-square w-20 h-20 shrink-0 rounded-md overflow-hidden border bg-muted">
               <Image
                 src={item.product.medias[0].url}
                 fill
-                alt={(item.product.metadata as ProductSeoMetadata).seoTitle}
+                alt={item.product.title}
                 className="object-cover w-full h-full"
                 onError={() => console.log('Image not found')}
                 placeholder="blur"
                 blurDataURL={item.product.medias[0].blurDataUrl || FAKE_BLUR}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
-              {item.product.isFeature && (
-                <Badge className="absolute top-1 left-1">{localization.featured}</Badge>
-              )}
             </div>
             <div className="flex-1">
               <div className="flex justify-between">
                 <div>
-                  <h3 className="font-medium">{item.product.title}</h3>
+                  <h3 className="font-sans text-sm font-medium line-clamp-2">
+                    {item.product.title}
+                  </h3>
                 </div>
                 {canRemoveItem && (
-                  <Button variant="ghost" size="icon" onClick={() => setIsRemoving(true)}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={localization.remove}
+                    onClick={() => setIsRemoving(true)}
+                  >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 )}
@@ -102,6 +105,7 @@ export function CartItem({
                   <Button
                     variant="outline"
                     size="icon"
+                    aria-label="-1"
                     onClick={() =>
                       decreaseQuantity(item.product.path, Math.max(1, item.quantity - 1))
                     }
@@ -109,10 +113,13 @@ export function CartItem({
                   >
                     <Minus className="w-4 h-4" />
                   </Button>
-                  <span className="w-12 text-center">{item.quantity}</span>
+                  <span className="w-10 text-center tabular-nums" aria-live="polite">
+                    {item.quantity}
+                  </span>
                   <Button
                     variant="outline"
                     size="icon"
+                    aria-label="+1"
                     onClick={() => increaseQuantity(item.product.path, item.quantity + 1)}
                     disabled={
                       item.quantity >= ((item.product.inventory as Inventory).stockQuantity || 0)

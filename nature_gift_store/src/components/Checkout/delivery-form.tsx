@@ -1,7 +1,9 @@
 'use client'
 
 import { UseFormReturn } from 'react-hook-form'
-import { ArrowRight, Calendar } from 'lucide-react'
+import { Calendar, Loader2, Lock, Wallet } from 'lucide-react'
+import { fr as frLocale } from 'date-fns/locale'
+import { useLocale } from '@/hooks/useLocale'
 import { Button } from '@/components/ui/button'
 import { addDays, differenceInHours, format, isBefore, isToday } from 'date-fns'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
@@ -25,11 +27,19 @@ interface DeliveryFormProps {
   onSubmit: (data: DeliveryFormData) => void
   shipment: Shipment[]
   form: UseFormReturn<DeliveryFormData>
+  isLoading?: boolean
 }
 const TIME_IN_HOUR_BEFORE_DELIVERY = 3
 const MAX_DELIVERY_HOURS = 18
 const TODAY = new Date()
-export function DeliveryForm({ onSubmit, shipment: shipments, form }: DeliveryFormProps) {
+export function DeliveryForm({
+  onSubmit,
+  shipment: shipments,
+  form,
+  isLoading,
+}: DeliveryFormProps) {
+  const { locale } = useLocale()
+  const dateLocale = locale === 'fr' ? frLocale : undefined
   const cartDeliveryInfo = useCartDeliveryInfo()
   const { localization } = useLocalization()
   const maxDate = addDays(TODAY, 7)
@@ -112,7 +122,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, form }: DeliveryFo
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <div className="space-y-4">
-          <h2 className="text-2xl font-semibold">{localization.deliveryInformation}</h2>
+          <h2 className="text-xl font-semibold">{localization.deliveryInformation}</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField
               control={form.control}
@@ -121,7 +131,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, form }: DeliveryFo
                 <FormItem>
                   <FormLabel>{localization.fullName}</FormLabel>
                   <FormControl>
-                    <Input {...field} onKeyDown={handleKeyPress} />
+                    <Input {...field} autoComplete="name" onKeyDown={handleKeyPress} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -134,7 +144,14 @@ export function DeliveryForm({ onSubmit, shipment: shipments, form }: DeliveryFo
                 <FormItem>
                   <FormLabel>{localization.phone}</FormLabel>
                   <FormControl>
-                    <Input type="tel" {...field} onKeyDown={handleKeyPress} />
+                    <Input
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      placeholder="6XX XX XX XX"
+                      {...field}
+                      onKeyDown={handleKeyPress}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -160,7 +177,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, form }: DeliveryFo
                           )}
                         >
                           {field.value ? (
-                            format(field.value, 'PPP')
+                            format(field.value, 'PPPP', { locale: dateLocale })
                           ) : (
                             <span>{localization.pickADate}</span>
                           )}
@@ -171,6 +188,7 @@ export function DeliveryForm({ onSubmit, shipment: shipments, form }: DeliveryFo
                     <PopoverContent className="w-auto p-0" align="start">
                       <CalendarComponent
                         mode="single"
+                        locale={dateLocale}
                         selected={field.value}
                         onSelect={date => {
                           field.onChange(date)
@@ -200,9 +218,14 @@ export function DeliveryForm({ onSubmit, shipment: shipments, form }: DeliveryFo
             name="address"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Votre address exact</FormLabel>
+                <FormLabel>{localization.exactAddress}</FormLabel>
                 <FormControl>
-                  <Input {...field} onKeyDown={handleKeyPress} />
+                  <Input
+                    {...field}
+                    autoComplete="street-address"
+                    placeholder={localization.addressPlaceholder}
+                    onKeyDown={handleKeyPress}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -228,9 +251,20 @@ export function DeliveryForm({ onSubmit, shipment: shipments, form }: DeliveryFo
             />
           </div>
         </div>
-        <Button type="submit" className="w-full">
-          {localization.reviewOrder}
-          <ArrowRight className="ml-2 h-4 w-4" />
+        <div className="flex items-start gap-3 rounded-lg border bg-muted/40 p-4">
+          <Wallet className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden />
+          <div>
+            <p className="font-medium">{localization.payOnDelivery}</p>
+            <p className="text-sm text-muted-foreground">{localization.payOnDeliveryDescription}</p>
+          </div>
+        </div>
+        <Button type="submit" className="h-12 w-full text-base" disabled={isLoading}>
+          {isLoading ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+          ) : (
+            <Lock className="mr-2 h-4 w-4" aria-hidden />
+          )}
+          {localization.placeOrder}
         </Button>
       </form>
     </Form>

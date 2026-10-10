@@ -1,6 +1,7 @@
 import { CartItem } from '@/hooks/useCart'
 import { PromotionAction, PromotionCondition } from '../type'
 import { IDeliveryInfo, OrderSummary, Promotion } from '../firebase/models'
+import { toDate } from './utils'
 
 // type IPromotionCondition = Promotion['conditions'][0]
 // type IPromotionAction = Promotion['actions'][0]
@@ -19,9 +20,11 @@ export class PromotionCalculator {
   private filterValidPromotions(promotions: Promotion[]): Promotion[] {
     const now = new Date()
     return promotions
-      .filter(
-        p => p.status === 'ACTIVE' && new Date(p.startDate) <= now && new Date(p.endDate) >= now,
-      )
+      .filter(p => {
+        const start = toDate(p.startDate)
+        const end = toDate(p.endDate)
+        return p.status === 'ACTIVE' && !!start && !!end && start <= now && end >= now
+      })
       .sort((a, b) => (b.priority || 0) - (a.priority || 0))
   }
   private checkCondition(condition: PromotionCondition): boolean {

@@ -63,7 +63,11 @@ export async function POST(req: NextRequest) {
 
 function calculateReadingTime(content: string): number {
   const wordsPerMinute = 200
-  const wordCount = content.split(/\s+/).length
+  // Count visible words only: builder pages also carry CSS and JSON.
+  const text = content
+    .replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+  const wordCount = text.split(/\s+/).filter(Boolean).length
   return Math.ceil(wordCount / wordsPerMinute)
 }
 

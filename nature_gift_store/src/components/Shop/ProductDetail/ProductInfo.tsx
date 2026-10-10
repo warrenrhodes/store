@@ -1,224 +1,291 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import {
   ChevronRight,
-  ChevronsRight,
   Heart,
+  Leaf,
   Minus,
   Plus,
   Share2,
-  ShoppingCart,
+  ShieldCheck,
   Star,
+  Truck,
+  MessageCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-
-import { Separator } from '@/components/ui/separator'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
 import { Price as ProductPriceCP } from '@/components/Price'
 import {
   canDisplayPromoPrice,
+  cn,
   getPercentageDiscount,
   getRegularPrice,
   getReviewAverage,
 } from '@/lib/utils/utils'
-import { useCart } from '@/hooks/useCart'
-import { useCartSideBar } from '@/hooks/useCart'
+import { useCart, useCartSideBar } from '@/hooks/useCart'
+import { useWishlist } from '@/hooks/useWishlist'
+import { toast } from '@/hooks/use-toast'
 import { useRouter } from 'next/navigation'
 import { useLocalization } from '@/hooks/useLocalization'
-import { Feature, Price, ProductDescription } from '@/lib/type'
+import { Feature, Inventory, Price, ProductDescription } from '@/lib/type'
 import { Product, Review } from '@/lib/firebase/models'
 import { useState } from 'react'
 import Link from 'next/link'
 
 export function ProductInfo({ product, reviews }: { product: Product; reviews: Review[] }) {
-  const {
-    title,
-    features: productFeatures,
-    description: productDescription,
-    price: productPrice,
-  } = product
   const cart = useCart()
   const router = useRouter()
-  const [isExpanded, setIsExpanded] = useState(false)
-  const MAX_CHARS = 300
   const cartSideBar = useCartSideBar()
-  const cartItem = cart.cartItems.find(item => item.product.path === product.path)
+  const { isInWishlist, toggleWishlist } = useWishlist()
   const { localization } = useLocalization()
-  const price: Price | undefined = productPrice as unknown as Price | undefined
-  const description = productDescription as ProductDescription
-  const features = productFeatures as Feature[]
+  const [quantity, setQuantity] = useState(1)
 
-  const truncatedText = (text: string) => text.slice(0, MAX_CHARS).concat('.....')
-  const shouldTruncate = (text: string) => text.length > MAX_CHARS
-
-  const handleClickDecrement = () => {
-    if (!cartItem) return
-    if (1 >= cartItem.quantity) return
-    cart.decreaseQuantity(cartItem.product.path)
-  }
-  const handleClickIncrement = () => {
-    if (!cartItem) {
-      cart.addItem({
-        product: product,
-        quantity: 1,
-        price: getRegularPrice(product),
-      })
-      return
-    }
-
-    if (99 <= cartItem.quantity) return
-    cart.increaseQuantity(cartItem.product.path)
-  }
-
-  const percentageDiscount = canDisplayPromoPrice(product)
+  const price = product.price as unknown as Price
+  const description = product.description as ProductDescription
+  const features = (product.features as Feature[]) || []
+  const stock = (product.inventory as Inventory)?.stockQuantity
+  const soldOut = stock === 0
+  const maxQuantity = stock || 99
+  const rating = getReviewAverage(reviews || [])
+  const wished = isInWishlist(product.path)
+  const discount = canDisplayPromoPrice(product)
     ? getPercentageDiscount(price.regular, price.sale)
     : 0
+
+  const addToCart = () => {
+    const cartItem = cart.cartItems.find(item => item.product.path === product.path)
+    if (cartItem) {
+      cart.setQuantity(product.path, Math.min(maxQuantity, cartItem.quantity + quantity))
+    } else {
+      cart.addItem({ product, quantity, price: getRegularPrice(product) })
+    }
+  }
+
+  const share = async () => {
+    const url = window.location.href
+    if (navigator.share) {
+      await navigator.share({ title: product.title, url }).catch(() => {})
+    } else {
+      await navigator.clipboard.writeText(url)
+      toast({ title: localization.linkCopied })
+    }
+  }
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 itemProp="name" className="text-3xl font-bold">
-          {title}
+      <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
+        <ol className="flex flex-wrap items-center gap-1">
+          <li>
+            <Link href="/" className="hover:text-foreground">
+              {localization.home}
+            </Link>
+          </li>
+          <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+          <li>
+            <Link href="/shop" className="hover:text-foreground">
+              {localization.shop}
+            </Link>
+          </li>
+          {product.categories[0] && (
+            <>
+              <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+              <li className="text-foreground">{product.categories[0]}</li>
+            </>
+          )}
+        </ol>
+      </nav>
+
+      <div className="space-y-3">
+        <h1 itemProp="name" className="text-3xl font-semibold leading-tight sm:text-4xl">
+          {product.title}
         </h1>
-        <div className="space-x-1">
-          {product.tags?.slice(0, 3).map(tag => (
-            <span key={tag} className="inline-block text-xs text-muted-foreground">
-              #{tag}
-            </span>
-          ))}
-        </div>
-        <div className="flex items-center gap-4 mt-2">
-          <div className="flex items-center">
+        <a href="#reviews" className="flex w-fit items-center gap-2 text-sm hover:underline">
+          <span className="flex" aria-hidden>
             {Array.from({ length: 5 }).map((_, i) => (
               <Star
                 key={i}
-                className={`w-5 h-5 ${
-                  i < Math.floor(getReviewAverage(reviews || []))
-                    ? 'text-yellow-400 fill-yellow-400'
-                    : 'text-gray-300'
-                }`}
+                className={cn(
+                  'h-4 w-4',
+                  i < Math.round(rating)
+                    ? 'fill-amber-400 text-amber-400'
+                    : 'text-muted-foreground/40',
+                )}
               />
             ))}
-            <span className="ml-2 text-sm font-medium">{getReviewAverage(reviews || [])}</span>
-          </div>
-          <Separator orientation="vertical" className="h-5" />
-          <span className="text-sm text-muted-foreground">
+          </span>
+          <span className="text-muted-foreground">
+            {rating > 0 && `${rating} · `}
             {reviews.length} {localization.reviews}
           </span>
-        </div>
+        </a>
       </div>
 
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <ProductPriceCP product={product} />
-          {percentageDiscount > 0 && (
-            <Badge variant="destructive">
-              {localization.save} {percentageDiscount.toFixed(0)}%
-            </Badge>
-          )}
-        </div>
-      </div>
-      <span>
-        <span
-          itemProp="description"
-          className="prose prose-slate prose-sm sm:prose leading-relaxed text-gray-400"
-          dangerouslySetInnerHTML={{
-            __html: isExpanded ? description.content : truncatedText(description.content),
-          }}
-        />
-        {shouldTruncate && (
-          <Button variant="link" onClick={() => setIsExpanded(!isExpanded)} className="group">
-            {isExpanded ? localization.showLess : localization.readMore}
-            {
-              <ChevronsRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-            }
-          </Button>
+      <div className="flex items-center gap-3">
+        <ProductPriceCP product={product} className="[&_span:first-child]:text-2xl" />
+        {discount > 0 && (
+          <span className="rounded bg-sale px-2 py-0.5 text-xs font-semibold text-sale-foreground">
+            {localization.save} {discount.toFixed(0)}%
+          </span>
         )}
-      </span>
-      {product.blogUrl && (
-        <div>
-          <Button variant="outline" asChild className="group">
-            <Link href={product.blogUrl}>
-              {localization.getMoreInformation}
-              {
-                <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              }
-            </Link>
-          </Button>
-        </div>
-      )}
+      </div>
 
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">{localization.quantity}</label>
-          <div className="nc-NcInputNumber__content flex w-[104px] items-center justify-between sm:w-28 mt-5">
-            <Button variant="outline" size="icon" onClick={handleClickDecrement}>
-              <Minus className="w-4 h-4" />
-            </Button>
-            <span className="w-12 text-center">{cartItem?.quantity || 1}</span>
-            <Button variant="outline" size="icon" onClick={handleClickIncrement}>
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-        <div className=" flex flex-col gap-5">
-          <div className="flex gap-4">
-            <Button
-              variant={'outline'}
-              className="flex-1 group flex w-full py-5 gap-1 border-2 border-primary font-bold transition-all duration-300"
-              onClick={() => {
-                if (!cartItem) {
-                  handleClickIncrement()
-                }
-                cartSideBar.onOpenChange(true)
-              }}
+      <p className="flex items-center gap-2 text-sm">
+        <span
+          className={cn(
+            'h-2 w-2 rounded-full',
+            soldOut ? 'bg-destructive' : stock && stock <= 10 ? 'bg-sale' : 'bg-primary',
+          )}
+          aria-hidden
+        />
+        {soldOut
+          ? localization.outOfStock
+          : stock && stock <= 10
+            ? localization.onlyLeft.replace('{n}', String(stock))
+            : localization.inStock}
+      </p>
+
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-3">
+          <div
+            className="flex h-12 items-center rounded-md border"
+            role="group"
+            aria-label={localization.quantity}
+          >
+            <button
+              type="button"
+              aria-label="-1"
+              className="flex h-full w-11 items-center justify-center disabled:opacity-40"
+              disabled={quantity <= 1}
+              onClick={() => setQuantity(q => Math.max(1, q - 1))}
             >
-              <ShoppingCart className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />{' '}
-              {localization.addToCart}
-            </Button>
-
-            <Button variant="outline" size="icon">
-              <Heart className="h-5 w-5" />
-            </Button>
-            <Button variant="outline" size="icon">
-              <Share2 className="h-5 w-5" />
-            </Button>
+              <Minus className="h-4 w-4" />
+            </button>
+            <span className="w-8 text-center tabular-nums" aria-live="polite">
+              {quantity}
+            </span>
+            <button
+              type="button"
+              aria-label="+1"
+              className="flex h-full w-11 items-center justify-center disabled:opacity-40"
+              disabled={quantity >= maxQuantity}
+              onClick={() => setQuantity(q => Math.min(maxQuantity, q + 1))}
+            >
+              <Plus className="h-4 w-4" />
+            </button>
           </div>
           <Button
-            className="flex w-full py-5 text-secondary items-center gap-1 border-2 border-primary font-bold transition-all duration-300"
+            variant="outline"
+            className="order-last h-12 w-full border-foreground text-base sm:order-none sm:w-auto sm:flex-1"
+            disabled={soldOut}
             onClick={() => {
-              if (!cartItem) {
-                handleClickIncrement()
-              }
-              setTimeout(() => {
-                router.push('/cart')
-              }, 1000)
+              addToCart()
+              cartSideBar.onOpenChange(true)
             }}
           >
-            {localization.buyNow}
+            {soldOut ? localization.outOfStock : localization.addToCart}
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="ml-auto h-12 w-12 shrink-0 sm:ml-0"
+            aria-label={localization.addToWishlist}
+            aria-pressed={wished}
+            onClick={() => toggleWishlist(product.path)}
+          >
+            <Heart className={cn('h-5 w-5', wished && 'fill-destructive text-destructive')} />
           </Button>
         </div>
+        <Button
+          className="h-12 w-full text-base"
+          disabled={soldOut}
+          onClick={() => {
+            addToCart()
+            router.push('/checkout')
+          }}
+        >
+          {localization.buyNow}
+        </Button>
+        <button
+          type="button"
+          onClick={share}
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <Share2 className="h-4 w-4" aria-hidden />
+          {localization.share}
+        </button>
       </div>
 
-      <Separator />
+      <ul className="grid grid-cols-2 gap-3 rounded-lg bg-muted/60 p-4 text-sm">
+        {[
+          { icon: Truck, label: localization.fastDelivery },
+          { icon: ShieldCheck, label: localization.securePayment },
+          { icon: Leaf, label: localization.naturalProducts },
+          { icon: MessageCircle, label: localization.customerSupport },
+        ].map(({ icon: Icon, label }) => (
+          <li key={label} className="flex items-center gap-2">
+            <Icon className="h-5 w-5 shrink-0 text-primary" aria-hidden />
+            {label}
+          </li>
+        ))}
+      </ul>
 
-      {features && features.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="font-medium">{localization.keyFeatures}</h3>
-          <ul className="grid grid-cols-2 gap-2 text-sm">
-            {features.map(feature => (
-              <li key={feature.title} className="flex items-center">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="w-1.5 h-1.5 rounded-full bg-primary mr-2"
-                />
-                {feature.title}
-              </li>
-            ))}
-          </ul>
-        </div>
+      <Accordion type="multiple" defaultValue={['description']}>
+        <AccordionItem value="description">
+          <AccordionTrigger>{localization.description}</AccordionTrigger>
+          <AccordionContent>
+            <div
+              itemProp="description"
+              className="prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{ __html: description.content }}
+            />
+          </AccordionContent>
+        </AccordionItem>
+        {features.length > 0 && (
+          <AccordionItem value="features">
+            <AccordionTrigger>{localization.keyFeatures}</AccordionTrigger>
+            <AccordionContent>
+              <ul className="space-y-2 text-sm">
+                {features.map(feature => (
+                  <li key={feature.title} className="flex items-start gap-2">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                    {feature.title}
+                  </li>
+                ))}
+              </ul>
+            </AccordionContent>
+          </AccordionItem>
+        )}
+      </Accordion>
+
+      {product.blogUrl && (
+        <Link
+          href={product.blogUrl}
+          className="inline-flex items-center gap-1 text-sm font-medium underline underline-offset-4"
+        >
+          {localization.getMoreInformation}
+          <ChevronRight className="h-4 w-4" aria-hidden />
+        </Link>
       )}
+
+      {/* Mobile sticky buy bar */}
+      <div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t bg-background/95 p-3 backdrop-blur lg:hidden">
+        <ProductPriceCP product={product} className="flex-1" />
+        <Button
+          className="h-11 px-6"
+          disabled={soldOut}
+          onClick={() => {
+            addToCart()
+            cartSideBar.onOpenChange(true)
+          }}
+        >
+          {soldOut ? localization.outOfStock : localization.addToCart}
+        </Button>
+      </div>
     </div>
   )
 }

@@ -35,9 +35,9 @@ export function PromotionSummary({ cartItems, deliveryInfo }: PromotionSummaryPr
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{localization.promotions}</CardTitle>
+          <CardTitle className="text-lg">{localization.orderSummary}</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4" aria-busy>
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-3/4" />
           <Skeleton className="h-4 w-1/2" />
@@ -53,7 +53,7 @@ export function PromotionSummary({ cartItems, deliveryInfo }: PromotionSummaryPr
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{localization.orderSummary}</CardTitle>
+        <CardTitle className="text-lg">{localization.orderSummary}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex justify-between">
@@ -78,7 +78,7 @@ export function PromotionSummary({ cartItems, deliveryInfo }: PromotionSummaryPr
                       <Tag className="mr-2 h-4 w-4" /> {promo.code}
                     </Badge>
                   </div>
-                  <span className="text-red-600">-{priceFormatted(promo.discountAmount)}</span>
+                  <span className="text-primary">-{priceFormatted(promo.discountAmount)}</span>
                 </div>
               ))}
             </div>
@@ -91,7 +91,7 @@ export function PromotionSummary({ cartItems, deliveryInfo }: PromotionSummaryPr
             <span>{priceFormatted(summary.total)}</span>
           </div>
           {summary.discount > 0 && (
-            <p className="text-sm text-green-600 mt-1">
+            <p className="text-sm text-primary mt-1">
               {localization.save} {priceFormatted(summary.discount)}!
             </p>
           )}

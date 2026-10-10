@@ -13,9 +13,9 @@ export default async function EditCategoryPage(props: { params: Promise<{ catego
     notFound()
   }
   return (
-    <div className="container py-10">
+    <div className="mx-auto w-full max-w-6xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Edit Category</h1>
+        <h1 className="text-2xl font-semibold">Edit Category</h1>
         <p className="text-muted-foreground">Make changes to your category</p>
       </div>
       <CategoryForm category={category} categories={categories} />

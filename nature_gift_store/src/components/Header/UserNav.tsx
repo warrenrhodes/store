@@ -24,7 +24,7 @@ export function UserNav() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" aria-label={localization.account}>
           <User className="h-5 w-5" />
         </Button>
       </DropdownMenuTrigger>

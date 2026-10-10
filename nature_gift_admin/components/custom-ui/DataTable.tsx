@@ -1,10 +1,9 @@
 'use client'
 
 import {
-  ColumnFiltersState,
   ColumnDef,
+  ColumnFiltersState,
   SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -12,9 +11,9 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-
+import { ChevronDown, ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { useState } from 'react'
-import { Input } from '../ui/input'
+
 import {
   Table,
   TableBody,
@@ -26,162 +25,176 @@ import {
 import { Button } from '../ui/button'
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
-import { ChevronDown } from 'lucide-react'
+import { Input } from '../ui/input'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   searchKey?: string
+  searchPlaceholder?: string
   filterButton?: {
     label: string
     columnKey: string
     values: string[]
   }
+  initialFilters?: ColumnFiltersState
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   searchKey,
+  searchPlaceholder,
   filterButton,
+  initialFilters = [],
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = useState({})
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(initialFilters)
 
   const table = useReactTable<TData>({
-    data: data,
-    columns: columns,
+    data,
+    columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
+    initialState: { pagination: { pageSize: 20 } },
+    state: { sorting, columnFilters },
   })
 
-  const handleKeyPress = (
-    e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
-  ) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-    }
-  }
+  const searchColumn = searchKey ? table.getColumn(searchKey) : undefined
+  const filterColumn = filterButton ? table.getColumn(filterButton.columnKey) : undefined
+  const filterValue = (filterColumn?.getFilterValue() as string | undefined) ?? ''
+  const resultCount = table.getFilteredRowModel().rows.length
+  const pageCount = table.getPageCount()
 
   return (
-    <div>
-      <div className="w-full">
-        <div className="flex items-center py-4">
-          <Input
-            placeholder={`Search ${searchKey}`}
-            value={(table.getColumn(searchKey || '')?.getFilterValue() as string) ?? ''}
-            onKeyDown={handleKeyPress}
-            onChange={event => table.getColumn(searchKey || '')?.setFilterValue(event.target.value)}
-            className="max-w-sm"
-          />
-          {filterButton && (
+    <div className="space-y-4">
+      {(searchColumn || filterColumn) && (
+        <div className="flex flex-wrap items-center gap-2">
+          {searchColumn && (
+            <div className="relative w-full max-w-sm">
+              <Search
+                className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden
+              />
+              <Input
+                type="search"
+                placeholder={searchPlaceholder ?? `Search by ${searchKey}`}
+                aria-label={searchPlaceholder ?? `Search by ${searchKey}`}
+                value={(searchColumn.getFilterValue() as string) ?? ''}
+                onKeyDown={e => e.key === 'Enter' && e.preventDefault()}
+                onChange={e => searchColumn.setFilterValue(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          )}
+          {filterButton && filterColumn && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="ml-auto">
-                  {filterButton.label} <ChevronDown />
+                  {filterButton.label}: {filterValue ? filterValue.toLowerCase() : 'all'}
+                  <ChevronDown className="ml-1 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {filterButton.values.map(value => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={value}
-                      className="capitalize"
-                      checked={
-                        (table
-                          .getColumn(filterButton.columnKey || '')
-                          ?.getFilterValue() as string) === value
-                      }
-                      onCheckedChange={() => table.getColumn('status')?.setFilterValue(value)}
-                    >
-                      {value}
-                    </DropdownMenuCheckboxItem>
-                  )
-                })}
+                <DropdownMenuRadioGroup
+                  value={filterValue}
+                  onValueChange={value => filterColumn.setFilterValue(value || undefined)}
+                >
+                  <DropdownMenuRadioItem value="">All</DropdownMenuRadioItem>
+                  <DropdownMenuSeparator />
+                  {filterButton.values.map(value => (
+                    <DropdownMenuRadioItem key={value} value={value} className="capitalize">
+                      {value.toLowerCase()}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           )}
         </div>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map(headerGroup => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map(header => {
-                    return (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(header.column.columnDef.header, header.getContext())}
-                      </TableHead>
-                    )
-                  })}
+      )}
+
+      <div className="overflow-x-auto rounded-xl border bg-card">
+        <Table>
+          <TableHeader className="bg-muted/50">
+            {table.getHeaderGroups().map(headerGroup => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map(header => (
+                  <TableHead key={header.id} className="whitespace-nowrap">
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map(row => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map(cell => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
                 </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map(row => (
-                  <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                    {row.getVisibleCells().map(cell => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        <div className="flex items-center justify-end space-x-2 py-4">
-          <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredSelectedRowModel().rows.length} of{' '}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
-          </div>
-          <div className="space-x-2">
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-32 text-center text-muted-foreground"
+                >
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
+        <span>
+          {resultCount} result{resultCount === 1 ? '' : 's'}
+        </span>
+        {pageCount > 1 && (
+          <div className="flex items-center gap-2">
+            <span>
+              Page {table.getState().pagination.pageIndex + 1} of {pageCount}
+            </span>
             <Button
               variant="outline"
-              size="sm"
+              size="icon"
+              className="h-8 w-8"
+              aria-label="Previous page"
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
             >
-              Previous
+              <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button
               variant="outline"
-              size="sm"
+              size="icon"
+              className="h-8 w-8"
+              aria-label="Next page"
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
             >
-              Next
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

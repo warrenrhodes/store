@@ -1,68 +1,48 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { Zap } from 'lucide-react'
-import { useCallback, useState } from 'react'
-import { useEffect } from 'react'
+import { ArrowRight, Zap } from 'lucide-react'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import { useLocalization } from '@/hooks/useLocalization'
 import { Promotion } from '@/lib/firebase/models'
 
 export function PromotionBanner({ promotions }: { promotions: Promotion[] }) {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [opacity, setOpacity] = useState(1)
   const { localization } = useLocalization()
 
-  const goToNext = useCallback(() => {
-    setOpacity(0)
-    setTimeout(() => {
-      setCurrentIndex(prevIndex => (prevIndex + 1) % promotions.length)
-      setOpacity(1)
-    }, 300)
+  useEffect(() => {
+    if (promotions.length < 2) return
+    const interval = setInterval(() => setCurrentIndex(i => (i + 1) % promotions.length), 7000)
+    return () => clearInterval(interval)
   }, [promotions.length])
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout
-    if (promotions.length > 1) {
-      interval = setInterval(goToNext, 7000)
-    }
-    return () => clearInterval(interval)
-  }, [goToNext, promotions.length])
-
   if (promotions.length === 0) return null
-
-  const currentPromotion = promotions[currentIndex]
+  const promotion = promotions[currentIndex]
 
   return (
-    <section className="bg-primary" key={`${currentPromotion.path}`}>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5 }}
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-15"
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 sm:mb-20">
+      <div
+        key={promotion.path}
+        className="flex flex-col gap-6 rounded-xl bg-primary px-6 py-10 text-primary-foreground sm:flex-row sm:items-center sm:justify-between sm:px-12 animate-in fade-in duration-500"
       >
-        <div
-          className="relative rounded-2xl overflow-hidden transition-opacity duration-600"
-          style={{ opacity }}
-        >
-          <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-8 text-center sm:text-left">
-            <div className="flex-1">
-              <div className="flex items-center justify-center sm:justify-start gap-2 mb-4">
-                <Zap className="h-6 w-6 text-primary-foreground" />
-                <span className="text-lg font-medium text-primary-foreground">
-                  {localization.flashSale}
-                </span>
-              </div>
-              <h2 className="text-3xl font-bold tracking-tight text-primary-foreground sm:text-4xl">
-                {currentPromotion.name}
-              </h2>
-              <p className="mt-4 text-lg text-primary-foreground/80">
-                {currentPromotion.description}
-              </p>
-            </div>
-          </div>
+        <div>
+          <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-primary-foreground/85">
+            <Zap className="h-4 w-4" aria-hidden />
+            {localization.flashSale}
+          </p>
+          <h2 className="mt-2 text-3xl font-semibold sm:text-4xl">{promotion.name}</h2>
+          {promotion.description && (
+            <p className="mt-2 text-primary-foreground/85">{promotion.description}</p>
+          )}
         </div>
-      </motion.div>
+        <Link
+          href="/shop"
+          className="group inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-md bg-background px-7 font-medium text-foreground transition hover:bg-background/90"
+        >
+          {localization.shop}
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+        </Link>
+      </div>
     </section>
   )
 }

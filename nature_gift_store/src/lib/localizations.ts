@@ -19,6 +19,310 @@ export const localization = {
 }
 
 export const dictionary: Record<DictWords, Record<Locale, string>> = {
+  searching: {
+    en: 'Searching…',
+    fr: 'Recherche…',
+  },
+  minRead: {
+    en: 'min read',
+    fr: 'min de lecture',
+  },
+  searchArticles: {
+    en: 'Search articles…',
+    fr: 'Rechercher un article…',
+  },
+  shareThoughts: {
+    en: 'Share your thoughts…',
+    fr: 'Partagez votre avis…',
+  },
+  sortBy: {
+    en: 'Sort by',
+    fr: 'Trier par',
+  },
+  selectMethod: {
+    en: 'Select a method',
+    fr: 'Choisir un mode',
+  },
+  welcomeBack: {
+    en: 'Welcome back',
+    fr: 'Bon retour parmi nous',
+  },
+  signInToAccount: {
+    en: 'Sign in to your account',
+    fr: 'Connectez-vous à votre compte',
+  },
+  password: {
+    en: 'Password',
+    fr: 'Mot de passe',
+  },
+  continueWithGoogle: {
+    en: 'Continue with Google',
+    fr: 'Continuer avec Google',
+  },
+  noAccount: {
+    en: "Don't have an account?",
+    fr: 'Pas encore de compte ?',
+  },
+  haveAccount: {
+    en: 'Already have an account?',
+    fr: 'Déjà un compte ?',
+  },
+  forgotPassword: {
+    en: 'Forgot password?',
+    fr: 'Mot de passe oublié ?',
+  },
+  signedIn: {
+    en: "You're signed in",
+    fr: 'Vous êtes connecté',
+  },
+  invalidEmail: {
+    en: 'Invalid email address',
+    fr: 'Adresse email invalide',
+  },
+  signUpDescription: {
+    en: 'Create your account in a few seconds',
+    fr: 'Créez votre compte en quelques secondes',
+  },
+  nameMin: {
+    en: 'Name must be at least 2 characters',
+    fr: 'Le nom doit contenir au moins 2 caractères',
+  },
+  passwordMin8: {
+    en: 'At least 8 characters',
+    fr: 'Au moins 8 caractères',
+  },
+  passwordUpper: {
+    en: 'At least one uppercase letter',
+    fr: 'Au moins une lettre majuscule',
+  },
+  passwordLower: {
+    en: 'At least one lowercase letter',
+    fr: 'Au moins une lettre minuscule',
+  },
+  passwordNumber: {
+    en: 'At least one number',
+    fr: 'Au moins un chiffre',
+  },
+  passwordSpecial: {
+    en: 'At least one special character',
+    fr: 'Au moins un caractère spécial',
+  },
+  accountCreated: {
+    en: 'Account created',
+    fr: 'Compte créé',
+  },
+  verifyEmail: {
+    en: 'Please verify your email address',
+    fr: 'Veuillez vérifier votre adresse email',
+  },
+  resetPassword: {
+    en: 'Reset password',
+    fr: 'Réinitialiser le mot de passe',
+  },
+  resetPasswordDescription: {
+    en: 'Enter your email to receive a reset link',
+    fr: 'Saisissez votre email pour recevoir un lien de réinitialisation',
+  },
+  sendResetLink: {
+    en: 'Send reset link',
+    fr: 'Envoyer le lien',
+  },
+  resetEmailSent: {
+    en: 'Reset email sent',
+    fr: 'Email de réinitialisation envoyé',
+  },
+  checkEmail: {
+    en: 'Check your inbox for further instructions.',
+    fr: 'Consultez votre boîte mail pour la suite.',
+  },
+  backToSignIn: {
+    en: 'Back to sign in',
+    fr: 'Retour à la connexion',
+  },
+  newPassword: {
+    en: 'New password',
+    fr: 'Nouveau mot de passe',
+  },
+  confirmNewPassword: {
+    en: 'Confirm new password',
+    fr: 'Confirmer le mot de passe',
+  },
+  passwordsDontMatch: {
+    en: 'Passwords do not match',
+    fr: 'Les mots de passe ne correspondent pas',
+  },
+  passwordResetSuccess: {
+    en: 'Password reset! You can now sign in.',
+    fr: 'Mot de passe réinitialisé ! Vous pouvez vous connecter.',
+  },
+  resetLinkInvalid: {
+    en: 'The link may be expired or invalid.',
+    fr: 'Le lien a peut-être expiré ou est invalide.',
+  },
+  unexpectedError: {
+    en: 'An unexpected error occurred',
+    fr: "Une erreur inattendue s'est produite",
+  },
+  yourName: {
+    en: 'Your name',
+    fr: 'Votre nom',
+  },
+  subject: {
+    en: 'Subject',
+    fr: 'Objet',
+  },
+  yourMessage: {
+    en: 'Your message',
+    fr: 'Votre message',
+  },
+  sending: {
+    en: 'Sending…',
+    fr: 'Envoi…',
+  },
+  messageSent: {
+    en: 'Message sent!',
+    fr: 'Message envoyé !',
+  },
+  messageSentDescription: {
+    en: "We'll get back to you as soon as possible.",
+    fr: 'Nous vous répondrons dès que possible.',
+  },
+  messageError: {
+    en: 'Failed to send message. Please try again later.',
+    fr: "Échec de l'envoi. Veuillez réessayer plus tard.",
+  },
+  chatOnWhatsApp: {
+    en: 'Chat on WhatsApp',
+    fr: 'Discuter sur WhatsApp',
+  },
+  fastestAnswer: {
+    en: 'The fastest way to reach us.',
+    fr: 'Le moyen le plus rapide de nous joindre.',
+  },
+  wishlist: {
+    en: 'Wishlist',
+    fr: 'Favoris',
+  },
+  wishlistEmpty: {
+    en: 'Your wishlist is empty',
+    fr: 'Aucun favori pour le moment',
+  },
+  wishlistEmptyDescription: {
+    en: 'Tap the heart on a product to save it here.',
+    fr: "Touchez le cœur d'un produit pour le retrouver ici.",
+  },
+  exactAddress: {
+    en: 'Exact delivery address',
+    fr: 'Adresse de livraison exacte',
+  },
+  addressPlaceholder: {
+    en: 'Neighbourhood, street, landmark…',
+    fr: 'Quartier, rue, point de repère…',
+  },
+  payOnDelivery: {
+    en: 'Pay on delivery',
+    fr: 'Paiement à la livraison',
+  },
+  payOnDeliveryDescription: {
+    en: 'You pay when you receive your order.',
+    fr: 'Vous payez à la réception de votre commande.',
+  },
+  orderError: {
+    en: "We couldn't create your order. Please try again.",
+    fr: 'Impossible de créer la commande. Veuillez réessayer.',
+  },
+  fillTheForm: {
+    en: 'Please complete the form before ordering.',
+    fr: 'Veuillez compléter le formulaire avant de commander.',
+  },
+  contactInformation: {
+    en: 'Contact',
+    fr: 'Coordonnées',
+  },
+  viewAll: {
+    en: 'View all',
+    fr: 'Voir tout',
+  },
+  cancel: {
+    en: 'Cancel',
+    fr: 'Annuler',
+  },
+  inStock: {
+    en: 'In stock',
+    fr: 'En stock',
+  },
+  onlyLeft: {
+    en: 'Only {n} left',
+    fr: 'Plus que {n} en stock',
+  },
+  outOfStock: {
+    en: 'Sold out',
+    fr: 'Épuisé',
+  },
+  home: {
+    en: 'Home',
+    fr: 'Accueil',
+  },
+  shop: {
+    en: 'Shop',
+    fr: 'Boutique',
+  },
+  description: {
+    en: 'Description',
+    fr: 'Description',
+  },
+  share: {
+    en: 'Share',
+    fr: 'Partager',
+  },
+  linkCopied: {
+    en: 'Link copied',
+    fr: 'Lien copié',
+  },
+  addToWishlist: {
+    en: 'Add to wishlist',
+    fr: 'Ajouter aux favoris',
+  },
+  openCart: {
+    en: 'Open cart',
+    fr: 'Ouvrir le panier',
+  },
+  account: {
+    en: 'Account',
+    fr: 'Compte',
+  },
+  menu: {
+    en: 'Menu',
+    fr: 'Menu',
+  },
+  previousImage: {
+    en: 'Previous image',
+    fr: 'Image précédente',
+  },
+  nextImage: {
+    en: 'Next image',
+    fr: 'Image suivante',
+  },
+  announcement: {
+    en: 'Delivery in Yaoundé & Douala · Pay on delivery',
+    fr: 'Livraison à Yaoundé & Douala · Paiement à la livraison',
+  },
+  naturalProducts: {
+    en: 'Natural products',
+    fr: 'Produits naturels',
+  },
+  customerSupport: {
+    en: 'Support 7/7 on WhatsApp',
+    fr: 'Support 7j/7 sur WhatsApp',
+  },
+  itemAdded: {
+    en: 'Added to cart',
+    fr: 'Ajouté au panier',
+  },
+  taxesAtCheckout: {
+    en: 'Shipping calculated at checkout',
+    fr: 'Livraison calculée à la commande',
+  },
   backToBlogs: {
     en: 'Back to blogs',
     fr: 'Retour aux blogs',
@@ -65,7 +369,7 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
   },
   noResultsFoundFor: {
     en: 'No results found for',
-    fr: 'Aucun resultat trouve pour',
+    fr: 'Aucun résultat pour',
   },
   removeConfirmation: {
     en: 'Remove this item?',
@@ -136,12 +440,12 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     fr: "Veuillez choisir une date d'achat",
   },
   fullName: {
-    en: 'Name',
-    fr: 'Nom',
+    en: 'Full name',
+    fr: 'Nom complet',
   },
   phone: {
-    en: 'WhatsApp Phone Number',
-    fr: 'Numero De Téléphone Whatsapp',
+    en: 'WhatsApp number',
+    fr: 'Numéro WhatsApp',
   },
   city: {
     en: 'City',
@@ -152,8 +456,8 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     fr: 'Date de livraison',
   },
   whenToGetTheProduct: {
-    en: 'Get the product today or tomorrow',
-    fr: "Recevoir le produit aujourd'hui ou demain",
+    en: 'Preferred delivery date',
+    fr: 'Date de livraison souhaitée',
   },
   deliveryTime: {
     en: 'Delivery Time',
@@ -222,7 +526,7 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
   },
   placeOrder: {
     en: 'Place Order',
-    fr: 'Passer Commander',
+    fr: 'Passer la commande',
   },
   ctaButton: {
     en: 'See Our Products',
@@ -286,7 +590,7 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
   },
   exploreCategories: {
     en: 'Explore Categories',
-    fr: 'Explorer les Categories',
+    fr: 'Explorer les catégories',
   },
   featuredBlogs: {
     en: 'Featured Blogs',
@@ -330,7 +634,7 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
   },
   exploreMore: {
     en: 'Explore More',
-    fr: 'Découvrez plus',
+    fr: 'Découvrir',
   },
   lowToHighPrice: {
     en: 'Price: Low to High',
@@ -361,12 +665,12 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     fr: 'Aucun produit trouvé',
   },
   heroTitle: {
-    en: 'Discover Amazing Product',
+    en: 'Discover Amazing Products',
     fr: 'Découvrez des produits fantastiques',
   },
   heroDescription: {
     en: 'Explore our collection of premium products designed to enhance your lifestyle',
-    fr: 'Découvrez notre collection de produits premium concu pour améliorer votre style de vie',
+    fr: 'Découvrez notre collection de produits premium conçue pour améliorer votre style de vie',
   },
   specialOffer: {
     en: 'Special Offer',
@@ -509,20 +813,20 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     fr: 'Passer à la caisse',
   },
   orderSuccessful: {
-    en: 'Order Successful!',
-    fr: 'Commande réussie!',
+    en: 'Order confirmed!',
+    fr: 'Commande confirmée !',
   },
   thankYouForYourPurchase: {
     en: 'Thank you for your purchase!',
-    fr: 'Merci pour votre achat!',
+    fr: 'Merci pour votre achat !',
   },
   confirmationEmailSent: {
-    en: ' ',
-    fr: ' ',
+    en: 'Our team will contact you shortly to confirm delivery.',
+    fr: 'Notre équipe vous contactera rapidement pour confirmer la livraison.',
   },
   createAccountMessage: {
     en: 'Create an account to track your orders and get exclusive offers!',
-    fr: 'Créez un compte pour suivre vos commandes et obtenir des offres exclusives!',
+    fr: 'Créez un compte pour suivre vos commandes et obtenir des offres exclusives !',
   },
   returnToHome: {
     en: 'Return to Home',
@@ -557,8 +861,8 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     fr: 'Notre emplacement',
   },
   locationAddress: {
-    en: 'Yaoundé, Carrefour Ekoudoum, lieu dis restaurant droit chemin, next to Hotel IRIS',
-    fr: "Yaoundé, Carrefour Ekoudoum, lieu dis restaurant droit chemin, sis à coté de l'Hotel IRIS",
+    en: 'Yaoundé, Carrefour Ekoudoum, Droit Chemin restaurant, next to Hotel IRIS',
+    fr: "Yaoundé, Carrefour Ekoudoum, lieu dit restaurant Droit Chemin, à côté de l'Hôtel IRIS",
   },
   email: {
     en: 'Email',
@@ -593,20 +897,20 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     fr: 'Rechercher un produit',
   },
   blogsDescription: {
-    en: 'Discover the latest insights, guides, and trends in health tech and electronics.',
-    fr: 'Découvrez les derniers conseils, guides et tendances en technologie de santé et d’electronique.',
+    en: 'Tips, guides and news about health, well-being and our products.',
+    fr: 'Conseils, guides et actualités sur la santé, le bien-être et nos produits.',
   },
   blog: {
     en: 'Blog',
-    fr: 'Article',
+    fr: 'Articles',
   },
   standOut: {
     en: 'stand out',
     fr: 'unique',
   },
   signInBeforeTrack: {
-    en: 'You need to log in first if you want to track your order.',
-    fr: 'Vous devez vous connecter au préalable si vous souhaitez suivre votre commande.',
+    en: 'Already a customer? Sign in to track your order.',
+    fr: 'Déjà client ? Connectez-vous pour suivre votre commande.',
   },
   PENDING: {
     en: 'PENDING',
@@ -651,6 +955,82 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
 }
 
 export const enum DictWords {
+  searching = 'searching',
+  minRead = 'minRead',
+  searchArticles = 'searchArticles',
+  shareThoughts = 'shareThoughts',
+  sortBy = 'sortBy',
+  selectMethod = 'selectMethod',
+  welcomeBack = 'welcomeBack',
+  signInToAccount = 'signInToAccount',
+  password = 'password',
+  continueWithGoogle = 'continueWithGoogle',
+  noAccount = 'noAccount',
+  haveAccount = 'haveAccount',
+  forgotPassword = 'forgotPassword',
+  signedIn = 'signedIn',
+  invalidEmail = 'invalidEmail',
+  signUpDescription = 'signUpDescription',
+  nameMin = 'nameMin',
+  passwordMin8 = 'passwordMin8',
+  passwordUpper = 'passwordUpper',
+  passwordLower = 'passwordLower',
+  passwordNumber = 'passwordNumber',
+  passwordSpecial = 'passwordSpecial',
+  accountCreated = 'accountCreated',
+  verifyEmail = 'verifyEmail',
+  resetPassword = 'resetPassword',
+  resetPasswordDescription = 'resetPasswordDescription',
+  sendResetLink = 'sendResetLink',
+  resetEmailSent = 'resetEmailSent',
+  checkEmail = 'checkEmail',
+  backToSignIn = 'backToSignIn',
+  newPassword = 'newPassword',
+  confirmNewPassword = 'confirmNewPassword',
+  passwordsDontMatch = 'passwordsDontMatch',
+  passwordResetSuccess = 'passwordResetSuccess',
+  resetLinkInvalid = 'resetLinkInvalid',
+  unexpectedError = 'unexpectedError',
+  yourName = 'yourName',
+  subject = 'subject',
+  yourMessage = 'yourMessage',
+  sending = 'sending',
+  messageSent = 'messageSent',
+  messageSentDescription = 'messageSentDescription',
+  messageError = 'messageError',
+  chatOnWhatsApp = 'chatOnWhatsApp',
+  fastestAnswer = 'fastestAnswer',
+  wishlist = 'wishlist',
+  wishlistEmpty = 'wishlistEmpty',
+  wishlistEmptyDescription = 'wishlistEmptyDescription',
+  exactAddress = 'exactAddress',
+  addressPlaceholder = 'addressPlaceholder',
+  payOnDelivery = 'payOnDelivery',
+  payOnDeliveryDescription = 'payOnDeliveryDescription',
+  orderError = 'orderError',
+  fillTheForm = 'fillTheForm',
+  contactInformation = 'contactInformation',
+  viewAll = 'viewAll',
+  cancel = 'cancel',
+  inStock = 'inStock',
+  onlyLeft = 'onlyLeft',
+  outOfStock = 'outOfStock',
+  home = 'home',
+  shop = 'shop',
+  description = 'description',
+  share = 'share',
+  linkCopied = 'linkCopied',
+  addToWishlist = 'addToWishlist',
+  openCart = 'openCart',
+  account = 'account',
+  menu = 'menu',
+  previousImage = 'previousImage',
+  nextImage = 'nextImage',
+  announcement = 'announcement',
+  naturalProducts = 'naturalProducts',
+  customerSupport = 'customerSupport',
+  itemAdded = 'itemAdded',
+  taxesAtCheckout = 'taxesAtCheckout',
   whenToGetTheProduct = 'whenToGetTheProduct',
   getMoreInformation = 'getMoreInformation',
   showLess = 'showLess',

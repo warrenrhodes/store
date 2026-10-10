@@ -1,130 +1,134 @@
 'use client'
 
 import { getReviewsForProduct } from '@/actions/review'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCart } from '@/hooks/useCart'
 import { useLocalization } from '@/hooks/useLocalization'
 import { useWishlist } from '@/hooks/useWishlist'
 import { Product, Review } from '@/lib/firebase/models'
-import { Inventory } from '@/lib/type'
+import { Inventory, Price as IPrice } from '@/lib/type'
 import { FAKE_BLUR } from '@/lib/utils/constants'
-import { cn, getRegularPrice, getReviewAverage } from '@/lib/utils/utils'
+import {
+  canDisplayPromoPrice,
+  cn,
+  getPercentageDiscount,
+  getRegularPrice,
+  getReviewAverage,
+} from '@/lib/utils/utils'
 import { getDocumentId } from '@spreeloop/database'
-import { motion } from 'framer-motion'
-import { Heart, ShoppingCart, Star } from 'lucide-react'
+import { Heart, Plus, Star } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Price } from './Price'
 import { Button } from './ui/button'
 
-interface ProductCardProps {
-  product: Product
-}
-
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product }: { product: Product }) {
   const [reviews, setReviews] = useState<Review[]>([])
   const cart = useCart()
   const { isInWishlist, toggleWishlist } = useWishlist()
   const { localization } = useLocalization()
 
-  const fetchReview = useCallback(async () => {
-    const reviews = await getReviewsForProduct(getDocumentId(product.path))
-    setReviews(reviews)
+  useEffect(() => {
+    // ponytail: one server action per card; batch on the server if the grid gets large
+    getReviewsForProduct(getDocumentId(product.path)).then(setReviews)
   }, [product.path])
 
-  useEffect(() => {
-    fetchReview()
-  }, [fetchReview])
-  return (
-    <motion.div key={`${product.path}`}>
-      <Card className="group h-full flex flex-col overflow-hidden">
-        <CardHeader className="p-0">
-          <div className="relative">
-            <Link href={`/shop/${product.slug}`}>
-              <div className="relative aspect-square overflow-hidden rounded-t-lg">
-                <Image
-                  src={product.medias[0].url}
-                  alt={product.title}
-                  fill
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  placeholder="blur"
-                  blurDataURL={product.medias[0].blurDataUrl || FAKE_BLUR}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
-                {product.isNewProduct && (
-                  <Badge className="absolute top-4 left-4">{localization.new}</Badge>
-                )}
-                {(product.inventory as Inventory).stockQuantity &&
-                  (product.inventory as Inventory).stockQuantity <= 10 && (
-                    <Badge variant="destructive" className="absolute bottom-4 right-4 ring-1">
-                      {localization.lowStock}
-                    </Badge>
-                  )}
-              </div>
-            </Link>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn(
-                'absolute top-4 right-4 backdrop-blur-sm z-0',
-                isInWishlist(product.path)
-                  ? 'bg-red-500/80 hover:bg-red-500 text-white hover:text-white'
-                  : 'bg-white/80 hover:bg-white',
-              )}
-              onClick={e => {
-                e.preventDefault()
-                e.stopPropagation()
-                toggleWishlist(product.path)
-              }}
-            >
-              <Heart className="h-5 w-5" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="flex-1 p-2">
-          <div className="flex items-center mb-2 gap-2 w-full">
-            {product.categories.slice(0, 3).map(category => (
-              <Badge variant="outline" key={`${category}`} className="line-clamp-1 text-center">
-                {category}
-              </Badge>
-            ))}
+  const price = product.price as unknown as IPrice
+  const stock = (product.inventory as Inventory)?.stockQuantity
+  const soldOut = stock === 0
+  const discount = canDisplayPromoPrice(product)
+    ? getPercentageDiscount(price.regular, price.sale)
+    : 0
+  const rating = getReviewAverage(reviews)
+  const wished = isInWishlist(product.path)
+  const [main, hover] = product.medias
 
-            {getReviewAverage(reviews) > 0 && (
-              <div className="flex items-center gap-1">
-                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                <span className="text-sm font-medium">{getReviewAverage(reviews || [])}</span>
-                <span className="text-sm text-muted-foreground">({reviews.length})</span>
-              </div>
-            )}
+  return (
+    <div className="group relative flex h-full flex-col">
+      <Link
+        href={`/shop/${product.slug}`}
+        className="relative block aspect-square overflow-hidden rounded-lg bg-muted"
+      >
+        <Image
+          src={main.url}
+          alt={product.title}
+          fill
+          className={cn(
+            'object-cover transition duration-500 group-hover:scale-[1.03]',
+            hover && 'group-hover:opacity-0',
+          )}
+          placeholder="blur"
+          blurDataURL={main.blurDataUrl || FAKE_BLUR}
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+        />
+        {hover && (
+          <Image
+            src={hover.url}
+            alt=""
+            fill
+            className="object-cover opacity-0 transition duration-500 group-hover:opacity-100"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          />
+        )}
+        <div className="absolute left-2 top-2 flex flex-col items-start gap-1">
+          {soldOut ? (
+            <span className="rounded bg-foreground px-2 py-0.5 text-xs font-semibold text-background">
+              {localization.outOfStock}
+            </span>
+          ) : discount > 0 ? (
+            <span className="rounded bg-sale px-2 py-0.5 text-xs font-semibold text-sale-foreground">
+              -{discount.toFixed(0)}%
+            </span>
+          ) : null}
+          {product.isNewProduct && !soldOut && (
+            <span className="rounded bg-background px-2 py-0.5 text-xs font-semibold text-foreground shadow-sm">
+              {localization.new}
+            </span>
+          )}
+        </div>
+      </Link>
+
+      <button
+        type="button"
+        aria-label={localization.addToWishlist}
+        aria-pressed={wished}
+        className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full bg-background/90 shadow-sm transition hover:scale-105 cursor-pointer"
+        onClick={() => toggleWishlist(product.path)}
+      >
+        <Heart className={cn('h-4 w-4', wished && 'fill-destructive text-destructive')} />
+      </button>
+
+      <div className="flex flex-1 flex-col gap-1 pt-3">
+        {product.categories[0] && (
+          <span className="text-xs uppercase tracking-wide text-muted-foreground">
+            {product.categories[0]}
+          </span>
+        )}
+        <Link
+          href={`/shop/${product.slug}`}
+          className="line-clamp-2 text-sm font-medium leading-snug hover:underline underline-offset-4"
+        >
+          {product.title}
+        </Link>
+        {rating > 0 && (
+          <div className="flex items-center gap-1 text-xs">
+            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" aria-hidden />
+            <span className="font-medium">{rating}</span>
+            <span className="text-muted-foreground">({reviews.length})</span>
           </div>
-          <CardTitle className="line-clamp-2">{product.title}</CardTitle>
-          <div className="mt-2 space-x-1">
-            {product.tags?.slice(0, 3).map(tag => (
-              <span key={tag} className="inline-block text-xs text-muted-foreground">
-                #{tag}
-              </span>
-            ))}
-          </div>
-          <Price product={product} />
-        </CardContent>
-        <CardFooter className="w-full p-2">
-          <Button
-            className="w-full group"
-            onClick={() => {
-              cart.addItem({
-                product: product,
-                price: getRegularPrice(product),
-                quantity: 1,
-              })
-            }}
-          >
-            <ShoppingCart className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
-            {localization.addToCart}
-          </Button>
-        </CardFooter>
-      </Card>
-    </motion.div>
+        )}
+        <Price product={product} className="mt-auto pt-1" />
+      </div>
+
+      <Button
+        variant="outline"
+        className="mt-3 w-full"
+        disabled={soldOut}
+        onClick={() => cart.addItem({ product, price: getRegularPrice(product), quantity: 1 })}
+      >
+        <Plus className="mr-1 h-4 w-4" aria-hidden />
+        {soldOut ? localization.outOfStock : localization.addToCart}
+      </Button>
+    </div>
   )
 }

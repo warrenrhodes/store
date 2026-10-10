@@ -6,29 +6,7 @@ import Link from 'next/link'
 import Delete from '../custom-ui/Delete'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
-import { Checkbox } from '../ui/checkbox'
 export const categoryColumns: ColumnDef<ICategory>[] = [
-  {
-    id: 'select',
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')
-        }
-        onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={value => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
   {
     accessorKey: 'name',
     accessorFn: row => row.data.name,
@@ -70,16 +48,13 @@ export const categoryColumns: ColumnDef<ICategory>[] = [
       }
 
       return (
-        <div>
-          <Link href={`/categories/${getDocumentId(category.path)}`}>
-            <div className="flex gap-3 items-center">
-              <Edit className="w-4 h-4" />
-              Edit
-            </div>
-          </Link>
-          <div className="flex gap-3 items-center cursor-pointer">
-            <Delete item="categories" handleDelete={onDelete} />
-          </div>
+        <div className="flex items-center justify-end gap-1">
+          <Button asChild variant="ghost" size="icon" aria-label="Edit">
+            <Link href={`/categories/${getDocumentId(category.path)}`}>
+              <Edit className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Delete item="categories" handleDelete={onDelete} />
         </div>
       )
     },

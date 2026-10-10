@@ -4,7 +4,6 @@ import { FilterBar } from '@/components/Shop/FilterBar'
 import { FilterOptions } from '@/components/Shop/FilterOptions'
 import { ProductGrid } from '@/components/Shop/ProductGrid'
 import { ProductHero } from '@/components/Shop/ProductHero'
-import { ShoppingCartButton } from '@/components/Shop/ShoppingCartButton'
 import useFilter from '@/hooks/useFilter'
 import { Category, Product } from '@/lib/firebase/models'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -31,7 +30,7 @@ export const ShoppingWrapper = ({
     products: productList,
     tags: Array.from(new Set(productList.map(product => product.tags?.flat() || []).flat())),
   })
-  
+
   // Note: productList is now the ALREADY filtered list from server.
   const filteredProducts = productList
   const [activeFilters, setActiveFilters] = useState(0)
@@ -39,7 +38,9 @@ export const ShoppingWrapper = ({
   // Sync URL to State on Mount / URL Change
   useEffect(() => {
     const search = searchParams.get('search') || ''
-    const categoryParam = searchParams.getAll('category')
+    const categoryParam = searchParams
+      .getAll('category')
+      .map(s => categories.find(c => c.slug === s)?.name ?? s)
     const tagsParam = searchParams.getAll('tags')
     const minPrice = searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : MIN_PRICE
     const maxPrice = searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : MAX_PRICE
@@ -53,43 +54,47 @@ export const ShoppingWrapper = ({
       sortBy: sort as any,
       colors: [],
     })
-  }, [searchParams, setFilters, MIN_PRICE, MAX_PRICE])
+  }, [searchParams, setFilters, MIN_PRICE, MAX_PRICE, categories])
 
   // Sync State to URL
   useEffect(() => {
+    // Read live store state: on mount the URL->state effect above has just written it,
+    // while the `filters` closure is still stale and would push the params away (redirect loop).
+    const filters = useFilter.getState().filters
     const params = new URLSearchParams()
-    
+
     if (filters.search) params.set('search', filters.search)
-    
-    filters.categories.forEach(cat => params.append('category', cat))
+
+    filters.categories.forEach(name =>
+      params.append('category', categories.find(c => c.name === name)?.slug ?? name),
+    )
     filters.tags.forEach(tag => params.append('tags', tag))
-    
+
     if (filters.priceRange[0] > MIN_PRICE) params.set('minPrice', filters.priceRange[0].toString())
     if (filters.priceRange[1] < MAX_PRICE) params.set('maxPrice', filters.priceRange[1].toString())
-    
+
     if (filters.sortBy && filters.sortBy !== 'newest') params.set('sort', filters.sortBy)
 
     const queryString = params.toString()
     const currentQuery = searchParams.toString()
 
     if (queryString !== currentQuery) {
-        router.push(`?${queryString}`, { scroll: false })
+      router.push(`?${queryString}`, { scroll: false })
     }
-    
+
     let count = 0
     if (filters.categories.length > 0) count++
     if (filters.tags.length > 0) count++
     if (filters.priceRange[0] > MIN_PRICE || filters.priceRange[1] < MAX_PRICE) count++
     if (filters.search) count++
     setActiveFilters(count)
-
-  }, [filters, MIN_PRICE, MAX_PRICE, router, searchParams])
+  }, [filters, MIN_PRICE, MAX_PRICE, router, searchParams, categories])
 
   return (
     <div className="min-h-screen bg-background">
       <ProductHero />
 
-      <main className="container mx-auto px-4 -mt-20 relative z-10 mb-28">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
         <FilterBar
           filters={filters}
           setFilters={setFilters}
@@ -100,7 +105,7 @@ export const ShoppingWrapper = ({
           categories={pageData?.categories || []}
         />
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <aside className="lg:col-span-1 sticky top-8 max-lg:hidden">
+          <aside className="lg:col-span-1 sticky top-24 self-start max-lg:hidden">
             <FilterOptions
               filters={filters}
               setFilters={setFilters}
@@ -114,8 +119,6 @@ export const ShoppingWrapper = ({
           </div>
         </div>
       </main>
-
-      <ShoppingCartButton />
     </div>
   )
 }

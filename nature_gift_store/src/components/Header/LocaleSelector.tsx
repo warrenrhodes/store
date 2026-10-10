@@ -14,28 +14,28 @@ export const LocaleSelector = () => {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <div
-          className={cn(
-            buttonVariants({ variant: 'outline' }),
-            'relative  group-hover:bg-transparent backdrop-blur-sm cursor-pointer ',
-          )}
+        <button
+          type="button"
+          aria-label="Langue / Language"
+          className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'font-semibold')}
         >
           {locale.toUpperCase()}
-        </div>
+        </button>
       </PopoverTrigger>
       <PopoverContent className="w-12 p-0">
         <div className="flex w-full flex-col space-y-2 p-1">
           {localization.locales.map(i => (
-            <div
+            <button
+              type="button"
               key={i}
               onClick={() => handleLocaleSelection(i)}
               className={cn(
                 { 'bg-primary/15': locale == i },
-                'w-full cursor-pointer hover:bg-primary/30 flex items-center justify-center text-sm',
+                'w-full rounded py-1.5 cursor-pointer hover:bg-primary/30 flex items-center justify-center text-sm',
               )}
             >
               {i.toUpperCase()}
-            </div>
+            </button>
           ))}
         </div>
       </PopoverContent>

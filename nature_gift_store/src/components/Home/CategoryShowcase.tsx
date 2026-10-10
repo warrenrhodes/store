@@ -1,101 +1,50 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '../ui/badge'
-import useFilter from '@/hooks/useFilter'
-import { useRouter } from 'next/navigation'
+import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
 import { Category } from '@/lib/firebase/models'
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-}
-
-const itemVariants = {
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5,
-    },
-  },
-}
 
 export function CategoryShowcase({ categories }: { categories: Category[] }) {
-  const router = useRouter()
   const { localization } = useLocalization()
-
-  const { filters, setFilters, clearFilters } = useFilter()
+  if (categories.length === 0) return null
 
   return (
-    <section className="py-24 bg-gray-50">
+    <section className="py-16 sm:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            {localization.exploreCategories}
-          </h2>
-          <p className="mt-4 text-lg text-gray-600">
-            Find everything you need across our diverse range of products
-          </p>
-        </div>
+        <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+          {localization.exploreCategories}
+        </h2>
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-100px' }}
-          className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
-        >
+        <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
           {categories.map(category => (
-            <motion.div key={`${category.path}`} variants={itemVariants}>
-              <div
-                className="cursor-pointer"
-                onClick={() => {
-                  clearFilters()
-                  setFilters({
-                    ...filters,
-                    categories: [category.slug],
-                  })
-                  router.push(`/shop`)
-                }}
-              >
-                <Card className="group overflow-hidden">
-                  <CardContent className="p-0">
-                    <div className="relative aspect-[4/5]">
-                      <div style={{ backgroundImage: `url(${category.image?.url})` }}>
-                        <Image
-                          src={category.image?.url || ''}
-                          alt={category.name}
-                          fill
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          placeholder="blur"
-                          blurDataURL={category.image?.blurDataUrl || FAKE_BLUR}
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        />
-                        <div className="absolute inset-0 bg-black/50 transition-opacity duration-300 group-hover:bg-black/60" />
-                      </div>
-                      {category.featured && (
-                        <Badge className="absolute top-4 left-4">Feature</Badge>
-                      )}
-                      <div className="relative h-full flex flex-col items-center justify-center text-center p-8">
-                        <h3 className="text-2xl font-semibold text-white">{category.name}</h3>
-                        <p className="mt-2 text-sm text-gray-300">{category.description}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+            <Link
+              key={`${category.path}`}
+              href={`/shop?category=${encodeURIComponent(category.slug)}`}
+              className="group relative block aspect-[4/5] overflow-hidden rounded-lg bg-muted"
+            >
+              <Image
+                src={category.image?.url || '/default-image.png'}
+                alt=""
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                placeholder="blur"
+                blurDataURL={category.image?.blurDataUrl || FAKE_BLUR}
+                sizes="(max-width: 1024px) 50vw, 25vw"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5 text-white">
+                <h3 className="text-lg font-semibold sm:text-xl">{category.name}</h3>
+                <span className="mt-1 inline-flex items-center gap-1 text-sm text-white/90">
+                  {localization.exploreMore}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </span>
               </div>
-            </motion.div>
+            </Link>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   )

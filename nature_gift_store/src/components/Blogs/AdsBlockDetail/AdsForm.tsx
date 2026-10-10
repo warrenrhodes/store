@@ -1,5 +1,4 @@
 import { OrderSummary } from '@/components/Checkout/order-summary'
-import { ToastAction } from '@/components/ui/toast'
 import { useAuthStore } from '@/hooks/store/auth-store'
 import { toast } from '@/hooks/use-toast'
 import { useCart } from '@/hooks/useCart'
@@ -12,7 +11,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { sendGTMEvent } from '@next/third-parties/google'
 import { getDocumentId } from '@spreeloop/database'
 import { AnimatePresence, motion } from 'framer-motion'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -53,7 +51,7 @@ export const AdsForm = (props: { shipments: Shipment[] }) => {
     setFormData(data)
     if (!form.formState.isValid || !orderSummary.current) {
       toast({
-        description: 'Please fill the form before submitting your order',
+        description: localization.fillTheForm,
         variant: 'destructive',
       })
       return
@@ -108,29 +106,12 @@ export const AdsForm = (props: { shipments: Shipment[] }) => {
     const confirmOrder = await createOrder({ order: order, cartItems: cartItems })
 
     if (!confirmOrder) {
-      toast({
-        title: 'Uh oh! Something went wrong.',
-        description: 'Failed to create order',
-        variant: 'destructive',
-      })
+      toast({ description: localization.orderError, variant: 'destructive' })
       setIsLoading(false)
 
       return
     }
 
-    toast({
-      title: 'Order created!',
-      description: `Order created successfully ${!user || user?.isAnonymous ? '\n Sign in to track your order' : ''}`,
-      variant: 'default',
-      action:
-        !user || user?.isAnonymous ? (
-          <ToastAction altText="Sign in">
-            <Link href="/sign-in">Sign in</Link>
-          </ToastAction>
-        ) : (
-          <></>
-        ),
-    })
     const userData = confirmOrder.userData
     const orderPrices = confirmOrder.orderPrices
     const deliveryInfo = confirmOrder.deliveryInfo

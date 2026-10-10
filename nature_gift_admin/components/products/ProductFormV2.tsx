@@ -259,7 +259,7 @@ export function ProductFormV2({ initialData, categories, blogs }: ProductFormPro
                   maxFiles={5}
                 />
               </CustomAccordion>
-              <FormMessage className="text-red-1" />
+              <FormMessage />
             </FormItem>
           )}
         />

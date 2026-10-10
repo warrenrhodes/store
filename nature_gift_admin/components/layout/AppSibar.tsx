@@ -2,9 +2,8 @@
 
 import * as React from 'react'
 import {
-  BaggageClaim,
-  BookOpenTextIcon,
-  CarTaxiFrontIcon,
+  BookOpenText,
+  ExternalLink,
   Gift,
   LayoutDashboard,
   LogIn,
@@ -13,7 +12,9 @@ import {
   ShoppingBag,
   Stars,
   Tag,
+  Truck,
 } from 'lucide-react'
+import Image from 'next/image'
 import {
   Sidebar,
   SidebarContent,
@@ -36,7 +37,11 @@ const data = {
       title: 'Dashboard',
       url: '/',
       icon: LayoutDashboard,
-      isActive: true,
+    },
+    {
+      url: '/orders',
+      icon: ShoppingBag,
+      title: 'Orders',
     },
     {
       title: 'Categories',
@@ -58,11 +63,6 @@ const data = {
     //   icon: LucideImage,
     //   title: 'Medias',
     // },
-    {
-      url: '/orders',
-      icon: ShoppingBag,
-      title: 'Orders',
-    },
     // {
     //   url: '/customers',
     //   icon: UsersRound,
@@ -70,7 +70,7 @@ const data = {
     // },
     {
       url: '/blogs',
-      icon: BookOpenTextIcon,
+      icon: BookOpenText,
       title: 'Blogs',
     },
     {
@@ -80,7 +80,7 @@ const data = {
     },
     {
       url: '/shipments',
-      icon: CarTaxiFrontIcon,
+      icon: Truck,
       title: 'Shipments',
     },
   ],
@@ -95,14 +95,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href="/">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <BaggageClaim className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{"Nature's Gift"}</span>
-                  <span className="truncate text-xs">Enterprise</span>
-                </div>
+              <Link href="/" aria-label="N.Gift Admin">
+                <Image
+                  src="/logo-wordmark.png"
+                  alt="N.Gift"
+                  width={258}
+                  height={79}
+                  priority
+                  className="h-7 w-auto"
+                />
+                <span className="rounded-md bg-sidebar-accent px-1.5 py-0.5 text-xs font-medium text-sidebar-accent-foreground">
+                  Admin
+                </span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -121,27 +125,38 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             }}
           />
         )}
-        {user && (
-          <div
-            onClick={async () => {
-              await logout()
-              router.replace(ROUTES.signIn)
-            }}
-            className="flex items-center gap-3 w-full justify-start p-0 bg-transparent pl-2 cursor-pointer"
-          >
-            <LogOut className="h-4 w-4" />
-            Sign out
-          </div>
-        )}
-        {!user && (
-          <Link
-            href={ROUTES.signIn}
-            className="flex items-center gap-3 w-full justify-start p-0 bg-transparent pl-2 cursor-pointer"
-          >
-            <LogIn className="h-4 w-4" />
-            Sign In
-          </Link>
-        )}
+        <SidebarMenu>
+          {process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <a href={process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink />
+                  <span>View store</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          <SidebarMenuItem>
+            {user ? (
+              <SidebarMenuButton
+                onClick={async () => {
+                  await logout()
+                  router.replace(ROUTES.signIn)
+                }}
+              >
+                <LogOut />
+                <span>Sign out</span>
+              </SidebarMenuButton>
+            ) : (
+              <SidebarMenuButton asChild>
+                <Link href={ROUTES.signIn}>
+                  <LogIn />
+                  <span>Sign in</span>
+                </Link>
+              </SidebarMenuButton>
+            )}
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   )

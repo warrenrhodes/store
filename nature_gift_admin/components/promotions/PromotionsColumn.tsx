@@ -1,6 +1,5 @@
 'use client'
 
-import { format } from 'date-fns'
 import { ArrowUpDown, Edit } from 'lucide-react'
 import Link from 'next/link'
 
@@ -9,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { IPromotion } from '@/lib/actions/server'
 import { PromotionStatus } from '@/lib/firebase/models'
 import { cn } from '@/lib/utils'
+import { toDate } from '@/lib/utils/utils'
 import { getDocumentId } from '@spreeloop/database'
 import { ColumnDef } from '@tanstack/react-table'
 import Delete from '../custom-ui/Delete'
@@ -50,9 +50,9 @@ export const promotionsColumns: ColumnDef<IPromotion>[] = [
     header: 'Period',
     cell: ({ row }) => (
       <div className="text-sm">
-        <div>{format(new Date(row.original.data.startDate), 'PP')}</div>
+        <div>{toDate(row.original.data.startDate)?.toLocaleDateString('en-GB') ?? '—'}</div>
         <div className="text-muted-foreground">
-          to {format(new Date(row.original.data.endDate), 'PP')}
+          to {toDate(row.original.data.endDate)?.toLocaleDateString('en-GB') ?? '—'}
         </div>
       </div>
     ),
@@ -76,10 +76,14 @@ export const promotionsColumns: ColumnDef<IPromotion>[] = [
         <div>
           <Badge
             className={cn({
-              'bg-green-500': row.original.data.status !== PromotionStatus.ACTIVE,
-              'bg-blue-500': row.original.data.status === PromotionStatus.DRAFT,
-              'bg-red-500': row.original.data.status === PromotionStatus.EXPIRED,
-              'bg-gray-500': row.original.data.status === PromotionStatus.DISABLED,
+              'bg-emerald-100 text-emerald-900 hover:bg-emerald-100':
+                row.original.data.status !== PromotionStatus.ACTIVE,
+              'bg-sky-100 text-sky-900 hover:bg-sky-100':
+                row.original.data.status === PromotionStatus.DRAFT,
+              'bg-red-100 text-red-900 hover:bg-red-100':
+                row.original.data.status === PromotionStatus.EXPIRED,
+              'bg-muted text-muted-foreground hover:bg-muted':
+                row.original.data.status === PromotionStatus.DISABLED,
             })}
           >
             {row.original.data.status}
@@ -106,16 +110,13 @@ export const promotionsColumns: ColumnDef<IPromotion>[] = [
       }
 
       return (
-        <div>
-          <Link href={`/promotions/${getDocumentId(row.original.path)}`}>
-            <div className="flex gap-3 items-center">
-              <Edit className="w-4 h-4" />
-              Edit
-            </div>
-          </Link>
-          <div className="flex gap-3 items-center cursor-pointer">
-            <Delete item="promotions" handleDelete={onDelete} />
-          </div>
+        <div className="flex items-center justify-end gap-1">
+          <Button asChild variant="ghost" size="icon" aria-label="Edit">
+            <Link href={`/promotions/${getDocumentId(row.original.path)}`}>
+              <Edit className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Delete item="promotions" handleDelete={onDelete} />
         </div>
       )
     },

@@ -1,18 +1,39 @@
 import Link from 'next/link'
-import { ChevronLeft } from 'lucide-react'
 
-export default function NotFoundGameClient() {
+/** Shared 404 / error screen. */
+export default function StatusPage({
+  code,
+  title,
+  description,
+  onRetry,
+}: {
+  code?: string
+  title: string
+  description: string
+  onRetry?: () => void
+}) {
   return (
-    <div className="min-h-[500px] bg-gradient-to-br from-blue-900 to-purple-900 flex flex-col items-center justify-center text-white">
-      <h1 className="text-4xl font-bold mb-4">Resource Not Found</h1>
-      <div className="bg-white text-center w-48 rounded-2xl h-14 relative group text-black items-center flex justify-center">
-        <Link href="/">
-          <div className="bg-green-400 rounded-xl h-12 w-1/4 flex items-center justify-center absolute left-1 top-[4px] group-hover:w-[184px] z-10 duration-500">
-            <ChevronLeft />
-          </div>
+    <main className="flex min-h-[60vh] flex-col items-center justify-center px-4 py-20 text-center">
+      {code && <p className="font-heading text-6xl font-semibold text-primary">{code}</p>}
+      <h1 className="mt-4 text-2xl font-semibold sm:text-3xl">{title}</h1>
+      <p className="mt-3 max-w-md text-muted-foreground">{description}</p>
+      <div className="mt-8 flex flex-wrap justify-center gap-3">
+        {onRetry && (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="h-11 rounded-xl border px-6 font-medium hover:bg-muted"
+          >
+            Réessayer
+          </button>
+        )}
+        <Link
+          href="/shop"
+          className="inline-flex h-11 items-center rounded-xl bg-primary px-6 font-medium text-primary-foreground hover:bg-primary/90"
+        >
+          Voir la boutique
         </Link>
-        <p className="translate-x-2 ">Return Home</p>
       </div>
-    </div>
+    </main>
   )
 }

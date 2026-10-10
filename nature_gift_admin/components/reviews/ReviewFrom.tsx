@@ -250,7 +250,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ initialData, products }) => {
                   </Avatar>
                   <div className="flex flex-col items-start">
                     <Label htmlFor="userImage" className="cursor-pointer">
-                      <div className="flex items-center space-x-2 text-sm text-blue-500 hover:text-blue-600">
+                      <div className="flex items-center space-x-2 text-sm text-primary hover:text-primary/80">
                         <Camera className="w-4 h-4" />
                         <span>Upload Photo</span>
                       </div>

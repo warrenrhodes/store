@@ -28,7 +28,8 @@ export function BlogSearch({ blogs }: { blogs: Blog[] }) {
       <div className="relative">
         <Input
           type="search"
-          placeholder="Search articles..."
+          placeholder={localization.searchArticles}
+          aria-label={localization.searchArticles}
           className="pl-10 pr-4"
           value={query}
           onChange={e => setQuery(e.target.value)}
@@ -76,7 +77,6 @@ export function BlogSearch({ blogs }: { blogs: Blog[] }) {
           </motion.div>
         )}
       </AnimatePresence>
-      <h2 className="text-2xl font-bold">{localization.search}</h2>
     </div>
   )
 }

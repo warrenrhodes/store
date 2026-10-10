@@ -6,7 +6,6 @@ import { ArrowRight, Calendar, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { format, subDays } from 'date-fns'
 import useEmblaCarousel from 'embla-carousel-react'
 import { EmblaCarouselType, EmblaEventType, EmblaOptionsType } from 'embla-carousel'
 import { useCallback, useEffect, useRef, useMemo } from 'react'
@@ -25,7 +24,7 @@ const OPTIONS: EmblaOptionsType = { dragFree: true, loop: true }
 const TWEEN_FACTOR_BASE = 0.2
 
 export function FeaturedBlogCarousel({ blogs }: FeaturedBlogCarouselProps) {
-  const { localization } = useLocalization()
+  const { localization, formatDate } = useLocalization()
   const [emblaRef, emblaApi] = useEmblaCarousel(OPTIONS)
   const tweenFactor = useRef(0)
   const tweenNodes = useRef<HTMLElement[]>([])
@@ -149,14 +148,20 @@ export function FeaturedBlogCarousel({ blogs }: FeaturedBlogCarouselProps) {
                   <span className="text-white font-medium">{metadata.author.name}</span>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-white/80">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    <span>{format(blog.publishedAt || subDays(new Date(), 4), 'PPP')}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    <span>{metadata.readingTime} min read</span>
-                  </div>
+                  {blog.publishedAt && (
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      <span>{formatDate(blog.publishedAt)}</span>
+                    </div>
+                  )}
+                  {!!metadata.readingTime && (
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      <span>
+                        {metadata.readingTime} {localization.minRead}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
               <Button asChild className="absolute top-8 right-8" variant="secondary">

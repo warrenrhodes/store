@@ -4,7 +4,7 @@ import { getReviewsCache } from '@/lib/actions/server'
 export default async function ReviewsPage() {
   const reviews = await getReviewsCache()
   return (
-    <div className="container py-10">
+    <div className="mx-auto w-full max-w-6xl">
       <ReviewList reviews={reviews} />
     </div>
   )

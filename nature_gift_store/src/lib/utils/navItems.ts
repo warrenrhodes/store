@@ -23,7 +23,7 @@ export const navItems = [
   {
     title: {
       en: 'Contact Us',
-      fr: 'Nous Contact',
+      fr: 'Contact',
     },
     href: '/contact',
   },

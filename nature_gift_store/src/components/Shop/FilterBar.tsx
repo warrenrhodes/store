@@ -37,13 +37,14 @@ export function FilterBar({
 }: FilterBarProps) {
   const { localization } = useLocalization()
   return (
-    <div className="bg-card rounded-xl shadow-lg p-6 mb-8">
+    <div className="sticky top-16 z-20 -mx-4 mb-8 border-b bg-background/95 px-4 py-4 backdrop-blur sm:mx-0 sm:px-0">
       <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
         <div className="flex-1 w-full lg:w-auto">
           <div className="relative">
             <Input
-              type="text"
-              placeholder="Search products..."
+              type="search"
+              placeholder={localization.searchProducts}
+              aria-label={localization.searchProducts}
               value={filters.search}
               onChange={e => setFilters({ ...filters, search: e.target.value })}
               className="pl-10"
@@ -57,8 +58,8 @@ export function FilterBar({
             value={filters.sortBy}
             onValueChange={(value: SortOption) => setFilters({ ...filters, sortBy: value })}
           >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Sort by" />
+            <SelectTrigger className="w-full sm:w-[200px]" aria-label={localization.sortBy}>
+              <SelectValue placeholder={localization.sortBy} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="newest">{localization.newest}</SelectItem>
@@ -68,6 +69,12 @@ export function FilterBar({
             </SelectContent>
           </Select>
 
+          {activeFilters > 0 && (
+            <Button variant="ghost" onClick={clearFilters} className="gap-2 max-lg:hidden">
+              <FilterX className="h-4 w-4" />
+              {localization.clearAll}
+            </Button>
+          )}
           <div className="lg:hidden">
             <Sheet>
               <SheetTrigger asChild>

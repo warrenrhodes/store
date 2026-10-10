@@ -1,7 +1,7 @@
 'use client'
 
 import { Tag } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import Image from 'next/image'
 import { Separator } from '@/components/ui/separator'
 import { useCart, useCartDeliveryInfo } from '@/hooks/useCart'
 import { priceFormatted } from '@/lib/utils/utils'
@@ -10,7 +10,6 @@ import { useEffect } from 'react'
 import { usePromotionCalculator } from '@/hooks/usePromotionCalculator'
 import { OrderSummary as OrderSummaryType } from '@/lib/firebase/models'
 import { Skeleton } from '../ui/skeleton'
-import { Badge } from '../ui/badge'
 import { useLocalization } from '@/hooks/useLocalization'
 
 export function OrderSummary({
@@ -37,87 +36,69 @@ export function OrderSummary({
     updatePromotions()
   }, [cartItems, cartDeliveryInfo])
 
-  if (isCalculating) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Promotions</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-4 w-1/2" />
-        </CardContent>
-      </Card>
-    )
-  }
-
-  if (!summary || error) {
-    return null
-  }
-
   return (
-    <Card className="sticky top-8">
-      <CardHeader>
-        <CardTitle>{localization.orderSummary}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="rounded-xl border bg-muted/40 p-5 lg:sticky lg:top-24">
+      <h2 className="text-xl font-semibold">{localization.orderSummary}</h2>
+      <ul className="mt-5 space-y-4">
         {cartItems.map(item => (
-          <div key={`${item.product.path}`} className="flex justify-between text-sm">
-            <span>
-              {item.product.title} x {item.quantity}
+          <li key={`${item.product.path}`} className="flex items-center gap-4">
+            <div className="relative h-16 w-16 shrink-0 rounded-lg border bg-background">
+              <Image
+                src={item.product.medias[0].url}
+                alt=""
+                fill
+                sizes="64px"
+                className="rounded-lg object-cover"
+              />
+              <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-foreground px-1 text-xs font-semibold text-background">
+                {item.quantity}
+              </span>
+            </div>
+            <span className="flex-1 text-sm font-medium line-clamp-2">{item.product.title}</span>
+            <span className="text-sm tabular-nums">
+              {priceFormatted(item.price * item.quantity)}
             </span>
-            <span>{priceFormatted(item.price * item.quantity)}</span>
-          </div>
+          </li>
         ))}
+      </ul>
 
-        <Separator />
+      <Separator className="my-5" />
 
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
+      {isCalculating || !summary ? (
+        <div className="space-y-3" aria-busy>
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
+        </div>
+      ) : (
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between">
             <span>{localization.subtotal}</span>
-            <span>{priceFormatted(summary.subtotal)}</span>
+            <span className="tabular-nums">{priceFormatted(summary.subtotal)}</span>
           </div>
           {summary.shipping > 0 && (
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between">
               <span>{localization.shipping}</span>
-              <span>{priceFormatted(summary.shipping)}</span>
+              <span className="tabular-nums">{priceFormatted(summary.shipping)}</span>
             </div>
           )}
-          {summary.discount > 0 && (
-            <div className="flex justify-between text-sm text-green-600">
-              <span>{localization.discount}</span>
-              <span>-{priceFormatted(summary.discount)}</span>
+          {summary.appliedPromotions.map(promo => (
+            <div key={promo.id} className="flex justify-between text-primary">
+              <span className="flex items-center gap-1">
+                <Tag className="h-3.5 w-3.5" aria-hidden /> {promo.code}
+              </span>
+              <span className="tabular-nums">-{priceFormatted(promo.discountAmount)}</span>
             </div>
-          )}
-          {summary.appliedPromotions.length > 0 && (
-            <div className="border-t pt-4">
-              <h4 className="font-medium mb-2">{localization.appliedPromotions}:</h4>
-              <div className="space-y-2">
-                {summary.appliedPromotions.map(promo => (
-                  <div key={promo.id} className="flex justify-between items-center text-sm">
-                    <div className="flex items-center gap-2 w-auto">
-                      <Badge className="text-[10px] h-9">
-                        <Tag className="mr-2 h-4 w-4" /> {promo.code}
-                      </Badge>
-                    </div>
-                    <span className="text-red-600 text-[15px] flex">
-                      -{priceFormatted(promo.discountAmount)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          ))}
+          <Separator className="!my-4" />
+          <div className="flex items-baseline justify-between text-base font-semibold">
+            <span>{localization.total}</span>
+            <span className="text-xl tabular-nums">{priceFormatted(summary.total)}</span>
+          </div>
         </div>
-
-        <Separator />
-
-        <div className="flex justify-between font-medium">
-          <span>{localization.total}</span>
-          <span>{priceFormatted(summary?.total)}</span>
-        </div>
-      </CardContent>
-    </Card>
+      )}
+      {error && (
+        <p className="mt-3 text-sm text-destructive">{localization.failedToLoadPromotions}</p>
+      )}
+    </div>
   )
 }

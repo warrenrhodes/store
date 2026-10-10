@@ -2,84 +2,81 @@
 
 import { ContactForm } from '@/components/ContactForm/Form'
 import { useLocalization } from '@/hooks/useLocalization'
-import { motion } from 'framer-motion'
-import { MapPin, Phone, Mail } from 'lucide-react'
-import { Toaster } from 'react-hot-toast'
+import { Mail, MapPin, MessageCircle, Phone } from 'lucide-react'
+
+const WHATSAPP_URL = 'https://wa.me/237696689073'
 
 export default function ContactPage() {
   const { localization } = useLocalization()
 
+  const items: { icon: typeof MapPin; title: string; lines: string[]; prefix?: string }[] = [
+    { icon: MapPin, title: localization.ourLocation, lines: [localization.locationAddress] },
+    {
+      icon: Phone,
+      title: localization.phone,
+      lines: ['+237 6 96 68 90 73'],
+      prefix: 'tel:',
+    },
+    {
+      icon: Mail,
+      title: localization.email,
+      lines: ['natures.gift.237@gmail.com', 'webanalyse237@gmail.com'],
+      prefix: 'mailto:',
+    },
+  ]
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="container mx-auto px-4 py-16">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-16"
-        >
-          <h1 className="text-4xl font-bold text-slate-900 mb-4">{localization.getInTouch}</h1>
-          <p className="text-slate-600 max-w-2xl mx-auto">{localization.contactDescription}</p>
-        </motion.div>
+    <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <div className="max-w-2xl">
+        <h1 className="text-3xl font-semibold sm:text-4xl">{localization.getInTouch}</h1>
+        <p className="mt-3 text-muted-foreground">{localization.contactDescription}</p>
+      </div>
 
-        <div className="grid md:grid-cols-2 gap-16 max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="space-y-8"
+      <div className="mt-10 grid gap-10 lg:grid-cols-5">
+        <div className="space-y-4 lg:col-span-2">
+          <a
+            href={WHATSAPP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-4 rounded-xl bg-primary p-5 text-primary-foreground transition hover:bg-primary/90"
           >
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="flex items-center space-x-4">
-                <div className="bg-slate-100 p-3 rounded-full">
-                  <MapPin className="h-6 w-6 text-slate-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-slate-900">{localization.ourLocation}</h3>
-                  <p className="text-slate-600">{localization.locationAddress}</p>
-                </div>
+            <MessageCircle className="h-7 w-7 shrink-0" aria-hidden />
+            <span>
+              <span className="block font-semibold">{localization.chatOnWhatsApp}</span>
+              <span className="text-sm text-primary-foreground/85">
+                {localization.fastestAnswer}
+              </span>
+            </span>
+          </a>
+          {items.map(({ icon: Icon, title, lines, prefix }) => (
+            <div key={title} className="flex items-start gap-4 rounded-xl border p-5">
+              <Icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden />
+              <div className="text-sm">
+                <h2 className="font-sans font-semibold">{title}</h2>
+                {lines.map(line =>
+                  prefix ? (
+                    <a
+                      key={line}
+                      href={prefix + line.replace(/\s/g, '')}
+                      className="block text-muted-foreground hover:text-foreground"
+                    >
+                      {line}
+                    </a>
+                  ) : (
+                    <p key={line} className="text-muted-foreground">
+                      {line}
+                    </p>
+                  ),
+                )}
               </div>
             </div>
+          ))}
+        </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="flex items-center space-x-4">
-                <div className="bg-slate-100 p-3 rounded-full">
-                  <Phone className="h-6 w-6 text-slate-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-slate-900">{localization.phone}</h3>
-                  <p className="text-slate-600">+237 (6) 78-56-99-20</p>
-                  <p className="text-slate-600">+237 (6) 96-68-90-73</p>
-                  <p className="text-slate-600">Mon-Fri 9am-6pm PST</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="flex items-center space-x-4">
-                <div className="bg-slate-100 p-3 rounded-full">
-                  <Mail className="h-6 w-6 text-slate-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-slate-900">{localization.email}</h3>
-                  <p className="text-slate-600">natures.gift.237@gmail.com</p>
-                  <p className="text-slate-600">webanalyse237@gmail.com</p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="bg-white p-8 rounded-lg shadow-sm"
-          >
-            <ContactForm />
-          </motion.div>
+        <div className="rounded-xl border p-6 sm:p-8 lg:col-span-3">
+          <ContactForm />
         </div>
       </div>
-      <Toaster />
-    </div>
+    </main>
   )
 }

@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { Trash } from "lucide-react";
+import { Trash } from 'lucide-react'
 
 import {
   AlertDialog,
@@ -12,48 +12,50 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
+} from '@/components/ui/alert-dialog'
+import { useToast } from '@/hooks/use-toast'
+import { useRouter } from 'next/navigation'
+import { Button } from '../ui/button'
 
 interface DeleteProps {
-  item: string;
-  handleDelete: () => Promise<boolean>;
+  item: string
+  handleDelete: () => Promise<boolean>
 }
 
 const Delete: React.FC<DeleteProps> = ({ item, handleDelete }) => {
-  const { toast } = useToast();
+  const { toast } = useToast()
+  const router = useRouter()
 
   const onDelete = async () => {
     try {
-      const result = await handleDelete();
+      const result = await handleDelete()
 
       if (result) {
-        window.location.href = `/${item}`;
-        toast({ description: `${item} deleted` });
+        toast({ description: `${item} deleted` })
+        router.refresh()
+      } else {
+        toast({ variant: 'destructive', description: `Could not delete this item.` })
       }
     } catch (err) {
-      console.log(err);
+      console.log(err)
       toast({
-        variant: "destructive",
-        description: "Something went wrong! Please try again.",
-      });
+        variant: 'destructive',
+        description: 'Something went wrong! Please try again.',
+      })
     }
-  };
+  }
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <div className="flex items-center gap-2 cursor-pointer">
-          <Trash className="h-4 w-4" color="red" /> Delete
-        </div>
+        <Button variant="ghost" size="icon" aria-label="Delete">
+          <Trash className="h-4 w-4 text-destructive" />
+        </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className=" text-grey-1">
+      <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-red-1">
-            Are you absolutely sure?
-          </AlertDialogTitle>
+          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your{" "}
-            {item}.
+            This action cannot be undone. This will permanently delete your {item}.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -67,7 +69,7 @@ const Delete: React.FC<DeleteProps> = ({ item, handleDelete }) => {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  );
-};
+  )
+}
 
-export default Delete;
+export default Delete

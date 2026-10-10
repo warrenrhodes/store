@@ -1,12 +1,12 @@
 'use client'
-import NotFoundGameClient from '@/components/NotFound'
+import StatusPage from '@/components/NotFound'
 
-// Error boundaries must be Client Components
-
-export default function Error() {
+export default function Error({ reset }: { reset: () => void }) {
   return (
-    <div>
-      <NotFoundGameClient />
-    </div>
+    <StatusPage
+      title="Un problème est survenu"
+      description="Nous n'avons pas pu charger cette page. Réessayez dans un instant."
+      onRetry={reset}
+    />
   )
 }

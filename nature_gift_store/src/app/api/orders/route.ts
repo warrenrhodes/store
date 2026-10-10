@@ -1,6 +1,14 @@
+import { CartItem } from '@/hooks/useCart'
+import {
+  getAllCollectionCache,
+  getAllValidPromotionCache,
+  getDocumentByPathCache,
+} from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { backend } from '@/lib/firebase/firebase-server/firebase'
-import { Order, OrderStatus } from '@/lib/firebase/models'
+import { Order, OrderStatus, Product, ProductStatus, Shipment } from '@/lib/firebase/models'
+import { PromotionCalculator } from '@/lib/utils/promotion-calculator'
+import { getRegularPrice } from '@/lib/utils/utils'
 import { FlockNotifier } from '@/lib/notifications/flock/flock'
 import { sendEmailNotifications, sendSmsNotifications } from '@/lib/notifications/sendNotifications'
 import { getDatabasePath } from '@spreeloop/database'
@@ -10,9 +18,61 @@ import { NextRequest, NextResponse } from 'next/server'
 const flockNotifier = new FlockNotifier({
   webhookUrl: process.env.FLOCK_WEBHOOK_URL as string,
 })
+/**
+ * Prices the order from the database, never from the client: product prices,
+ * shipping cost and promotions are all looked up server-side.
+ */
+async function priceOrder(
+  rawItems: unknown,
+  deliveryInfo: { deliveryMethod?: string; location?: string } | undefined,
+) {
+  if (!Array.isArray(rawItems) || rawItems.length === 0) return null
+
+  const cart = await Promise.all(
+    rawItems.map(async (item): Promise<CartItem | null> => {
+      const quantity = Number(item?.quantity)
+      const path = String(item?.product?.path ?? '')
+      if (!Number.isInteger(quantity) || quantity < 1 || quantity > 99) return null
+      if (!path.startsWith(`${CollectionsName.Products}/`)) return null
+      const product = await getDocumentByPathCache<Product>({ path })
+      if (!product || product.status !== ProductStatus.PUBLISHED) return null
+      return { product: { ...product, path }, quantity, price: getRegularPrice(product) }
+    }),
+  )
+  if (cart.some(item => !item)) return null
+
+  const shipments =
+    (await getAllCollectionCache<Shipment>({ collection: CollectionsName.Shipments })) || []
+  const cost =
+    shipments.find(
+      s =>
+        s.isActive !== false &&
+        s.method === deliveryInfo?.deliveryMethod &&
+        s.locations.includes(deliveryInfo?.location ?? ''),
+    )?.cost ?? 0
+
+  const promotions = await getAllValidPromotionCache()
+  const summary = new PromotionCalculator(
+    cart as CartItem[],
+    {
+      deliveryMethod: deliveryInfo?.deliveryMethod as never,
+      location: deliveryInfo?.location,
+      cost,
+    },
+    promotions,
+  ).calculate()
+
+  return { cart: cart as CartItem[], summary }
+}
+
 /// Request to create new order.
 export const POST = async (req: NextRequest) => {
-  const { order, cartItems } = await req.json()
+  const { order, cartItems: rawItems } = await req.json()
+  const priced = await priceOrder(rawItems, order?.deliveryInfo)
+  if (!priced) {
+    return NextResponse.json({ error: 'Invalid cart' }, { status: 400 })
+  }
+  const { cart: cartItems, summary } = priced
 
   const data = {
     userPath: order.userData?.id
@@ -21,11 +81,16 @@ export const POST = async (req: NextRequest) => {
     deliveryInfo: order.deliveryInfo,
     userData: order.userData,
     status: OrderStatus.PENDING,
-    orderPrices: order.orderPrices,
-    partnersPaths: cartItems.map((item: any) =>
+    orderPrices: {
+      subtotal: summary.subtotal,
+      shipping: summary.shipping,
+      discount: summary.discount,
+      total: summary.total,
+    },
+    partnersPaths: cartItems.map(item =>
       getDatabasePath(CollectionsName.Users, item.product.creatorId),
     ),
-    items: cartItems.map((item: any) => ({
+    items: cartItems.map(item => ({
       product: {
         medias: item.product.medias,
         title: item.product.title,
@@ -36,7 +101,11 @@ export const POST = async (req: NextRequest) => {
       quantity: item.quantity,
       price: item.price,
     })),
-    promotions: order.promotions,
+    promotions: summary.appliedPromotions.map(promotion => ({
+      promotionId: promotion.id,
+      discountAmount: promotion.discountAmount,
+      code: promotion.code,
+    })),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   }
@@ -60,7 +129,7 @@ export const POST = async (req: NextRequest) => {
       const notificationData = {
         user_name: order.userData.fullName,
         user_number: order.userData.phone,
-        selected_products: cartItems.map((item: any) => item.product.title).join(', '),
+        selected_products: cartItems.map(item => item.product.title).join(', '),
         delivery_address: order.deliveryInfo.address,
         delivery_location: order.deliveryInfo.location,
         delivery_date: `${format(order.deliveryInfo.deliveryDate, 'PPP')} ${order.deliveryInfo.deliveryTime}`,

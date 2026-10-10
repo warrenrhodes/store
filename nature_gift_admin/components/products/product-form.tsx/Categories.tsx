@@ -42,7 +42,7 @@ export const CategoriesForm: React.FC<CategoriesFieldsProps> = ({ form, categori
               </div>
             )}
           </FormControl>
-          <FormMessage className="text-red-1" />
+          <FormMessage />
         </FormItem>
       )}
     />

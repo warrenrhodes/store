@@ -80,8 +80,7 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
         variant: 'success',
       })
 
-      router.refresh() // Refresh the page data
-      router.push('/shipments')
+      router.replace('/shipments') // list page is dynamic; refresh would re-request this page
     } catch (err: any) {
       console.error('❌ [shipments_POST] Error:', {
         name: err.name,
@@ -113,8 +112,7 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
           variant: 'success',
         })
 
-        router.refresh() // Refresh the page data
-        router.push('/shipments')
+        router.replace('/shipments') // list page is dynamic; refresh would re-request this page
       } catch (err: any) {
         console.error('[shipments_DELETE]', err)
         toast({
@@ -184,7 +182,7 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
                     }
                   />
                 </FormControl>
-                <FormMessage className="text-red-1" />
+                <FormMessage />
               </FormItem>
             )}
           />

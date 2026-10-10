@@ -16,7 +16,7 @@ export function ProductList({ products }: ProductListProps) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Products</h2>
+        <h1 className="text-2xl font-semibold">Products</h1>
         <Button asChild>
           <Link href="/products/new">
             <Plus className="w-4 h-4 mr-2" />

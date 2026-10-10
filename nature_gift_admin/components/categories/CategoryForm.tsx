@@ -197,7 +197,7 @@ export function CategoryForm({ category, categories }: CategoryFormProps) {
                   maxFiles={1}
                 />
               </CustomAccordion>
-              <FormMessage className="text-red-1" />
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -324,8 +324,7 @@ export function CategoryForm({ category, categories }: CategoryFormProps) {
                 try {
                   const res = await deleteCategory(getDocumentId(category.path))
                   if (res.success) {
-                    router.refresh()
-                    router.push('/categories')
+                    router.replace('/categories') // list page is dynamic; refresh would re-request this page
                   } else {
                      toast({
                       variant: 'destructive',

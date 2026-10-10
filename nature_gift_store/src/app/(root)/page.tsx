@@ -24,6 +24,7 @@ export default function Home() {
       <Loader loading={<HeroLoading />}>
         <HeroSection />
       </Loader>
+      <BrandValues />
       <Loader loading={<CategoryLoading />}>
         <Categories />
       </Loader>
@@ -36,7 +37,6 @@ export default function Home() {
       <Loader loading={<ProductsLoading />}>
         <NewArrivalsLoader />
       </Loader>
-      <BrandValues />
       <Loader loading={<BlogsLoading />}>
         <FeaturedBlogsLoader />
       </Loader>
@@ -61,7 +61,7 @@ async function FeaturedProductsLoader() {
         new QueryFilter('status', '==', ProductStatus.PUBLISHED),
       ],
     })) || []
-  return <FeaturedProducts products={featuredProducts.slice(0, 6)} />
+  return <FeaturedProducts products={featuredProducts.slice(0, 4)} />
 }
 
 async function PromotionBannerLoader() {
@@ -81,7 +81,7 @@ async function NewArrivalsLoader() {
       ],
     })) || []
 
-  return <NewArrivals products={newArrivals.slice(0, 6)} />
+  return <NewArrivals products={newArrivals.slice(0, 4)} />
 }
 
 async function FeaturedBlogsLoader() {

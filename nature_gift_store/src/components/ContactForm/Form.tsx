@@ -3,11 +3,11 @@
 import { submitContactForm } from '@/actions/contact'
 import { useToast } from '@/hooks/use-toast'
 import { useLocalization } from '@/hooks/useLocalization'
-import { motion } from 'framer-motion'
-import { Send } from 'lucide-react'
+import { Loader2, Send } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
+import { Label } from '../ui/label'
 import { Textarea } from '../ui/textarea'
 
 export function ContactForm() {
@@ -17,96 +17,62 @@ export function ContactForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    const form = e.currentTarget
     setIsSubmitting(true)
-
-    // Extract form data
-    const formData = new FormData(e.target as HTMLFormElement)
-    const name = formData.get('name') as string
-    const email = formData.get('email') as string
-    const subject = formData.get('subject') as string
-    const message = formData.get('message') as string
-
+    const formData = new FormData(form)
     const result = await submitContactForm({
-      name,
-      email,
-      subject,
-      message,
+      name: formData.get('name') as string,
+      email: formData.get('email') as string,
+      subject: formData.get('subject') as string,
+      message: formData.get('message') as string,
     })
 
     if (result.success) {
       toast({
         variant: 'success',
-        title: 'Message sent!',
-        description: "We'll get back to you as soon as possible.",
+        title: localization.messageSent,
+        description: localization.messageSentDescription,
       })
-      ;(e.target as HTMLFormElement).reset()
+      form.reset()
     } else {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to send message. Please try again later.',
-      })
+      toast({ variant: 'destructive', description: localization.messageError })
     }
-
     setIsSubmitting(false)
   }
 
   return (
-    <motion.form
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      onSubmit={handleSubmit}
-      className="space-y-6"
-    >
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.2 }}
-      >
-        <Input type="text" placeholder="Your Name" required className="w-full" />
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        <Input type="email" placeholder="Email Address" required className="w-full" />
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.4 }}
-      >
-        <Input type="text" placeholder="Subject" required className="w-full" />
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.5 }}
-      >
-        <Textarea placeholder="Your Message" required className="w-full min-h-[150px]" />
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-      >
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? (
-            'Sending...'
-          ) : (
-            <>
-              {localization.sendMessage}
-              <Send className="ml-2 h-4 w-4" />
-            </>
-          )}
-        </Button>
-      </motion.div>
-    </motion.form>
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="contact-name">{localization.yourName}</Label>
+          <Input id="contact-name" name="name" autoComplete="name" required />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="contact-email">{localization.email}</Label>
+          <Input id="contact-email" name="email" type="email" autoComplete="email" required />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="contact-subject">{localization.subject}</Label>
+        <Input id="contact-subject" name="subject" required />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="contact-message">{localization.yourMessage}</Label>
+        <Textarea id="contact-message" name="message" required className="min-h-[150px]" />
+      </div>
+      <Button type="submit" className="h-12 w-full text-base" disabled={isSubmitting}>
+        {isSubmitting ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+            {localization.sending}
+          </>
+        ) : (
+          <>
+            <Send className="mr-2 h-4 w-4" aria-hidden />
+            {localization.sendMessage}
+          </>
+        )}
+      </Button>
+    </form>
   )
 }

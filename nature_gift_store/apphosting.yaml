@@ -44,7 +44,7 @@ env:
     value: "nature-s-gift.firebasestorage.app"
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID
-    value: "GTM-PD568GNV"
+    value: "GTM-PZPWRLKC"
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_NOTIFICATIONAPI_CLIENT_ID
     value: "2ldisojs05o7o3av8e4rp2xsjv"

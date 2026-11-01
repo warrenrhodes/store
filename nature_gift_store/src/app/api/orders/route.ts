@@ -9,6 +9,7 @@ import { backend } from '@/lib/firebase/firebase-server/firebase'
 import { Order, OrderStatus, Product, ProductStatus, Shipment } from '@/lib/firebase/models'
 import { PromotionCalculator } from '@/lib/utils/promotion-calculator'
 import { getRegularPrice } from '@/lib/utils/utils'
+import { getShipmentLocations } from '@/lib/utils/shipment-locations'
 import { FlockNotifier } from '@/lib/notifications/flock/flock'
 import { sendEmailNotifications, sendSmsNotifications } from '@/lib/notifications/sendNotifications'
 import { getDatabasePath } from '@spreeloop/database'
@@ -24,7 +25,7 @@ const flockNotifier = new FlockNotifier({
  */
 async function priceOrder(
   rawItems: unknown,
-  deliveryInfo: { deliveryMethod?: string; location?: string } | undefined,
+  deliveryInfo: { deliveryMethod?: string; locationId?: string } | undefined,
 ) {
   if (!Array.isArray(rawItems) || rawItems.length === 0) return null
 
@@ -46,26 +47,29 @@ async function priceOrder(
 
   const shipments =
     (await getAllCollectionCache<Shipment>({ collection: CollectionsName.Shipments })) || []
-  const cost =
-    shipments.find(
-      s =>
-        s.isActive !== false &&
-        s.method === deliveryInfo?.deliveryMethod &&
-        s.locations.includes(deliveryInfo?.location ?? ''),
-    )?.cost ?? 0
+  // The area is matched by id; its name comes from the database, not from the client.
+  const shipment = shipments.find(
+    s =>
+      s.isActive !== false &&
+      s.method === deliveryInfo?.deliveryMethod &&
+      getShipmentLocations(s).some(l => l.id === deliveryInfo?.locationId),
+  )
+  const area =
+    shipment && getShipmentLocations(shipment).find(l => l.id === deliveryInfo?.locationId)
+  const cost = shipment?.cost ?? 0
 
   const promotions = await getAllValidPromotionCache()
   const summary = new PromotionCalculator(
     cart as CartItem[],
     {
       deliveryMethod: deliveryInfo?.deliveryMethod as never,
-      location: deliveryInfo?.location,
+      locationId: area?.id,
       cost,
     },
     promotions,
   ).calculate()
 
-  return { cart: cart as CartItem[], summary }
+  return { cart: cart as CartItem[], summary, area }
 }
 
 /// Request to create new order.
@@ -75,13 +79,17 @@ export const POST = async (req: NextRequest) => {
   if (!priced) {
     return NextResponse.json({ error: 'Invalid cart' }, { status: 400 })
   }
-  const { cart: cartItems, summary } = priced
+  const { cart: cartItems, summary, area } = priced
 
   const data = {
     userPath: order.userData?.id
       ? getDatabasePath(CollectionsName.Users, order.userData?.id)
       : null,
-    deliveryInfo: order.deliveryInfo,
+    deliveryInfo: {
+      ...order.deliveryInfo,
+      location: area?.name ?? null,
+      locationId: area?.id ?? null,
+    },
     userData: order.userData,
     status: OrderStatus.PENDING,
     orderPrices: {

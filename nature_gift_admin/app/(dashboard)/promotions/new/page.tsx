@@ -1,3 +1,4 @@
+import { getShipmentLocations } from '@/lib/utils/shipment-locations'
 import { PromotionFormV2 } from '@/components/promotions/PromotionsFormV2'
 import { getProductsCache, getShipmentsCache } from '@/lib/actions/server'
 
@@ -11,7 +12,7 @@ export default async function NewPromotionPage() {
       </div>
       <PromotionFormV2
         products={products}
-        locations={[...new Set(shipments.flatMap(s => s.data.locations))]}
+        locations={shipments.flatMap(s => getShipmentLocations(s.data))}
       />
     </div>
   )

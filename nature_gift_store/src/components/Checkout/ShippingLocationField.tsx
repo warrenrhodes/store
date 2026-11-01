@@ -12,6 +12,7 @@ import { useCartDeliveryInfo } from '@/hooks/useCart'
 import { useLocalization } from '@/hooks/useLocalization'
 import { Shipment, ShipmentMethod } from '@/lib/firebase/models'
 import { DeliveryFormData } from '@/lib/utils/validation-form'
+import { getShipmentLocations } from '@/lib/utils/shipment-locations'
 
 const OTHER = '__other__'
 /** Show a search box once the list gets long. */
@@ -63,22 +64,8 @@ export function ShippingLocationField({
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const active = shipments.filter(s => s.isActive !== false)
-  const location = form.watch('shipping.location')
+  const locationId = form.watch('shipping.locationId')
   const method = form.watch('shipping.method')
-
-  const onChange = (value: string) => {
-    setOther(value === OTHER)
-    form.clearErrors('address')
-    if (value === OTHER) {
-      form.setValue('shipping', { method: 'DELIVERY', location: '' })
-      setShipment(undefined)
-      return
-    }
-    const [nextMethod, nextLocation] = value.split('::') as [ShipmentMethod, string]
-    const shipment = active.find(s => s.method === nextMethod && s.locations.includes(nextLocation))
-    form.setValue('shipping', { method: nextMethod, location: nextLocation })
-    setShipment({ deliveryMethod: nextMethod, location: nextLocation, cost: shipment?.cost ?? 0 })
-  }
 
   const groups = [
     { method: ShipmentMethod.DELIVERY, label: localization.delivery },
@@ -86,13 +73,38 @@ export function ShippingLocationField({
   ]
     .map(group => ({
       ...group,
-      locations: active.filter(s => s.method === group.method).flatMap(s => s.locations),
+      areas: active
+        .filter(s => s.method === group.method)
+        .flatMap(s => getShipmentLocations(s).map(area => ({ ...area, cost: s.cost }))),
     }))
-    .filter(group => group.locations.length > 0)
+    .filter(group => group.areas.length > 0)
 
-  const selected = other ? OTHER : location ? `${method}::${location}` : ''
-  const selectedLabel = other ? localization.otherZone : location || undefined
-  const searchable = groups.reduce((n, g) => n + g.locations.length, 0) > SEARCH_FROM
+  // Values are `${method}::${areaId}`: legacy ids are names, which may repeat across methods.
+  const onChange = (value: string) => {
+    setOther(value === OTHER)
+    form.clearErrors('address')
+    if (value === OTHER) {
+      form.setValue('shipping', { method: 'DELIVERY', location: '', locationId: '' })
+      setShipment(undefined)
+      return
+    }
+    const [nextMethod, nextId] = value.split('::') as [ShipmentMethod, string]
+    const area = groups.find(g => g.method === nextMethod)?.areas.find(a => a.id === nextId)
+    if (!area) return
+    form.setValue('shipping', { method: nextMethod, location: area.name, locationId: area.id })
+    setShipment({
+      deliveryMethod: nextMethod,
+      location: area.name,
+      locationId: area.id,
+      cost: area.cost,
+    })
+  }
+
+  const selected = other ? OTHER : locationId ? `${method}::${locationId}` : ''
+  const selectedLabel = other
+    ? localization.otherZone
+    : form.watch('shipping.location') || undefined
+  const searchable = groups.reduce((n, g) => n + g.areas.length, 0) > SEARCH_FROM
   const toggle = (next: boolean) => {
     setOpen(next)
     if (!next) setQuery('')
@@ -136,7 +148,7 @@ export function ShippingLocationField({
               )}
               <div role="listbox" className="max-h-64 overflow-y-auto">
                 {groups.map(group => {
-                  const visible = group.locations.filter(loc => matches(loc, query))
+                  const visible = group.areas.filter(area => matches(area.name, query))
                   if (visible.length === 0) return null
                   return (
                     <div key={group.method} role="group">
@@ -145,12 +157,12 @@ export function ShippingLocationField({
                           {group.label}
                         </p>
                       )}
-                      {visible.map(loc => (
+                      {visible.map(area => (
                         <Option
-                          key={loc}
-                          label={loc}
-                          selected={selected === `${group.method}::${loc}`}
-                          onSelect={() => pick(`${group.method}::${loc}`)}
+                          key={area.id}
+                          label={area.name}
+                          selected={selected === `${group.method}::${area.id}`}
+                          onSelect={() => pick(`${group.method}::${area.id}`)}
                         />
                       ))}
                     </div>

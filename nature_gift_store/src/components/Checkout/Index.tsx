@@ -95,6 +95,7 @@ export default function CheckoutPageView(props: { shipments: Shipment[] }) {
         additionalNotes: data.additionalNotes || null,
         deliveryMethod: data.shipping.method,
         location: data.shipping.location,
+        locationId: data.shipping.locationId,
       },
       userData: {
         id: user?.authId || '',

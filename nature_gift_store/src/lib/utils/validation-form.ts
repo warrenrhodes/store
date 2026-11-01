@@ -4,7 +4,10 @@ import * as z from 'zod'
 
 const shipmentSchema = z.object({
   method: z.enum(['DELIVERY', 'EXPEDITION']).default('DELIVERY'),
+  /** Area name, kept on the order for display. */
   location: z.string().default(''),
+  /** Area id: what promotions and shipping costs are matched on. */
+  locationId: z.string().default(''),
 })
 
 export const deliverySchema = z
@@ -26,7 +29,7 @@ export const deliverySchema = z
     city: z.string().optional().nullable(),
   })
   // The address is only asked when the delivery area is not in the shipments list.
-  .refine(data => !!data.shipping.location || data.address.trim().length > 0, {
+  .refine(data => !!data.shipping.locationId || data.address.trim().length > 0, {
     message: 'errorAddressRequired',
     path: ['address'],
   })

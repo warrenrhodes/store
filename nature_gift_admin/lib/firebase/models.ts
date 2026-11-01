@@ -261,7 +261,9 @@ interface DeliveryInfo {
   city?: string | null
   additionalNotes?: string | null
   deliveryMethod?: string | null
+  /** Area name at order time, kept for display even if the area is renamed later. */
   location?: string | null
+  locationId?: string | null
 }
 
 interface UserData {
@@ -294,11 +296,18 @@ export interface Order extends CreatorDocument {
   partnersPaths: string[]
 }
 
+/** A delivery area. Promotions and orders reference it by `id`; `name` is display only. */
+export interface ShipmentLocation {
+  id: string
+  name: string
+}
+
 export interface Shipment extends CreatorDocument {
   method: ShipmentMethod
   isActive: boolean
   cost: number
-  locations: string[]
+  /** Legacy documents may still hold plain names; read them through getShipmentLocations. */
+  locations: ShipmentLocation[]
 }
 
 export interface Promotion extends CreatorDocument {

@@ -21,7 +21,7 @@ import {
   getDocumentBySlugCache,
 } from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
-import { Blog, BlogStatus, Product, ProductStatus, Review } from '@/lib/firebase/models'
+import { Blog, BlogStatus, Product, ProductStatus, Review, Shipment } from '@/lib/firebase/models'
 import { QueryFilter } from '@spreeloop/database'
 import { Inventory, Price } from '@/lib/type'
 import { getRegularPrice, getReviewAverage } from '@/lib/utils/utils'
@@ -186,7 +186,11 @@ async function FeaturedProductLoader({ slug }: { slug: string }) {
       <ProductInfo
         product={product}
         reviews={reviews}
-        freeShippingAreas={getFreeShippingAreas(await getAllValidPromotionCache(), product.path)}
+        freeShippingAreas={getFreeShippingAreas(
+          await getAllValidPromotionCache(),
+          product.path,
+          await getAllCollectionCache<Shipment>({ collection: CollectionsName.Shipments }),
+        )}
       />
     </div>
   )

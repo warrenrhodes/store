@@ -1,6 +1,7 @@
 import { CartItem } from '@/hooks/useCart'
 import { PromotionAction, PromotionCondition } from '../type'
-import { IDeliveryInfo, OrderSummary, Promotion } from '../firebase/models'
+import { IDeliveryInfo, OrderSummary, Promotion, Shipment } from '../firebase/models'
+import { getShipmentLocations } from './shipment-locations'
 import { toDate } from './utils'
 
 /**
@@ -29,10 +30,14 @@ export const getPromotionProducts = (promotion: Promotion): string[] | null => {
 
 /**
  * Free-shipping offer a product page can advertise: null when there is none, otherwise the
- * areas it is limited to ([] = everywhere). Offers needing several items are not advertised.
- * Expects promotions already filtered to active ones (getAllValidPromotion).
+ * names of the areas it is limited to ([] = everywhere). Offers needing several items are not
+ * advertised. Expects promotions already filtered to active ones (getAllValidPromotion).
  */
-export const getFreeShippingAreas = (promotions: Promotion[], productPath: string) => {
+export const getFreeShippingAreas = (
+  promotions: Promotion[],
+  productPath: string,
+  shipments: Shipment[],
+): string[] | null => {
   const offers = promotions.filter(
     p =>
       p.actions.some(a => a.type === 'FREE_SHIPPING') &&
@@ -40,10 +45,20 @@ export const getFreeShippingAreas = (promotions: Promotion[], productPath: strin
       !p.conditions.some(c => c.type === 'MINIMUM_QUANTITY' && Number(parseList(c.value)[0]) > 1),
   )
   if (offers.length === 0) return null
-  const areas = offers.map(p =>
-    p.conditions.filter(c => c.type === 'LOCATION').flatMap(c => parseList(c.value)),
+  if (offers.some(p => !p.conditions.some(c => c.type === 'LOCATION'))) return []
+
+  // LOCATION conditions hold area ids; areas deleted or deactivated since are skipped.
+  const names = new Map(
+    shipments
+      .filter(s => s.isActive !== false)
+      .flatMap(getShipmentLocations)
+      .map(l => [l.id, l.name]),
   )
-  return areas.some(a => a.length === 0) ? [] : [...new Set(areas.flat())]
+  const areas = offers
+    .flatMap(p => p.conditions.filter(c => c.type === 'LOCATION'))
+    .flatMap(c => parseList(c.value))
+    .flatMap(id => names.get(id) ?? [])
+  return areas.length > 0 ? [...new Set(areas)] : null
 }
 
 export class PromotionCalculator {
@@ -86,7 +101,7 @@ export class PromotionCalculator {
         )
 
       case 'LOCATION':
-        return !!this.deliveryInfo?.location && values.includes(this.deliveryInfo.location)
+        return !!this.deliveryInfo?.locationId && values.includes(this.deliveryInfo.locationId)
 
       default:
         return false

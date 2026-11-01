@@ -85,7 +85,7 @@ export function OrderSummary({
           </div>
           <div className="flex justify-between gap-4">
             <span>{localization.shipping}</span>
-            {cartDeliveryInfo?.location ? (
+            {cartDeliveryInfo?.locationId ? (
               <span className="tabular-nums">
                 {summary.shipping > 0 ? priceFormatted(summary.shipping) : localization.free}
               </span>

@@ -84,7 +84,7 @@ export default async function BlogAdsDetailPage(props: Props) {
 
   const shipments = await getAllCollectionCache<Shipment>({ collection: CollectionsName.Shipments })
   const freeShippingAreas = associateProduct
-    ? getFreeShippingAreas(await getAllValidPromotionCache(), associateProduct.path)
+    ? getFreeShippingAreas(await getAllValidPromotionCache(), associateProduct.path, shipments)
     : null
 
   return (

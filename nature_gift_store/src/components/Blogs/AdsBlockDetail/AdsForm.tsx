@@ -100,6 +100,7 @@ export const AdsForm = (props: { shipments: Shipment[]; items: CartItem[] }) => 
         additionalNotes: data.additionalNotes || null,
         deliveryMethod: data.shipping.method,
         location: data.shipping.location,
+        locationId: data.shipping.locationId,
       },
       userData: {
         id: user?.authId || '',

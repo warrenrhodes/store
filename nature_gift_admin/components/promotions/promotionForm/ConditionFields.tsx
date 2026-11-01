@@ -1,5 +1,6 @@
 'use client'
 
+import { ShipmentLocation } from '@/lib/firebase/models'
 import { useFieldArray, UseFormReturn } from 'react-hook-form'
 import { Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -20,11 +21,13 @@ import { IProduct } from '@/lib/actions/server'
 interface ConditionFieldsProps {
   form: UseFormReturn<PromotionSchemaType>
   products: IProduct[]
-  locations: string[]
+  locations: ShipmentLocation[]
 }
 
 export function ConditionFields({ form, products, locations }: ConditionFieldsProps) {
   const productOptions = products.map(p => ({ value: p.path, label: p.data.title }))
+  // LOCATION conditions store area ids, never names: renaming an area keeps promotions valid.
+  const locationOptions = locations.map(l => ({ value: l.id, label: l.name }))
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'conditions',
@@ -111,8 +114,12 @@ export function ConditionFields({ form, products, locations }: ConditionFieldsPr
                   ) : form.watch(`conditions.${index}.type`) === 'LOCATION' ? (
                     <MultiSelect
                       placeholder="Delivery areas"
-                      values={locations.map(l => ({ value: l, label: l }))}
-                      selectedValues={parseList(field.value).map(l => ({ value: l, label: l }))}
+                      values={locationOptions}
+                      selectedValues={parseList(field.value).map(id => ({
+                        value: id,
+                        label:
+                          locationOptions.find(o => o.value === id)?.label ?? `${id} (deleted)`,
+                      }))}
                       onChange={selected =>
                         field.onChange(JSON.stringify(selected.map(s => s.value)))
                       }

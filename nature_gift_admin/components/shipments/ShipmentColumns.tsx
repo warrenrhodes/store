@@ -7,6 +7,12 @@ import Link from 'next/link'
 import { Button } from '../ui/button'
 import Delete from '../custom-ui/Delete'
 import { Badge } from '../ui/badge'
+import { getShipmentLocations } from '@/lib/utils/shipment-locations'
+
+const locationNames = (shipment: IShipment) =>
+  getShipmentLocations(shipment.data)
+    .map(l => l.name)
+    .join(', ')
 
 export const shipmentColumns: ColumnDef<IShipment>[] = [
   {
@@ -34,9 +40,9 @@ export const shipmentColumns: ColumnDef<IShipment>[] = [
   },
   {
     accessorKey: 'locations',
-    accessorFn: row => row.data.locations.join(', '),
+    accessorFn: row => locationNames(row),
     header: 'Locations',
-    cell: ({ row }) => <span>{row.original.data.locations.join(', ')}</span>,
+    cell: ({ row }) => <span>{locationNames(row.original)}</span>,
   },
   {
     id: 'actions',

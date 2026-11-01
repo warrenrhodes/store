@@ -2,7 +2,7 @@ import { CartItem } from '@/hooks/useCart'
 import {
   getAllValidPromotionCache,
   getShippingZonesCache,
-  getDocumentByPathCache,
+  getDocumentByPathFresh,
 } from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { backend } from '@/lib/firebase/firebase-server/firebase'
@@ -35,7 +35,7 @@ async function priceOrder(
       const path = String(item?.product?.path ?? '')
       if (!Number.isInteger(quantity) || quantity < 1 || quantity > 99) return null
       if (!path.startsWith(`${CollectionsName.Products}/`)) return null
-      const product = await getDocumentByPathCache<Product>({ path })
+      const product = await getDocumentByPathFresh<Product>({ path })
       if (!product || product.status !== ProductStatus.PUBLISHED) return null
       // No stockQuantity means stock isn't tracked for this product.
       const stock = product.inventory?.stockQuantity

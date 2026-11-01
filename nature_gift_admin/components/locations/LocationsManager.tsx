@@ -16,15 +16,64 @@ import { createLocation, deleteLocation, updateLocation } from '@/lib/actions/lo
 import { ILocation } from '@/lib/actions/server'
 import { LocationSchemaType } from '@/lib/validations/location'
 import { getDocumentId } from '@spreeloop/database'
-import { Loader2, Plus, Save, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Loader2, Plus, Save, Search, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 type Result = { success: boolean; error?: string }
+type SortKey = 'name' | 'city' | 'isActive'
+
+const normalize = (text: string) =>
+  text
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+
+/** Every word typed must appear in the name or the city, ignoring accents and case. */
+const matches = (location: ILocation, query: string) => {
+  const text = normalize(`${location.data.name} ${location.data.city}`)
+  return normalize(query)
+    .split(/\s+/)
+    .every(word => text.includes(word))
+}
 
 /** Inline editor for the `locations` collection: neighbourhoods and towns used by shipments. */
 export function LocationsManager({ locations }: { locations: ILocation[] }) {
   const router = useRouter()
+  const [query, setQuery] = useState('')
+  const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: 'city', dir: 1 })
+
+  // Sorted on saved values, so a row does not jump while it is being edited.
+  const visible = locations
+    .filter(location => matches(location, query))
+    .sort((a, b) => {
+      const by = (key: SortKey) =>
+        key === 'isActive'
+          ? Number(b.data.isActive) - Number(a.data.isActive)
+          : a.data[key].localeCompare(b.data[key], 'fr', { sensitivity: 'base' })
+      return sort.dir * (by(sort.key) || by(sort.key === 'name' ? 'city' : 'name'))
+    })
+  const toggleSort = (key: SortKey) =>
+    setSort(current => ({ key, dir: current.key === key ? (-current.dir as 1 | -1) : 1 }))
+  const sortHead = (label: string, sortKey: SortKey) => {
+    const Icon = sort.key !== sortKey ? ArrowUpDown : sort.dir === 1 ? ArrowUp : ArrowDown
+    return (
+      <TableHead
+        aria-sort={sort.key === sortKey ? (sort.dir === 1 ? 'ascending' : 'descending') : 'none'}
+      >
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="-ml-3"
+          onClick={() => toggleSort(sortKey)}
+        >
+          {label}
+          <Icon className="ml-1 h-3.5 w-3.5" aria-hidden />
+        </Button>
+      </TableHead>
+    )
+  }
 
   const run = async (action: () => Promise<Result>, message: string) => {
     const res = await action()
@@ -46,17 +95,37 @@ export function LocationsManager({ locations }: { locations: ILocation[] }) {
           a location keeps shipments and promotions working.
         </p>
       </div>
+      <div className="flex items-center gap-3">
+        <div className="relative w-full max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" aria-hidden />
+          <Input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Search a location or a city"
+            aria-label="Search locations"
+            className="pl-8"
+          />
+        </div>
+        <span className="text-sm text-muted-foreground">
+          {visible.length} / {locations.length}
+        </span>
+      </div>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>City</TableHead>
-            <TableHead>Active</TableHead>
+            {sortHead('Name', 'name')}
+            {sortHead('City', 'city')}
+            {sortHead('Active', 'isActive')}
             <TableHead className="w-28" />
           </TableRow>
         </TableHeader>
         <TableBody>
-          {locations.map(location => (
+          <LocationRow
+            key={locations.length}
+            initial={{ name: '', city: locations[0]?.data.city ?? '', isActive: true }}
+            onSave={data => run(() => createLocation(data), 'Location added')}
+          />
+          {visible.map(location => (
             <LocationRow
               key={location.path}
               initial={location.data}
@@ -68,11 +137,6 @@ export function LocationsManager({ locations }: { locations: ILocation[] }) {
               }
             />
           ))}
-          <LocationRow
-            key={locations.length}
-            initial={{ name: '', city: locations[0]?.data.city ?? '', isActive: true }}
-            onSave={data => run(() => createLocation(data), 'Location added')}
-          />
         </TableBody>
       </Table>
     </div>
@@ -111,7 +175,7 @@ function LocationRow({
       <TableCell>
         <Input
           value={data.name}
-          placeholder={isNew ? 'New location (ex: Mendong)' : undefined}
+          placeholder={isNew ? 'New location (ex: Mendong – Marché)' : undefined}
           aria-label="Location name"
           onChange={e => setData({ ...data, name: e.target.value })}
         />

@@ -12,6 +12,8 @@ import {
   useFormContext,
 } from 'react-hook-form'
 
+import { dictionary, DictWords } from '@/lib/localizations'
+import { useLocale } from '@/hooks/useLocale'
 import { cn } from '@/lib/utils/utils'
 import { Label } from '@/components/ui/label'
 
@@ -138,7 +140,10 @@ const FormMessage = React.forwardRef<
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, children, ...props }, ref) => {
   const { error, formMessageId } = useFormField()
-  const body = error ? String(error?.message) : children
+  const { locale } = useLocale()
+  const message = String(error?.message)
+  // Schema messages may be dictionary keys; plain text passes through unchanged.
+  const body = error ? (dictionary[message as DictWords]?.[locale] ?? message) : children
 
   if (!body) {
     return null

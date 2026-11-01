@@ -13,15 +13,18 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { PromotionSchemaType } from '@/lib/validations/promotions'
-import MultiText from '@/components/custom-ui/MultiText'
+import { MultiSelect } from '@/components/custom-ui/MultiSelect'
+import { parseList } from '@/lib/utils/parse-list'
 import { IProduct } from '@/lib/actions/server'
 
 interface ConditionFieldsProps {
   form: UseFormReturn<PromotionSchemaType>
   products: IProduct[]
+  locations: string[]
 }
 
-export function ConditionFields({ form, products }: ConditionFieldsProps) {
+export function ConditionFields({ form, products, locations }: ConditionFieldsProps) {
+  const productOptions = products.map(p => ({ value: p.path, label: p.data.title }))
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'conditions',
@@ -102,48 +105,30 @@ export function ConditionFields({ form, products }: ConditionFieldsProps) {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="DELIVERY">Delivery</SelectItem>
-                        <SelectItem value="PICKUP">Pickup</SelectItem>
+                        <SelectItem value="EXPEDITION">Expedition</SelectItem>
                       </SelectContent>
                     </Select>
                   ) : form.watch(`conditions.${index}.type`) === 'LOCATION' ? (
-                    <MultiText
-                      placeholder="Locations"
-                      value={
-                        field.value
-                          ? Array.isArray(field.value)
-                            ? field.value
-                            : [field.value as string]
-                          : []
-                      }
-                      onChange={tag =>
-                        field.onChange([
-                          ...(field.value ? (JSON.parse(field.value) as string[]) : []),
-                          tag,
-                        ])
-                      }
-                      onRemove={tagToRemove =>
-                        field.onChange([
-                          ...(field.value ? (JSON.parse(field.value) as string[]) : []).filter(
-                            tag => tag !== tagToRemove,
-                          ),
-                        ])
+                    <MultiSelect
+                      placeholder="Delivery areas"
+                      values={locations.map(l => ({ value: l, label: l }))}
+                      selectedValues={parseList(field.value).map(l => ({ value: l, label: l }))}
+                      onChange={selected =>
+                        field.onChange(JSON.stringify(selected.map(s => s.value)))
                       }
                     />
                   ) : form.watch(`conditions.${index}.type`) === 'SPECIFIC_PRODUCTS' &&
                     products.length > 0 ? (
-                    <Select onValueChange={field.onChange} value={(field.value || '') as string}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a product" />
-                      </SelectTrigger>
-
-                      <SelectContent>
-                        {products.map(product => (
-                          <SelectItem key={product.path} value={product.path}>
-                            {product.data.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <MultiSelect
+                      placeholder="Products"
+                      values={productOptions}
+                      selectedValues={productOptions.filter(o =>
+                        parseList(field.value).includes(o.value),
+                      )}
+                      onChange={selected =>
+                        field.onChange(JSON.stringify(selected.map(s => s.value)))
+                      }
+                    />
                   ) : (
                     <></>
                   )}

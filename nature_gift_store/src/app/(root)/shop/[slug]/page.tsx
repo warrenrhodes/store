@@ -3,6 +3,7 @@ import { ProductInfo } from '@/components/Shop/ProductDetail/ProductInfo'
 import { FeaturesForProducts } from '@/components/Shop/ProductDetail/ProductFeatures'
 import { RelatedProducts } from '@/components/Shop/ProductDetail/RelatedProducts'
 import { RelatedBlogs } from '@/components/Shop/ProductDetail/RelatedBlogs'
+import { getFreeShippingAreas, getPromotionProducts } from '@/lib/utils/promotion-calculator'
 import { ActivePromotions } from '@/components/Shop/ProductDetail/ActivePromotions'
 import { ProductReviews } from '@/components/Shop/ProductDetail/ProductReviews'
 import Loader from '@/components/Loader'
@@ -89,7 +90,7 @@ export default async function ProductDetailPage(props: Props) {
               <FeaturedProductLoader slug={slug} />
             </Loader>
             <Loader loading={<ProductsLoading />}>
-              <ActivePromotionsLoader />
+              <ActivePromotionsLoader slug={slug} />
             </Loader>
             <Loader loading={<ProductsLoading />}>
               <FeaturedProductsLoader slug={slug} />
@@ -112,10 +113,18 @@ export default async function ProductDetailPage(props: Props) {
   )
 }
 
-async function ActivePromotionsLoader() {
+async function ActivePromotionsLoader({ slug }: { slug: string }) {
+  const product = await getDocumentBySlugCache<Product>({
+    collection: CollectionsName.Products,
+    slug: slug,
+  })
   const activePromotions = await getAllValidPromotionCache()
+  // Hide promotions restricted to other products.
+  const relevant = activePromotions.filter(
+    p => getPromotionProducts(p)?.includes(product?.path ?? '') ?? true,
+  )
 
-  return <ActivePromotions activePromotions={activePromotions} />
+  return <ActivePromotions activePromotions={relevant} />
 }
 async function AutoAddToCartLoader({ slug }: { slug: string }) {
   const product = await getDocumentBySlugCache<Product>({
@@ -174,7 +183,11 @@ async function FeaturedProductLoader({ slug }: { slug: string }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
       <ProductGallery product={product} />
-      <ProductInfo product={product} reviews={reviews} />
+      <ProductInfo
+        product={product}
+        reviews={reviews}
+        freeShippingAreas={getFreeShippingAreas(await getAllValidPromotionCache(), product.path)}
+      />
     </div>
   )
 }

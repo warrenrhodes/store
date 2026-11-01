@@ -1,7 +1,7 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { format, subDays } from 'date-fns'
+import { endOfDay, format, subDays } from 'date-fns'
 import { CalendarIcon, Loader2, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
@@ -45,9 +45,11 @@ import { ConditionFields } from './promotionForm/ConditionFields'
 interface PromotionFormProps {
   initialData?: IPromotion | null
   products: IProduct[]
+  /** Delivery areas configured in shipments, for LOCATION conditions. */
+  locations: string[]
 }
 
-export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
+export function PromotionFormV2({ initialData, products, locations }: PromotionFormProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
@@ -251,7 +253,7 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
                     <Calendar
                       mode="single"
                       selected={toDate(field.value)}
-                      onSelect={date => field.onChange(date?.toISOString())}
+                      onSelect={date => field.onChange(date && endOfDay(date).toISOString())}
                       disabled={date => date < (toDate(form.getValues('startDate')) ?? new Date(0))}
                       initialFocus
                     />
@@ -263,8 +265,8 @@ export function PromotionFormV2({ initialData, products }: PromotionFormProps) {
           />
         </div>
 
-        <ConditionFields form={form} products={products} />
-        <ActionFields form={form} />
+        <ConditionFields form={form} products={products} locations={locations} />
+        <ActionFields form={form} products={products} />
 
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField

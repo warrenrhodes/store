@@ -88,7 +88,8 @@ export function InternalItem({
                     size="icon"
                     onClick={() => increaseQuantity(item.product.path, item.quantity + 1)}
                     disabled={
-                      item.quantity >= ((item.product.inventory as Inventory).stockQuantity || 0)
+                      item.quantity >=
+                      ((item.product.inventory as Inventory | undefined)?.stockQuantity ?? 99)
                     }
                     className="max-sm:h-7 max-sm:w-7"
                   >

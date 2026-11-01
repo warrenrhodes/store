@@ -4,11 +4,13 @@ import BlogSkeleton from '@/components/Loading'
 import {
   getAllCollectionCache,
   getAllRelatedCollectionCache,
+  getAllValidPromotionCache,
   getDocumentByPathCache,
   getDocumentBySlugCache,
 } from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { Blog, BlogMetadata, BlogStatus, Product, Shipment } from '@/lib/firebase/models'
+import { getFreeShippingAreas } from '@/lib/utils/promotion-calculator'
 import { QueryFilter } from '@spreeloop/database'
 import { notFound } from 'next/navigation'
 
@@ -81,6 +83,9 @@ export default async function BlogAdsDetailPage(props: Props) {
   }
 
   const shipments = await getAllCollectionCache<Shipment>({ collection: CollectionsName.Shipments })
+  const freeShippingAreas = associateProduct
+    ? getFreeShippingAreas(await getAllValidPromotionCache(), associateProduct.path)
+    : null
 
   return (
     <div className="min-h-screen bg-background">
@@ -91,6 +96,7 @@ export default async function BlogAdsDetailPage(props: Props) {
             shipments={shipments}
             associateProduct={associateProduct}
             relatedBlogs={relatedBlogs}
+            freeShippingAreas={freeShippingAreas}
           />
         </Loader>
       </div>

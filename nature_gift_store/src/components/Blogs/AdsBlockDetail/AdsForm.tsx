@@ -1,7 +1,7 @@
 import { OrderSummary } from '@/components/Checkout/order-summary'
 import { useAuthStore } from '@/hooks/store/auth-store'
 import { toast } from '@/hooks/use-toast'
-import { useCart } from '@/hooks/useCart'
+import { CartItem, useCartDeliveryInfo } from '@/hooks/useCart'
 import { useLocalization } from '@/hooks/useLocalization'
 import { useTemporalUser } from '@/hooks/useTemporalUser'
 import { createOrder } from '@/lib/api/orders'
@@ -17,18 +17,39 @@ import { useForm } from 'react-hook-form'
 import { AdsDeliveryForm } from './AdsDeliveryForm'
 import { Button } from '@/components/ui/button'
 import { Check, Loader2 } from 'lucide-react'
+import { priceFormatted } from '@/lib/utils/utils'
 
-export const AdsForm = (props: { shipments: Shipment[] }) => {
+// Direct checkout: orders only the items passed in, never touches the global cart.
+export const AdsForm = (props: { shipments: Shipment[]; items: CartItem[] }) => {
   const router = useRouter()
   const { setUserData } = useTemporalUser()
-  const { cartItems, clearCart } = useCart()
+  const cartItems = props.items
+  const { clearDeliveryInfo } = useCartDeliveryInfo()
   const [formData, setFormData] = useState<DeliveryFormData>()
   const [isLoading, setIsLoading] = useState(false)
+  const [total, setTotal] = useState<number>()
   const orderSummary = useRef<OrderSummaryType>()
   const { user } = useAuthStore()
   const { localization } = useLocalization()
 
   const { temporalUser } = useTemporalUser()
+
+  // Fired once, on the first interaction with the form (not on page view).
+  const checkoutStarted = useRef(false)
+  const onBeginCheckout = () => {
+    if (checkoutStarted.current) return
+    checkoutStarted.current = true
+    sendGTMEvent({
+      event: 'begin_checkout',
+      currency: 'XAF',
+      value: cartItems.reduce((acc, e) => acc + e.price * e.quantity, 0),
+      items: cartItems.map(e => ({
+        item_id: getDocumentId(e.product.path),
+        item_name: e.product.title,
+        quantity: e.quantity,
+      })),
+    })
+  }
   const form = useForm<DeliveryFormData>({
     resolver: zodResolver(deliverySchema),
     defaultValues: formData || {
@@ -144,13 +165,17 @@ export const AdsForm = (props: { shipments: Shipment[] }) => {
     }
 
     setUserData({ ...data })
-    clearCart()
+    clearDeliveryInfo()
     router.replace('/order/success')
   }
 
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" id="checkout-form">
+      <div
+        className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+        id="checkout-form"
+        onFocusCapture={onBeginCheckout}
+      >
         <div className="lg:col-span-2">
           <AnimatePresence mode="wait">
             <motion.div
@@ -176,12 +201,13 @@ export const AdsForm = (props: { shipments: Shipment[] }) => {
                   <Check className="mr-2 h-4 w-4" />
                 )}
                 {localization.placeOrder}
+                {total !== undefined && ` · ${priceFormatted(total)}`}
               </Button>
             </motion.div>
           </AnimatePresence>
         </div>
         <div className="lg:col-span-1">
-          <OrderSummary orderSummary={orderSummary} />
+          <OrderSummary orderSummary={orderSummary} items={cartItems} onTotalChange={setTotal} />
         </div>
       </div>
     </>

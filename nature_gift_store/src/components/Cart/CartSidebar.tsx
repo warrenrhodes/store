@@ -30,6 +30,7 @@ export function CartSidebar() {
   const itemCount = cartItems.reduce((acc, e) => acc + e.quantity, 0)
 
   useEffect(() => {
+    if (!cartSideBar.isSideBarCartOpen) return
     sendGTMEvent({
       event: 'view_cart',
       currency: 'XAF',
@@ -38,7 +39,7 @@ export function CartSidebar() {
         return { item_id: e.product.path, item_name: e.product.title, quantity: e.quantity }
       }),
     })
-  }, [])
+  }, [cartSideBar.isSideBarCartOpen])
 
   const goTo = (href: string) => {
     cartSideBar.onOpenChange(false)

@@ -36,6 +36,9 @@ async function priceOrder(
       if (!path.startsWith(`${CollectionsName.Products}/`)) return null
       const product = await getDocumentByPathCache<Product>({ path })
       if (!product || product.status !== ProductStatus.PUBLISHED) return null
+      // No stockQuantity means stock isn't tracked for this product.
+      const stock = product.inventory?.stockQuantity
+      if (typeof stock === 'number' && quantity > stock) return null
       return { product: { ...product, path }, quantity, price: getRegularPrice(product) }
     }),
   )

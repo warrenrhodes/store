@@ -25,6 +25,7 @@ export default function CheckoutPageView(props: { shipments: Shipment[] }) {
   const { setUserData } = useTemporalUser()
   const { cartItems, clearCart } = useCart()
   const [isLoading, setIsLoading] = useState(false)
+  const [total, setTotal] = useState<number>()
   const orderSummary = useRef<OrderSummaryType>()
   const { user } = useAuthStore()
   const { localization } = useLocalization()
@@ -204,10 +205,11 @@ export default function CheckoutPageView(props: { shipments: Shipment[] }) {
             onSubmit={onOrderConfirm}
             form={form}
             isLoading={isLoading}
+            total={total}
           />
         </div>
         <div className="order-1 lg:order-2 lg:col-span-2">
-          <OrderSummary orderSummary={orderSummary} />
+          <OrderSummary orderSummary={orderSummary} onTotalChange={setTotal} />
         </div>
       </div>
     </div>

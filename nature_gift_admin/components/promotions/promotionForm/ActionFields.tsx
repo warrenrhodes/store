@@ -13,12 +13,14 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { PromotionSchemaType } from '@/lib/validations/promotions'
+import { IProduct } from '@/lib/actions/server'
 
 interface ActionFieldsProps {
   form: UseFormReturn<PromotionSchemaType>
+  products: IProduct[]
 }
 
-export function ActionFields({ form }: ActionFieldsProps) {
+export function ActionFields({ form, products }: ActionFieldsProps) {
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'actions',
@@ -180,8 +182,19 @@ export function ActionFields({ form }: ActionFieldsProps) {
                         }}
                       />
                     </div>
-                  ) : form.watch(`actions.${index}.type`) === 'FREE_SHIPPING' ? (
-                    <></>
+                  ) : form.watch(`actions.${index}.type`) === 'FREE_PRODUCT' ? (
+                    <Select onValueChange={field.onChange} value={(field.value || '') as string}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Free product" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {products.map(product => (
+                          <SelectItem key={product.path} value={product.path}>
+                            {product.data.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   ) : (
                     <></>
                   )}

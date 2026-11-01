@@ -6,32 +6,35 @@ import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormDescription,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { toast } from '@/hooks/use-toast'
-import { IShipment } from '@/lib/actions/server'
+import { ILocation, IShipment } from '@/lib/actions/server'
 import { createShipment, deleteShipment, updateShipment } from '@/lib/actions/shipments.actions'
 import { ShipmentMethod } from '@/lib/firebase/models'
 import { shipmentSchema, ShipmentSchemaType } from '@/lib/validations/shipment'
 import { getDocumentId } from '@spreeloop/database'
 import { Loader2, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import MultiText from '../custom-ui/MultiText'
+import { MultiSelect } from '../custom-ui/MultiSelect'
+import Link from 'next/link'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Switch } from '../ui/switch'
 import { SubmitButton } from './components/SubmitButton'
 interface ShipmentFormProps {
   initialData?: IShipment
-  shipments?: IShipment[]
+  shipments: IShipment[]
+  locations: ILocation[]
 }
 
-const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) => {
+const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments, locations }) => {
   const router = useRouter()
   const [isLoading, setLoading] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -41,14 +44,27 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
     defaultValues: initialData?.data
       ? {
           ...initialData.data,
+          // Shipments not yet migrated (scripts/migrate-locations.mjs) have no locationIds.
+          locationIds: initialData.data.locationIds ?? [],
         }
       : {
-          locations: [],
+          locationIds: [],
           method: ShipmentMethod.DELIVERY,
           isActive: false,
           cost: 0,
         },
   })
+
+  const locationOptions = locations.map(l => ({
+    value: getDocumentId(l.path),
+    label: `${l.data.name} (${l.data.city})${l.data.isActive ? '' : ' – inactive'}`,
+  }))
+  // Locations already in another shipment of the same method.
+  const takenIds = new Set(
+    shipments
+      .filter(s => s.data.method === form.watch('method') && s.path !== initialData?.path)
+      .flatMap(s => s.data.locationIds ?? []),
+  )
 
   const handleKeyPress = (
     e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
@@ -61,7 +77,7 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
   const onSubmit = async (values: ShipmentSchemaType) => {
     try {
       setLoading(true)
-      let res;
+      let res
       if (initialData) {
         res = await updateShipment(getDocumentId(initialData.path), values)
       } else {
@@ -151,37 +167,25 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
           />
           <FormField
             control={form.control}
-            name="locations"
+            name="locationIds"
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Locations</FormLabel>
                 <FormControl>
-                  <MultiText
-                    placeholder="Ex: Yaounde-Mendong, Yaounde-Odza"
-                    value={field.value || []}
-                    onChange={tag => {
-                      if (
-                        shipments
-                          ?.filter(shipment => shipment.data.method === form.watch('method'))
-                          .map(e => e.data.locations)
-                          .flat()
-                          .map(location => location.toLowerCase())
-                          .includes(tag.toLowerCase())
-                      ) {
-                        toast({
-                          title: 'Error',
-                          description: `${tag} already exists in ${form.watch('method')} method`,
-                          variant: 'destructive',
-                        })
-                        return
-                      }
-                      field.onChange([...(field.value || []), tag])
-                    }}
-                    onRemove={tagToRemove =>
-                      field.onChange([...(field.value || []).filter(tag => tag !== tagToRemove)])
-                    }
+                  <MultiSelect
+                    placeholder="Choose locations"
+                    values={locationOptions.filter(o => !takenIds.has(o.value))}
+                    selectedValues={locationOptions.filter(o => field.value?.includes(o.value))}
+                    onChange={selected => field.onChange(selected.map(o => o.value))}
                   />
                 </FormControl>
+                <FormDescription>
+                  A location belongs to one shipment per method. Missing one? Add it in{' '}
+                  <Link href="/locations" className="underline">
+                    Locations
+                  </Link>
+                  .
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

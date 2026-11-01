@@ -294,7 +294,9 @@ interface DeliveryInfo {
   city?: string | null
   additionalNotes?: string | null
   deliveryMethod?: string | null
+  /** Area name at order time, kept for display even if the area is renamed later. */
   location?: string | null
+  locationId?: string | null
 }
 
 interface UserData {
@@ -327,11 +329,21 @@ export interface Order extends CreatorDocument {
   partnersPaths: string[]
 }
 
+/** A neighbourhood or town (collection `locations`). Referenced everywhere by its id. */
+export interface DeliveryLocation extends CreatorDocument {
+  name: string
+  city: string
+  isActive: boolean
+}
+
+/** A delivery zone: a group of locations sharing one price. */
 export interface Shipment extends CreatorDocument {
   method: ShipmentMethod
   isActive: boolean
   cost: number
-  locations: string[]
+  locationIds: string[]
+  /** Before scripts/migrate-locations: names (or { id, name }) stored on the shipment. */
+  locations?: unknown
 }
 
 export interface Promotion extends CreatorDocument {

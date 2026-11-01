@@ -9,7 +9,8 @@ import { OrderSummary } from '@/components/Checkout/order-summary'
 import { DeliveryFormData, deliverySchema } from '@/lib/utils/validation-form'
 import { useTemporalUser } from '@/hooks/useTemporalUser'
 import { toast } from '@/hooks/use-toast'
-import { OrderSummary as OrderSummaryType, Shipment } from '@/lib/firebase/models'
+import { OrderSummary as OrderSummaryType } from '@/lib/firebase/models'
+import { ShippingZone } from '@/lib/utils/shipping-zones'
 import { useCart } from '@/hooks/useCart'
 import { useRouter } from 'next/navigation'
 import { createOrder } from '@/lib/api/orders'
@@ -20,11 +21,12 @@ import { useForm } from 'react-hook-form'
 import { useAuthStore } from '@/hooks/store/auth-store'
 import { getDocumentId } from '@spreeloop/database'
 
-export default function CheckoutPageView(props: { shipments: Shipment[] }) {
+export default function CheckoutPageView(props: { shipments: ShippingZone[] }) {
   const router = useRouter()
   const { setUserData } = useTemporalUser()
   const { cartItems, clearCart } = useCart()
   const [isLoading, setIsLoading] = useState(false)
+  const [total, setTotal] = useState<number>()
   const orderSummary = useRef<OrderSummaryType>()
   const { user } = useAuthStore()
   const { localization } = useLocalization()
@@ -94,6 +96,7 @@ export default function CheckoutPageView(props: { shipments: Shipment[] }) {
         additionalNotes: data.additionalNotes || null,
         deliveryMethod: data.shipping.method,
         location: data.shipping.location,
+        locationId: data.shipping.locationId,
       },
       userData: {
         id: user?.authId || '',
@@ -204,10 +207,11 @@ export default function CheckoutPageView(props: { shipments: Shipment[] }) {
             onSubmit={onOrderConfirm}
             form={form}
             isLoading={isLoading}
+            total={total}
           />
         </div>
         <div className="order-1 lg:order-2 lg:col-span-2">
-          <OrderSummary orderSummary={orderSummary} />
+          <OrderSummary orderSummary={orderSummary} onTotalChange={setTotal} />
         </div>
       </div>
     </div>

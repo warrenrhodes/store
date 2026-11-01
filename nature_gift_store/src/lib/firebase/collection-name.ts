@@ -8,6 +8,7 @@ export class CollectionsName {
   static readonly Blogs = 'blogs'
   static readonly Orders = 'orders'
   static readonly Shipments = 'shipments'
+  static readonly Locations = 'locations'
   static readonly Promotions = 'promotions'
   static readonly Reviews = 'reviews'
   static readonly WhishLists = 'whishLists'

@@ -16,89 +16,22 @@ import {
 import { Input } from '@/components/ui/input'
 import { DeliveryFormData } from '@/lib/utils/validation-form'
 import { cn } from '@/lib/utils/utils'
-import { useCartDeliveryInfo } from '@/hooks/useCart'
+import { ShippingLocationField } from '@/components/Checkout/ShippingLocationField'
 
 import { useLocalization } from '@/hooks/useLocalization'
-import { Shipment } from '@/lib/firebase/models'
+import { ShippingZone } from '@/lib/utils/shipping-zones'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 interface AdsDeliveryFormProps {
   onSubmit: (data: DeliveryFormData) => void
-  shipment: Shipment[]
+  shipment: ShippingZone[]
   form: UseFormReturn<DeliveryFormData>
 }
 const TIME_IN_HOUR_BEFORE_DELIVERY = 3
 const MAX_DELIVERY_HOURS = 18
 const TODAY = new Date()
 export function AdsDeliveryForm({ onSubmit, shipment: shipments, form }: AdsDeliveryFormProps) {
-  const cartDeliveryInfo = useCartDeliveryInfo()
   const { localization } = useLocalization()
   const maxDate = addDays(TODAY, 3)
-
-  // const generateTimeSlots = (selectedDate: Date) => {
-  //   const now = new Date()
-  //   const startHour = isToday(selectedDate) ? now.getHours() + 1 : 9
-  //   const endHour = 19
-
-  //   const timeSlots: string[] = []
-
-  //   for (let hour = startHour; hour < endHour; hour++) {
-  //     timeSlots.push(`${hour.toString().padStart(2, '0')}:00`)
-  //     timeSlots.push(`${hour.toString().padStart(2, '0')}:30`)
-  //   }
-
-  //   if (isToday(selectedDate) && now.getHours() >= endHour - 1) {
-  //     return []
-  //   }
-
-  //   return timeSlots
-  // }
-
-  // const getShipmentCostByLocation = (location: string): number | undefined => {
-  //   return shipments.find(item => item.locations.includes(location))?.cost
-  // }
-
-  // const deliveriesLocation =
-  //   shipments.length > 0
-  //     ? Array.from(
-  //         new Set(
-  //           shipments
-  //             .filter(shipment => shipment.method === 'DELIVERY')
-  //             .map(e => e.locations)
-  //             .flat(),
-  //         ),
-  //       )
-  //     : []
-  // const expeditionLocation =
-  //   shipments.length > 0
-  //     ? Array.from(
-  //         new Set(
-  //           shipments
-  //             .filter(shipment => shipment.method === 'EXPEDITION')
-  //             .map(e => e.locations)
-  //             .flat(),
-  //         ),
-  //       )
-  //     : []
-
-  // const handleLocationChange = (location: string) => {
-  //   if (!location) {
-  //     cartDeliveryInfo.setShipment(undefined)
-  //     return
-  //   }
-  //   const shipment = shipments.find(
-  //     item => item.locations.includes(location) && form.watch('shipping.method') === item.method,
-  //   )
-
-  //   if (!shipment) {
-  //     return
-  //   }
-  //   cartDeliveryInfo.setShipment({
-  //     ...cartDeliveryInfo.cartDeliveryInfo,
-  //     deliveryMethod: form.watch('shipping.method'),
-  //     cost: shipment.cost,
-  //     location: location,
-  //   })
-  // }
 
   const handleKeyPress = (
     e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
@@ -234,113 +167,7 @@ export function AdsDeliveryForm({ onSubmit, shipment: shipments, form }: AdsDeli
               )}
             /> */}
           </div>
-          <FormField
-            control={form.control}
-            name="address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Vôtre address exact</FormLabel>
-                <FormControl>
-                  <Input {...field} onKeyDown={handleKeyPress} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {/* <div
-            className={cn({
-              hidden: shipments.length === 0,
-              'grid gap-4 sm:grid-cols-2 items-start': shipments.length > 0,
-            })}
-          >
-            <FormField
-              control={form.control}
-              name="shipping.method"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{localization.shipmentMethod}</FormLabel>
-                  <Select
-                    onValueChange={e => {
-                      field.onChange(e)
-                      form.setValue('shipping.location', '')
-                    }}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={localization.selectMethod} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="DELIVERY">{localization.delivery}</SelectItem>
-                      <SelectItem value="EXPEDITION">{localization.expedition}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {shipments.length > 0 && (
-              <FormField
-                control={form.control}
-                name="shipping.location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{localization.location}</FormLabel>
-                    <Select
-                      onValueChange={e => {
-                        field.onChange(e)
-                        handleLocationChange(e)
-                      }}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={localization.location} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {(form.watch('shipping.method') === 'DELIVERY'
-                          ? deliveriesLocation
-                          : expeditionLocation
-                        ).map(location => (
-                          <SelectItem key={location} value={location}>
-                            {location}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {getShipmentCostByLocation(form.watch('shipping.location')) && (
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {localization.shipmentCost}:{' '}
-                        {getShipmentCostByLocation(form.watch('shipping.location'))}
-                      </p>
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-          </div>
-          <FormField
-            control={form.control}
-            name="additionalNotes"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  {localization.additionalNotes} ({localization.optional})
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder={localization.additionalNotesPlaceHolder}
-                    {...field}
-                    onKeyDown={handleKeyPress}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          /> */}
+          <ShippingLocationField form={form} shipments={shipments} />
         </div>
       </form>
     </Form>

@@ -1,10 +1,8 @@
 import CheckoutPageView from '@/components/Checkout/Index'
-import { getAllCollectionCache } from '@/lib/api/utils'
-import { CollectionsName } from '@/lib/firebase/collection-name'
-import { Shipment } from '@/lib/firebase/models'
+import { getShippingZonesCache } from '@/lib/api/utils'
 
 export default async function CheckoutPage() {
-  const shipments = await getAllCollectionCache<Shipment>({ collection: CollectionsName.Shipments })
+  const shipments = await getShippingZonesCache()
   return (
     <div className="min-h-screen bg-background">
       <CheckoutPageView shipments={shipments} />

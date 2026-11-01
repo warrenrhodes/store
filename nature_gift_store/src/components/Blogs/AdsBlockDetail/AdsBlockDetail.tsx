@@ -5,54 +5,64 @@ import { Badge } from '@/components/ui/badge'
 import Image from 'next/image'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
-import { Blog, Product, Shipment } from '@/lib/firebase/models'
+import { Blog, Product } from '@/lib/firebase/models'
+import { ShippingZone } from '@/lib/utils/shipping-zones'
 import { AdsForm } from './AdsForm'
-import { CartItem as CartItemType, useCart } from '@/hooks/useCart'
-import { useCallback, useEffect } from 'react'
+import { CartItem as CartItemType } from '@/hooks/useCart'
+import { useEffect, useState } from 'react'
 import { cn, getRegularPrice } from '@/lib/utils/utils'
-import CountdownTimer from '@/components/CountDown'
 import { Button } from '@/components/ui/button'
+import { Inventory } from '@/lib/type'
+import { sendGTMEvent } from '@next/third-parties/google'
+import { getDocumentId } from '@spreeloop/database'
 
 import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
 import { RelatedBlogs } from '../BlockDetail/RelatedBlogs'
 import { InternalItem } from './InternalCartItems'
+import { FreeShippingBadge } from '@/components/Shop/ProductDetail/FreeShippingBadge'
 
 const AdsBlogDetail = ({
   blog,
   shipments,
   associateProduct,
   relatedBlogs,
+  freeShippingAreas = null,
 }: {
   blog: Blog
-  shipments: Shipment[]
+  shipments: ShippingZone[]
   associateProduct?: Product
   relatedBlogs: Blog[]
+  freeShippingAreas?: string[] | null
 }) => {
   const { localization, formatDate } = useLocalization()
   const metadata = blog.metadata
   const content = blog.content
 
-  const { addItem, cartItems, increaseQuantity, decreaseQuantity } = useCart()
-  const addProductToCart = useCallback(async () => {
-    if (associateProduct)
-      addItem({
-        product: associateProduct,
-        quantity: 1,
-        price: getRegularPrice(associateProduct),
-      })
-  }, [])
+  // Local item for the direct-checkout form; the global cart is left untouched.
+  const [quantity, setQuantity] = useState(1)
+  const cartItem: CartItemType | null = associateProduct
+    ? { product: associateProduct, quantity, price: getRegularPrice(associateProduct) }
+    : null
+  const soldOut = (associateProduct?.inventory as Inventory | undefined)?.stockQuantity === 0
 
   useEffect(() => {
-    if (associateProduct) {
-      addProductToCart()
-    }
-  }, [addProductToCart, associateProduct])
-
-  let cartItem: CartItemType | null = null
-  if (associateProduct) {
-    cartItem = cartItems.find(e => e.product.path === associateProduct.path)
-  }
+    if (!associateProduct) return
+    const price = getRegularPrice(associateProduct)
+    sendGTMEvent({
+      event: 'view_item',
+      currency: 'XAF',
+      value: price,
+      items: [
+        {
+          item_id: getDocumentId(associateProduct.path),
+          item_name: associateProduct.title,
+          price,
+          category: associateProduct.categories?.[0],
+        },
+      ],
+    })
+  }, [associateProduct?.path])
 
   return (
     <motion.div
@@ -132,8 +142,14 @@ const AdsBlogDetail = ({
 
       {content.type === 'TEXT' && <div>{content.content}</div>}
 
-      {associateProduct && cartItem && <AdsForm shipments={shipments} />}
-      {associateProduct && cartItem && (
+      {cartItem && soldOut && (
+        <Button disabled className="w-full">
+          {localization.outOfStock}
+        </Button>
+      )}
+      {cartItem && !soldOut && <FreeShippingBadge areas={freeShippingAreas} />}
+      {cartItem && !soldOut && <AdsForm shipments={shipments} items={[cartItem]} />}
+      {cartItem && !soldOut && (
         <motion.footer
           className={cn(
             'sticky bottom-0 z-50 w-full backdrop-blur-lg bg-background/80 border-b shadow-sm',
@@ -142,25 +158,19 @@ const AdsBlogDetail = ({
           animate={{ y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <CountdownTimer />
           <AnimatePresence initial={false}>
             {cartItem && (
               <InternalItem
                 key={`${cartItem.product.path}`}
                 item={cartItem}
-                increaseQuantity={increaseQuantity}
-                decreaseQuantity={decreaseQuantity}
+                increaseQuantity={(_, q) => setQuantity(q)}
+                decreaseQuantity={(_, q) => setQuantity(q)}
                 onRemove={() => {}}
                 canRemoveItem={false}
               />
             )}
           </AnimatePresence>
         </motion.footer>
-      )}
-      {associateProduct && !cartItem && (
-        <Button id="checkout-form" onClick={addProductToCart} className="w-full">
-          {localization.addToCart}
-        </Button>
       )}
       <Separator />
       {relatedBlogs.length > 0 && <RelatedBlogs relatedBlogs={relatedBlogs.slice(0, 5)} />}

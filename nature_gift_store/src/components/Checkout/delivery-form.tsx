@@ -18,16 +18,18 @@ import {
 import { Input } from '@/components/ui/input'
 import { DeliveryFormData } from '@/lib/utils/validation-form'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
-import { cn } from '@/lib/utils/utils'
-import { useCartDeliveryInfo } from '@/hooks/useCart'
+import { cn, priceFormatted } from '@/lib/utils/utils'
+import { ShippingLocationField } from './ShippingLocationField'
 
 import { useLocalization } from '@/hooks/useLocalization'
-import { Shipment } from '@/lib/firebase/models'
+import { ShippingZone } from '@/lib/utils/shipping-zones'
 interface DeliveryFormProps {
   onSubmit: (data: DeliveryFormData) => void
-  shipment: Shipment[]
+  shipment: ShippingZone[]
   form: UseFormReturn<DeliveryFormData>
   isLoading?: boolean
+  /** Order total from the summary, shown on the submit button. */
+  total?: number
 }
 const TIME_IN_HOUR_BEFORE_DELIVERY = 3
 const MAX_DELIVERY_HOURS = 18
@@ -37,10 +39,10 @@ export function DeliveryForm({
   shipment: shipments,
   form,
   isLoading,
+  total,
 }: DeliveryFormProps) {
   const { locale } = useLocale()
   const dateLocale = locale === 'fr' ? frLocale : undefined
-  const cartDeliveryInfo = useCartDeliveryInfo()
   const { localization } = useLocalization()
   const maxDate = addDays(TODAY, 7)
 
@@ -61,53 +63,6 @@ export function DeliveryForm({
     }
 
     return timeSlots
-  }
-
-  const getShipmentCostByLocation = (location: string): number | undefined => {
-    return shipments.find(item => item.locations.includes(location))?.cost
-  }
-
-  const deliveriesLocation =
-    shipments.length > 0
-      ? Array.from(
-          new Set(
-            shipments
-              .filter(shipment => shipment.method === 'DELIVERY')
-              .map(e => e.locations)
-              .flat(),
-          ),
-        )
-      : []
-  const expeditionLocation =
-    shipments.length > 0
-      ? Array.from(
-          new Set(
-            shipments
-              .filter(shipment => shipment.method === 'EXPEDITION')
-              .map(e => e.locations)
-              .flat(),
-          ),
-        )
-      : []
-
-  const handleLocationChange = (location: string) => {
-    if (!location) {
-      cartDeliveryInfo.setShipment(undefined)
-      return
-    }
-    const shipment = shipments.find(
-      item => item.locations.includes(location) && form.watch('shipping.method') === item.method,
-    )
-
-    if (!shipment) {
-      return
-    }
-    cartDeliveryInfo.setShipment({
-      ...cartDeliveryInfo.cartDeliveryInfo,
-      deliveryMethod: form.watch('shipping.method'),
-      cost: shipment.cost,
-      location: location,
-    })
   }
 
   const handleKeyPress = (
@@ -213,43 +168,7 @@ export function DeliveryForm({
               )}
             />
           </div>
-          <FormField
-            control={form.control}
-            name="address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{localization.exactAddress}</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    autoComplete="street-address"
-                    placeholder={localization.addressPlaceholder}
-                    onKeyDown={handleKeyPress}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <div
-            className={cn({
-              hidden: shipments.length > 0,
-            })}
-          >
-            <FormField
-              control={form.control}
-              name="city"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{localization.city}</FormLabel>
-                  <FormControl>
-                    <Input {...field} onKeyDown={handleKeyPress} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+          <ShippingLocationField form={form} shipments={shipments} />
         </div>
         <div className="flex items-start gap-3 rounded-lg border bg-muted/40 p-4">
           <Wallet className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden />
@@ -265,6 +184,7 @@ export function DeliveryForm({
             <Lock className="mr-2 h-4 w-4" aria-hidden />
           )}
           {localization.placeOrder}
+          {total !== undefined && ` · ${priceFormatted(total)}`}
         </Button>
       </form>
     </Form>

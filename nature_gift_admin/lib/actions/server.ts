@@ -10,6 +10,7 @@ import { backend } from '../firebase/firebase-server/firebase'
 import {
   Blog,
   Category,
+  DeliveryLocation,
   Order,
   OrderStatus,
   Product,
@@ -21,6 +22,7 @@ import { OrderPrices, UserData } from '../type'
 
 export type ICategory = DatabaseDocument<Category>
 export type IShipment = DatabaseDocument<Shipment>
+export type ILocation = DatabaseDocument<DeliveryLocation>
 export type IReview = DatabaseDocument<Review>
 export type IBlog = DatabaseDocument<Blog>
 export type IPromotion = DatabaseDocument<Promotion>
@@ -286,10 +288,30 @@ async function getPromotionById(promotionId: string): Promise<IPromotion | undef
       filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
     })
 
-    return JSON.parse(JSON.stringify(promotions.find(promotion => promotion.path === promotionPath)))
+    return JSON.parse(
+      JSON.stringify(promotions.find(promotion => promotion.path === promotionPath)),
+    )
   } catch (error) {
     console.error('Failed to fetch promotion:', error)
     return
+  }
+}
+
+/** All locations, shared by every admin (shipments and promotions reference them). */
+async function getLocations(): Promise<ILocation[]> {
+  try {
+    const token = await getUserTokens()
+    if (!token?.decodedToken.uid) return []
+    const locations = await backend.database.getCollection<DeliveryLocation>({
+      collectionPath: CollectionsName.Locations,
+    })
+    return JSON.parse(JSON.stringify(locations)).sort(
+      (a: ILocation, b: ILocation) =>
+        a.data.city.localeCompare(b.data.city) || a.data.name.localeCompare(b.data.name),
+    )
+  } catch (error) {
+    console.error('Failed to fetch locations:', error)
+    return []
   }
 }
 
@@ -467,6 +489,7 @@ export const getProductByIdCache = cache(getProductById)
 export const getCategoriesCache = cache(getCategories)
 export const getCategoryByIdCache = cache(getCategoryById)
 export const getShipmentsCache = cache(getShipments)
+export const getLocationsCache = cache(getLocations)
 export const getBlogsCache = cache(getBlogs)
 export const getBlogByIdCache = cache(getBlogById)
 export const getReviewsCache = cache(getReviews)

@@ -122,7 +122,8 @@ export function CartItem({
                     aria-label="+1"
                     onClick={() => increaseQuantity(item.product.path, item.quantity + 1)}
                     disabled={
-                      item.quantity >= ((item.product.inventory as Inventory).stockQuantity || 0)
+                      item.quantity >=
+                      ((item.product.inventory as Inventory | undefined)?.stockQuantity ?? 99)
                     }
                   >
                     <Plus className="w-4 h-4" />

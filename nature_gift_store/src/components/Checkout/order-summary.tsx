@@ -3,7 +3,7 @@
 import { Tag } from 'lucide-react'
 import Image from 'next/image'
 import { Separator } from '@/components/ui/separator'
-import { useCart, useCartDeliveryInfo } from '@/hooks/useCart'
+import { CartItem, useCart, useCartDeliveryInfo } from '@/hooks/useCart'
 import { priceFormatted } from '@/lib/utils/utils'
 import { MutableRefObject, useState } from 'react'
 import { useEffect } from 'react'
@@ -14,10 +14,17 @@ import { useLocalization } from '@/hooks/useLocalization'
 
 export function OrderSummary({
   orderSummary,
+  items,
+  onTotalChange,
 }: {
   orderSummary: MutableRefObject<OrderSummaryType | undefined>
+  /** Items to summarize; defaults to the global cart. */
+  items?: CartItem[]
+  /** Lets the form show the up-to-date total on its submit button. */
+  onTotalChange?: (total: number) => void
 }) {
-  const { cartItems } = useCart()
+  const cart = useCart()
+  const cartItems = items ?? cart.cartItems
   const { cartDeliveryInfo } = useCartDeliveryInfo()
 
   const [summary, setSummary] = useState<OrderSummaryType | null>(null)
@@ -30,6 +37,7 @@ export function OrderSummary({
       if (result) {
         orderSummary.current = result
         setSummary(result)
+        onTotalChange?.(result.total)
       }
     }
 
@@ -75,16 +83,23 @@ export function OrderSummary({
             <span>{localization.subtotal}</span>
             <span className="tabular-nums">{priceFormatted(summary.subtotal)}</span>
           </div>
-          {summary.shipping > 0 && (
-            <div className="flex justify-between">
-              <span>{localization.shipping}</span>
-              <span className="tabular-nums">{priceFormatted(summary.shipping)}</span>
-            </div>
-          )}
+          <div className="flex justify-between gap-4">
+            <span>{localization.shipping}</span>
+            {cartDeliveryInfo?.locationId ? (
+              <span className="tabular-nums">
+                {summary.shipping > 0 ? priceFormatted(summary.shipping) : localization.free}
+              </span>
+            ) : (
+              <span className="text-right text-muted-foreground">
+                {localization.shippingToConfirm}
+              </span>
+            )}
+          </div>
           {summary.appliedPromotions.map(promo => (
-            <div key={promo.id} className="flex justify-between text-primary">
+            <div key={`${promo.id}-${promo.type}`} className="flex justify-between text-primary">
               <span className="flex items-center gap-1">
-                <Tag className="h-3.5 w-3.5" aria-hidden /> {promo.code}
+                <Tag className="h-3.5 w-3.5" aria-hidden />{' '}
+                {promo.type === 'FREE_SHIPPING' ? localization.freeShipping : promo.code}
               </span>
               <span className="tabular-nums">-{priceFormatted(promo.discountAmount)}</span>
             </div>

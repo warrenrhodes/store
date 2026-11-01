@@ -1,5 +1,6 @@
 'use client'
 
+import { FreeShippingBadge } from './FreeShippingBadge'
 import {
   ChevronRight,
   Heart,
@@ -37,7 +38,15 @@ import { Product, Review } from '@/lib/firebase/models'
 import { useState } from 'react'
 import Link from 'next/link'
 
-export function ProductInfo({ product, reviews }: { product: Product; reviews: Review[] }) {
+export function ProductInfo({
+  product,
+  reviews,
+  freeShippingAreas = null,
+}: {
+  product: Product
+  reviews: Review[]
+  freeShippingAreas?: string[] | null
+}) {
   const cart = useCart()
   const router = useRouter()
   const cartSideBar = useCartSideBar()
@@ -148,6 +157,8 @@ export function ProductInfo({ product, reviews }: { product: Product; reviews: R
             ? localization.onlyLeft.replace('{n}', String(stock))
             : localization.inStock}
       </p>
+
+      <FreeShippingBadge areas={freeShippingAreas} />
 
       <div className="space-y-3">
         <div className="flex flex-wrap gap-3">

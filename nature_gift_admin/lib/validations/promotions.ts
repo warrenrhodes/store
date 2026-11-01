@@ -1,5 +1,6 @@
 import * as z from 'zod'
 import { isoDate } from './date'
+import { parseList } from '../utils/parse-list'
 
 export const promotionConditionSchema = z.object({
   type: z.enum(['MINIMUM_QUANTITY', 'SPECIFIC_PRODUCTS', 'DELIVERY_METHOD', 'LOCATION']),
@@ -75,6 +76,15 @@ const validatePromotionFrom = (values: PromotionSchemaType): string | undefined 
     return 'At least one condition is required.'
   }
 
+  for (const condition of values.conditions) {
+    if (
+      (condition.type === 'LOCATION' || condition.type === 'SPECIFIC_PRODUCTS') &&
+      parseList(condition.value).length === 0
+    ) {
+      return `${condition.type} condition needs at least one value.`
+    }
+  }
+
   // Validate actions
   if (values.actions.length === 0) {
     return 'At least one action is required.'
@@ -93,6 +103,10 @@ const validatePromotionFrom = (values: PromotionSchemaType): string | undefined 
       if (isNaN(value) || value <= 0) {
         return 'Fixed discount must be greater than 0.'
       }
+    }
+
+    if (action.type === 'FREE_PRODUCT' && !action.value) {
+      return 'Choose the free product.'
     }
 
     if (action.type === 'BUY_X_GET_Y') {

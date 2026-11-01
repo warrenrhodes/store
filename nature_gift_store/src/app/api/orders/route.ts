@@ -1,14 +1,15 @@
 import { CartItem } from '@/hooks/useCart'
 import {
-  getAllCollectionCache,
   getAllValidPromotionCache,
+  getShippingZonesCache,
   getDocumentByPathCache,
 } from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { backend } from '@/lib/firebase/firebase-server/firebase'
-import { Order, OrderStatus, Product, ProductStatus, Shipment } from '@/lib/firebase/models'
+import { Order, OrderStatus, Product, ProductStatus } from '@/lib/firebase/models'
 import { PromotionCalculator } from '@/lib/utils/promotion-calculator'
 import { getRegularPrice } from '@/lib/utils/utils'
+import { findArea } from '@/lib/utils/shipping-zones'
 import { FlockNotifier } from '@/lib/notifications/flock/flock'
 import { sendEmailNotifications, sendSmsNotifications } from '@/lib/notifications/sendNotifications'
 import { getDatabasePath } from '@spreeloop/database'
@@ -24,7 +25,7 @@ const flockNotifier = new FlockNotifier({
  */
 async function priceOrder(
   rawItems: unknown,
-  deliveryInfo: { deliveryMethod?: string; location?: string } | undefined,
+  deliveryInfo: { deliveryMethod?: string; locationId?: string } | undefined,
 ) {
   if (!Array.isArray(rawItems) || rawItems.length === 0) return null
 
@@ -36,33 +37,35 @@ async function priceOrder(
       if (!path.startsWith(`${CollectionsName.Products}/`)) return null
       const product = await getDocumentByPathCache<Product>({ path })
       if (!product || product.status !== ProductStatus.PUBLISHED) return null
+      // No stockQuantity means stock isn't tracked for this product.
+      const stock = product.inventory?.stockQuantity
+      if (typeof stock === 'number' && quantity > stock) return null
       return { product: { ...product, path }, quantity, price: getRegularPrice(product) }
     }),
   )
   if (cart.some(item => !item)) return null
 
-  const shipments =
-    (await getAllCollectionCache<Shipment>({ collection: CollectionsName.Shipments })) || []
-  const cost =
-    shipments.find(
-      s =>
-        s.isActive !== false &&
-        s.method === deliveryInfo?.deliveryMethod &&
-        s.locations.includes(deliveryInfo?.location ?? ''),
-    )?.cost ?? 0
+  // The area is matched by id; its name and city come from the database, not the client.
+  const picked = findArea(
+    await getShippingZonesCache(),
+    deliveryInfo?.deliveryMethod,
+    deliveryInfo?.locationId,
+  )
+  const area = picked?.area
+  const cost = picked?.zone.cost ?? 0
 
   const promotions = await getAllValidPromotionCache()
   const summary = new PromotionCalculator(
     cart as CartItem[],
     {
       deliveryMethod: deliveryInfo?.deliveryMethod as never,
-      location: deliveryInfo?.location,
+      locationId: area?.id,
       cost,
     },
     promotions,
   ).calculate()
 
-  return { cart: cart as CartItem[], summary }
+  return { cart: cart as CartItem[], summary, area }
 }
 
 /// Request to create new order.
@@ -72,13 +75,19 @@ export const POST = async (req: NextRequest) => {
   if (!priced) {
     return NextResponse.json({ error: 'Invalid cart' }, { status: 400 })
   }
-  const { cart: cartItems, summary } = priced
+  const { cart: cartItems, summary, area } = priced
 
   const data = {
     userPath: order.userData?.id
       ? getDatabasePath(CollectionsName.Users, order.userData?.id)
       : null,
-    deliveryInfo: order.deliveryInfo,
+    deliveryInfo: {
+      ...order.deliveryInfo,
+      location: area?.name ?? null,
+      locationId: area?.id ?? null,
+      // A listed area sets the city; otherwise keep what the customer typed.
+      city: area?.city || order.deliveryInfo?.city || null,
+    },
     userData: order.userData,
     status: OrderStatus.PENDING,
     orderPrices: {

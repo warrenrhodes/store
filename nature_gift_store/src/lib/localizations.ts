@@ -19,6 +19,62 @@ export const localization = {
 }
 
 export const dictionary: Record<DictWords, Record<Locale, string>> = {
+  errorZoneRequired: {
+    en: 'Please choose your delivery area',
+    fr: 'Veuillez choisir votre quartier',
+  },
+  errorNameRequired: {
+    en: 'Name is required',
+    fr: 'Le nom est requis',
+  },
+  errorInvalidPhone: {
+    en: 'Invalid phone number',
+    fr: 'Numéro invalide',
+  },
+  errorCameroonPhone: {
+    en: 'Invalid Cameroonian phone number',
+    fr: 'Numéro camerounais invalide',
+  },
+  errorDateRequired: {
+    en: 'Please select a date',
+    fr: 'Veuillez sélectionner une date',
+  },
+  errorAddressRequired: {
+    en: 'Please add an address',
+    fr: 'Veuillez ajouter une adresse',
+  },
+  searchZone: {
+    en: 'Search an area',
+    fr: 'Rechercher un quartier',
+  },
+  yourAddress: {
+    en: 'Your address',
+    fr: 'Votre adresse',
+  },
+  detailsOrComment: {
+    en: 'Details or comment (optional)',
+    fr: 'Précisions ou commentaire (optionnel)',
+  },
+  deliveryZone: {
+    en: 'Delivery area',
+    fr: 'Quartier / ville de livraison',
+  },
+  otherZone: {
+    en: 'My area is not listed',
+    fr: "Mon quartier n'est pas dans la liste",
+  },
+  shippingToConfirm: {
+    en: 'To be confirmed',
+    fr: 'À confirmer',
+  },
+  freeShippingIn: {
+    en: 'Free delivery in',
+    fr: 'Livraison gratuite à',
+  },
+  free: {
+    en: 'Free',
+    fr: 'Gratuit',
+  },
   searching: {
     en: 'Searching…',
     fr: 'Recherche…',
@@ -936,10 +992,6 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     en: 'My orders',
     fr: 'Mes commandes',
   },
-  countDownMessage: {
-    en: '*Offer valid until tomorrow',
-    fr: "*Offre valable jusqu'a demain",
-  },
   additionalNotesPlaceHolder: {
     en: 'Example: Opposite hotel A, behind pharmacy b ...',
     fr: "Exemple : En face de l'hôtel A, derrière la pharmacie B ...",
@@ -955,6 +1007,20 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
 }
 
 export const enum DictWords {
+  errorZoneRequired = 'errorZoneRequired',
+  errorNameRequired = 'errorNameRequired',
+  errorInvalidPhone = 'errorInvalidPhone',
+  errorCameroonPhone = 'errorCameroonPhone',
+  errorDateRequired = 'errorDateRequired',
+  errorAddressRequired = 'errorAddressRequired',
+  searchZone = 'searchZone',
+  yourAddress = 'yourAddress',
+  detailsOrComment = 'detailsOrComment',
+  deliveryZone = 'deliveryZone',
+  otherZone = 'otherZone',
+  shippingToConfirm = 'shippingToConfirm',
+  freeShippingIn = 'freeShippingIn',
+  free = 'free',
   searching = 'searching',
   minRead = 'minRead',
   searchArticles = 'searchArticles',
@@ -1035,7 +1101,6 @@ export const enum DictWords {
   getMoreInformation = 'getMoreInformation',
   showLess = 'showLess',
   additionalNotesPlaceHolder = 'additionalNotesPlaceHolder',
-  countDownMessage = 'countDownMessage',
   myOrders = 'myOrders',
   PENDING = 'PENDING',
   CANCELED = 'CANCELED',

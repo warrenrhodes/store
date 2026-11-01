@@ -6,6 +6,12 @@ import { useAuthStore } from './store/auth-store'
 import { useWishlistStore } from './store/useWishlistStore'
 
 const SYNC_INTERVAL = 5000 // 5 seconds
+const RETRY_AFTER_FAILURE = 5 * 60_000
+
+// Every product card mounts this hook: one sync at a time for the whole page, and no retry
+// storm when the server keeps failing (each attempt costs a Firestore read and write).
+let syncing = false
+let retryAt = 0
 
 export function useWishlist() {
   const { user } = useAuthStore()
@@ -15,16 +21,22 @@ export function useWishlist() {
     if (!user) return
 
     const pendingChanges = getPendingChanges()
-    if (pendingChanges.length === 0) return
+    if (pendingChanges.length === 0 || syncing || Date.now() < retryAt) return
 
+    syncing = true
     try {
       const result = await syncWishlist(user.authId, Array.from(items))
 
       if (result.success) {
         pendingChanges.forEach(({ productId }) => clearPendingChange(productId))
+      } else {
+        retryAt = Date.now() + RETRY_AFTER_FAILURE
       }
     } catch (error) {
+      retryAt = Date.now() + RETRY_AFTER_FAILURE
       console.error('Error syncing wishlist:', error)
+    } finally {
+      syncing = false
     }
   }, [user, items, getPendingChanges, clearPendingChange])
 

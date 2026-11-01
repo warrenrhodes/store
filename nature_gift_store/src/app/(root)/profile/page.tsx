@@ -1,5 +1,5 @@
 import ProfileView from '@/components/Profile/ProfileView'
-import { getAllCollectionCache } from '@/lib/api/utils'
+import { getAllCollectionFresh } from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { Order } from '@/lib/firebase/models'
 import { getDatabasePath, QueryFilter } from '@spreeloop/database'
@@ -14,7 +14,7 @@ export default async function ProfilePage() {
     cookieSignatureKeys: serverConfig.cookieSignatureKeys,
     serviceAccount: serverConfig.serviceAccount,
   })
-  const orders = await getAllCollectionCache<Order>({
+  const orders = await getAllCollectionFresh<Order>({
     collection: CollectionsName.Orders,
     filters: [
       new QueryFilter(

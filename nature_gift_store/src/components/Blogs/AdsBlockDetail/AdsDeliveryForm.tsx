@@ -19,11 +19,11 @@ import { cn } from '@/lib/utils/utils'
 import { ShippingLocationField } from '@/components/Checkout/ShippingLocationField'
 
 import { useLocalization } from '@/hooks/useLocalization'
-import { Shipment } from '@/lib/firebase/models'
+import { ShippingZone } from '@/lib/utils/shipping-zones'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 interface AdsDeliveryFormProps {
   onSubmit: (data: DeliveryFormData) => void
-  shipment: Shipment[]
+  shipment: ShippingZone[]
   form: UseFormReturn<DeliveryFormData>
 }
 const TIME_IN_HOUR_BEFORE_DELIVERY = 3

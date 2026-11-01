@@ -18,10 +18,11 @@ import {
   getAllCollectionCache,
   getAllRelatedCollectionCache,
   getAllValidPromotionCache,
+  getShippingZonesCache,
   getDocumentBySlugCache,
 } from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
-import { Blog, BlogStatus, Product, ProductStatus, Review, Shipment } from '@/lib/firebase/models'
+import { Blog, BlogStatus, Product, ProductStatus, Review } from '@/lib/firebase/models'
 import { QueryFilter } from '@spreeloop/database'
 import { Inventory, Price } from '@/lib/type'
 import { getRegularPrice, getReviewAverage } from '@/lib/utils/utils'
@@ -189,7 +190,7 @@ async function FeaturedProductLoader({ slug }: { slug: string }) {
         freeShippingAreas={getFreeShippingAreas(
           await getAllValidPromotionCache(),
           product.path,
-          await getAllCollectionCache<Shipment>({ collection: CollectionsName.Shipments }),
+          await getShippingZonesCache(),
         )}
       />
     </div>

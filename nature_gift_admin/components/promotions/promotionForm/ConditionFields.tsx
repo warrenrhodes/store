@@ -1,6 +1,5 @@
 'use client'
 
-import { ShipmentLocation } from '@/lib/firebase/models'
 import { useFieldArray, UseFormReturn } from 'react-hook-form'
 import { Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -21,7 +20,7 @@ import { IProduct } from '@/lib/actions/server'
 interface ConditionFieldsProps {
   form: UseFormReturn<PromotionSchemaType>
   products: IProduct[]
-  locations: ShipmentLocation[]
+  locations: Array<{ id: string; name: string }>
 }
 
 export function ConditionFields({ form, products, locations }: ConditionFieldsProps) {

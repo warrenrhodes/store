@@ -9,29 +9,32 @@ import {
   Form,
   FormControl,
   FormField,
+  FormDescription,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { toast } from '@/hooks/use-toast'
-import { IShipment } from '@/lib/actions/server'
+import { ILocation, IShipment } from '@/lib/actions/server'
 import { createShipment, deleteShipment, updateShipment } from '@/lib/actions/shipments.actions'
 import { ShipmentMethod } from '@/lib/firebase/models'
 import { shipmentSchema, ShipmentSchemaType } from '@/lib/validations/shipment'
 import { getDocumentId } from '@spreeloop/database'
 import { Loader2, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { getShipmentLocations } from '@/lib/utils/shipment-locations'
+import { MultiSelect } from '../custom-ui/MultiSelect'
+import Link from 'next/link'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Switch } from '../ui/switch'
 import { SubmitButton } from './components/SubmitButton'
 interface ShipmentFormProps {
   initialData?: IShipment
-  shipments?: IShipment[]
+  shipments: IShipment[]
+  locations: ILocation[]
 }
 
-const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) => {
+const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments, locations }) => {
   const router = useRouter()
   const [isLoading, setLoading] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -41,21 +44,27 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
     defaultValues: initialData?.data
       ? {
           ...initialData.data,
-          locations: getShipmentLocations(initialData.data),
+          // Shipments not yet migrated (scripts/migrate-locations.mjs) have no locationIds.
+          locationIds: initialData.data.locationIds ?? [],
         }
       : {
-          locations: [],
+          locationIds: [],
           method: ShipmentMethod.DELIVERY,
           isActive: false,
           cost: 0,
         },
   })
 
-  // Names already used by the other shipments of the same method.
-  const takenNames = (shipments ?? [])
-    .filter(s => s.data.method === form.watch('method') && s.path !== initialData?.path)
-    .flatMap(s => getShipmentLocations(s.data))
-    .map(l => l.name.toLowerCase())
+  const locationOptions = locations.map(l => ({
+    value: getDocumentId(l.path),
+    label: `${l.data.name} (${l.data.city})${l.data.isActive ? '' : ' – inactive'}`,
+  }))
+  // Locations already in another shipment of the same method.
+  const takenIds = new Set(
+    shipments
+      .filter(s => s.data.method === form.watch('method') && s.path !== initialData?.path)
+      .flatMap(s => s.data.locationIds ?? []),
+  )
 
   const handleKeyPress = (
     e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
@@ -158,63 +167,25 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({ initialData, shipments }) =
           />
           <FormField
             control={form.control}
-            name="locations"
+            name="locationIds"
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormLabel>Locations</FormLabel>
                 <FormControl>
-                  <div className="space-y-2">
-                    {(field.value || []).map((location, index) => (
-                      <div key={location.id} className="flex gap-2">
-                        <Input
-                          value={location.name}
-                          aria-label="Location name"
-                          onKeyDown={handleKeyPress}
-                          onChange={e =>
-                            field.onChange(
-                              field.value.map((l, i) =>
-                                i === index ? { ...l, name: e.target.value } : l,
-                              ),
-                            )
-                          }
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          aria-label={`Remove ${location.name}`}
-                          onClick={() => field.onChange(field.value.filter((_, i) => i !== index))}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                    <Input
-                      placeholder="Add a location and press Enter (ex: Yaoundé – Odza)"
-                      onKeyDown={e => {
-                        if (e.key !== 'Enter') return
-                        e.preventDefault()
-                        const name = e.currentTarget.value.trim()
-                        if (!name) return
-                        const taken = [
-                          ...takenNames,
-                          ...(field.value || []).map(l => l.name.toLowerCase()),
-                        ]
-                        if (taken.includes(name.toLowerCase())) {
-                          toast({
-                            title: 'Error',
-                            description: `${name} already exists in ${form.watch('method')} method`,
-                            variant: 'destructive',
-                          })
-                          return
-                        }
-                        // The id never changes: promotions reference it, so renaming is safe.
-                        field.onChange([...(field.value || []), { id: crypto.randomUUID(), name }])
-                        e.currentTarget.value = ''
-                      }}
-                    />
-                  </div>
+                  <MultiSelect
+                    placeholder="Choose locations"
+                    values={locationOptions.filter(o => !takenIds.has(o.value))}
+                    selectedValues={locationOptions.filter(o => field.value?.includes(o.value))}
+                    onChange={selected => field.onChange(selected.map(o => o.value))}
+                  />
                 </FormControl>
+                <FormDescription>
+                  A location belongs to one shipment per method. Missing one? Add it in{' '}
+                  <Link href="/locations" className="underline">
+                    Locations
+                  </Link>
+                  .
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

@@ -10,9 +10,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils/utils'
 import { useCartDeliveryInfo } from '@/hooks/useCart'
 import { useLocalization } from '@/hooks/useLocalization'
-import { Shipment, ShipmentMethod } from '@/lib/firebase/models'
+import { ShipmentMethod } from '@/lib/firebase/models'
 import { DeliveryFormData } from '@/lib/utils/validation-form'
-import { getShipmentLocations } from '@/lib/utils/shipment-locations'
+import { ShippingArea, ShippingZone } from '@/lib/utils/shipping-zones'
 
 const OTHER = '__other__'
 /** Show a search box once the list gets long. */
@@ -56,28 +56,42 @@ export function ShippingLocationField({
   shipments,
 }: {
   form: UseFormReturn<DeliveryFormData>
-  shipments: Shipment[]
+  shipments: ShippingZone[]
 }) {
   const { localization } = useLocalization()
   const { setShipment } = useCartDeliveryInfo()
   const [other, setOther] = useState(false)
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
-  const active = shipments.filter(s => s.isActive !== false)
   const locationId = form.watch('shipping.locationId')
   const method = form.watch('shipping.method')
 
-  const groups = [
-    { method: ShipmentMethod.DELIVERY, label: localization.delivery },
-    { method: ShipmentMethod.EXPEDITION, label: localization.expedition },
-  ]
-    .map(group => ({
-      ...group,
-      areas: active
-        .filter(s => s.method === group.method)
-        .flatMap(s => getShipmentLocations(s).map(area => ({ ...area, cost: s.cost }))),
-    }))
-    .filter(group => group.areas.length > 0)
+  // One group per city (and per method: expedition areas are listed apart), sorted by name.
+  const groups = Object.values(
+    shipments.reduce<
+      Record<
+        string,
+        {
+          key: string
+          label: string
+          areas: Array<ShippingArea & { method: ShipmentMethod; cost: number }>
+        }
+      >
+    >((acc, zone) => {
+      for (const area of zone.areas) {
+        const key = `${zone.method}:${area.city}`
+        const label =
+          zone.method === ShipmentMethod.EXPEDITION
+            ? `${area.city || localization.expedition} · ${localization.expedition}`
+            : area.city
+        acc[key] ??= { key, label, areas: [] }
+        acc[key].areas.push({ ...area, method: zone.method, cost: zone.cost })
+      }
+      return acc
+    }, {}),
+  )
+    .sort((a, b) => a.label.localeCompare(b.label))
+    .map(group => ({ ...group, areas: group.areas.sort((a, b) => a.name.localeCompare(b.name)) }))
 
   // Values are `${method}::${areaId}`: legacy ids are names, which may repeat across methods.
   const onChange = (value: string) => {
@@ -89,7 +103,7 @@ export function ShippingLocationField({
       return
     }
     const [nextMethod, nextId] = value.split('::') as [ShipmentMethod, string]
-    const area = groups.find(g => g.method === nextMethod)?.areas.find(a => a.id === nextId)
+    const area = groups.flatMap(g => g.areas).find(a => a.method === nextMethod && a.id === nextId)
     if (!area) return
     form.setValue('shipping', { method: nextMethod, location: area.name, locationId: area.id })
     setShipment({
@@ -116,7 +130,7 @@ export function ShippingLocationField({
 
   return (
     <>
-      {active.length > 0 && (
+      {shipments.length > 0 && (
         <FormItem>
           <FormLabel>{localization.deliveryZone}</FormLabel>
           <Popover open={open} onOpenChange={toggle}>
@@ -148,11 +162,13 @@ export function ShippingLocationField({
               )}
               <div role="listbox" className="max-h-64 overflow-y-auto">
                 {groups.map(group => {
-                  const visible = group.areas.filter(area => matches(area.name, query))
+                  const visible = group.areas.filter(area =>
+                    matches(`${area.name} ${area.city}`, query),
+                  )
                   if (visible.length === 0) return null
                   return (
-                    <div key={group.method} role="group">
-                      {groups.length > 1 && (
+                    <div key={group.key} role="group">
+                      {groups.length > 1 && group.label && (
                         <p className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
                           {group.label}
                         </p>
@@ -161,8 +177,8 @@ export function ShippingLocationField({
                         <Option
                           key={area.id}
                           label={area.name}
-                          selected={selected === `${group.method}::${area.id}`}
-                          onSelect={() => pick(`${group.method}::${area.id}`)}
+                          selected={selected === `${area.method}::${area.id}`}
+                          onSelect={() => pick(`${area.method}::${area.id}`)}
                         />
                       ))}
                     </div>
@@ -182,7 +198,7 @@ export function ShippingLocationField({
           )}
         </FormItem>
       )}
-      {(active.length === 0 || other) && (
+      {(shipments.length === 0 || other) && (
         <FormField
           control={form.control}
           name="address"

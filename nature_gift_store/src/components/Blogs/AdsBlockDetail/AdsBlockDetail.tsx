@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge'
 import Image from 'next/image'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
-import { Blog, Product, Shipment } from '@/lib/firebase/models'
+import { Blog, Product } from '@/lib/firebase/models'
+import { ShippingZone } from '@/lib/utils/shipping-zones'
 import { AdsForm } from './AdsForm'
 import { CartItem as CartItemType } from '@/hooks/useCart'
 import { useEffect, useState } from 'react'
@@ -29,7 +30,7 @@ const AdsBlogDetail = ({
   freeShippingAreas = null,
 }: {
   blog: Blog
-  shipments: Shipment[]
+  shipments: ShippingZone[]
   associateProduct?: Product
   relatedBlogs: Blog[]
   freeShippingAreas?: string[] | null

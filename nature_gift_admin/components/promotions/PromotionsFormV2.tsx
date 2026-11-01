@@ -1,6 +1,5 @@
 'use client'
 
-import { ShipmentLocation } from '@/lib/firebase/models'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { endOfDay, format, subDays } from 'date-fns'
 import { CalendarIcon, Loader2, Trash2 } from 'lucide-react'
@@ -47,7 +46,7 @@ interface PromotionFormProps {
   initialData?: IPromotion | null
   products: IProduct[]
   /** Delivery areas configured in shipments, for LOCATION conditions (stored by id). */
-  locations: ShipmentLocation[]
+  locations: Array<{ id: string; name: string }>
 }
 
 export function PromotionFormV2({ initialData, products, locations }: PromotionFormProps) {

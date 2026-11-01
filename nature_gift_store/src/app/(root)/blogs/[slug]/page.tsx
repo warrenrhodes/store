@@ -2,14 +2,14 @@ import AdsBlogDetail from '@/components/Blogs/AdsBlockDetail/AdsBlockDetail'
 import Loader from '@/components/Loader'
 import BlogSkeleton from '@/components/Loading'
 import {
-  getAllCollectionCache,
   getAllRelatedCollectionCache,
   getAllValidPromotionCache,
+  getShippingZonesCache,
   getDocumentByPathCache,
   getDocumentBySlugCache,
 } from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
-import { Blog, BlogMetadata, BlogStatus, Product, Shipment } from '@/lib/firebase/models'
+import { Blog, BlogMetadata, BlogStatus, Product } from '@/lib/firebase/models'
 import { getFreeShippingAreas } from '@/lib/utils/promotion-calculator'
 import { QueryFilter } from '@spreeloop/database'
 import { notFound } from 'next/navigation'
@@ -82,7 +82,7 @@ export default async function BlogAdsDetailPage(props: Props) {
     })
   }
 
-  const shipments = await getAllCollectionCache<Shipment>({ collection: CollectionsName.Shipments })
+  const shipments = await getShippingZonesCache()
   const freeShippingAreas = associateProduct
     ? getFreeShippingAreas(await getAllValidPromotionCache(), associateProduct.path, shipments)
     : null

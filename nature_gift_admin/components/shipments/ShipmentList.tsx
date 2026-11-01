@@ -5,13 +5,18 @@ import { Plus } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { DataTable } from '../custom-ui/DataTable'
-import { shipmentColumns } from './ShipmentColumns'
-import { IShipment } from '@/lib/actions/server'
+import { getShipmentColumns } from './ShipmentColumns'
+import { ILocation, IShipment } from '@/lib/actions/server'
+import { getDocumentId } from '@spreeloop/database'
 interface ShipmentListProps {
   shipments: IShipment[]
+  locations: ILocation[]
 }
 
-export function ShipmentList({ shipments }: ShipmentListProps) {
+export function ShipmentList({ shipments, locations }: ShipmentListProps) {
+  const names = new Map(
+    locations.map(l => [getDocumentId(l.path), `${l.data.name} (${l.data.city})`]),
+  )
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -23,7 +28,7 @@ export function ShipmentList({ shipments }: ShipmentListProps) {
           </Link>
         </Button>
       </div>
-      <DataTable columns={shipmentColumns} data={shipments} searchKey="method" />
+      <DataTable columns={getShipmentColumns(names)} data={shipments} searchKey="method" />
     </div>
   )
 }

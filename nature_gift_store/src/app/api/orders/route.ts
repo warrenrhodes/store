@@ -1,15 +1,15 @@
 import { CartItem } from '@/hooks/useCart'
 import {
-  getAllCollectionCache,
   getAllValidPromotionCache,
+  getShippingZonesCache,
   getDocumentByPathCache,
 } from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { backend } from '@/lib/firebase/firebase-server/firebase'
-import { Order, OrderStatus, Product, ProductStatus, Shipment } from '@/lib/firebase/models'
+import { Order, OrderStatus, Product, ProductStatus } from '@/lib/firebase/models'
 import { PromotionCalculator } from '@/lib/utils/promotion-calculator'
 import { getRegularPrice } from '@/lib/utils/utils'
-import { getShipmentLocations } from '@/lib/utils/shipment-locations'
+import { findArea } from '@/lib/utils/shipping-zones'
 import { FlockNotifier } from '@/lib/notifications/flock/flock'
 import { sendEmailNotifications, sendSmsNotifications } from '@/lib/notifications/sendNotifications'
 import { getDatabasePath } from '@spreeloop/database'
@@ -45,18 +45,14 @@ async function priceOrder(
   )
   if (cart.some(item => !item)) return null
 
-  const shipments =
-    (await getAllCollectionCache<Shipment>({ collection: CollectionsName.Shipments })) || []
-  // The area is matched by id; its name comes from the database, not from the client.
-  const shipment = shipments.find(
-    s =>
-      s.isActive !== false &&
-      s.method === deliveryInfo?.deliveryMethod &&
-      getShipmentLocations(s).some(l => l.id === deliveryInfo?.locationId),
+  // The area is matched by id; its name and city come from the database, not the client.
+  const picked = findArea(
+    await getShippingZonesCache(),
+    deliveryInfo?.deliveryMethod,
+    deliveryInfo?.locationId,
   )
-  const area =
-    shipment && getShipmentLocations(shipment).find(l => l.id === deliveryInfo?.locationId)
-  const cost = shipment?.cost ?? 0
+  const area = picked?.area
+  const cost = picked?.zone.cost ?? 0
 
   const promotions = await getAllValidPromotionCache()
   const summary = new PromotionCalculator(
@@ -89,6 +85,8 @@ export const POST = async (req: NextRequest) => {
       ...order.deliveryInfo,
       location: area?.name ?? null,
       locationId: area?.id ?? null,
+      // A listed area sets the city; otherwise keep what the customer typed.
+      city: area?.city || order.deliveryInfo?.city || null,
     },
     userData: order.userData,
     status: OrderStatus.PENDING,

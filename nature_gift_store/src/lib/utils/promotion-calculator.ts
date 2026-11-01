@@ -1,7 +1,7 @@
 import { CartItem } from '@/hooks/useCart'
 import { PromotionAction, PromotionCondition } from '../type'
-import { IDeliveryInfo, OrderSummary, Promotion, Shipment } from '../firebase/models'
-import { getShipmentLocations } from './shipment-locations'
+import { IDeliveryInfo, OrderSummary, Promotion } from '../firebase/models'
+import { ShippingZone } from './shipping-zones'
 import { toDate } from './utils'
 
 /**
@@ -36,7 +36,7 @@ export const getPromotionProducts = (promotion: Promotion): string[] | null => {
 export const getFreeShippingAreas = (
   promotions: Promotion[],
   productPath: string,
-  shipments: Shipment[],
+  zones: ShippingZone[],
 ): string[] | null => {
   const offers = promotions.filter(
     p =>
@@ -48,12 +48,7 @@ export const getFreeShippingAreas = (
   if (offers.some(p => !p.conditions.some(c => c.type === 'LOCATION'))) return []
 
   // LOCATION conditions hold area ids; areas deleted or deactivated since are skipped.
-  const names = new Map(
-    shipments
-      .filter(s => s.isActive !== false)
-      .flatMap(getShipmentLocations)
-      .map(l => [l.id, l.name]),
-  )
+  const names = new Map(zones.flatMap(z => z.areas).map(a => [a.id, a.name]))
   const areas = offers
     .flatMap(p => p.conditions.filter(c => c.type === 'LOCATION'))
     .flatMap(c => parseList(c.value))

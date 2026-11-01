@@ -1,15 +1,15 @@
-import { getShipmentLocations } from '@/lib/utils/shipment-locations'
+import { getDocumentId } from '@spreeloop/database'
 import { PromotionFormV2 } from '@/components/promotions/PromotionsFormV2'
-import { getProductsCache, getPromotionByIdCache, getShipmentsCache } from '@/lib/actions/server'
+import { getProductsCache, getPromotionByIdCache, getLocationsCache } from '@/lib/actions/server'
 
 export default async function EditPromotionPage(props: {
   params: Promise<{ promotionId: string }>
 }) {
   const params = await props.params
-  const [promotion, products, shipments] = await Promise.all([
+  const [promotion, products, locations] = await Promise.all([
     getPromotionByIdCache(params.promotionId),
     getProductsCache(),
-    getShipmentsCache(),
+    getLocationsCache(),
   ])
 
   return (
@@ -21,7 +21,10 @@ export default async function EditPromotionPage(props: {
       <PromotionFormV2
         initialData={promotion}
         products={products}
-        locations={shipments.flatMap(s => getShipmentLocations(s.data))}
+        locations={locations.map(l => ({
+          id: getDocumentId(l.path),
+          name: `${l.data.name} (${l.data.city})`,
+        }))}
       />
     </div>
   )

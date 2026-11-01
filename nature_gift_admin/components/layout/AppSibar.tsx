@@ -13,6 +13,7 @@ import {
   Stars,
   Tag,
   Truck,
+  MapPin,
 } from 'lucide-react'
 import Image from 'next/image'
 import {
@@ -83,6 +84,11 @@ const data = {
       icon: Truck,
       title: 'Shipments',
     },
+    {
+      url: '/locations',
+      icon: MapPin,
+      title: 'Locations',
+    },
   ],
 }
 
@@ -129,7 +135,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           {process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL && (
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a href={process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <ExternalLink />
                   <span>View store</span>
                 </a>

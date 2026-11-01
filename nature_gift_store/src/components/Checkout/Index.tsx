@@ -9,7 +9,8 @@ import { OrderSummary } from '@/components/Checkout/order-summary'
 import { DeliveryFormData, deliverySchema } from '@/lib/utils/validation-form'
 import { useTemporalUser } from '@/hooks/useTemporalUser'
 import { toast } from '@/hooks/use-toast'
-import { OrderSummary as OrderSummaryType, Shipment } from '@/lib/firebase/models'
+import { OrderSummary as OrderSummaryType } from '@/lib/firebase/models'
+import { ShippingZone } from '@/lib/utils/shipping-zones'
 import { useCart } from '@/hooks/useCart'
 import { useRouter } from 'next/navigation'
 import { createOrder } from '@/lib/api/orders'
@@ -20,7 +21,7 @@ import { useForm } from 'react-hook-form'
 import { useAuthStore } from '@/hooks/store/auth-store'
 import { getDocumentId } from '@spreeloop/database'
 
-export default function CheckoutPageView(props: { shipments: Shipment[] }) {
+export default function CheckoutPageView(props: { shipments: ShippingZone[] }) {
   const router = useRouter()
   const { setUserData } = useTemporalUser()
   const { cartItems, clearCart } = useCart()

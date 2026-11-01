@@ -329,18 +329,21 @@ export interface Order extends CreatorDocument {
   partnersPaths: string[]
 }
 
-/** A delivery area. Promotions and orders reference it by `id`; `name` is display only. */
-export interface ShipmentLocation {
-  id: string
+/** A neighbourhood or town (collection `locations`). Referenced everywhere by its id. */
+export interface DeliveryLocation extends CreatorDocument {
   name: string
+  city: string
+  isActive: boolean
 }
 
+/** A delivery zone: a group of locations sharing one price. */
 export interface Shipment extends CreatorDocument {
   method: ShipmentMethod
   isActive: boolean
   cost: number
-  /** Legacy documents may still hold plain names; read them through getShipmentLocations. */
-  locations: ShipmentLocation[]
+  locationIds: string[]
+  /** Before scripts/migrate-locations: names (or { id, name }) stored on the shipment. */
+  locations?: unknown
 }
 
 export interface Promotion extends CreatorDocument {

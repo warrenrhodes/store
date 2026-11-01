@@ -1,4 +1,5 @@
 import { toDate } from '@/lib/utils/utils'
+import { toShippingZones } from '@/lib/utils/shipping-zones'
 import { DatabaseDocument, QueryFilter } from '@spreeloop/database'
 import { cache } from 'react'
 import { CollectionsName } from '../firebase/collection-name'
@@ -6,6 +7,7 @@ import { backend } from '../firebase/firebase-server/firebase'
 import {
   Blog,
   Category,
+  DeliveryLocation,
   Order,
   Product,
   Promotion,
@@ -111,3 +113,10 @@ export const getAllValidPromotionCache = cache(getAllValidPromotion)
 export const getDocumentBySlugCache = cache(getDocumentBySlug)
 export const getDocumentByPathCache = cache(getDocumentByPath)
 export const getAllCollectionCache = cache(getAllCollection)
+
+const getShippingZones = async () =>
+  toShippingZones(
+    await getAllCollectionCache<Shipment>({ collection: CollectionsName.Shipments }),
+    await getAllCollectionCache<DeliveryLocation>({ collection: CollectionsName.Locations }),
+  )
+export const getShippingZonesCache = cache(getShippingZones)

@@ -1,8 +1,8 @@
 // Self-check for PromotionCalculator. Run: npx tsx src/lib/utils/promotion-calculator.check.ts
 import assert from 'node:assert/strict'
 import { CartItem } from '@/hooks/useCart'
-import { Promotion, Shipment } from '../firebase/models'
-import { getShipmentLocations } from './shipment-locations'
+import { DeliveryLocation, Promotion, Shipment } from '../firebase/models'
+import { findArea, toShippingZones } from './shipping-zones'
 import { getFreeShippingAreas, PromotionCalculator } from './promotion-calculator'
 
 const item = (path: string, price: number, quantity: number) =>
@@ -38,17 +38,16 @@ const etoudi = {
   location: 'Etoudi',
   cost: 2000,
 }
-const shipments = [
-  {
-    method: 'DELIVERY',
-    cost: 2000,
-    isActive: true,
-    locations: [
-      { id: 'loc_medong', name: 'Medong' },
-      { id: 'loc_etoudi', name: 'Etoudi' },
-    ],
-  },
-] as unknown as Shipment[]
+const location = (id: string, name: string, isActive = true) =>
+  ({ path: `locations/${id}`, name, city: 'Yaoundé', isActive }) as DeliveryLocation
+const locations = [location('loc_medong', 'Medong'), location('loc_etoudi', 'Etoudi')]
+const zone1 = {
+  method: 'DELIVERY',
+  cost: 2000,
+  isActive: true,
+  locationIds: ['loc_medong', 'loc_etoudi'],
+} as Shipment
+const shipments = toShippingZones([zone1], locations)
 
 // Free shipping for one product
 const freeShipCoffee = promo(
@@ -110,20 +109,40 @@ assert.deepEqual(
 )
 assert.equal(getFreeShippingAreas([b2g1, tenOffCoffee], 'products/coffee', shipments), null)
 
-// Badge shows the current name; deleted areas are skipped
-const renamed = [{ ...shipments[0], locations: [{ id: 'loc_medong', name: 'Yaoundé – Medong' }] }]
-assert.deepEqual(getFreeShippingAreas([freeShipMedong], 'products/tea', renamed as Shipment[]), [
+// Zones: locations resolved by id, inactive locations and shipments skipped
+assert.deepEqual(shipments[0].areas, [
+  { id: 'loc_medong', name: 'Medong', city: 'Yaoundé' },
+  { id: 'loc_etoudi', name: 'Etoudi', city: 'Yaoundé' },
+])
+assert.deepEqual(toShippingZones([zone1], [location('loc_medong', 'Medong', false)]), [])
+assert.deepEqual(toShippingZones([{ ...zone1, isActive: false }], locations), [])
+assert.equal(findArea(shipments, 'DELIVERY', 'loc_etoudi')?.zone.cost, 2000)
+assert.equal(findArea(shipments, 'EXPEDITION', 'loc_etoudi'), undefined)
+
+// Renaming a location: the badge shows the new name, the promotion still matches
+const renamed = toShippingZones([zone1], [location('loc_medong', 'Yaoundé – Medong')])
+assert.deepEqual(getFreeShippingAreas([freeShipMedong], 'products/tea', renamed), [
   'Yaoundé – Medong',
 ])
 assert.equal(getFreeShippingAreas([freeShipMedong], 'products/tea', []), null)
 
-// Legacy shipment (plain names) still matches a legacy promotion (names) until migrated
-const legacy = [{ ...shipments[0], locations: ['Medong'] }] as unknown as Shipment[]
+// Legacy shipment (names on the shipment) still matches a legacy promotion until migrated
+const legacy = toShippingZones(
+  [
+    {
+      method: 'DELIVERY',
+      cost: 2000,
+      isActive: true,
+      locations: ['Medong'],
+    } as unknown as Shipment,
+  ],
+  [],
+)
+assert.deepEqual(legacy[0].areas, [{ id: 'Medong', name: 'Medong', city: '' }])
 const legacyPromo = promo(
   [{ type: 'LOCATION', value: '["Medong"]' }],
   [{ type: 'FREE_SHIPPING', value: '' }],
 )
 assert.deepEqual(getFreeShippingAreas([legacyPromo], 'products/tea', legacy), ['Medong'])
-assert.deepEqual(getShipmentLocations(legacy[0]), [{ id: 'Medong', name: 'Medong' }])
 
 console.log('promotion-calculator: all checks passed')

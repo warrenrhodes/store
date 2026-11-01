@@ -5,7 +5,8 @@ import { CartItem, useCartDeliveryInfo } from '@/hooks/useCart'
 import { useLocalization } from '@/hooks/useLocalization'
 import { useTemporalUser } from '@/hooks/useTemporalUser'
 import { createOrder } from '@/lib/api/orders'
-import { OrderSummary as OrderSummaryType, Shipment } from '@/lib/firebase/models'
+import { OrderSummary as OrderSummaryType } from '@/lib/firebase/models'
+import { ShippingZone } from '@/lib/utils/shipping-zones'
 import { DeliveryFormData, deliverySchema } from '@/lib/utils/validation-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { sendGTMEvent } from '@next/third-parties/google'
@@ -20,7 +21,7 @@ import { Check, Loader2 } from 'lucide-react'
 import { priceFormatted } from '@/lib/utils/utils'
 
 // Direct checkout: orders only the items passed in, never touches the global cart.
-export const AdsForm = (props: { shipments: Shipment[]; items: CartItem[] }) => {
+export const AdsForm = (props: { shipments: ShippingZone[]; items: CartItem[] }) => {
   const router = useRouter()
   const { setUserData } = useTemporalUser()
   const cartItems = props.items

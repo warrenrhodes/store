@@ -22,10 +22,10 @@ import { cn, priceFormatted } from '@/lib/utils/utils'
 import { ShippingLocationField } from './ShippingLocationField'
 
 import { useLocalization } from '@/hooks/useLocalization'
-import { Shipment } from '@/lib/firebase/models'
+import { ShippingZone } from '@/lib/utils/shipping-zones'
 interface DeliveryFormProps {
   onSubmit: (data: DeliveryFormData) => void
-  shipment: Shipment[]
+  shipment: ShippingZone[]
   form: UseFormReturn<DeliveryFormData>
   isLoading?: boolean
   /** Order total from the summary, shown on the submit button. */

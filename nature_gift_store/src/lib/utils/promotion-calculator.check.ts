@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict'
 import { CartItem } from '@/hooks/useCart'
 import { DeliveryLocation, Promotion, Shipment } from '../firebase/models'
-import { findArea, toShippingZones } from './shipping-zones'
+import { filterZonesByCity, findArea, toShippingZones } from './shipping-zones'
 import { getFreeShippingAreas, PromotionCalculator } from './promotion-calculator'
 
 const item = (path: string, price: number, quantity: number) =>
@@ -144,5 +144,16 @@ const legacyPromo = promo(
   [{ type: 'FREE_SHIPPING', value: '' }],
 )
 assert.deepEqual(getFreeShippingAreas([legacyPromo], 'products/tea', legacy), ['Medong'])
+
+// Ads for one city: ?ville=yaounde keeps Yaoundé only; an unknown city keeps everything
+const douala = toShippingZones(
+  [{ ...zone1, cost: 3000, locationIds: ['loc_akwa'] }],
+  [{ ...location('loc_akwa', 'Akwa'), city: 'Douala' }],
+)
+const twoCities = [...shipments, ...douala]
+assert.deepEqual(filterZonesByCity(twoCities, 'yaounde'), shipments)
+assert.deepEqual(filterZonesByCity(twoCities, 'Douala'), douala)
+assert.deepEqual(filterZonesByCity(twoCities, 'Bafoussam'), twoCities)
+assert.deepEqual(filterZonesByCity(twoCities, undefined), twoCities)
 
 console.log('promotion-calculator: all checks passed')

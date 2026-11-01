@@ -7,6 +7,14 @@ export type ShippingZone = { method: ShipmentMethod; cost: number; areas: Shippi
 
 const idOf = (path: string) => path.split('/').pop() ?? path
 
+/** Lower case, no accents: 'Yaoundé' and 'yaounde' compare equal. */
+export const normalize = (text: string) =>
+  text
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .trim()
+
 /**
  * Active shipments with their active locations. Shipments not yet migrated
  * (scripts/migrate-locations.mjs) still hold names: the name then doubles as the id, which
@@ -44,4 +52,19 @@ export const findArea = (zones: ShippingZone[], method?: string | null, areaId?:
     if (area) return { zone, area }
   }
   return undefined
+}
+
+/**
+ * Only the areas of one city (ad links carry `?ville=Yaoundé`). An unknown city keeps every
+ * zone, so a typo in an ad link never leaves the customer without delivery areas.
+ */
+export const filterZonesByCity = (zones: ShippingZone[], city?: string) => {
+  if (!city?.trim()) return zones
+  const filtered = zones
+    .map(zone => ({
+      ...zone,
+      areas: zone.areas.filter(a => normalize(a.city) === normalize(city)),
+    }))
+    .filter(zone => zone.areas.length > 0)
+  return filtered.length > 0 ? filtered : zones
 }

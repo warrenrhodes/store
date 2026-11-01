@@ -12,17 +12,11 @@ import { useCartDeliveryInfo } from '@/hooks/useCart'
 import { useLocalization } from '@/hooks/useLocalization'
 import { ShipmentMethod } from '@/lib/firebase/models'
 import { DeliveryFormData } from '@/lib/utils/validation-form'
-import { ShippingArea, ShippingZone } from '@/lib/utils/shipping-zones'
+import { normalize, ShippingArea, ShippingZone } from '@/lib/utils/shipping-zones'
 
 const OTHER = '__other__'
 /** Show a search box once the list gets long. */
 const SEARCH_FROM = 8
-
-const normalize = (text: string) =>
-  text
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .toLowerCase()
 
 /** Every word typed must appear in the area name, ignoring accents and case. */
 const matches = (area: string, query: string) =>
@@ -99,6 +93,8 @@ export function ShippingLocationField({
     form.clearErrors('address')
     if (value === OTHER) {
       form.setValue('shipping', { method: 'DELIVERY', location: '', locationId: '' })
+      // The address field takes the details then; the notes field is hidden.
+      form.setValue('additionalNotes', '')
       setShipment(undefined)
       return
     }
@@ -184,12 +180,16 @@ export function ShippingLocationField({
                     </div>
                   )
                 })}
-                <Option
-                  label={localization.otherZone}
-                  selected={selected === OTHER}
-                  onSelect={() => pick(OTHER)}
-                />
               </div>
+              {/* Pinned under the scrolling list so it is reachable without scrolling to the end. */}
+              <Button
+                type="button"
+                variant={selected === OTHER ? 'secondary' : 'outline'}
+                onClick={() => pick(OTHER)}
+                className="mt-1 w-full"
+              >
+                {localization.otherZone}
+              </Button>
             </PopoverContent>
           </Popover>
           {/* The address rule fails while no area is picked and the address field is hidden. */}
@@ -217,23 +217,25 @@ export function ShippingLocationField({
           )}
         />
       )}
-      <FormField
-        control={form.control}
-        name="additionalNotes"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{localization.detailsOrComment}</FormLabel>
-            <FormControl>
-              <Input
-                {...field}
-                value={field.value ?? ''}
-                placeholder={localization.additionalNotesPlaceHolder}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      {!other && (
+        <FormField
+          control={form.control}
+          name="additionalNotes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{localization.detailsOrComment}</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ''}
+                  placeholder={localization.additionalNotesPlaceHolder}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
     </>
   )
 }

@@ -6,13 +6,22 @@ import { locationSchema, LocationSchemaType } from '@/lib/validations/location'
 import { revalidatePath } from 'next/cache'
 import { getUserTokens } from './server'
 
+/** 'Yaoundé – Biyem-Assi' and 'yaounde biyem assi' are the same: no case, accents, dashes or extra spaces. */
+const key = (text: string = '') =>
+  text
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .replace(/[\s\-–—_'’.]+/g, ' ')
+    .trim()
+
 const isDuplicate = async (data: LocationSchemaType, ignoreId?: string) => {
   const existing = await backend.db.collection(CollectionsName.Locations).get()
   return existing.docs.some(
     doc =>
       doc.id !== ignoreId &&
-      doc.get('name')?.toLowerCase() === data.name.toLowerCase() &&
-      doc.get('city')?.toLowerCase() === data.city.toLowerCase(),
+      key(doc.get('name')) === key(data.name) &&
+      key(doc.get('city')) === key(data.city),
   )
 }
 

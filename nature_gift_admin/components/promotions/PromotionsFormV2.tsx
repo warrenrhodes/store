@@ -1,7 +1,7 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { endOfDay, format, subDays } from 'date-fns'
+import { addDays, endOfDay, format, subDays } from 'date-fns'
 import { CalendarIcon, Copy, Link2, Loader2, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
@@ -73,7 +73,8 @@ export function PromotionFormV2({
       name: '',
       description: '',
       startDate: new Date().toISOString(),
-      endDate: new Date().toISOString(),
+      // A month by default: "now" would make any new active promotion already expired.
+      endDate: endOfDay(addDays(new Date(), 30)).toISOString(),
       conditions: [],
       actions: [],
       requiresCode: false,

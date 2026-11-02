@@ -7,9 +7,13 @@ Chaque phase est livrable seule : une PR par phase, et la boutique actuelle cont
 
 Transformer le produit actuel (un admin séparé par fournisseur, mais une seule vitrine commune) en **plateforme vendable** :
 
-- **Chaque fournisseur a sa boutique** : son domaine (sous-domaine `xxx.ngift.cm` ou domaine personnalisé), son thème, son catalogue, ses promos, ses zones de livraison, ses commandes, ses réglages (WhatsApp, Pixel Meta, GTM, notifications).
-- **Un domaine général** (`ngift.cm`) : une marketplace publique qui affiche les produits de toutes les boutiques visibles, comme aujourd'hui.
-- **Un seul tableau de bord** (`app.ngift.cm`, l'admin actuel) pour tous les fournisseurs, et une console super-admin pour le propriétaire de la plateforme.
+- **Chaque fournisseur a sa boutique** : son adresse, son thème, son catalogue, ses promos, ses zones de livraison, ses commandes, ses réglages (WhatsApp, Pixel Meta, GTM, notifications).
+- **Une marketplace publique** à la racine du site, qui affiche les produits de toutes les boutiques visibles, comme aujourd'hui.
+- **Un seul tableau de bord** (l'admin actuel) pour tous les fournisseurs, et une console super-admin pour le propriétaire de la plateforme.
+
+**Lancement à coût minimal (choix de l'utilisateur, 2026-11-02) :**
+- **Adresses** : on reste d'abord sur le lien gratuit Vercel (`<projet>.vercel.app`). Chaque boutique est servie **par chemin** : `<projet>.vercel.app/boutique/<slug>`. Les sous-domaines (`<slug>.ngift.cm`) et les domaines personnalisés viendront **plus tard**, quand il y aura plusieurs fournisseurs (phase 6). Le code est prévu pour que ce passage ne touche que le middleware et les réglages.
+- **Paiement des abonnements** : en **espèces**. Une boutique créée est en attente (`pending`). Le super-admin l'**active à la main** une fois le paiement confirmé. Le paiement Mobile Money automatique viendra aussi en phase 6.
 
 ## 1. Règles à respecter pendant l'exécution (à lire en premier)
 
@@ -49,12 +53,13 @@ Nouvelles collections :
 // stores/{storeId}
 interface Store {
   name: string
-  slug: string                 // unique, sert au sous-domaine : <slug>.ngift.cm
+  slug: string                 // unique, [a-z0-9-], sert dans l'URL /boutique/<slug> (plus tard <slug>.ngift.cm)
   ownerUid: string
-  status: 'active' | 'suspended'
-  plan: 'free' | 'pro'         // facturation manuelle au début
-  domains: string[]            // hôtes normalisés, minuscules, sans port
-  marketplaceListed: boolean   // visible sur ngift.cm
+  status: 'pending' | 'active' | 'suspended'  // pending = créée, en attente du paiement cash
+  plan: 'free' | 'pro'
+  paidUntil?: string           // ISO, posé par le super-admin à la confirmation du paiement
+  domains: string[]            // phase 6 : hôtes normalisés, minuscules, sans port
+  marketplaceListed: boolean   // visible sur la marketplace
   theme: StoreTheme
   settings: {
     whatsapp?: string          // format international, sans +
@@ -72,8 +77,23 @@ interface Store {
 // storeSecrets/{storeId}: lu uniquement côté serveur, jamais renvoyé au navigateur
 interface StoreSecrets { metaCapiToken?: string; flockWebhookUrl?: string }
 
-// domains/{hostname}: résolution hôte → boutique en une lecture (id du doc = hôte)
+// storeSlugs/{slug}: résolution slug → boutique en une lecture, et unicité du slug (création en transaction)
+interface StoreSlug { storeId: string }
+
+// phase 6 — domains/{hostname}: résolution hôte → boutique en une lecture (id du doc = hôte)
 interface DomainRecord { storeId: string; kind: 'subdomain' | 'custom'; verified: boolean }
+
+// storePayments/{autoId}: journal des paiements cash enregistrés par le super-admin
+interface StorePayment {
+  storeId: string
+  amount: number               // XAF
+  method: 'cash'               // 'mobile_money' en phase 6
+  periodMonths: number
+  paidUntil: string            // nouvelle échéance
+  recordedBy: string           // uid du super-admin
+  note?: string
+  createdAt: string
+}
 
 // memberships/{storeId}_{uid}
 interface Membership { storeId: string; uid: string; role: 'owner' | 'staff'; createdAt: string }
@@ -99,23 +119,37 @@ Un champ **`storeId: string`** est ajouté sur `products`, `categories`, `blogs`
 
 Décision : collections de premier niveau avec `storeId`, **pas** de sous-collections `stores/{id}/products`. La marketplace peut ainsi lister tous les produits publiés en une requête (`where('marketplaceListed','==',true)` dénormalisé sur le produit), et la migration reste un simple ajout de champ.
 
-### 3.2 Routage par domaine (vitrine)
+### 3.2 Routage (vitrine)
 
-Une seule app `nature_gift_store` sert tous les hôtes. C'est le modèle « Vercel for Platforms ».
+Une seule app `nature_gift_store` sert la marketplace et toutes les boutiques. Les pages passent de `app/(root)/...` à `app/[site]/(root)/...` (idem `(auth)`). `robots.ts`, `sitemap.ts` et `opengraph-image` passent sous `[site]`. `site` vaut `_market` ou le slug d'une boutique.
+
+**Maintenant : routage par chemin, sur le lien gratuit Vercel**
 
 ```
-ngift.cm, www.ngift.cm          → site = "_market"   (marketplace)
+<projet>.vercel.app/                      → site = "_market"  (marketplace)
+<projet>.vercel.app/boutique/<slug>/...   → site = <slug>
+localhost:3001/boutique/<slug>/...        → idem en dev
+```
+
+- `src/proxy.ts` calcule `site` à partir du chemin **sans lire la base** :
+  - `/boutique/<slug>/rest` est réécrit en `/<slug>/rest` ;
+  - tout autre chemin est réécrit en `/_market/<chemin>`.
+  - On garde `authMiddleware` en l'enveloppant : la réécriture se fait dans `handleValidToken`, `handleInvalidToken` et le chemin public. `PUBLIC_PATHS` doit accepter le préfixe `/boutique/<slug>`.
+- Les liens internes d'une boutique doivent garder le préfixe. Un seul helper, `siteHref(site, path)`, plus un hook client `useSiteHref()` qui lit le site depuis un contexte posé dans `app/[site]/layout.tsx`. **Tous** les `<Link href="/...">`, `router.push` et `redirect` de la vitrine passent par lui. Un garde-fou en CI interdit `href="/` en dur dans `src/components` et `src/app`.
+- Le panier est en localStorage, partagé par toutes les boutiques puisqu'elles ont la même origine. La clé zustand devient donc **`cart-storage:{site}`** (idem pour les codes promo de `usePromoCodes` et la wishlist si elle est locale). Un panier de boutique ne contient ainsi que ses produits.
+- `getSiteContext(site)` (cache React + `unstable_cache` 5 min, tag `store:{id}`) renvoie `{ mode: 'market' } | { mode: 'store', store }`. Il lit `storeSlugs/{slug}` puis `stores/{id}`. Un slug inconnu ou une boutique non `active` (`pending`, `suspended`) renvoie une 404.
+- Les routes API (`/api/orders`, `/api/promotions/calculate`, `/api/checkouts`, `/api/reviews`, `/api/search`) ne sont **pas** réécrites. Le client envoie le `site` (slug ou `_market`), le serveur le résout avec `getSiteContext` et **vérifie** que chaque produit du panier appartient bien à la boutique. Le serveur ne fait jamais confiance à un `storeId` envoyé par le client.
+- URL absolues : `PLATFORM_URL=https://<projet>.vercel.app` (env), en remplacement de `NEXT_PUBLIC_ECOMMERCE_STORE_URL`. L'URL d'une boutique se calcule **uniquement** par `storeUrl(store)` (= `${PLATFORM_URL}/boutique/${slug}` aujourd'hui), utilisé dans les liens de suivi, WhatsApp, sitemap, metadata et liens de promo copiés depuis l'admin.
+
+**Plus tard (phase 6) : routage par hôte**
+
+```
+ngift.cm, www.ngift.cm          → site = "_market"
 <slug>.ngift.cm                 → site = <slug>
-boutique-client.com             → site = "_host:boutique-client.com" → lookup domains/{host}
-app.ngift.cm                    → admin (autre projet Vercel)
-localhost:3001 / *.localhost    → dev : <slug>.localhost:3001, ou ?site=<slug>
+boutique-client.com             → lookup domains/{host} → site = <slug>
 ```
 
-- `src/proxy.ts` calcule `site` à partir de l'en-tête `host` **sans lire la base**, puis réécrit l'URL `/{path}` → `/{site}/{path}`. On garde `authMiddleware` en l'enveloppant : la réécriture se fait dans `handleValidToken`, `handleInvalidToken` et le chemin public.
-- Les pages passent de `app/(root)/...` à `app/[site]/(root)/...` (idem `(auth)`). `robots.ts`, `sitemap.ts` et `opengraph-image` passent sous `[site]`.
-- `getSiteContext(site)` (cache React + `unstable_cache` 5 min, tag `store:{id}`) renvoie `{ mode: 'market' } | { mode: 'store', store }`. Pour un domaine personnalisé, il fait une lecture `domains/{host}`. Un hôte inconnu ou une boutique suspendue renvoie une 404.
-- Les routes API (`/api/orders`, `/api/promotions/calculate`, `/api/checkouts`, `/api/reviews`, `/api/search`) ne sont **pas** réécrites. Elles dérivent la boutique du `host` de la requête avec le même helper, et **jamais** d'un `storeId` fourni par le client.
-- Domaine de base configurable : `PLATFORM_ROOT_DOMAIN=ngift.cm` (env), en remplacement de `NEXT_PUBLIC_ECOMMERCE_STORE_URL` pour les URL absolues. L'URL d'une boutique se calcule par `storeUrl(store)`.
+Seuls le middleware (lire `host` en plus du chemin), `storeUrl()` et les clés de panier changent. Les anciens liens `/boutique/<slug>/...` redirigent en 308 vers le nouveau domaine de la boutique.
 
 ### 3.3 Chargeurs de données
 
@@ -128,7 +162,7 @@ Invalidation : nouvelle route `POST /api/revalidate` dans le store, protégée p
 
 ### 3.4 Panier et commandes
 
-- **Domaine boutique** : le panier ne contient que les produits de cette boutique (le localStorage est déjà séparé par origine). Une commande = une boutique.
+- **Page boutique** (`/boutique/<slug>`) : le panier ne contient que les produits de cette boutique (clé `cart-storage:{site}`, voir 3.2). Une commande = une boutique.
 - **Marketplace** : le panier peut mélanger plusieurs boutiques. L'interface groupe les articles par boutique, avec leurs frais de livraison et leurs promos par groupe. Au paiement, `placeOrder` crée **une commande par boutique** dans **une seule transaction** :
   - stock et usage des promos vérifiés pour tous les groupes ;
   - toutes les commandes portent le même `checkoutGroupId` ;
@@ -153,11 +187,16 @@ Invalidation : nouvelle route `POST /api/revalidate` dans le store, protégée p
 - Interface :
   - sélecteur de boutique dans la barre latérale (`AppSibar`), qui écrit le cookie `current-store` ;
   - page **Réglages boutique** (nom, slug, WhatsApp, emails, téléphones, GTM, Pixel, jeton CAPI, Flock) ;
-  - page **Domaines** (phase 2) ;
+  - page **Domaines** (phase 6) ;
   - page **Thème** (phase 3) ;
   - page **Équipe** (inviter par email avec le rôle staff, retirer).
 - Rôles : `owner` peut tout faire ; `staff` ne peut pas accéder aux réglages, domaines, équipe et thème.
-- Super-admin : custom claim Firebase `platformAdmin: true`, posé par un script local. Section `/platform` : liste des boutiques, suspension, plan, `marketplaceListed`, modération.
+- Super-admin : custom claim Firebase `platformAdmin: true`, posé par un script local. Section `/platform` :
+  - liste des boutiques avec filtre par statut (`pending` en premier) et échéance `paidUntil` (les boutiques qui expirent dans les 7 jours ou déjà expirées sont mises en évidence) ;
+  - **« Enregistrer un paiement cash »** : montant, nombre de mois, note. Crée un `storePayments`, repousse `paidUntil` et passe la boutique en `active`, dans une transaction ;
+  - suspension et réactivation manuelles. Pas de suspension automatique à l'échéance pour l'instant : le super-admin décide ;
+  - plan, `marketplaceListed`, modération.
+- Tant que la boutique est `pending`, son propriétaire peut déjà se connecter à l'admin et préparer son catalogue. Un bandeau lui indique comment payer (numéro WhatsApp de la plateforme, `PLATFORM_CONTACT_WHATSAPP` en env). Sa vitrine reste en 404 jusqu'à l'activation.
 
 ### 3.6 Règles Firestore
 
@@ -172,7 +211,7 @@ Réécrire `firestore.rules` : **tout refuser côté client** (`allow read, writ
 - Sections de la page d'accueil (`theme.sections`) : `hero`, `featuredProducts`, `categoryGrid`, `reviews`, `faq`, `richText`, `video`, `promoBanner`. Chacune est validée par zod, rendue par un registre `{ type → composant }`, et réordonnée ou masquée dans l'admin. L'aperçu en direct est un `<iframe>` de la boutique avec `?preview=<token>`, qui lit le brouillon `theme.draft`.
 - La marque codée en dur (Header, Footer, layout, contact, métadonnées) est remplacée par `store.name`, `logoUrl` et `settings.whatsapp`. En mode market, ce sont les valeurs de la plateforme.
 
-### 3.8 Domaines (phase 2)
+### 3.8 Domaines (phase 6, plus tard)
 
 - Sous-domaines : wildcard `*.ngift.cm` sur le projet Vercel du store (domaine sur les nameservers Vercel, requis pour le certificat wildcard). Le doc `domains/{slug}.ngift.cm` est créé à la création de la boutique.
 - Domaines personnalisés : l'admin appelle l'API Vercel depuis une server action (`VERCEL_TOKEN`, `VERCEL_PROJECT_ID_STORE`, `VERCEL_TEAM_ID`) :
@@ -180,7 +219,7 @@ Réécrire `firestore.rules` : **tout refuser côté client** (`allow read, writ
   - `GET /v9/projects/{id}/domains/{domain}` et `/v6/domains/{domain}/config` pour l'état ;
   - `DELETE` pour retirer.
   - La page Domaines affiche l'enregistrement DNS à créer (CNAME `cname.vercel-dns.com` ou A `76.76.21.21`) et l'état de vérification. `domains/{host}.verified` est mis à jour à la vérification.
-- SEO par hôte : `metadataBase`, `sitemap.ts`, `robots.ts` et l'URL canonique calculés depuis `getSiteContext`. Par défaut, **la page produit de la marketplace a pour canonique l'URL du produit sur le domaine de la boutique**. Décision réversible, à confirmer avec l'utilisateur.
+- SEO : dès la phase 2, `metadataBase`, `sitemap.ts`, `robots.ts` et l'URL canonique sont calculés depuis `getSiteContext` et `storeUrl()`. Par défaut, **la page produit de la marketplace a pour canonique l'URL du produit dans la boutique**. Décision réversible, à confirmer avec l'utilisateur.
 - Auth client : les cookies sont par domaine. Les clients commandent comme aujourd'hui sans compte (téléphone). Le compte client reste local à chaque hôte. Pas de SSO inter-domaines : à ajouter seulement si c'est demandé.
 
 ## 4. Phases
@@ -215,7 +254,7 @@ Critère de fin : les deux apps compilent avec `@ngift/core`, zéro type dupliqu
 
 1. Types `Store`, `StoreSecrets`, `DomainRecord`, `Membership` et `storeId` dans `@ngift/core`. Collections ajoutées à `CollectionsName`.
 2. **Script de migration** `scripts/migrate-multi-tenant.mjs` (idempotent, `--dry-run` par défaut, `--apply` pour écrire, par lots de 400) :
-   - chaque `creatorId` distinct sur products, categories, blogs, shipments et promotions devient une boutique (`stores`, slug dérivé du nom de l'utilisateur, à compléter avec `--map uid=slug,name`), avec un `memberships` owner et un `domains/{slug}.ngift.cm` ;
+   - chaque `creatorId` distinct sur products, categories, blogs, shipments et promotions devient une boutique (`stores`, slug dérivé du nom de l'utilisateur, à compléter avec `--map uid=slug,name`), avec un `memberships` owner et un `storeSlugs/{slug}`. Les boutiques migrées sont créées en `active` ;
    - pose `storeId` sur products, categories, blogs, shipments, promotions et reviews via `creatorId` ;
    - orders et checkouts : via `partnersPaths[0]`. Le dry-run **compte les commandes à plusieurs fournisseurs** et les liste, elles gardent `partnersPaths` ;
    - `marketplaceListed: true` sur les produits ;
@@ -234,20 +273,21 @@ Tests e2e émulateur :
 - la migration lancée deux fois produit le même résultat ;
 - la vitrine fonctionne toujours (elle ignore encore `storeId`).
 
-### Phase 2 : vitrine par domaine (2 à 3 semaines)
+### Phase 2 : vitrine par boutique, routage par chemin (2 à 3 semaines)
 
-1. Déplacer les pages sous `app/[site]/`, réécriture dans `src/proxy.ts` (3.2), `getSiteContext`.
+1. Déplacer les pages sous `app/[site]/`, réécriture par chemin dans `src/proxy.ts` (3.2), `getSiteContext`, `siteHref` / `useSiteHref` sur tous les liens, clés de panier par site, `storeUrl()`.
 2. Chargeurs paramétrés par scope (3.3) et route `/api/revalidate`, appelée par l'admin.
-3. API : boutique dérivée du `host`. `priceOrder` et `placeOrder` en mode boutique (une boutique par commande). Rejeter un panier qui contient un produit d'une autre boutique.
+3. API : boutique résolue depuis le `site` envoyé par le client, puis vérifiée côté serveur. `priceOrder` et `placeOrder` en mode boutique (une boutique par commande). Rejeter un panier qui contient un produit d'une autre boutique.
 4. Réglages par boutique : marque (nom, logo), WhatsApp (Footer, contact), GTM et Pixel dans le layout, notifications et CAPI depuis `settings` / `storeSecrets`, avec secours sur les variables d'environnement.
-5. SEO par hôte (sitemap, robots, metadata, canonique).
-6. Domaines : wildcard, page Domaines de l'admin avec l'API Vercel (3.8).
-7. Dev local : `<slug>.localhost:3001` (Chrome résout `*.localhost`) et `?site=` en secours.
+5. SEO par boutique (sitemap, robots, metadata, canonique) via `storeUrl()`.
+6. Admin : bouton « Voir ma boutique » et « Copier le lien » (`storeUrl(store)`), et liens de promo copiés avec le préfixe de la boutique.
 
 Tests e2e émulateur :
-- `a.localhost:3101` n'affiche que les produits, promos et zones de A ; une commande sur A a `storeId = A` et aucune promo de B ne s'y applique ;
+- `localhost:3101/boutique/a` n'affiche que les produits, promos et zones de A ; tous les liens de la page restent sous `/boutique/a` ; une commande sur A a `storeId = A` et aucune promo de B ne s'y applique ;
+- le panier de A et celui de B sont indépendants dans le même navigateur ;
+- un `site` falsifié dans l'appel API (produit de B envoyé avec `site=a`) est rejeté ;
 - un code promo de B saisi sur A renvoie `invalid` ;
-- un hôte inconnu renvoie 404, une boutique suspendue renvoie 404 ;
+- un slug inconnu renvoie 404, une boutique `pending` ou `suspended` renvoie 404 ;
 - le sitemap de A ne contient que A ;
 - modifier un produit dans l'admin met à jour la vitrine via `/api/revalidate` sans attendre 5 minutes.
 
@@ -275,26 +315,38 @@ Tests :
 
 ### Phase 5 : commercialisation (2 à 3 semaines)
 
-1. Inscription d'un fournisseur sur `app.ngift.cm/signup` : compte, création de boutique (slug, nom), préréglage de thème, premier produit, zones de livraison. Statut `active` sur un plan gratuit limité (nombre de produits par exemple).
-2. Plans et abonnements : d'abord manuel (le super-admin change `plan`). Ensuite Mobile Money via **NotchPay**, **CinetPay** ou **Campay** (Stripe n'est pas ouvert aux entreprises camerounaises) avec webhook → `stores.plan` / `planRenewsAt`.
+1. Inscription d'un fournisseur sur `/signup` dans l'admin : compte, création de boutique (slug unique via `storeSlugs` en transaction, nom), préréglage de thème, premier produit, zones de livraison. La boutique est créée en **`pending`**.
+2. Paiement **cash**, activation manuelle : le fournisseur voit le bandeau « en attente de paiement » (3.5). Le super-admin enregistre le paiement dans `/platform`, ce qui active la boutique et fixe `paidUntil`. Un email ou une notification au fournisseur à l'activation si NotificationAPI est configuré, sinon rien.
 3. Nettoyage : retirer la lecture de `creatorId` et les secours sur les variables d'environnement de marque et de notifications.
 4. Pages légales par boutique et pour la plateforme : CGU, confidentialité (loi camerounaise sur la protection des données personnelles), mentions légales.
+
+### Phase 6 : plus tard, quand il y aura plusieurs fournisseurs
+
+À ne lancer que sur demande de l'utilisateur.
+
+1. **Domaines** (3.8) :
+   - achat du domaine de la plateforme et passage au plan Vercel Pro, nécessaire pour un usage commercial et pour les domaines en nombre ;
+   - routage par hôte en plus du chemin (3.2, « Plus tard »), wildcard `*.<domaine>`, `domains/{host}` créé pour chaque boutique ;
+   - page Domaines de l'admin avec l'API Vercel ;
+   - redirection 308 des anciens liens `/boutique/<slug>`.
+2. **Paiement Mobile Money des abonnements** via **NotchPay**, **CinetPay** ou **Campay** (Stripe n'est pas ouvert aux entreprises camerounaises). Un webhook enregistre un `storePayments` avec `method: 'mobile_money'` et repousse `paidUntil`, avec la même logique que le paiement cash. Suspension automatique optionnelle après un délai de grâce.
 
 ## 5. Décisions déjà prises
 
 - Firestore est conservé. La couche `lib/tenant.ts` permettra un passage à Postgres (Supabase ou Neon, avec isolation par ligne) plus tard, sans toucher aux pages.
-- Vercel pour la vitrine (wildcard et API Domains). L'admin reste sur un seul domaine.
+- Vercel pour la vitrine. **Au départ, lien gratuit `*.vercel.app` et routage par chemin `/boutique/<slug>`** ; sous-domaines et domaines personnalisés en phase 6. L'admin reste sur son propre lien.
+- **Abonnements payés en cash au départ**, boutique `pending` jusqu'à l'activation manuelle par le super-admin ; Mobile Money en phase 6.
 - Les `locations` sont globales, les zones et tarifs par boutique.
 - Pas d'éditeur libre de type Wix : préréglages, réglages et sections uniquement, pour garantir l'accessibilité.
 - La commande marketplace est découpée en une commande par boutique, liées par `checkoutGroupId`.
 
 ## 6. Questions ouvertes (valeur par défaut entre parenthèses, à confirmer)
 
-1. Domaine de la plateforme (`ngift.cm`) et nom commercial du SaaS (« N.Gift »).
+1. Nom commercial du SaaS (« N.Gift ») et, en phase 6, son domaine (`ngift.cm`).
 2. URL canonique des produits présents sur la marketplace et sur la boutique (domaine de la boutique).
 3. Commission marketplace sur les ventes : hors périmètre tant que le paiement en ligne n'existe pas (pas de commission, abonnement uniquement).
 4. Comptes clients partagés entre boutiques (non, comptes locaux à chaque hôte, commande sans compte).
-5. Limites du plan gratuit (50 produits, 1 membre staff, sous-domaine uniquement, pas de domaine personnalisé).
+5. Prix et durée de l'abonnement payé en cash (montant mensuel fixe, saisi par le super-admin à chaque paiement, aucun prix codé en dur).
 
 ## 7. Démarrer la prochaine conversation
 

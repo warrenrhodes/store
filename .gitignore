@@ -43,3 +43,6 @@ yarn-error.log*
 **/tmp/
 **/migrations/
 
+
+# firebase emulators (scripts/e2e)
+*-debug.log

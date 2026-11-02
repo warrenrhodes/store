@@ -1,7 +1,7 @@
-// Self-check for PromotionCalculator. Run: npx tsx src/lib/utils/promotion-calculator.check.ts
+// Self-check for PromotionCalculator. Run: npx tsx packages/core/src/promotion-calculator.check.ts
 import assert from 'node:assert/strict'
-import { CartItem } from '@/hooks/useCart'
-import { DeliveryLocation, Promotion, Shipment } from '../firebase/models'
+
+import { CartItem, DeliveryLocation, Promotion, Shipment } from './models'
 import { filterZonesByCity, findArea, toShippingZones } from './shipping-zones'
 import {
   getFreeShippingAreas,
@@ -187,7 +187,10 @@ const over20k = promo(
 )
 assert.equal(run([coffee], medong, [over20k]).total, 14000)
 assert.equal(run([item('products/coffee', 12000, 2)], medong, [over20k]).total, 24000)
-const yaounde = promo([{ type: 'CITY', value: '["Yaoundé"]' }], [{ type: 'FREE_SHIPPING', value: '' }])
+const yaounde = promo(
+  [{ type: 'CITY', value: '["Yaoundé"]' }],
+  [{ type: 'FREE_SHIPPING', value: '' }],
+)
 assert.equal(run([coffee], { ...medong, city: 'yaounde' }, [yaounde]).total, 12000)
 assert.equal(run([coffee], { ...medong, city: 'Douala' }, [yaounde]).total, 14000)
 assert.equal(run([coffee], { ...medong, city: undefined }, [yaounde]).total, 14000)

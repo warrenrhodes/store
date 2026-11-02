@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { toast } from '@/hooks/use-toast'
 import { sendGTMEvent } from '@next/third-parties/google'
-import { IDeliveryInfo, Product } from '@/lib/firebase/models'
+import { CartItem, IDeliveryInfo, Product } from '@/lib/firebase/models'
 import { dictionary, type DictWords } from '@/lib/localizations'
 import { useLocale } from './useLocale'
 
@@ -12,11 +12,7 @@ export interface CartShipment {
   cost: number
   location: string
 }
-export interface CartItem {
-  product: Product
-  quantity: number
-  price: number
-}
+export type { CartItem }
 
 interface CartStore {
   cartItems: CartItem[]

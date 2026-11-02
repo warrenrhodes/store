@@ -15,6 +15,7 @@ import { toast } from '@/hooks/use-toast'
 import { createLocation, deleteLocation, updateLocation } from '@/lib/actions/locations.actions'
 import { ILocation } from '@/lib/actions/server'
 import { LocationSchemaType } from '@/lib/validations/location'
+import { normalize } from '@ngift/core/shipping-zones'
 import { getDocumentId } from '@spreeloop/database'
 import { ArrowDown, ArrowUp, ArrowUpDown, Loader2, Plus, Save, Search, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -22,12 +23,6 @@ import { useState } from 'react'
 
 type Result = { success: boolean; error?: string }
 type SortKey = 'name' | 'city' | 'isActive'
-
-const normalize = (text: string) =>
-  text
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .toLowerCase()
 
 /** Every word typed must appear in the name or the city, ignoring accents and case. */
 const matches = (location: ILocation, query: string) => {

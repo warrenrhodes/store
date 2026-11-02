@@ -1,0 +1,38 @@
+# Type checks, lint and the pure-logic self-checks on every pull request.
+# The full build is left out: it reads the database. E2E: scripts/e2e/run.sh (local, emulators).
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Self-checks (packages/core)
+        run: for f in packages/core/src/*.check.ts; do npx -y tsx@4 "$f"; done
+
+  app:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [nature_gift_store, nature_gift_admin]
+    defaults:
+      run:
+        working-directory: ${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: ${{ matrix.app }}/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npx tsc --noEmit
+      - run: npx eslint .

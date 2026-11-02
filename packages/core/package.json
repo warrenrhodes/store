@@ -1,0 +1,9 @@
+{
+  "name": "@ngift/core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Models and pure business rules shared by nature_gift_store and nature_gift_admin. TypeScript source, compiled by each app (transpilePackages). No dependencies.",
+  "exports": {
+    "./*": "./src/*.ts"
+  }
+}

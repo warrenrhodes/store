@@ -31,7 +31,7 @@ Transformer le produit actuel (un admin séparé par fournisseur, mais une seule
 | Élément | Aujourd'hui | Fichiers |
 |---|---|---|
 | Monorepo | Deux apps Next.js 16 indépendantes, chacune avec son `package.json`, sans workspace | `nature_gift_store/` (sources dans `src/`), `nature_gift_admin/` (à la racine) |
-| Modèles | **Copiés** dans les deux apps | `*/lib/firebase/models.ts`, `collection-name.ts` |
+| Modèles | **Copiés** dans les deux apps (phase 0 : regroupés dans `packages/core`, les anciens chemins réexportent) | `*/lib/firebase/models.ts`, `collection-name.ts` |
 | Logique partagée | Calcul des promos dans le store, règles de commande dans l'admin, `normalize` présent des deux côtés | `store/src/lib/utils/promotion-calculator.ts` (+ `.check.ts`), `admin/lib/orders/order-logic.ts` (+ `.check.ts`) |
 | Séparation admin | `creatorId == uid` (produits, catégories, zones, articles, promos, avis), `partnersPaths array-contains users/<uid>` (commandes, paniers abandonnés). Les `locations` sont globales. | `admin/lib/actions/*.actions.ts`, `admin/lib/actions/server.ts`, `admin/app/api/*/route.ts` |
 | Vitrine | Tous les produits, toutes les promos sur tous les paniers, toutes les zones mélangées. Une commande peut contenir plusieurs fournisseurs (`partnersPaths`). | `store/src/app/api/orders/route.ts`, `store/src/lib/api/utils.ts` |
@@ -249,6 +249,13 @@ But : arrêter la duplication et rendre les phases suivantes sûres. Aucun chang
 5. Optionnel : Sentry (`@sentry/nextjs`) sur les deux apps, désactivé sans DSN.
 
 Critère de fin : les deux apps compilent avec `@ngift/core`, zéro type dupliqué, CI verte, script e2e vert.
+
+**Réalisé (branche `multi-tenant-phase0`, 2026-11-02), avec ces écarts :**
+- **Pas de workspaces npm.** Avec un `package.json` racine en workspaces, un `npm ci` lancé dans le dossier d'une app (ce que font App Hosting et Vercel) passerait au lockfile racine. Chaque app dépend donc de `"@ngift/core": "file:../packages/core"` : un lien symbolique, des lockfiles par app inchangés à part cette entrée. `packages/core` n'a **aucune dépendance npm**, et doit le rester : un import de paquet depuis `packages/core/src` ne se résoudrait pas.
+- **Build de prod en webpack** (`next build --webpack`). Turbopack exige une racine au niveau du dépôt pour lire `packages/core`, ce qui imbrique `.next/standalone` sous `nature_gift_*/`. Or l'adaptateur App Hosting cherche `.next/standalone/server.js`, sauf en monorepo Nx/Turborepo détecté. Le `next dev --turbopack` reste possible : `turbopack.root` n'est posé qu'en phase dev (`next.config`).
+- Schémas zod partagés : aucun n'était dupliqué (le store n'a que ses formulaires, l'admin ses validations), donc rien à déplacer. Restent par app les alias `IProduct`, `IOrder`… sur `DatabaseDocument` (`@spreeloop/database`), qui diffèrent d'une app à l'autre (`IProduct`), et les composants shadcn.
+- Lint du store réparé : il était cassé avant la phase 0 (`eslint-config-next` 16 en flat config, zod 3.23 trop ancien pour `zod-validation-error`). zod passe à 3.25.76, dans la plage `^3.23.8`. Les nouvelles règles React Compiler sont en `warn`, à corriger plus tard. Les scripts `lint` passent à `eslint .`, puisque `next lint` n'existe plus en Next 16.
+- e2e : `scripts/e2e/run.sh` (11 vérifications, `E2E_STANDALONE=1` pour tester le build de prod). Sentry non ajouté (optionnel).
 
 ### Phase 1 : multi-boutiques dans les données et l'admin (2 à 3 semaines)
 

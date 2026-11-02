@@ -1,35 +1,29 @@
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-import js from '@eslint/js'
-import { FlatCompat } from '@eslint/eslintrc'
+import nextVitals from 'eslint-config-next/core-web-vitals'
+import nextTs from 'eslint-config-next/typescript'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-  allConfig: js.configs.all,
-})
-
+// eslint-config-next 16 ships flat configs: spread them directly (FlatCompat no longer loads them).
 const config = [
-  ...compat.config({
-    extends: ['next/core-web-vitals'],
-    plugins: ['@typescript-eslint', 'prettier'],
-
-    settings: {
-      react: {
-        version: 'detect',
-      },
-    },
+  ...nextVitals,
+  ...nextTs,
+  {
     rules: {
       'react-hooks/exhaustive-deps': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': 'warn',
       '@next/next/no-img-element': 'warn',
       'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
+      // New in eslint-config-next 16 (React Compiler rules): warnings until the existing
+      // code is cleaned up, so lint can gate CI without a code change.
+      'react-hooks/preserve-manual-memoization': 'warn',
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/refs': 'warn',
+      'react-hooks/immutability': 'warn',
+      'react-hooks/purity': 'warn',
+      '@typescript-eslint/no-non-null-asserted-optional-chain': 'warn',
+      '@typescript-eslint/no-require-imports': 'warn',
+      'prefer-const': 'warn',
     },
-  }),
+  },
 ]
 
 export default config

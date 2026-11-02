@@ -1,4 +1,4 @@
-// Self-check for order-logic. Run: npx tsx lib/orders/order-logic.check.ts
+// Self-check for order-logic. Run: npx tsx packages/core/src/order-logic.check.ts
 import assert from 'node:assert/strict'
 import {
   aggregateCustomers,

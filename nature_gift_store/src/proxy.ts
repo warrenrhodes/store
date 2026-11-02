@@ -14,6 +14,8 @@ const PUBLIC_PATHS = [
   new RegExp('^/blogs/.*$'),
   new RegExp('^/blogs-ads/.*$'),
   '/order/success',
+  // Customer order tracking: protected by the secret token in its link, no account needed.
+  new RegExp('^/order/[^/]+$'),
   '/cart',
   '/favoris',
   '/sitemap.xml',

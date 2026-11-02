@@ -124,4 +124,5 @@ export type DeliveryInfo = {
   additionalNotes?: string
   deliveryMethod?: string
   location?: string
+  locationId?: string | null
 }

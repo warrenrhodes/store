@@ -14,6 +14,8 @@ import {
   Tag,
   Truck,
   MapPin,
+  ShoppingCart,
+  UsersRound,
 } from 'lucide-react'
 import Image from 'next/image'
 import {
@@ -45,6 +47,16 @@ const data = {
       title: 'Orders',
     },
     {
+      url: '/checkouts',
+      icon: ShoppingCart,
+      title: 'Abandoned checkouts',
+    },
+    {
+      url: '/customers',
+      icon: UsersRound,
+      title: 'Customers',
+    },
+    {
       title: 'Categories',
       url: '/categories',
       icon: Shapes,
@@ -63,11 +75,6 @@ const data = {
     //   url: '/medias',
     //   icon: LucideImage,
     //   title: 'Medias',
-    // },
-    // {
-    //   url: '/customers',
-    //   icon: UsersRound,
-    //   title: 'Customers',
     // },
     {
       url: '/blogs',

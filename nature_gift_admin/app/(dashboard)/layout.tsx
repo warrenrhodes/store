@@ -42,14 +42,16 @@ const NewSideBar = ({
 }>) => {
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <div className="contents print:hidden">
+        <AppSidebar />
+      </div>
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur">
+        <header className="sticky top-0 z-10 flex print:hidden h-14 shrink-0 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
           <PageBreadcrumb />
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 sm:p-6">{children}</main>
+        <main className="flex flex-1 flex-col gap-4 p-4 sm:p-6 print:p-0">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   )

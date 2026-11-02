@@ -21,15 +21,17 @@ export async function createProduct(data: ProductSchemaType) {
     const existingProduct = await checkDocumentExists(
       CollectionsName.Products,
       'slug',
-      validatedData.slug
+      validatedData.slug,
     )
 
     if (existingProduct) {
       return { success: false, error: 'Product with this slug already exists' }
     }
 
+    const stock = validatedData.inventory?.stockQuantity ?? validatedData.inventory?.quantity ?? 0
     const productData = {
       ...validatedData,
+      inventory: { ...validatedData.inventory, stockQuantity: stock, quantity: stock },
       price: {
         ...validatedData.price,
         saleStartDate: validatedData.price.saleStartDate
@@ -60,7 +62,15 @@ export async function createProduct(data: ProductSchemaType) {
   }
 }
 
-export async function updateProduct(productId: string, data: ProductSchemaType) {
+/**
+ * `loadedStock`: stock shown when the form opened. If unchanged, the stored stock is kept, so
+ * saving a product never undoes the orders placed while it was being edited.
+ */
+export async function updateProduct(
+  productId: string,
+  data: ProductSchemaType,
+  loadedStock?: number,
+) {
   try {
     const token = await getUserTokens()
     if (!token) {
@@ -71,13 +81,24 @@ export async function updateProduct(productId: string, data: ProductSchemaType) 
     const validatedData = productSchema.parse(data)
 
     const productPath = getDatabasePath(CollectionsName.Products, productId)
-    
-    // We might want to check ownership here if strictly required, 
-    // but typical admin usage assumes access. 
+
+    // We might want to check ownership here if strictly required,
+    // but typical admin usage assumes access.
     // Ideally we should check if product exists and creatorId matches or user is admin.
 
+    const stock = validatedData.inventory?.stockQuantity ?? validatedData.inventory?.quantity
+    const {
+      quantity: _quantity,
+      stockQuantity: _stock,
+      ...inventoryRest
+    } = validatedData.inventory ?? {}
+    const inventory =
+      stock === loadedStock
+        ? inventoryRest
+        : { ...inventoryRest, stockQuantity: stock, quantity: stock }
     const productData = {
       ...validatedData,
+      inventory,
       price: {
         ...validatedData.price,
         saleStartDate: validatedData.price.saleStartDate
@@ -118,7 +139,7 @@ export async function deleteProduct(productId: string) {
     const dataDoc = await dataRef.get()
 
     if (!dataDoc.exists || dataDoc?.data()?.creatorId !== token.decodedToken.uid) {
-       return { success: false, error: 'Not Found or Unauthorized' }
+      return { success: false, error: 'Not Found or Unauthorized' }
     }
 
     await dataRef.delete()

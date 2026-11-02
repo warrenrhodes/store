@@ -114,7 +114,7 @@ export function DataTable<TData, TValue>({
                   <DropdownMenuSeparator />
                   {filterButton.values.map(value => (
                     <DropdownMenuRadioItem key={value} value={value} className="capitalize">
-                      {value.toLowerCase()}
+                      {value.toLowerCase().replace(/_/g, ' ')}
                     </DropdownMenuRadioItem>
                   ))}
                 </DropdownMenuRadioGroup>

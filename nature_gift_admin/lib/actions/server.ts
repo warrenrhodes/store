@@ -10,6 +10,7 @@ import { backend } from '../firebase/firebase-server/firebase'
 import {
   Blog,
   Category,
+  Checkout,
   DeliveryLocation,
   Order,
   OrderStatus,
@@ -19,6 +20,7 @@ import {
   Shipment,
 } from '../firebase/models'
 import { OrderPrices, UserData } from '../type'
+import { refusalRate, SALE_STATUSES } from '../orders/order-logic'
 
 export type ICategory = DatabaseDocument<Category>
 export type IShipment = DatabaseDocument<Shipment>
@@ -28,12 +30,9 @@ export type IBlog = DatabaseDocument<Blog>
 export type IPromotion = DatabaseDocument<Promotion>
 export type IProduct = DatabaseDocument<Product>
 export type IOrder = DatabaseDocument<Order>
+export type ICheckout = DatabaseDocument<Checkout>
 
-const COUNTED_STATUSES = new Set<string>([
-  OrderStatus.PENDING,
-  OrderStatus.ACCEPTED,
-  OrderStatus.COMPLETED,
-])
+const COUNTED_STATUSES = new Set<string>(SALE_STATUSES)
 
 /** KPIs for the dashboard. Cancelled and rejected orders are excluded from revenue. */
 export const getDashboardStats = async () => {
@@ -67,6 +66,45 @@ export const getDashboardStats = async () => {
     .sort((a, b) => new Date(b.data.createdAt).getTime() - new Date(a.data.createdAt).getTime())
     .slice(0, 5)
 
+  // Best sellers by units, over orders that count as sales.
+  const sold = new Map<string, { title: string; units: number; revenue: number }>()
+  for (const o of counted) {
+    for (const item of o.data.items ?? []) {
+      const line = sold.get(item.product.path) ?? {
+        title: item.product.title,
+        units: 0,
+        revenue: 0,
+      }
+      line.units += item.quantity
+      line.revenue += item.price * item.quantity
+      sold.set(item.product.path, line)
+    }
+  }
+  const topProducts = [...sold.values()].sort((a, b) => b.units - a.units).slice(0, 5)
+
+  const delivered = orders.filter(o => o.data.status === OrderStatus.COMPLETED).length
+  const failed = orders.filter(o => o.data.status === OrderStatus.FAILED_DELIVERY).length
+  const toShip = orders.filter(o =>
+    [OrderStatus.ACCEPTED, OrderStatus.OUT_FOR_DELIVERY].includes(o.data.status),
+  ).length
+
+  // Abandoned checkouts of the last 30 days and how many became orders.
+  const since = Date.now() - 30 * 24 * 3600 * 1000
+  const checkouts = (await getCheckouts()).filter(
+    c => new Date(c.data.createdAt).getTime() >= since,
+  )
+  const recovered = checkouts.filter(c => c.data.orderPath).length
+
+  const lowStock = (await getProducts())
+    .map(p => ({
+      title: p.data.title,
+      id: p.path.split('/').pop()!,
+      stock: p.data.inventory?.stockQuantity,
+      threshold: p.data.inventory?.lowStockThreshold ?? 0,
+    }))
+    .filter(p => typeof p.stock === 'number' && p.stock <= Math.max(p.threshold, 0))
+    .sort((a, b) => (a.stock ?? 0) - (b.stock ?? 0))
+
   return {
     revenue,
     orderCount: counted.length,
@@ -75,6 +113,14 @@ export const getDashboardStats = async () => {
     customers,
     salesByMonth: months.map(({ name, sales }) => ({ name, sales })),
     recentOrders,
+    topProducts,
+    refusalRate: refusalRate(delivered, failed),
+    finishedDeliveries: delivered + failed,
+    toShip,
+    abandoned: checkouts.length - recovered,
+    checkoutConversion: checkouts.length ? recovered / checkouts.length : 0,
+    lowStock,
+    pendingReviews: (await getReviews()).filter(r => r.data.status === 'PENDING').length,
   }
 }
 
@@ -256,6 +302,44 @@ async function getOrders(): Promise<IOrder[]> {
     return JSON.parse(JSON.stringify(orders))
   } catch (error) {
     console.error('Failed to fetch orders:', error)
+    return []
+  }
+}
+
+/** One order, only if it contains the signed-in partner's products (same scoping as the list). */
+async function getOrderById(orderId: string): Promise<IOrder | undefined> {
+  try {
+    const token = await getUserTokens()
+    if (!token?.decodedToken.uid) return
+    const doc = await backend.db.collection(CollectionsName.Orders).doc(orderId).get()
+    const order = doc.data() as Order | undefined
+    const partnerPath = getDatabasePath(CollectionsName.Users, token.decodedToken.uid)
+    if (!order?.partnersPaths?.includes(partnerPath)) return
+    return JSON.parse(JSON.stringify({ path: doc.id, data: order }))
+  } catch (error) {
+    console.error('Failed to fetch order:', error)
+    return
+  }
+}
+
+/** Checkouts (abandoned or converted) containing the signed-in partner's products. */
+async function getCheckouts(): Promise<ICheckout[]> {
+  try {
+    const token = await getUserTokens()
+    if (!token?.decodedToken.uid) return []
+    const snapshot = await backend.db
+      .collection(CollectionsName.Checkouts)
+      .where(
+        'partnersPaths',
+        'array-contains',
+        getDatabasePath(CollectionsName.Users, token.decodedToken.uid),
+      )
+      .get()
+    return JSON.parse(
+      JSON.stringify(snapshot.docs.map(doc => ({ path: doc.id, data: doc.data() }))),
+    )
+  } catch (error) {
+    console.error('Failed to fetch checkouts:', error)
     return []
   }
 }
@@ -483,6 +567,8 @@ export const getPromotionsCache = cache(getPromotions)
 export const getShipmentByIdCache = cache(getShipmentById)
 export const getPromotionByIdCache = cache(getPromotionById)
 export const getOrdersCache = cache(getOrders)
+export const getOrderByIdCache = cache(getOrderById)
+export const getCheckoutsCache = cache(getCheckouts)
 export const getReviewByIdCache = cache(getReviewById)
 export const getProductsCache = cache(getProducts)
 export const getProductByIdCache = cache(getProductById)

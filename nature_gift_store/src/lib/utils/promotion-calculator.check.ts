@@ -192,13 +192,13 @@ assert.equal(run([coffee], { ...medong, city: 'yaounde' }, [yaounde]).total, 120
 assert.equal(run([coffee], { ...medong, city: 'Douala' }, [yaounde]).total, 14000)
 assert.equal(run([coffee], { ...medong, city: undefined }, [yaounde]).total, 14000)
 const teaCategory = promo(
-  [{ type: 'SPECIFIC_CATEGORIES', value: '["categories/tea"]' }],
+  [{ type: 'SPECIFIC_CATEGORIES', value: '["Thé"]' }],
   [{ type: 'FIXED_DISCOUNT', value: '1000' }],
 )
 const categorized = (categories: string[]) =>
   ({ product: { path: 'products/x', categories }, price: 5000, quantity: 1 }) as unknown as CartItem
-assert.equal(run([categorized(['categories/tea'])], medong, [teaCategory]).total, 6000)
-assert.equal(run([categorized(['categories/coffee'])], medong, [teaCategory]).total, 7000)
+assert.equal(run([categorized(['Thé'])], medong, [teaCategory]).total, 6000)
+assert.equal(run([categorized(['Café'])], medong, [teaCategory]).total, 7000)
 
 // Usage limits
 assert.equal(isWithinUsageLimit({ usageLimit: { total: 2 }, usageCount: 1 } as Promotion), true)

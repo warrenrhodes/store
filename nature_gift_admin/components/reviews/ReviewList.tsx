@@ -23,7 +23,16 @@ export function ReviewList({ reviews }: ReviewListProps) {
           </Link>
         </Button>
       </div>
-      <DataTable columns={reviewColumns} data={reviews} searchKey="userName" />
+      <DataTable
+        columns={reviewColumns}
+        data={reviews}
+        searchKey="userName"
+        filterButton={{
+          label: 'Status',
+          columnKey: 'status',
+          values: ['PENDING', 'APPROVED', 'REJECTED'],
+        }}
+      />
     </div>
   )
 }

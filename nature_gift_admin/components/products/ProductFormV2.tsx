@@ -8,19 +8,19 @@ import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { generateSlug } from '@/lib/utils/slugify'
 import {
-    productSchema,
-    ProductSchemaType,
-    productVerificationForm,
+  productSchema,
+  ProductSchemaType,
+  productVerificationForm,
 } from '@/lib/validations/product'
 
 import { useToast } from '@/hooks/use-toast'
@@ -111,9 +111,14 @@ export function ProductFormV2({ initialData, categories, blogs }: ProductFormPro
     }
     setIsLoading(true)
     try {
-      let res;
+      let res
       if (initialData) {
-        res = await updateProduct(getDocumentId(initialData.path || ''), data)
+        // Untouched stock isn't written back: orders may have changed it since the page loaded.
+        res = await updateProduct(
+          getDocumentId(initialData.path || ''),
+          data,
+          initialData.data.inventory?.stockQuantity ?? initialData.data.inventory?.quantity,
+        )
       } else {
         res = await createProduct(data)
       }
@@ -145,13 +150,13 @@ export function ProductFormV2({ initialData, categories, blogs }: ProductFormPro
     const res = await deleteProduct(getDocumentId(initialData?.path || ''))
     if (res.success) {
       toast({
-         variant: "success",
-         description: "Product deleted"
+        variant: 'success',
+        description: 'Product deleted',
       })
       router.push('/products')
       return true
     } else {
-       toast({
+      toast({
         variant: 'destructive',
         description: res.error || 'Failed to delete',
       })

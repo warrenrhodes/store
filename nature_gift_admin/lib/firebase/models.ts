@@ -78,7 +78,7 @@ export enum PromotionConditionType {
   MINIMUM_AMOUNT = 'MINIMUM_AMOUNT',
   /** Delivery city (the picked area's city). */
   CITY = 'CITY',
-  /** At least one cart item in one of these category paths. */
+  /** At least one cart item in one of these categories (by name, as products store them). */
   SPECIFIC_CATEGORIES = 'SPECIFIC_CATEGORIES',
 }
 
@@ -297,6 +297,8 @@ interface OrderPromotion {
   promotionId?: string
   discountAmount: number
   code: string
+  /** Action type (FREE_SHIPPING, PERCENTAGE_DISCOUNT…); missing on older orders. */
+  type?: string | null
 }
 
 interface OrderPrices {

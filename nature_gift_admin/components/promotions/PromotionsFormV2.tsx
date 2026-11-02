@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { endOfDay, format, subDays } from 'date-fns'
-import { CalendarIcon, Loader2, Trash2 } from 'lucide-react'
+import { CalendarIcon, Copy, Link2, Loader2, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -47,12 +47,24 @@ interface PromotionFormProps {
   products: IProduct[]
   /** Delivery areas configured in shipments, for LOCATION conditions (stored by id). */
   locations: Array<{ id: string; name: string }>
+  /** Cities of the delivery areas, for CITY conditions. */
+  cities: string[]
+  /** Category names (products store their categories by name). */
+  categories: string[]
 }
 
-export function PromotionFormV2({ initialData, products, locations }: PromotionFormProps) {
+export function PromotionFormV2({
+  initialData,
+  products,
+  locations,
+  cities,
+  categories,
+}: PromotionFormProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
+  // The code follows the name until the admin types one.
+  const [codeEdited, setCodeEdited] = useState(!!initialData)
 
   const form = useForm<PromotionSchemaType>({
     resolver: zodResolver(promotionSchema),
@@ -64,6 +76,8 @@ export function PromotionFormV2({ initialData, products, locations }: PromotionF
       endDate: new Date().toISOString(),
       conditions: [],
       actions: [],
+      requiresCode: false,
+      usageLimit: { total: null, perCustomer: null },
       status: 'DRAFT',
       priority: 0,
       metadata: {
@@ -95,6 +109,10 @@ export function PromotionFormV2({ initialData, products, locations }: PromotionF
         method: initialData ? 'PUT' : 'POST',
         body: JSON.stringify(data),
       })
+      if (res.status === 409) {
+        toast({ variant: 'destructive', description: 'Another promotion already uses this code.' })
+        return
+      }
       if (res.ok) {
         toast({
           variant: 'success',
@@ -120,10 +138,16 @@ export function PromotionFormV2({ initialData, products, locations }: PromotionF
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const name = e.target.value
       form.setValue('name', name)
-      form.setValue('code', generatePromoCode(name))
+      if (!codeEdited) form.setValue('code', generatePromoCode(name))
     },
-    [form],
+    [form, codeEdited],
   )
+  const requiresCode = form.watch('requiresCode')
+  const code = form.watch('code')
+  const discountLink = `${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? ''}/?promo=${encodeURIComponent(
+    (code ?? '').toUpperCase(),
+  )}`
+  const usageCount = (initialData?.data as { usageCount?: number } | undefined)?.usageCount ?? 0
 
   const handleKeyPress = (
     e: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>,
@@ -162,7 +186,16 @@ export function PromotionFormV2({ initialData, products, locations }: PromotionF
               <FormItem>
                 <FormLabel>Promotion Code</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="SUMMER2024" disabled onKeyDown={handleKeyPress} />
+                  <Input
+                    {...field}
+                    placeholder="PUB-CAFE"
+                    className="uppercase"
+                    onChange={e => {
+                      setCodeEdited(true)
+                      field.onChange(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, ''))
+                    }}
+                    onKeyDown={handleKeyPress}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -265,8 +298,119 @@ export function PromotionFormV2({ initialData, products, locations }: PromotionF
           />
         </div>
 
-        <ConditionFields form={form} products={products} locations={locations} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="requiresCode"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Type</FormLabel>
+                <Select
+                  onValueChange={v => field.onChange(v === 'CODE')}
+                  value={field.value ? 'CODE' : 'AUTOMATIC'}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="AUTOMATIC">
+                      Automatic — applies to every matching cart
+                    </SelectItem>
+                    <SelectItem value="CODE">
+                      Discount code — typed by the customer or via link
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          {requiresCode && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Discount link (for ads)</p>
+              <div className="flex gap-2">
+                <div className="flex min-w-0 flex-1 items-center gap-2 rounded-md border bg-muted px-3 text-sm">
+                  <Link2 className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                  <span className="truncate">{discountLink}</span>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  aria-label="Copy discount link"
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(discountLink)
+                    toast({ variant: 'success', description: 'Discount link copied' })
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Add <code>?promo={code || 'CODE'}</code> to any store link (ad page, product…): the
+                code is applied at checkout.
+              </p>
+            </div>
+          )}
+        </div>
+
+        <ConditionFields
+          form={form}
+          products={products}
+          locations={locations}
+          cities={cities}
+          categories={categories}
+        />
         <ActionFields form={form} products={products} />
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="usageLimit.total"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Total uses (optional)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min={1}
+                    placeholder="Unlimited"
+                    value={field.value ?? ''}
+                    onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                    onKeyDown={handleKeyPress}
+                  />
+                </FormControl>
+                {initialData && (
+                  <p className="text-xs text-muted-foreground">Used {usageCount} time(s) so far</p>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="usageLimit.perCustomer"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Uses per customer (optional)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min={1}
+                    placeholder="Unlimited"
+                    value={field.value ?? ''}
+                    onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                    onKeyDown={handleKeyPress}
+                  />
+                </FormControl>
+                <p className="text-xs text-muted-foreground">Counted per phone number</p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField

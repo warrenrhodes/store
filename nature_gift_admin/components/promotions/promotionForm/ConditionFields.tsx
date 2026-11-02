@@ -21,10 +21,21 @@ interface ConditionFieldsProps {
   form: UseFormReturn<PromotionSchemaType>
   products: IProduct[]
   locations: Array<{ id: string; name: string }>
+  cities: string[]
+  /** Category names (products store their categories by name). */
+  categories: string[]
 }
 
-export function ConditionFields({ form, products, locations }: ConditionFieldsProps) {
+export function ConditionFields({
+  form,
+  products,
+  locations,
+  cities,
+  categories,
+}: ConditionFieldsProps) {
   const productOptions = products.map(p => ({ value: p.path, label: p.data.title }))
+  const cityOptions = cities.map(c => ({ value: c, label: c }))
+  const categoryOptions = categories.map(c => ({ value: c, label: c }))
   // LOCATION conditions store area ids, never names: renaming an area keeps promotions valid.
   const locationOptions = locations.map(l => ({ value: l.id, label: l.name }))
   const { fields, append, remove } = useFieldArray({
@@ -79,8 +90,13 @@ export function ConditionFields({ form, products, locations }: ConditionFieldsPr
                       {products.length > 0 && (
                         <SelectItem value="SPECIFIC_PRODUCTS">Specific Products</SelectItem>
                       )}
+                      {categories.length > 0 && (
+                        <SelectItem value="SPECIFIC_CATEGORIES">Specific Categories</SelectItem>
+                      )}
+                      <SelectItem value="MINIMUM_AMOUNT">Minimum Amount (FCFA)</SelectItem>
                       <SelectItem value="DELIVERY_METHOD">Delivery Method</SelectItem>
-                      <SelectItem value="LOCATION">Location</SelectItem>
+                      <SelectItem value="CITY">City</SelectItem>
+                      <SelectItem value="LOCATION">Location (areas)</SelectItem>
                     </SelectContent>
                   </Select>
                 </FormControl>
@@ -96,7 +112,37 @@ export function ConditionFields({ form, products, locations }: ConditionFieldsPr
               <FormItem className="flex-1">
                 <FormControl>
                   {form.watch(`conditions.${index}.type`) === 'MINIMUM_QUANTITY' ? (
-                    <Input {...field} type="number" min={0} onKeyDown={handleKeyPress} />
+                    <Input {...field} type="number" min={1} onKeyDown={handleKeyPress} />
+                  ) : form.watch(`conditions.${index}.type`) === 'MINIMUM_AMOUNT' ? (
+                    <Input
+                      {...field}
+                      type="number"
+                      min={1}
+                      step={500}
+                      placeholder="20000"
+                      aria-label="Minimum cart subtotal in FCFA"
+                      onKeyDown={handleKeyPress}
+                    />
+                  ) : form.watch(`conditions.${index}.type`) === 'CITY' ? (
+                    <MultiSelect
+                      placeholder="Cities"
+                      values={cityOptions}
+                      selectedValues={parseList(field.value).map(c => ({ value: c, label: c }))}
+                      onChange={selected =>
+                        field.onChange(JSON.stringify(selected.map(s => s.value)))
+                      }
+                    />
+                  ) : form.watch(`conditions.${index}.type`) === 'SPECIFIC_CATEGORIES' ? (
+                    <MultiSelect
+                      placeholder="Categories"
+                      values={categoryOptions}
+                      selectedValues={categoryOptions.filter(o =>
+                        parseList(field.value).includes(o.value),
+                      )}
+                      onChange={selected =>
+                        field.onChange(JSON.stringify(selected.map(s => s.value)))
+                      }
+                    />
                   ) : form.watch(`conditions.${index}.type`) === 'DELIVERY_METHOD' ? (
                     <Select
                       onValueChange={field.onChange}

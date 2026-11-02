@@ -1,4 +1,4 @@
-import notificationapi from './notificationConfig'
+import notificationapi, { notificationsEnabled } from './notificationConfig'
 import { v4 as uuidv4 } from 'uuid'
 
 export const sendEmailNotifications = async ({
@@ -10,6 +10,7 @@ export const sendEmailNotifications = async ({
   email: string
   notificationId: string
 }): Promise<boolean> => {
+  if (!notificationsEnabled) return false
   try {
     notificationapi.send({
       notificationId: notificationId,
@@ -38,6 +39,7 @@ export const sendSmsNotifications = async ({
   phoneNumber: string
   notificationId: string
 }): Promise<boolean> => {
+  if (!notificationsEnabled) return false
   try {
     notificationapi.send({
       notificationId: notificationId,

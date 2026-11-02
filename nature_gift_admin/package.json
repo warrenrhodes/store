@@ -7,7 +7,7 @@
     "node": "24.x"
   },
   "scripts": {
-    "dev": "next dev --turbopack -p 3000",
+    "dev": "next dev --webpack -p 3000",
     "seed": "tsc --project tsconfig.seed.json && node dist/scripts/seed.js",
     "build": "next build --webpack",
     "start": "next start",
@@ -39,7 +39,7 @@
     "@spreeloop/database": "^0.1.7",
     "@tanstack/react-table": "^8.12.0",
     "aws4": "^1.13.2",
-    "caniuse-lite": "^1.0.30001766",
+    "caniuse-lite": "^1.0.30001820",
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.5.1",
     "clsx": "^2.1.0",

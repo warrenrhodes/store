@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
       status: ReviewStatus.PENDING,
       orderPath: order.path,
       creatorId: item.product.creatorId,
+      storeId: order.storeId ?? item.product.storeId ?? null,
       createdAt: now,
       updatedAt: now,
     })

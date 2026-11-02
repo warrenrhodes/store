@@ -16,6 +16,8 @@ jobs:
           node-version: 24
       - name: Self-checks (packages/core)
         run: for f in packages/core/src/*.check.ts; do npx -y tsx@4 "$f"; done
+      - name: Store isolation guard (admin)
+        run: node scripts/check-tenant.mjs
 
   app:
     runs-on: ubuntu-latest

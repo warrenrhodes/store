@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
         source: source ?? null,
         items: lines,
         total: lines.reduce((sum, l) => sum + l.price * l.quantity, 0),
+        storeId: products[0]!.storeId ?? null,
         partnersPaths: [
           ...new Set(products.map(p => getDatabasePath(CollectionsName.Users, p!.creatorId))),
         ],

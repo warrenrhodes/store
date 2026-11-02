@@ -119,6 +119,8 @@ interface BaseDocument {
 interface CreatorDocument extends BaseDocument {
   creatorId: string
   path: string
+  /** Store the document belongs to (stores/{storeId}). Not set on the global `locations`. */
+  storeId?: string | null
 }
 
 // Shared Types
@@ -313,7 +315,7 @@ export interface CartItem {
 }
 
 export interface OrderItem extends BaseDocument {
-  product: Pick<Product, 'medias' | 'title' | 'creatorId' | 'path' | 'price'>
+  product: Pick<Product, 'medias' | 'title' | 'creatorId' | 'path' | 'price' | 'storeId'>
   quantity: number
   price: number
 }
@@ -367,6 +369,7 @@ export interface OrderEvent {
 
 /** A checkout the customer started (name and phone typed) but may not have finished. */
 export interface Checkout extends BaseDocument {
+  storeId?: string | null
   fullName: string
   phone: string
   items: Array<{ productPath: string; title: string; quantity: number; price: number }>
@@ -417,3 +420,109 @@ export interface Wishlist extends BaseDocument {
   productPath: string
   userPath: string
 }
+
+// Multi-store (docs/MULTI_TENANT_PLAN.md, 3.1)
+
+export enum StoreStatus {
+  /** Created, waiting for the cash payment: the admin works, the storefront is a 404. */
+  PENDING = 'pending',
+  ACTIVE = 'active',
+  SUSPENDED = 'suspended',
+}
+
+export enum StorePlan {
+  FREE = 'free',
+  PRO = 'pro',
+}
+
+export enum StoreRole {
+  OWNER = 'owner',
+  STAFF = 'staff',
+}
+
+export interface StoreSettings {
+  /** International format without '+', e.g. 237696689073. */
+  whatsapp?: string | null
+  contactEmail?: string | null
+  currency: 'XAF'
+  /** Every GTM container is loaded on the storefront. */
+  gtmIds: string[]
+  /** Every Meta Pixel receives the events (CAPI tokens in StoreSecrets.metaCapiTokens). */
+  metaPixelIds: string[]
+  notificationEmails: string[]
+  notificationPhones: string[]
+}
+
+/** stores/{storeId} */
+export interface Store {
+  name: string
+  /** Unique, [a-z0-9-]: /boutique/<slug>. Reserved in storeSlugs/{slug}. */
+  slug: string
+  ownerUid: string
+  status: StoreStatus
+  plan: StorePlan
+  /** ISO date, moved forward by each cash payment recorded in /platform. */
+  paidUntil?: string | null
+  marketplaceListed: boolean
+  settings: StoreSettings
+  createdAt: string
+  updatedAt: string
+}
+
+/** storeSecrets/{storeId}: server only, never sent to the browser. */
+export interface StoreSecrets {
+  /** Meta Pixel id → Conversions API token. */
+  metaCapiTokens: Record<string, string>
+  flockWebhookUrl?: string | null
+}
+
+/** storeSlugs/{slug}: slug → store in one read, and slug uniqueness. */
+export interface StoreSlug {
+  storeId: string
+}
+
+/** memberships/{storeId}_{uid} */
+export interface Membership {
+  storeId: string
+  uid: string
+  role: StoreRole
+  email?: string | null
+  createdAt: string
+}
+
+/** invites/{storeId}_{email}: becomes a membership when that email signs in to the admin. */
+export interface Invite {
+  storeId: string
+  email: string
+  role: StoreRole
+  invitedBy: string
+  createdAt: string
+}
+
+/** storePayments/{autoId}: cash payments recorded by the platform admin. */
+export interface StorePayment {
+  storeId: string
+  /** XAF */
+  amount: number
+  method: 'cash'
+  periodMonths: number
+  /** The new paidUntil. */
+  paidUntil: string
+  recordedBy: string
+  note?: string | null
+  createdAt: string
+}
+
+export const defaultStoreSettings = (): StoreSettings => ({
+  whatsapp: null,
+  contactEmail: null,
+  currency: 'XAF',
+  gtmIds: [],
+  metaPixelIds: [],
+  notificationEmails: [],
+  notificationPhones: [],
+})
+
+/** Lower-case letters, digits and single dashes, 3 to 40 characters. */
+export const isValidStoreSlug = (slug: string) =>
+  /^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) && slug.length >= 3 && slug.length <= 40

@@ -3,6 +3,7 @@ import nextTs from 'eslint-config-next/typescript'
 
 // eslint-config-next 16 ships flat configs: spread them directly (FlatCompat no longer loads them).
 const config = [
+  { ignores: ['.history/**', '.next-e2e/**'] },
   ...nextVitals,
   ...nextTs,
   {

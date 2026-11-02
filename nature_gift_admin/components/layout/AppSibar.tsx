@@ -16,6 +16,9 @@ import {
   MapPin,
   ShoppingCart,
   UsersRound,
+  Settings,
+  UserCog,
+  Building2,
 } from 'lucide-react'
 import Image from 'next/image'
 import {
@@ -33,6 +36,7 @@ import { useAuthStore } from '@/hooks/auth-store'
 import { ROUTES } from '@/lib/router'
 import { NavUser } from './NavUser'
 import { useRouter } from 'next/navigation'
+import { StoreSwitcher } from './StoreSwitcher'
 
 const data = {
   navMain: [
@@ -99,9 +103,32 @@ const data = {
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
+  stores: { id: string; name: string }[]
+  currentStoreId?: string
+  isOwner: boolean
+  platformAdmin: boolean
+}
+
+export function AppSidebar({
+  stores,
+  currentStoreId,
+  isOwner,
+  platformAdmin,
+  ...props
+}: AppSidebarProps) {
   const { user, logout } = useAuthStore()
   const router = useRouter()
+  const navItems = [
+    ...data.navMain,
+    ...(isOwner
+      ? [
+          { url: '/settings', icon: Settings, title: 'Store settings' },
+          { url: '/team', icon: UserCog, title: 'Team' },
+        ]
+      : []),
+    ...(platformAdmin ? [{ url: '/platform', icon: Building2, title: 'Platform' }] : []),
+  ]
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -124,9 +151,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <StoreSwitcher stores={stores} currentStoreId={currentStoreId} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={navItems} />
       </SidebarContent>
       <SidebarFooter>
         {user && (

@@ -46,3 +46,4 @@ yarn-error.log*
 
 # firebase emulators (scripts/e2e)
 *-debug.log
+/**/.next-e2e/

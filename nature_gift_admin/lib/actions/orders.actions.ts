@@ -1,7 +1,6 @@
 'use server'
 
 import { CollectionsName } from '@/lib/firebase/collection-name'
-import { backend } from '@/lib/firebase/firebase-server/firebase'
 import { Order, OrderEvent, OrderStatus } from '@/lib/firebase/models'
 import {
   canTransition,
@@ -10,43 +9,47 @@ import {
   releasesStock,
   stockDelta,
 } from '@/lib/orders/order-logic'
+import { scopedTransaction, Unauthorized } from '@/lib/tenant'
 import { getDatabasePath } from '@spreeloop/database'
-import { FieldValue, Transaction } from 'firebase-admin/firestore'
+import {
+  DocumentReference,
+  DocumentSnapshot,
+  FieldValue,
+  Transaction,
+} from 'firebase-admin/firestore'
 import { revalidatePath } from 'next/cache'
-import { getUserTokens } from './server'
 
 type Result = { success: true } | { success: false; error: string }
 
 /** Thrown inside a transaction to abort it with a message for the admin. */
 class Refused extends Error {}
 
+type GetScoped = (path: string) => Promise<DocumentSnapshot | undefined>
+
 /**
- * Runs `work` in a transaction on an order the signed-in partner may manage (same scoping as
- * the order list: orders containing their products), then refreshes the order pages.
+ * Runs `work` in a transaction on an order of the current store, then refreshes the order
+ * pages. `getScoped` reads the store's other documents (products) in the same transaction.
  */
 async function withOrder(
   orderId: string,
   work: (
     tx: Transaction,
     order: Order,
-    ref: FirebaseFirestore.DocumentReference,
+    ref: DocumentReference,
     by: string,
+    getScoped: GetScoped,
   ) => Promise<void>,
 ): Promise<Result> {
   try {
-    const token = await getUserTokens()
-    if (!token) return { success: false, error: 'Unauthorized' }
-    const by = token.decodedToken.email ?? token.decodedToken.uid
-    const partnerPath = getDatabasePath(CollectionsName.Users, token.decodedToken.uid)
-    const ref = backend.db.collection(CollectionsName.Orders).doc(orderId)
-
-    await backend.db.runTransaction(async tx => {
-      const snapshot = await tx.get(ref)
-      const order = snapshot.data() as Order | undefined
-      if (!order) throw new Refused('Order not found')
-      if (!order.partnersPaths?.includes(partnerPath)) throw new Refused('Unauthorized')
-      await work(tx, order, ref, by)
-    })
+    const done = await scopedTransaction<Order, true>(
+      CollectionsName.Orders,
+      orderId,
+      async ({ tx, data, ref, ctx, getScoped }) => {
+        await work(tx, data, ref, ctx.email ?? ctx.uid, getScoped)
+        return true
+      },
+    )
+    if (!done) return { success: false, error: 'Order not found' }
     revalidatePath('/orders')
     revalidatePath(`/orders/${orderId}`)
     revalidatePath('/customers')
@@ -54,6 +57,7 @@ async function withOrder(
     return { success: true }
   } catch (error) {
     if (error instanceof Refused) return { success: false, error: error.message }
+    if (error instanceof Unauthorized) return { success: false, error: 'Unauthorized' }
     console.error('Order action failed:', error)
     return { success: false, error: 'Internal server error' }
   }
@@ -65,26 +69,28 @@ const event = (by: string, e: Omit<OrderEvent, 'at' | 'by'>): OrderEvent => ({
   ...e,
 })
 
-/** Products whose stock is tracked (numeric stockQuantity), read inside the transaction. */
-async function trackedStock(tx: Transaction, paths: string[]) {
-  const docs = await Promise.all(paths.map(path => tx.get(backend.db.doc(path))))
+/** The store's products whose stock is tracked (numeric stockQuantity), read in the transaction. */
+async function trackedStock(getScoped: GetScoped, paths: string[]) {
+  const docs = await Promise.all(paths.map(path => getScoped(path)))
   return new Map(
     docs
-      .filter(doc => typeof doc.get('inventory.stockQuantity') === 'number')
+      .filter(
+        (doc): doc is DocumentSnapshot => typeof doc?.get('inventory.stockQuantity') === 'number',
+      )
       .map(doc => [doc.ref.path, doc]),
   )
 }
 
 /** Moves an order along the delivery workflow; canceling/rejecting puts its stock back. */
 export async function updateOrderStatus(orderId: string, status: string, note?: string) {
-  return withOrder(orderId, async (tx, order, ref, by) => {
+  return withOrder(orderId, async (tx, order, ref, by, getScoped) => {
     if (!canTransition(order.status, status)) {
       throw new Refused(`Cannot change ${order.status} to ${status}`)
     }
     const restock = releasesStock(status, order.stockReserved)
     const stock = restock
       ? await trackedStock(
-          tx,
+          getScoped,
           order.items.map(i => i.product.path),
         )
       : new Map()
@@ -125,7 +131,7 @@ const currentPrice = (product: FirebaseFirestore.DocumentData) => {
  * (e.g. once confirmed by phone) and a manual discount. Stock follows the change.
  */
 export async function editOrder(orderId: string, edit: OrderEdit) {
-  return withOrder(orderId, async (tx, order, ref, by) => {
+  return withOrder(orderId, async (tx, order, ref, by, getScoped) => {
     if (!EDITABLE_STATUSES.includes(order.status)) {
       throw new Refused('Only pending or accepted orders can be edited')
     }
@@ -138,12 +144,13 @@ export async function editOrder(orderId: string, edit: OrderEdit) {
     // Existing lines keep the price they were sold at; added products take today's price.
     const existing = new Map(order.items.map(i => [i.product.path, i]))
     const added = wanted.filter(i => !existing.has(i.path))
-    const addedDocs = await Promise.all(added.map(i => tx.get(backend.db.doc(i.path))))
+    // Only the store's own products can be added.
+    const addedDocs = await Promise.all(added.map(i => getScoped(i.path)))
     const now = new Date().toISOString()
     const items = wanted.map(i => {
       const line = existing.get(i.path)
       if (line) return { ...line, quantity: i.quantity }
-      const doc = addedDocs.find(d => d.ref.path === i.path)
+      const doc = addedDocs.find(d => d?.ref.path === i.path)
       if (!doc?.exists || !i.path.startsWith(`${CollectionsName.Products}/`)) {
         throw new Refused('Unknown product')
       }
@@ -164,7 +171,7 @@ export async function editOrder(orderId: string, edit: OrderEdit) {
     })
 
     const delta = order.stockReserved ? stockDelta(order.items, items) : new Map<string, number>()
-    const stock = await trackedStock(tx, [...delta.keys()])
+    const stock = await trackedStock(getScoped, [...delta.keys()])
     for (const [path, more] of delta) {
       const doc = stock.get(path)
       if (!doc) continue

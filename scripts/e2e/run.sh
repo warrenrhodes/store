@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-# Store end-to-end checks against the Firebase emulators (project demo-nature-gift, never a real
-# one). Needs Java 17+, firebase-tools, and nature_gift_store/node_modules installed.
-# Starts its own store on :3101 (E2E_STORE_PORT). E2E_STANDALONE=1 runs the built server
-# (npm run build first) instead of next dev. Run it from a worktree if your own `next dev` is
-# running in this checkout's nature_gift_store.
+# End-to-end checks against the Firebase emulators (project demo-nature-gift, never a real
+# one): builds both apps, seeds, runs the migration, then the storefront and admin checks on
+# the built servers (:3101 store, :3102 admin). Needs Java 17+, firebase-tools and both apps'
+# node_modules. The builds (.next-e2e) are deleted at the end. See run.cjs.
 set -euo pipefail
 cd "$(dirname "$0")"
 exec firebase emulators:exec --config firebase.json --project demo-nature-gift --only firestore,auth \
-  "node store.cjs"
+  "node run.cjs"

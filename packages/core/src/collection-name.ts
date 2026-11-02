@@ -13,4 +13,10 @@ export class CollectionsName {
   static readonly Reviews = 'reviews'
   static readonly Checkouts = 'checkouts'
   static readonly WhishLists = 'whishLists'
+  static readonly Stores = 'stores'
+  static readonly StoreSecrets = 'storeSecrets'
+  static readonly StoreSlugs = 'storeSlugs'
+  static readonly StorePayments = 'storePayments'
+  static readonly Memberships = 'memberships'
+  static readonly Invites = 'invites'
 }

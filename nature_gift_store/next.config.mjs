@@ -1,9 +1,8 @@
-import path from 'node:path'
-import { PHASE_DEVELOPMENT_SERVER } from 'next/constants.js'
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // scripts/e2e builds into .next-e2e, so a dev server running in this folder keeps its .next.
+  distDir: process.env.E2E_DIST_DIR || '.next',
   // Shared models and rules (packages/core), linked from outside the app folder.
   transpilePackages: ['@ngift/core'],
   productionBrowserSourceMaps: true,
@@ -37,12 +36,7 @@ const nextConfig = {
   },
 }
 
-// packages/core sits outside the app folder: Turbopack (dev) must be allowed to read the repo
-// root. Not for `next build` (webpack): a repo-level root would nest .next/standalone under the
-// app's folder, and App Hosting looks for .next/standalone/server.js.
-const config = phase =>
-  phase === PHASE_DEVELOPMENT_SERVER
-    ? { ...nextConfig, turbopack: { root: path.join(import.meta.dirname, '..') } }
-    : nextConfig
-
-export default config
+// webpack for dev and build (`--webpack` in package.json): Turbopack only reads packages/core
+// with its root at the repo level, which nests .next/standalone (App Hosting expects
+// .next/standalone/server.js) and, in dev, sent the CSS pipeline into a loop of PostCSS workers.
+export default nextConfig

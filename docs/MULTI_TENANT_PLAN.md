@@ -7,7 +7,7 @@ Chaque phase est livrable seule : une PR par phase, et la boutique actuelle cont
 
 Transformer le produit actuel (un admin séparé par fournisseur, mais une seule vitrine commune) en **plateforme vendable** :
 
-- **Chaque fournisseur a sa boutique** : son adresse, son thème, son catalogue, ses promos, ses zones de livraison, ses commandes, ses réglages (WhatsApp, Pixel Meta, GTM, notifications).
+- **Chaque fournisseur a sa boutique** : son adresse, son thème, son catalogue, ses promos, ses zones de livraison, ses commandes, ses réglages (WhatsApp, Pixels Meta, conteneurs GTM, notifications). Un fournisseur peut avoir **plusieurs** Pixels Meta et **plusieurs** conteneurs GTM.
 - **Une marketplace publique** à la racine du site, qui affiche les produits de toutes les boutiques visibles, comme aujourd'hui.
 - **Un seul tableau de bord** (l'admin actuel) pour tous les fournisseurs, et une console super-admin pour le propriétaire de la plateforme.
 
@@ -65,8 +65,8 @@ interface Store {
     whatsapp?: string          // format international, sans +
     contactEmail?: string
     currency: 'XAF'
-    gtmId?: string
-    metaPixelId?: string
+    gtmIds: string[]           // plusieurs conteneurs GTM possibles, tous chargés dans le layout
+    metaPixelIds: string[]     // plusieurs Pixels Meta possibles ; chaque événement part vers chacun
     notificationEmails: string[]
     notificationPhones: string[]
   }
@@ -75,7 +75,10 @@ interface Store {
 }
 
 // storeSecrets/{storeId}: lu uniquement côté serveur, jamais renvoyé au navigateur
-interface StoreSecrets { metaCapiToken?: string; flockWebhookUrl?: string }
+interface StoreSecrets {
+  metaCapiTokens: Record<string, string>  // pixelId → jeton Conversions API (un jeton par Pixel)
+  flockWebhookUrl?: string
+}
 
 // storeSlugs/{slug}: résolution slug → boutique en une lecture, et unicité du slug (création en transaction)
 interface StoreSlug { storeId: string }
@@ -170,7 +173,7 @@ Invalidation : nouvelle route `POST /api/revalidate` dans le store, protégée p
 - `PromotionCalculator` est appelé **par groupe de boutique**, avec uniquement les promos de cette boutique. Un code saisi sur la marketplace s'applique à la boutique qui le possède.
 - `priceOrder` et `/api/promotions/calculate` renvoient un résumé par groupe plus un total général.
 - Suivi : `/order/[orderId]?token=` reste valable. Ajouter `/order/group/[groupId]?token=`, qui liste les commandes du groupe. Le jeton est partagé par le groupe.
-- Notifications après commit, **par boutique** : Flock (`storeSecrets.flockWebhookUrl`), email et SMS (`settings.notificationEmails` / `notificationPhones`), Meta CAPI (`settings.metaPixelId` + `storeSecrets.metaCapiToken`). Les variables d'environnement actuelles servent de secours pour la boutique N.Gift jusqu'à la phase 5.
+- Notifications après commit, **par boutique** : Flock (`storeSecrets.flockWebhookUrl`), email et SMS (`settings.notificationEmails` / `notificationPhones`), Meta CAPI : l'achat part vers **chaque** Pixel de `settings.metaPixelIds` qui a un jeton dans `storeSecrets.metaCapiTokens`, avec le même `event_id` partout pour la déduplication navigateur/serveur. L'échec d'un Pixel ne bloque ni les autres ni la commande. Les variables d'environnement actuelles servent de secours pour la boutique N.Gift jusqu'à la phase 5.
 - Avis : `storeId` copié depuis le produit, modération par la boutique.
 - Paniers abandonnés : `storeId` = boutique de la page (en mode market, un document par groupe).
 
@@ -186,7 +189,7 @@ Invalidation : nouvelle route `POST /api/revalidate` dans le store, protégée p
 - Garde-fou : un script `scripts/check-tenant.mjs`, lancé en CI, échoue si `backend.database.getCollection`, `backend.db.collection` ou `setRecord` sur une collection de boutique apparaît **hors** de `lib/tenant.ts` (liste blanche explicite pour `locations`, `stores`, `memberships`, `domains`).
 - Interface :
   - sélecteur de boutique dans la barre latérale (`AppSibar`), qui écrit le cookie `current-store` ;
-  - page **Réglages boutique** (nom, slug, WhatsApp, emails, téléphones, GTM, Pixel, jeton CAPI, Flock) ;
+  - page **Réglages boutique** (nom, slug, WhatsApp, emails, téléphones, liste des conteneurs GTM, liste des Pixels Meta avec un jeton CAPI par Pixel, Flock). Les identifiants sont validés à l'enregistrement (`GTM-XXXXXXX`, Pixel = chiffres), sans doublon ;
   - page **Domaines** (phase 6) ;
   - page **Thème** (phase 3) ;
   - page **Équipe** (inviter par email avec le rôle staff, retirer).
@@ -252,7 +255,7 @@ Critère de fin : les deux apps compilent avec `@ngift/core`, zéro type dupliqu
 
 **Réalisé (branche `multi-tenant-phase0`, 2026-11-02), avec ces écarts :**
 - **Pas de workspaces npm.** Avec un `package.json` racine en workspaces, un `npm ci` lancé dans le dossier d'une app (ce que font App Hosting et Vercel) passerait au lockfile racine. Chaque app dépend donc de `"@ngift/core": "file:../packages/core"` : un lien symbolique, des lockfiles par app inchangés à part cette entrée. `packages/core` n'a **aucune dépendance npm**, et doit le rester : un import de paquet depuis `packages/core/src` ne se résoudrait pas.
-- **Build de prod en webpack** (`next build --webpack`). Turbopack exige une racine au niveau du dépôt pour lire `packages/core`, ce qui imbrique `.next/standalone` sous `nature_gift_*/`. Or l'adaptateur App Hosting cherche `.next/standalone/server.js`, sauf en monorepo Nx/Turborepo détecté. Le `next dev --turbopack` reste possible : `turbopack.root` n'est posé qu'en phase dev (`next.config`).
+- **Build de prod en webpack** (`next build --webpack`). Turbopack exige une racine au niveau du dépôt pour lire `packages/core`, ce qui imbrique `.next/standalone` sous `nature_gift_*/`. Or l'adaptateur App Hosting cherche `.next/standalone/server.js`, sauf en monorepo Nx/Turborepo détecté. Le dev passe aussi en webpack (`next dev --webpack`) : avec la racine Turbopack au niveau du dépôt, le dev de l'admin restait bloqué sur « Compiling », avec des centaines de workers PostCSS (2026-11-03).
 - Schémas zod partagés : aucun n'était dupliqué (le store n'a que ses formulaires, l'admin ses validations), donc rien à déplacer. Restent par app les alias `IProduct`, `IOrder`… sur `DatabaseDocument` (`@spreeloop/database`), qui diffèrent d'une app à l'autre (`IProduct`), et les composants shadcn.
 - Lint du store réparé : il était cassé avant la phase 0 (`eslint-config-next` 16 en flat config, zod 3.23 trop ancien pour `zod-validation-error`). zod passe à 3.25.76, dans la plage `^3.23.8`. Les nouvelles règles React Compiler sont en `warn`, à corriger plus tard. Les scripts `lint` passent à `eslint .`, puisque `next lint` n'existe plus en Next 16.
 - e2e : `scripts/e2e/run.sh` (11 vérifications, `E2E_STANDALONE=1` pour tester le build de prod). Sentry non ajouté (optionnel).
@@ -265,6 +268,7 @@ Critère de fin : les deux apps compilent avec `@ngift/core`, zéro type dupliqu
    - pose `storeId` sur products, categories, blogs, shipments, promotions et reviews via `creatorId` ;
    - orders et checkouts : via `partnersPaths[0]`. Le dry-run **compte les commandes à plusieurs fournisseurs** et les liste, elles gardent `partnersPaths` ;
    - `marketplaceListed: true` sur les produits ;
+   - réglages des boutiques migrées : `gtmIds` et `metaPixelIds` vides (les variables d'environnement actuelles servent de secours, voir 3.4) ;
    - n'écrase jamais un `storeId` déjà présent ;
    - fonctionne contre l'émulateur (`FIRESTORE_EMULATOR_HOST`) ou contre un projet via un service account passé en argument. **C'est l'utilisateur qui lance la version prod.**
 3. `lib/tenant.ts` dans l'admin et remplacement de tous les accès (liste en 3.5), plus `scripts/check-tenant.mjs` en CI.
@@ -280,12 +284,21 @@ Tests e2e émulateur :
 - la migration lancée deux fois produit le même résultat ;
 - la vitrine fonctionne toujours (elle ignore encore `storeId`).
 
+**Réalisé (branche `multi-tenant`, 2026-11-03), avec ces écarts :**
+- **La vitrine écrit déjà `storeId`** sur les commandes, les paniers abandonnés et les avis. La valeur vient du produit ; pour une commande, c'est le produit de la première ligne. Sans ça, les nouvelles commandes n'apparaîtraient plus dans l'admin entre les phases 1 et 2. Une commande qui mélange deux boutiques n'apparaît que dans la première, comme les anciennes commandes multi-fournisseurs après la migration.
+- **Unicité des slugs (produits, articles, catégories) et des codes promo : vérifiée sur toutes les boutiques, pas par boutique**, tant que la vitrine les cherche globalement. Phase 2 : passer à `isTakenInStore` (déjà écrit dans `lib/tenant.ts`).
+- Ordre de mise en prod : lancer la migration en `--apply` **juste avant** le déploiement de l'admin, puis une seconde fois juste après (rattrapage des documents créés entre-temps). Avant la migration, le nouvel admin n'affiche rien : aucun document n'a de `storeId`, et aucun utilisateur n'a de boutique.
+- Pas de `DomainRecord` (phase 6) ni de `theme` (phase 3) dans les types, et pas d'index composite : les nouvelles requêtes ne font que des égalités.
+- Les `locations` restent modifiables par toutes les boutiques, comme avant. À décider : les réserver au super-admin ?
+- Le middleware de l'admin saute la vérification de révocation de jeton quand `FIREBASE_AUTH_EMULATOR_HOST` est défini : elle demande un jeton OAuth Google, que l'émulateur ne fournit pas.
+- e2e : `scripts/e2e/run.sh` fait le build (dans `.next-e2e`), le seed avant migration, la migration (dry run, apply, puis un second apply qui ne change rien), les 11 vérifications vitrine, 7 vérifications d'isolation dans l'admin et 8 sur les formulaires (console `/platform`, paiement cash, réglages avec plusieurs GTM et Pixels, équipe, sélecteur).
+
 ### Phase 2 : vitrine par boutique, routage par chemin (2 à 3 semaines)
 
 1. Déplacer les pages sous `app/[site]/`, réécriture par chemin dans `src/proxy.ts` (3.2), `getSiteContext`, `siteHref` / `useSiteHref` sur tous les liens, clés de panier par site, `storeUrl()`.
 2. Chargeurs paramétrés par scope (3.3) et route `/api/revalidate`, appelée par l'admin.
 3. API : boutique résolue depuis le `site` envoyé par le client, puis vérifiée côté serveur. `priceOrder` et `placeOrder` en mode boutique (une boutique par commande). Rejeter un panier qui contient un produit d'une autre boutique.
-4. Réglages par boutique : marque (nom, logo), WhatsApp (Footer, contact), GTM et Pixel dans le layout, notifications et CAPI depuis `settings` / `storeSecrets`, avec secours sur les variables d'environnement.
+4. Réglages par boutique : marque (nom, logo), WhatsApp (Footer, contact), tous les conteneurs GTM et tous les Pixels Meta de la boutique dans le layout, notifications et CAPI depuis `settings` / `storeSecrets`, avec secours sur les variables d'environnement.
 5. SEO par boutique (sitemap, robots, metadata, canonique) via `storeUrl()`.
 6. Admin : bouton « Voir ma boutique » et « Copier le lien » (`storeUrl(store)`), et liens de promo copiés avec le préfixe de la boutique.
 
@@ -296,6 +309,7 @@ Tests e2e émulateur :
 - un code promo de B saisi sur A renvoie `invalid` ;
 - un slug inconnu renvoie 404, une boutique `pending` ou `suspended` renvoie 404 ;
 - le sitemap de A ne contient que A ;
+- une boutique avec deux Pixels et deux conteneurs GTM les charge tous les quatre, et une commande envoie l'achat CAPI aux deux Pixels avec le même `event_id` ;
 - modifier un produit dans l'admin met à jour la vitrine via `/api/revalidate` sans attendre 5 minutes.
 
 ### Phase 3 : thèmes (2 à 4 semaines)

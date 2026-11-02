@@ -187,6 +187,9 @@ export const POST = async (req: NextRequest) => {
       discount: summary.discount,
       total: summary.total,
     },
+    // The store of the first product. One store per order once the storefront is per store
+    // (phase 2); until then a cart mixing stores only shows in the first store's admin.
+    storeId: cartItems[0].product.storeId ?? null,
     partnersPaths: [
       ...new Set(
         cartItems.map(item => getDatabasePath(CollectionsName.Users, item.product.creatorId)),
@@ -199,6 +202,7 @@ export const POST = async (req: NextRequest) => {
         path: item.product.path,
         price: item.product.price,
         creatorId: item.product.creatorId,
+        storeId: item.product.storeId ?? null,
       },
       quantity: item.quantity,
       price: item.price,

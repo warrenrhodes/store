@@ -1,23 +1,18 @@
 'use server'
 
 import { CollectionsName } from '@/lib/firebase/collection-name'
-import { backend } from '@/lib/firebase/firebase-server/firebase'
 import { ReviewStatus } from '@/lib/firebase/models'
 import { revalidatePath } from 'next/cache'
-import { getUserTokens } from './server'
+import { scopedUpdate } from '@/lib/tenant'
 
-/** Publishes or hides a customer review (only on the signed-in partner's products). */
+/** Publishes or hides a customer review (only the current store's reviews). */
 export async function setReviewStatus(reviewId: string, status: ReviewStatus) {
   try {
-    const token = await getUserTokens()
-    if (!token) return { success: false, error: 'Unauthorized' }
     if (!Object.values(ReviewStatus).includes(status))
       return { success: false, error: 'Invalid status' }
-    const ref = backend.db.collection(CollectionsName.Reviews).doc(reviewId)
-    if ((await ref.get()).get('creatorId') !== token.decodedToken.uid) {
+    if (!(await scopedUpdate(CollectionsName.Reviews, reviewId, { status }))) {
       return { success: false, error: 'Unauthorized' }
     }
-    await ref.update({ status, updatedAt: new Date().toISOString() })
     revalidatePath('/reviews')
     return { success: true }
   } catch (error) {

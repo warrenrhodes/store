@@ -38,7 +38,9 @@
     ".next/types/**/*.ts",
     "src/components/FacebookPixel.jsx",
     "src/app/layout.tsx",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
+    ".next-e2e/types/**/*.ts",
+    ".next-e2e/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

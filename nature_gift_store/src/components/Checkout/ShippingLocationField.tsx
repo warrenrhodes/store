@@ -106,6 +106,7 @@ export function ShippingLocationField({
       deliveryMethod: nextMethod,
       location: area.name,
       locationId: area.id,
+      city: area.city,
       cost: area.cost,
     })
   }

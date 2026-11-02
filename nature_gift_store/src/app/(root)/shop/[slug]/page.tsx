@@ -25,7 +25,7 @@ import { CollectionsName } from '@/lib/firebase/collection-name'
 import { Blog, BlogStatus, Product, ProductStatus, Review } from '@/lib/firebase/models'
 import { QueryFilter } from '@spreeloop/database'
 import { Inventory, Price } from '@/lib/type'
-import { getRegularPrice, getReviewAverage } from '@/lib/utils/utils'
+import { getRegularPrice, getReviewAverage, isPublishedReview } from '@/lib/utils/utils'
 
 // export async function generateStaticParams() {
 //   const product = await getAllCollectionCache<Product>({
@@ -88,7 +88,10 @@ export default async function ProductDetailPage(props: Props) {
         ) : (
           <div className="flex flex-col gap-16">
             <Loader loading={<ProductInfoLoading />}>
-              <FeaturedProductLoader slug={slug} />
+              <FeaturedProductLoader
+                slug={slug}
+                promoCode={typeof searchParams?.promo === 'string' ? searchParams.promo : undefined}
+              />
             </Loader>
             <Loader loading={<ProductsLoading />}>
               <ActivePromotionsLoader slug={slug} />
@@ -141,17 +144,19 @@ async function AutoAddToCartLoader({ slug }: { slug: string }) {
     </div>
   )
 }
-async function FeaturedProductLoader({ slug }: { slug: string }) {
+async function FeaturedProductLoader({ slug, promoCode }: { slug: string; promoCode?: string }) {
   const product = await getDocumentBySlugCache<Product>({
     collection: CollectionsName.Products,
     slug: slug,
   })
   if (!product) return null
 
-  const reviews = await getAllCollectionCache<Review>({
-    collection: CollectionsName.Reviews,
-    filters: [new QueryFilter('productPath', '==', product?.path)],
-  })
+  const reviews = (
+    await getAllCollectionCache<Review>({
+      collection: CollectionsName.Reviews,
+      filters: [new QueryFilter('productPath', '==', product?.path)],
+    })
+  ).filter(isPublishedReview)
 
   const price = product.price as unknown as Price
   const stock = (product.inventory as Inventory)?.stockQuantity
@@ -191,6 +196,7 @@ async function FeaturedProductLoader({ slug }: { slug: string }) {
           await getAllValidPromotionCache(),
           product.path,
           await getShippingZonesCache(),
+          promoCode ? [promoCode] : [],
         )}
       />
     </div>
@@ -213,10 +219,12 @@ async function FeaturedProductReviewLoader({ slug }: { slug: string }) {
   })
 
   if (!product) return null
-  const reviews = await getAllCollectionCache<Review>({
-    collection: CollectionsName.Reviews,
-    filters: [new QueryFilter('productPath', '==', product?.path)],
-  })
+  const reviews = (
+    await getAllCollectionCache<Review>({
+      collection: CollectionsName.Reviews,
+      filters: [new QueryFilter('productPath', '==', product?.path)],
+    })
+  ).filter(isPublishedReview)
   return <ProductReviews product={product} reviews={reviews} />
 }
 

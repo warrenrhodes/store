@@ -5,6 +5,8 @@ import { Toaster } from '@/components/ui/toaster'
 import ToasterProvider from '@/lib/providers/ToasterProvider'
 import { GoogleTagManager } from '@next/third-parties/google'
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
+import { PromoLinkCapture } from '@/components/Promotions/PromoLinkCapture'
 import { Fredoka } from 'next/font/google'
 import './globals.css'
 
@@ -51,6 +53,9 @@ export default async function RootLayout({
           <AuthProvider>{children}</AuthProvider>
           <Footer />
           <Toaster />
+          <Suspense>
+            <PromoLinkCapture />
+          </Suspense>
         </div>
       </body>
     </html>

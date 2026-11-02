@@ -3,6 +3,7 @@ import { toShippingZones } from '@/lib/utils/shipping-zones'
 import { DatabaseDocument, QueryFilter } from '@spreeloop/database'
 import { unstable_cache } from 'next/cache'
 import { cache } from 'react'
+import { FlockNotifier } from '../notifications/flock/flock'
 import { CollectionsName } from '../firebase/collection-name'
 import { backend } from '../firebase/firebase-server/firebase'
 import {
@@ -91,6 +92,7 @@ const getAllValidPromotion = async (): Promise<Promotion[]> => {
     })
   } catch (error) {
     console.error('Error fetching promotions:', error)
+    alertReadFailure('promotions', error)
     return []
   }
 }
@@ -124,11 +126,23 @@ const getShippingZones = async () => {
     return await readShippingZones()
   } catch (error) {
     console.error('Error fetching shipping zones:', error)
+    alertReadFailure('shipping-zones', error)
     return []
   }
 }
 
-/** Never throws: a failed read is logged and replaced by `fallback()`. */
+// ponytail: per-instance throttle; enough to be told the store can't read its data.
+let lastAlert = 0
+/** Tells the team (Flock) that the store can't read Firestore, at most every 10 minutes. */
+const alertReadFailure = (name: string, error: unknown) => {
+  if (Date.now() - lastAlert < 10 * 60_000) return
+  lastAlert = Date.now()
+  new FlockNotifier({ webhookUrl: process.env.FLOCK_WEBHOOK_URL as string }).sendText(
+    `🚨 Store can't read Firestore (${name}): ${String((error as Error)?.message ?? error).slice(0, 300)}`,
+  )
+}
+
+/** Never throws: a failed read is logged, reported and replaced by `fallback()`. */
 const safe =
   <A extends unknown[], R>(name: string, read: (...args: A) => Promise<R>, fallback: () => R) =>
   async (...args: A): Promise<R> => {
@@ -136,6 +150,7 @@ const safe =
       return await read(...args)
     } catch (error) {
       console.error(`Failed to read ${name}:`, error)
+      alertReadFailure(name, error)
       return fallback()
     }
   }

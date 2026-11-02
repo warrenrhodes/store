@@ -1,6 +1,10 @@
 'use client'
 
-import { Tag } from 'lucide-react'
+import { Check, Loader2, Tag, X } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { usePromoCodes } from '@/hooks/usePromoCodes'
+import { cn } from '@/lib/utils/utils'
 import Image from 'next/image'
 import { Separator } from '@/components/ui/separator'
 import { CartItem, useCart, useCartDeliveryInfo } from '@/hooks/useCart'
@@ -27,13 +31,17 @@ export function OrderSummary({
   const cartItems = items ?? cart.cartItems
   const { cartDeliveryInfo } = useCartDeliveryInfo()
 
-  const [summary, setSummary] = useState<OrderSummaryType | null>(null)
+  const [summary, setSummary] = useState<
+    (OrderSummaryType & { codeStatuses?: Record<string, string> }) | null
+  >(null)
   const { calculatePromotions, isCalculating, error } = usePromotionCalculator()
   const { localization } = useLocalization()
+  const { codes, add, remove } = usePromoCodes()
+  const [draft, setDraft] = useState('')
 
   useEffect(() => {
     async function updatePromotions() {
-      const result = await calculatePromotions(cartItems, cartDeliveryInfo)
+      const result = await calculatePromotions(cartItems, cartDeliveryInfo, codes)
       if (result) {
         orderSummary.current = result
         setSummary(result)
@@ -42,7 +50,20 @@ export function OrderSummary({
     }
 
     updatePromotions()
-  }, [cartItems, cartDeliveryInfo])
+  }, [cartItems, cartDeliveryInfo, codes])
+
+  const codeLabel = (status?: string) =>
+    status === 'applied'
+      ? localization.codeApplied
+      : status === 'not_applicable'
+        ? localization.codeNotApplicable
+        : status === 'invalid'
+          ? localization.codeInvalid
+          : ''
+  const applyDraft = () => {
+    add(draft)
+    setDraft('')
+  }
 
   return (
     <div className="rounded-xl border bg-muted/40 p-5 lg:sticky lg:top-24">
@@ -69,6 +90,66 @@ export function OrderSummary({
           </li>
         ))}
       </ul>
+
+      <Separator className="my-5" />
+
+      <form
+        className="flex gap-2"
+        onSubmit={e => {
+          e.preventDefault()
+          applyDraft()
+        }}
+      >
+        <Input
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          placeholder={localization.promoCode}
+          aria-label={localization.promoCode}
+          autoCapitalize="characters"
+          className="bg-background uppercase placeholder:normal-case"
+        />
+        <Button type="submit" variant="outline" disabled={!draft.trim()}>
+          {localization.apply}
+        </Button>
+      </form>
+      {codes.length > 0 && (
+        <ul className="mt-3 flex flex-wrap gap-2" aria-live="polite">
+          {codes.map(code => {
+            const status = summary?.codeStatuses?.[code]
+            return (
+              <li
+                key={code}
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs',
+                  status === 'applied'
+                    ? 'border-primary/40 bg-primary/10 text-primary'
+                    : status
+                      ? 'border-destructive/40 bg-destructive/10 text-destructive'
+                      : 'bg-background',
+                )}
+              >
+                {isCalculating ? (
+                  <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
+                ) : status === 'applied' ? (
+                  <Check className="h-3 w-3" aria-hidden />
+                ) : (
+                  <Tag className="h-3 w-3" aria-hidden />
+                )}
+                <span className="font-medium">{code}</span>
+                {status && !isCalculating && <span>· {codeLabel(status)}</span>}
+                <button
+                  type="button"
+                  onClick={() => remove(code)}
+                  aria-label={`${localization.removeCode} ${code}`}
+                  className="ml-0.5 rounded-full p-0.5 hover:bg-foreground/10"
+                >
+                  <X className="h-3 w-3" aria-hidden />
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
 
       <Separator className="my-5" />
 

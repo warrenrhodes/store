@@ -1,7 +1,7 @@
 import { CartItem } from '@/hooks/useCart'
 import { PromotionAction, PromotionCondition } from '../type'
 import { IDeliveryInfo, OrderSummary, Promotion } from '../firebase/models'
-import { ShippingZone } from './shipping-zones'
+import { normalize, ShippingZone } from './shipping-zones'
 import { toDate } from './utils'
 
 /**
@@ -28,42 +28,85 @@ export const getPromotionProducts = (promotion: Promotion): string[] | null => {
   return condition ? parseList(condition.value) : null
 }
 
+/** Same code whatever the case or surrounding spaces. */
+export const normalizeCode = (code: string) => code.trim().toUpperCase()
+
+/** Whether a promotion applies without a code, or one of `codes` unlocks it. */
+export const isUnlocked = (promotion: Promotion, codes: string[] = []) =>
+  !promotion.requiresCode || codes.map(normalizeCode).includes(normalizeCode(promotion.code ?? ''))
+
+/**
+ * Shopify-style usage limits: `total` orders overall, `perCustomer` orders per phone number.
+ * `customerUses` = orders this customer already placed with it (unknown → only `total` checked).
+ */
+export const isWithinUsageLimit = (promotion: Promotion, customerUses?: number) => {
+  const { total, perCustomer } = promotion.usageLimit ?? {}
+  if (total && (promotion.usageCount ?? 0) >= total) return false
+  if (perCustomer && customerUses !== undefined && customerUses >= perCustomer) return false
+  return true
+}
+
 /**
  * Free-shipping offer a product page can advertise: null when there is none, otherwise the
- * names of the areas it is limited to ([] = everywhere). Offers needing several items are not
- * advertised. Expects promotions already filtered to active ones (getAllValidPromotion).
+ * names of the areas or cities it is limited to ([] = everywhere). Offers needing several
+ * items, a minimum amount or a code the visitor doesn't have are not advertised. Expects
+ * promotions already filtered to active ones (getAllValidPromotion).
  */
 export const getFreeShippingAreas = (
   promotions: Promotion[],
   productPath: string,
   zones: ShippingZone[],
+  codes: string[] = [],
 ): string[] | null => {
   const offers = promotions.filter(
     p =>
       p.actions.some(a => a.type === 'FREE_SHIPPING') &&
+      isUnlocked(p, codes) &&
+      isWithinUsageLimit(p) &&
       (getPromotionProducts(p)?.includes(productPath) ?? true) &&
-      !p.conditions.some(c => c.type === 'MINIMUM_QUANTITY' && Number(parseList(c.value)[0]) > 1),
+      !p.conditions.some(
+        c =>
+          (c.type === 'MINIMUM_QUANTITY' && Number(parseList(c.value)[0]) > 1) ||
+          c.type === 'MINIMUM_AMOUNT' ||
+          c.type === 'SPECIFIC_CATEGORIES',
+      ),
   )
   if (offers.length === 0) return null
-  if (offers.some(p => !p.conditions.some(c => c.type === 'LOCATION'))) return []
+  const limited = (p: Promotion) => p.conditions.some(c => c.type === 'LOCATION' || c.type === 'CITY')
+  if (offers.some(p => !limited(p))) return []
 
   // LOCATION conditions hold area ids; areas deleted or deactivated since are skipped.
   const names = new Map(zones.flatMap(z => z.areas).map(a => [a.id, a.name]))
-  const areas = offers
-    .flatMap(p => p.conditions.filter(c => c.type === 'LOCATION'))
-    .flatMap(c => parseList(c.value))
-    .flatMap(id => names.get(id) ?? [])
-  return areas.length > 0 ? [...new Set(areas)] : null
+  const labels = offers.flatMap(p =>
+    p.conditions.flatMap(c =>
+      c.type === 'LOCATION'
+        ? parseList(c.value).flatMap(id => names.get(id) ?? [])
+        : c.type === 'CITY'
+          ? parseList(c.value)
+          : [],
+    ),
+  )
+  return labels.length > 0 ? [...new Set(labels)] : null
 }
+
+export type CodeStatus = 'applied' | 'not_applicable' | 'invalid'
 
 export class PromotionCalculator {
   private cart: CartItem[]
   private deliveryInfo?: Partial<IDeliveryInfo>
   private promotions: Promotion[]
+  private codes: string[]
 
-  constructor(cart: CartItem[], shipping: Partial<IDeliveryInfo>, promotions: Promotion[]) {
+  /** `codes`: discount codes typed by the customer or carried by an ad link. */
+  constructor(
+    cart: CartItem[],
+    shipping: Partial<IDeliveryInfo>,
+    promotions: Promotion[],
+    codes: string[] = [],
+  ) {
     this.cart = cart
     this.deliveryInfo = shipping
+    this.codes = [...new Set(codes.map(normalizeCode).filter(Boolean))]
     this.promotions = this.filterValidPromotions(promotions)
   }
 
@@ -73,7 +116,14 @@ export class PromotionCalculator {
       .filter(p => {
         const start = toDate(p.startDate)
         const end = toDate(p.endDate)
-        return p.status === 'ACTIVE' && !!start && !!end && start <= now && end >= now
+        return (
+          p.status === 'ACTIVE' &&
+          !!start &&
+          !!end &&
+          start <= now &&
+          end >= now &&
+          isUnlocked(p, this.codes)
+        )
       })
       .sort((a, b) => (b.priority || 0) - (a.priority || 0))
   }
@@ -97,6 +147,19 @@ export class PromotionCalculator {
 
       case 'LOCATION':
         return !!this.deliveryInfo?.locationId && values.includes(this.deliveryInfo.locationId)
+
+      case 'MINIMUM_AMOUNT':
+        return this.cart.reduce((sum, i) => sum + i.price * i.quantity, 0) >= Number(values[0] ?? 0)
+
+      case 'CITY': {
+        const city = normalize(this.deliveryInfo?.city ?? '')
+        return !!city && values.some(v => normalize(v) === city)
+      }
+
+      case 'SPECIFIC_CATEGORIES':
+        return this.cart.some(item =>
+          (item.product.categories ?? []).some(category => values.includes(category)),
+        )
 
       default:
         return false
@@ -137,6 +200,18 @@ export class PromotionCalculator {
       default:
         return 0
     }
+  }
+
+  /** For each code the customer entered: applied, valid but not applicable, or unknown. */
+  public codeStatuses(summary: OrderSummary): Record<string, CodeStatus> {
+    const applied = new Set(summary.appliedPromotions.map(p => normalizeCode(p.code ?? '')))
+    const known = new Set(this.promotions.map(p => normalizeCode(p.code ?? '')))
+    return Object.fromEntries(
+      this.codes.map(code => [
+        code,
+        applied.has(code) ? 'applied' : known.has(code) ? 'not_applicable' : 'invalid',
+      ]),
+    )
   }
 
   public calculate(): OrderSummary {

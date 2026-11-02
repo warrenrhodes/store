@@ -18,7 +18,7 @@ import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
 import { OrderPrices } from '@/lib/type'
 import { useAuthStore } from '@/hooks/store/auth-store'
-import { Order, OrderItem, OrderStatus } from '@/lib/firebase/models'
+import { Order, OrderItem } from '@/lib/firebase/models'
 import { getDocumentId } from '@spreeloop/database'
 
 const containerVariants = {
@@ -87,18 +87,7 @@ function TabsWrapper({ orders }: { orders: Order[] }) {
           ) : (
             orders?.map(order => {
               const orderPrices = order.orderPrices as OrderPrices
-              let status = ''
-              if (order.status === OrderStatus.PENDING) {
-                status = localization.PENDING
-              } else if (order.status === OrderStatus.ACCEPTED) {
-                status = localization.ACCEPTED
-              } else if (order.status === OrderStatus.REJECTED) {
-                status = localization.REJECTED
-              } else if (order.status === OrderStatus.COMPLETED) {
-                status = localization.COMPLETED
-              } else if (order.status === OrderStatus.CANCELED) {
-                status = localization.CANCELED
-              }
+              const status = (localization as Record<string, string>)[`status${order.status}`]
 
               return (
                 <motion.div key={order.path} variants={itemVariants} className="mb-6">
@@ -106,15 +95,30 @@ function TabsWrapper({ orders }: { orders: Order[] }) {
                     <CardHeader>
                       <div className="flex justify-between items-center">
                         <CardTitle className="text-lg">
-                          {localization.order} #{getDocumentId(order.path).substring(0, 5) + '...'}
+                          {order.trackingToken ? (
+                            <Link
+                              href={`/order/${getDocumentId(order.path)}?t=${order.trackingToken}`}
+                              className="hover:underline"
+                            >
+                              {localization.order} #
+                              {getDocumentId(order.path).slice(0, 8).toUpperCase()}
+                            </Link>
+                          ) : (
+                            <>
+                              {localization.order} #
+                              {getDocumentId(order.path).slice(0, 8).toUpperCase()}
+                            </>
+                          )}
                         </CardTitle>
                         <Badge
                           className={cn({
                             'bg-green-500': order.status === 'ACCEPTED',
                             'bg-gray-500': order.status === 'PENDING',
+                            'bg-sky-600': order.status === 'OUT_FOR_DELIVERY',
                             'bg-blue-500': order.status === 'COMPLETED',
-                            'bg-red-500':
-                              order.status === 'CANCELED' || order.status === 'REJECTED',
+                            'bg-red-500': ['CANCELED', 'REJECTED', 'FAILED_DELIVERY'].includes(
+                              order.status,
+                            ),
                           })}
                         >
                           {status}

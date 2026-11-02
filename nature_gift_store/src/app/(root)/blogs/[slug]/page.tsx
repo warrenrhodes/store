@@ -89,7 +89,12 @@ export default async function BlogAdsDetailPage(props: Props) {
     searchParams?.ville as string | undefined,
   )
   const freeShippingAreas = associateProduct
-    ? getFreeShippingAreas(await getAllValidPromotionCache(), associateProduct.path, shipments)
+    ? getFreeShippingAreas(
+        await getAllValidPromotionCache(),
+        associateProduct.path,
+        shipments,
+        typeof searchParams?.promo === 'string' ? [searchParams.promo] : [],
+      )
     : null
 
   return (

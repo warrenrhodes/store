@@ -43,6 +43,16 @@ export class FlockNotifier {
     }
   }
 
+  /** Plain text message (stock alerts, outages). Never throws. */
+  async sendText(text: string) {
+    if (!this.webhookUrl) return
+    try {
+      await axios.post(this.webhookUrl, { text })
+    } catch (error) {
+      console.error('Error sending Flock message:', error)
+    }
+  }
+
   async sendOrderNotification(order: Order) {
     try {
       const message = this.formatOrderMessage(order)

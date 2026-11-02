@@ -4,7 +4,11 @@ import { useCallback, useState } from 'react'
 import { CartItem } from './useCart'
 import { IDeliveryInfo } from '@/lib/firebase/models'
 
-const calculatePromotion = async (cart: CartItem[], deliveryInfo?: Partial<IDeliveryInfo>) => {
+const calculatePromotion = async (
+  cart: CartItem[],
+  deliveryInfo?: Partial<IDeliveryInfo>,
+  codes: string[] = [],
+) => {
   const response = await fetch(`/api/promotions/calculate`, {
     method: 'POST',
     headers: {
@@ -13,6 +17,7 @@ const calculatePromotion = async (cart: CartItem[], deliveryInfo?: Partial<IDeli
     body: JSON.stringify({
       cart,
       shipping: deliveryInfo,
+      codes,
     }),
   })
   return await response.json()
@@ -23,19 +28,19 @@ export function usePromotionCalculator() {
   const [error, setError] = useState<string | null>(null)
 
   const _calculatePromotion = useCallback(
-    async (cart: CartItem[], deliveryInfo?: Partial<IDeliveryInfo>) => {
-      return await calculatePromotion(cart, deliveryInfo)
+    async (cart: CartItem[], deliveryInfo?: Partial<IDeliveryInfo>, codes?: string[]) => {
+      return await calculatePromotion(cart, deliveryInfo, codes)
     },
     [],
   )
 
   const calculatePromotions = useCallback(
-    async (cart: CartItem[], deliveryInfo?: Partial<IDeliveryInfo>) => {
+    async (cart: CartItem[], deliveryInfo?: Partial<IDeliveryInfo>, codes?: string[]) => {
       setIsCalculating(true)
       setError(null)
 
       try {
-        const result = await _calculatePromotion(cart, deliveryInfo)
+        const result = await _calculatePromotion(cart, deliveryInfo, codes)
 
         if (result.error) {
           setError(result.error)

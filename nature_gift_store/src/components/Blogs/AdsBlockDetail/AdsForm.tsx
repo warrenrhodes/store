@@ -1,10 +1,10 @@
 import { OrderSummary } from '@/components/Checkout/order-summary'
-import { useAuthStore } from '@/hooks/store/auth-store'
 import { toast } from '@/hooks/use-toast'
 import { CartItem, useCartDeliveryInfo } from '@/hooks/useCart'
 import { useLocalization } from '@/hooks/useLocalization'
 import { useTemporalUser } from '@/hooks/useTemporalUser'
-import { createOrder } from '@/lib/api/orders'
+import { useCheckoutCapture } from '@/hooks/useCheckoutCapture'
+import { useOrderSubmit } from '@/hooks/useOrderSubmit'
 import { OrderSummary as OrderSummaryType } from '@/lib/firebase/models'
 import { ShippingZone } from '@/lib/utils/shipping-zones'
 import { DeliveryFormData, deliverySchema } from '@/lib/utils/validation-form'
@@ -12,7 +12,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { sendGTMEvent } from '@next/third-parties/google'
 import { getDocumentId } from '@spreeloop/database'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { AdsDeliveryForm } from './AdsDeliveryForm'
@@ -22,15 +21,11 @@ import { priceFormatted } from '@/lib/utils/utils'
 
 // Direct checkout: orders only the items passed in, never touches the global cart.
 export const AdsForm = (props: { shipments: ShippingZone[]; items: CartItem[] }) => {
-  const router = useRouter()
-  const { setUserData } = useTemporalUser()
   const cartItems = props.items
   const { clearDeliveryInfo } = useCartDeliveryInfo()
   const [formData, setFormData] = useState<DeliveryFormData>()
-  const [isLoading, setIsLoading] = useState(false)
   const [total, setTotal] = useState<number>()
   const orderSummary = useRef<OrderSummaryType>()
-  const { user } = useAuthStore()
   const { localization } = useLocalization()
 
   const { temporalUser } = useTemporalUser()
@@ -69,6 +64,9 @@ export const AdsForm = (props: { shipments: ShippingZone[]; items: CartItem[] })
     },
   })
 
+  useCheckoutCapture(form, cartItems)
+  const { submit, isLoading } = useOrderSubmit({ items: cartItems, onPlaced: clearDeliveryInfo })
+
   const onOrderConfirm = async (data: DeliveryFormData) => {
     setFormData(data)
     if (!form.formState.isValid || !orderSummary.current) {
@@ -78,97 +76,7 @@ export const AdsForm = (props: { shipments: ShippingZone[]; items: CartItem[] })
       })
       return
     }
-
-    sendGTMEvent({
-      event: 'add_shipping_info',
-      currency: 'XAF',
-      items: cartItems.map(e => {
-        return {
-          item_id: getDocumentId(e.product.path),
-          item_name: e.product.title,
-          quantity: e.quantity,
-        }
-      }),
-    })
-
-    setIsLoading(true)
-    const order = {
-      deliveryInfo: {
-        address: data.address,
-        deliveryDate: data.deliveryDate,
-        deliveryTime: data.deliveryTime,
-        city: data.city,
-        additionalNotes: data.additionalNotes || null,
-        deliveryMethod: data.shipping.method,
-        location: data.shipping.location,
-        locationId: data.shipping.locationId,
-      },
-      userData: {
-        id: user?.authId || '',
-        email: data.email || '',
-        fullName: data.fullName,
-        phone: data.phone,
-      },
-      status: 'PENDING',
-      orderPrices: {
-        subtotal: orderSummary.current.subtotal,
-        shipping: orderSummary.current.shipping,
-        total: orderSummary.current.total,
-        discount: orderSummary.current.discount,
-      },
-      promotions: orderSummary.current.appliedPromotions.map(promotion => ({
-        promotionId: promotion.id,
-        discountAmount: promotion.discountAmount,
-        code: promotion.code,
-      })),
-      id: '',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      userId: user?.authId || '',
-    }
-    const confirmOrder = await createOrder({ order: order, cartItems: cartItems })
-
-    if (!confirmOrder) {
-      toast({ description: localization.orderError, variant: 'destructive' })
-      setIsLoading(false)
-
-      return
-    }
-
-    const userData = confirmOrder.userData
-    const orderPrices = confirmOrder.orderPrices
-    const deliveryInfo = confirmOrder.deliveryInfo
-    try {
-      sendGTMEvent({
-        event: 'purchase',
-        currency: 'XAF',
-        value: orderPrices.total,
-        transaction_id: getDocumentId(confirmOrder.path),
-        items: confirmOrder.items.map(e => {
-          return {
-            item_id: getDocumentId(e.product.path),
-            item_name: e.product.title,
-            quantity: e.quantity,
-            price: e.price,
-          }
-        }),
-        userInfo: {
-          id: user?.authId,
-          email: userData?.email,
-          full_name: userData?.fullName,
-          phone: userData?.phone,
-          address: deliveryInfo.address,
-          city: deliveryInfo?.city,
-          location: deliveryInfo?.location,
-        },
-      })
-    } catch (error) {
-      console.log(error)
-    }
-
-    setUserData({ ...data })
-    clearDeliveryInfo()
-    router.replace('/order/success')
+    await submit(data)
   }
 
   return (

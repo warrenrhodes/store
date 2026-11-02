@@ -60,7 +60,11 @@ export enum OrderStatus {
   ACCEPTED = 'ACCEPTED',
   REJECTED = 'REJECTED',
   CANCELED = 'CANCELED',
+  /** Delivered and paid. */
   COMPLETED = 'COMPLETED',
+  OUT_FOR_DELIVERY = 'OUT_FOR_DELIVERY',
+  /** Customer unreachable or refused the parcel at the door. */
+  FAILED_DELIVERY = 'FAILED_DELIVERY',
 }
 
 export enum PromotionStatus {
@@ -83,6 +87,12 @@ export enum PromotionConditionType {
   SPECIFIC_PRODUCTS = 'SPECIFIC_PRODUCTS',
   DELIVERY_METHOD = 'DELIVERY_METHOD',
   LOCATION = 'LOCATION',
+  /** Cart subtotal (before discounts) at least this amount. */
+  MINIMUM_AMOUNT = 'MINIMUM_AMOUNT',
+  /** Delivery city (the picked area's city). */
+  CITY = 'CITY',
+  /** At least one cart item in one of these category paths. */
+  SPECIFIC_CATEGORIES = 'SPECIFIC_CATEGORIES',
 }
 
 export interface OrderSummary {
@@ -180,7 +190,8 @@ interface CustomFields {
 }
 
 interface OrderPromotion {
-  promotionPath: string
+  promotionPath?: string
+  promotionId?: string
   discountAmount: number
   code: string
 }
@@ -279,6 +290,15 @@ export interface Review extends CreatorDocument {
   helpful: number
   notHelpful: number
   verify: boolean
+  /** Reviews left by customers wait for approval; reviews without a status are shown. */
+  status?: ReviewStatus | null
+  orderPath?: string | null
+}
+
+export enum ReviewStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
 }
 
 export interface OrderItem extends BaseDocument {
@@ -307,7 +327,8 @@ interface UserData {
 }
 
 interface OrderPromotion {
-  promotionPath: string
+  promotionPath?: string
+  promotionId?: string
   discountAmount: number
   code: string
 }
@@ -327,6 +348,36 @@ export interface Order extends CreatorDocument {
   orderPrices: OrderPrices
   status: OrderStatus
   partnersPaths: string[]
+  /** Secret in the customer's tracking link (/order/<id>?t=<token>). */
+  trackingToken?: string | null
+  history?: OrderEvent[] | null
+  /** True while the ordered quantities are taken out of product stock. */
+  stockReserved?: boolean | null
+  /** Discount added by hand in the admin, on top of promotions. */
+  manualDiscount?: number | null
+  checkoutId?: string | null
+}
+
+export interface OrderEvent {
+  at: string
+  /** 'customer', or the admin user's email/uid. */
+  by: string
+  type: 'created' | 'status' | 'edit' | 'note'
+  status?: OrderStatus | null
+  message?: string | null
+}
+
+/** A checkout the customer started (name and phone typed) but may not have finished. */
+export interface Checkout extends BaseDocument {
+  fullName: string
+  phone: string
+  items: Array<{ productPath: string; title: string; quantity: number; price: number }>
+  total: number
+  location?: string | null
+  source?: string | null
+  partnersPaths: string[]
+  orderPath?: string | null
+  contactedAt?: string | null
 }
 
 /** A neighbourhood or town (collection `locations`). Referenced everywhere by its id. */
@@ -355,6 +406,10 @@ export interface Promotion extends CreatorDocument {
   conditions: PromotionCondition[]
   actions: PromotionAction[]
   usageLimit?: UsageLimit | null
+  /** Orders that used it; maintained by the store's order API. */
+  usageCount?: number
+  /** Code promotion (typed by the customer or carried by a link) instead of automatic. */
+  requiresCode?: boolean
   status: PromotionStatus
   priority: number
   metadata: Metadata

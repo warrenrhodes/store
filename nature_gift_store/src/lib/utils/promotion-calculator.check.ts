@@ -3,7 +3,11 @@ import assert from 'node:assert/strict'
 import { CartItem } from '@/hooks/useCart'
 import { DeliveryLocation, Promotion, Shipment } from '../firebase/models'
 import { filterZonesByCity, findArea, toShippingZones } from './shipping-zones'
-import { getFreeShippingAreas, PromotionCalculator } from './promotion-calculator'
+import {
+  getFreeShippingAreas,
+  isWithinUsageLimit,
+  PromotionCalculator,
+} from './promotion-calculator'
 
 const item = (path: string, price: number, quantity: number) =>
   ({ product: { path }, price, quantity }) as unknown as CartItem
@@ -155,5 +159,61 @@ assert.deepEqual(filterZonesByCity(twoCities, 'yaounde'), shipments)
 assert.deepEqual(filterZonesByCity(twoCities, 'Douala'), douala)
 assert.deepEqual(filterZonesByCity(twoCities, 'Bafoussam'), twoCities)
 assert.deepEqual(filterZonesByCity(twoCities, undefined), twoCities)
+
+// Code promotions: only with the code (any case), and the code status is reported
+const codePromo = {
+  ...promo([], [{ type: 'PERCENTAGE_DISCOUNT', value: '10' }]),
+  code: 'PUB-CAFE',
+  requiresCode: true,
+} as Promotion
+assert.equal(run([coffee], medong, [codePromo]).total, 14000)
+const withCode = new PromotionCalculator([coffee], medong, [codePromo], [' pub-cafe '])
+const coded = withCode.calculate()
+assert.equal(coded.total, 12800)
+assert.deepEqual(withCode.codeStatuses(coded), { 'PUB-CAFE': 'applied' })
+const unknown = new PromotionCalculator([coffee], medong, [codePromo], ['NOPE'])
+assert.deepEqual(unknown.codeStatuses(unknown.calculate()), { NOPE: 'invalid' })
+const minCode = {
+  ...codePromo,
+  conditions: [{ type: 'MINIMUM_AMOUNT', value: '50000' }],
+} as unknown as Promotion
+const notYet = new PromotionCalculator([coffee], medong, [minCode], ['PUB-CAFE'])
+assert.deepEqual(notYet.codeStatuses(notYet.calculate()), { 'PUB-CAFE': 'not_applicable' })
+
+// Minimum amount, city and category conditions
+const over20k = promo(
+  [{ type: 'MINIMUM_AMOUNT', value: '20000' }],
+  [{ type: 'FREE_SHIPPING', value: '' }],
+)
+assert.equal(run([coffee], medong, [over20k]).total, 14000)
+assert.equal(run([item('products/coffee', 12000, 2)], medong, [over20k]).total, 24000)
+const yaounde = promo([{ type: 'CITY', value: '["Yaoundé"]' }], [{ type: 'FREE_SHIPPING', value: '' }])
+assert.equal(run([coffee], { ...medong, city: 'yaounde' }, [yaounde]).total, 12000)
+assert.equal(run([coffee], { ...medong, city: 'Douala' }, [yaounde]).total, 14000)
+assert.equal(run([coffee], { ...medong, city: undefined }, [yaounde]).total, 14000)
+const teaCategory = promo(
+  [{ type: 'SPECIFIC_CATEGORIES', value: '["categories/tea"]' }],
+  [{ type: 'FIXED_DISCOUNT', value: '1000' }],
+)
+const categorized = (categories: string[]) =>
+  ({ product: { path: 'products/x', categories }, price: 5000, quantity: 1 }) as unknown as CartItem
+assert.equal(run([categorized(['categories/tea'])], medong, [teaCategory]).total, 6000)
+assert.equal(run([categorized(['categories/coffee'])], medong, [teaCategory]).total, 7000)
+
+// Usage limits
+assert.equal(isWithinUsageLimit({ usageLimit: { total: 2 }, usageCount: 1 } as Promotion), true)
+assert.equal(isWithinUsageLimit({ usageLimit: { total: 2 }, usageCount: 2 } as Promotion), false)
+assert.equal(isWithinUsageLimit({ usageLimit: { perCustomer: 1 } } as Promotion, 1), false)
+assert.equal(isWithinUsageLimit({ usageLimit: { perCustomer: 1 } } as Promotion, 0), true)
+assert.equal(isWithinUsageLimit({ usageLimit: { perCustomer: 1 } } as Promotion), true)
+
+// Badge: city offers show the city; code offers only with the code; minimum amount never
+assert.deepEqual(getFreeShippingAreas([yaounde], 'products/coffee', shipments), ['Yaoundé'])
+const freeShipCode = { ...yaounde, code: 'PUB', requiresCode: true } as Promotion
+assert.equal(getFreeShippingAreas([freeShipCode], 'products/coffee', shipments), null)
+assert.deepEqual(getFreeShippingAreas([freeShipCode], 'products/coffee', shipments, ['pub']), [
+  'Yaoundé',
+])
+assert.equal(getFreeShippingAreas([over20k], 'products/coffee', shipments), null)
 
 console.log('promotion-calculator: all checks passed')

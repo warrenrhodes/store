@@ -3,7 +3,15 @@ import { isoDate } from './date'
 import { parseList } from '../utils/parse-list'
 
 export const promotionConditionSchema = z.object({
-  type: z.enum(['MINIMUM_QUANTITY', 'SPECIFIC_PRODUCTS', 'DELIVERY_METHOD', 'LOCATION']),
+  type: z.enum([
+    'MINIMUM_QUANTITY',
+    'SPECIFIC_PRODUCTS',
+    'DELIVERY_METHOD',
+    'LOCATION',
+    'MINIMUM_AMOUNT',
+    'CITY',
+    'SPECIFIC_CATEGORIES',
+  ]),
   value: z.string(),
 })
 
@@ -20,7 +28,16 @@ export const promotionActionSchema = z.object({
 })
 
 export const promotionSchema = z.object({
-  code: z.string().min(3).max(20),
+  // Customers type it (or it rides in an ad link): letters, digits and dashes, any case.
+  code: z
+    .string()
+    .trim()
+    .min(3)
+    .max(30)
+    .regex(/^[A-Za-z0-9-]+$/, 'Letters, digits and dashes only')
+    .transform(c => c.toUpperCase()),
+  /** Code promotion (typed or via link) instead of applied automatically. */
+  requiresCode: z.boolean().optional().default(false),
   name: z.string().min(2).max(50),
   description: z.string().optional().nullable(),
   startDate: isoDate(),
@@ -45,8 +62,8 @@ export const promotionSchema = z.object({
 
 const validatePromotionFrom = (values: PromotionSchemaType): string | undefined => {
   // Code validation
-  if (values.code.length < 3 || values.code.length > 20) {
-    return 'Promotion code must be between 3 and 20 characters.'
+  if (!/^[A-Za-z0-9-]{3,30}$/.test(values.code.trim())) {
+    return 'Promotion code: 3 to 30 letters, digits or dashes.'
   }
 
   // Name validation
@@ -72,16 +89,23 @@ const validatePromotionFrom = (values: PromotionSchemaType): string | undefined 
   }
 
   // Conditions validation
-  if (values.conditions.length === 0) {
-    return 'At least one condition is required.'
+  // A code is itself a condition; an automatic discount must say who gets it.
+  if (values.conditions.length === 0 && !values.requiresCode) {
+    return 'An automatic promotion needs at least one condition (or make it a code promotion).'
   }
 
   for (const condition of values.conditions) {
     if (
-      (condition.type === 'LOCATION' || condition.type === 'SPECIFIC_PRODUCTS') &&
+      ['LOCATION', 'SPECIFIC_PRODUCTS', 'CITY', 'SPECIFIC_CATEGORIES'].includes(condition.type) &&
       parseList(condition.value).length === 0
     ) {
       return `${condition.type} condition needs at least one value.`
+    }
+    if (
+      (condition.type === 'MINIMUM_AMOUNT' || condition.type === 'MINIMUM_QUANTITY') &&
+      !(Number(condition.value) > 0)
+    ) {
+      return `${condition.type} must be greater than 0.`
     }
   }
 

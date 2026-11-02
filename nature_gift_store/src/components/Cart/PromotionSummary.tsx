@@ -10,6 +10,7 @@ import { Tag } from 'lucide-react'
 import { CartItem } from '@/hooks/useCart'
 import { useLocalization } from '@/hooks/useLocalization'
 import { IDeliveryInfo, OrderSummary } from '@/lib/firebase/models'
+import { usePromoCodes } from '@/hooks/usePromoCodes'
 
 interface PromotionSummaryProps {
   cartItems: CartItem[]
@@ -20,16 +21,17 @@ export function PromotionSummary({ cartItems, deliveryInfo }: PromotionSummaryPr
   const [summary, setSummary] = useState<OrderSummary | null>(null)
   const { calculatePromotions, isCalculating, error } = usePromotionCalculator()
   const { localization } = useLocalization()
+  const codes = usePromoCodes(state => state.codes)
   useEffect(() => {
     async function updatePromotions() {
-      const result = await calculatePromotions(cartItems, deliveryInfo)
+      const result = await calculatePromotions(cartItems, deliveryInfo, codes)
       if (result) {
         setSummary(result)
       }
     }
 
     updatePromotions()
-  }, [calculatePromotions, cartItems, deliveryInfo])
+  }, [calculatePromotions, cartItems, deliveryInfo, codes])
 
   if (isCalculating) {
     return (

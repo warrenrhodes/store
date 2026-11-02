@@ -113,3 +113,7 @@ export const toDate = (value: unknown): Date | undefined => {
         : new Date(value as string | number | Date)
   return isNaN(date.getTime()) ? undefined : date
 }
+
+/** Customer reviews wait for approval; reviews created before moderation have no status. */
+export const isPublishedReview = (review: { status?: string | null }) =>
+  !review.status || review.status === 'APPROVED'

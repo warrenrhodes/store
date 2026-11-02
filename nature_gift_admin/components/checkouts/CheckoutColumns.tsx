@@ -5,15 +5,13 @@ import { toast } from '@/hooks/use-toast'
 import { deleteCheckout, markCheckoutContacted } from '@/lib/actions/checkouts.actions'
 import { ICheckout } from '@/lib/actions/server'
 import { whatsappUrl } from '@/lib/orders/messages'
+import { checkoutState } from '@/lib/orders/order-logic'
 import { priceFormatted } from '@/lib/utils/utils'
 import { ColumnDef } from '@tanstack/react-table'
 import { formatDistanceToNow } from 'date-fns'
 import { Check, MessageCircle, Phone, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-
-export const checkoutState = (c: ICheckout) =>
-  c.data.orderPath ? 'RECOVERED' : c.data.contactedAt ? 'CONTACTED' : 'NEW'
 
 const recoveryMessage = (c: ICheckout) => {
   const firstName = c.data.fullName.split(' ')[0]

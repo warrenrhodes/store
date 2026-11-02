@@ -1,6 +1,7 @@
 import { CsvExportButton } from '@/components/custom-ui/CsvExportButton'
 import { DataTable } from '@/components/custom-ui/DataTable'
-import { checkoutColumns, checkoutState } from '@/components/checkouts/CheckoutColumns'
+import { checkoutColumns } from '@/components/checkouts/CheckoutColumns'
+import { checkoutState } from '@/lib/orders/order-logic'
 import { getCheckoutsCache } from '@/lib/actions/server'
 import { priceFormatted } from '@/lib/utils/utils'
 

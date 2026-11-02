@@ -151,3 +151,8 @@ export const toCsv = (rows: Array<Record<string, string | number | null | undefi
   }
   return [headers.join(','), ...rows.map(r => headers.map(h => cell(r[h])).join(','))].join('\n')
 }
+
+/** Abandoned checkout follow-up state. */
+export const checkoutState = (c: {
+  data: { orderPath?: string | null; contactedAt?: string | null }
+}) => (c.data.orderPath ? 'RECOVERED' : c.data.contactedAt ? 'CONTACTED' : 'NEW')

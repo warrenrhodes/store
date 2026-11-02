@@ -54,6 +54,7 @@ export class FlockNotifier {
   }
 
   async sendOrderNotification(order: Order) {
+    if (!this.webhookUrl) return
     try {
       const message = this.formatOrderMessage(order)
       await axios.post(this.webhookUrl, message)

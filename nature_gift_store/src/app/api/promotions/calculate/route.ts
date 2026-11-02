@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { isWithinUsageLimit, PromotionCalculator } from '@/lib/utils/promotion-calculator'
-import { getAllValidPromotionCache } from '@/lib/api/utils'
+import { getPromotionsWithFreshUsage } from '@/lib/api/utils'
 
 /**
  * Order summary preview for the cart and checkout. `codes`: discount codes typed by the
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   try {
     const { cart, shipping, codes } = await req.json()
 
-    const promotions = (await getAllValidPromotionCache()).filter(p => isWithinUsageLimit(p))
+    const promotions = (await getPromotionsWithFreshUsage()).filter(p => isWithinUsageLimit(p))
     const calculator = new PromotionCalculator(
       cart,
       shipping,

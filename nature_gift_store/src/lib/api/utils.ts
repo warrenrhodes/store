@@ -202,3 +202,21 @@ export const getAllCollectionFresh = cache(safe('collection', getAllCollection, 
 
 export const getAllValidPromotionCache = cache(getAllValidPromotion)
 export const getShippingZonesCache = cache(getShippingZones)
+
+/**
+ * Active promotions with up-to-date usage counts for those with a total limit (the list itself
+ * is cached for a few minutes; a few extra reads keep an exhausted code from showing as valid).
+ */
+export const getPromotionsWithFreshUsage = async (): Promise<Promotion[]> => {
+  const promotions = await getAllValidPromotionCache()
+  const limited = promotions.filter(p => p.usageLimit?.total)
+  if (limited.length === 0) return promotions
+  try {
+    const docs = await backend.db.getAll(...limited.map(p => backend.db.doc(p.path)))
+    const counts = new Map(docs.map(doc => [doc.ref.path, (doc.get('usageCount') as number) ?? 0]))
+    return promotions.map(p => (counts.has(p.path) ? { ...p, usageCount: counts.get(p.path) } : p))
+  } catch (error) {
+    console.error('Error reading promotion usage:', error)
+    return promotions
+  }
+}

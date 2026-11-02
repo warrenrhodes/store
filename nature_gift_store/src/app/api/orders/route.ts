@@ -1,6 +1,6 @@
 import { CartItem } from '@/hooks/useCart'
 import {
-  getAllValidPromotionCache,
+  getPromotionsWithFreshUsage,
   getShippingZonesCache,
   getDocumentByPathFresh,
 } from '@/lib/api/utils'
@@ -88,9 +88,8 @@ async function priceOrder(
   const cost = picked?.zone.cost ?? 0
 
   const uses = await promotionUsesByPhone(phone)
-  const promotions = (await getAllValidPromotionCache()).filter(p =>
-    isWithinUsageLimit(p, uses.get(p.path) ?? 0),
-  )
+  const cached = await getPromotionsWithFreshUsage()
+  const promotions = cached.filter(p => isWithinUsageLimit(p, uses.get(p.path) ?? 0))
   const summary = new PromotionCalculator(
     cart as CartItem[],
     {
@@ -234,78 +233,87 @@ export const POST = async (req: NextRequest) => {
     }
     const newOrder = { data: data as unknown as Order, path: placed.orderRef.path }
 
-    if (placed.lowStock.length > 0) {
-      await flockNotifier.sendText(`⚠️ Low stock\n${placed.lowStock.join('\n')}`)
-    }
-    await sendMetaPurchase({
-      eventId: placed.orderRef.id,
-      value: summary.total,
-      contents: cartItems.map(i => ({
-        id: i.product.path.split('/').pop()!,
-        quantity: i.quantity,
-        item_price: i.price,
-      })),
-      phone: order.userData?.phone,
-      fullName: order.userData?.fullName,
-      city: data.deliveryInfo.city,
-      sourceUrl: req.headers.get('referer'),
-      ip: req.headers.get('x-forwarded-for')?.split(',')[0]?.trim(),
-      userAgent: req.headers.get('user-agent'),
-      fbp: req.cookies.get('_fbp')?.value,
-      fbc: req.cookies.get('_fbc')?.value,
-    })
-
+    // The order is saved: alerts and tracking must never turn it into an error (the customer
+    // would retry and order twice).
     try {
-      await flockNotifier.sendOrderNotification({ ...newOrder.data, path: newOrder.path })
+      if (placed.lowStock.length > 0) {
+        await flockNotifier.sendText(`⚠️ Low stock\n${placed.lowStock.join('\n')}`)
+      }
+      await sendMetaPurchase({
+        eventId: placed.orderRef.id,
+        value: summary.total,
+        contents: cartItems.map(i => ({
+          id: i.product.path.split('/').pop()!,
+          quantity: i.quantity,
+          item_price: i.price,
+        })),
+        phone: order.userData?.phone,
+        fullName: order.userData?.fullName,
+        city: data.deliveryInfo.city,
+        sourceUrl: req.headers.get('referer'),
+        ip: req.headers.get('x-forwarded-for')?.split(',')[0]?.trim(),
+        userAgent: req.headers.get('user-agent'),
+        fbp: req.cookies.get('_fbp')?.value,
+        fbc: req.cookies.get('_fbc')?.value,
+      })
+
+      try {
+        await flockNotifier.sendOrderNotification({ ...newOrder.data, path: newOrder.path })
+      } catch (error) {
+        console.error('Error sending Flock notification:', error)
+      }
+      // Send notifications
+      const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.split(',').filter(Boolean) || []
+      const adminPhones =
+        process.env.NEXT_PUBLIC_ADMIN_PHONE_NUMBER?.split(',').filter(Boolean) || []
+
+      if (adminEmails.length > 0) {
+        const notificationData = {
+          user_name: order.userData.fullName,
+          user_number: order.userData.phone,
+          selected_products: cartItems.map(item => item.product.title).join(', '),
+          delivery_address: order.deliveryInfo.address,
+          delivery_location: order.deliveryInfo.location,
+          delivery_date: order.deliveryInfo.deliveryDate
+            ? `${format(order.deliveryInfo.deliveryDate, 'PPP')} ${order.deliveryInfo.deliveryTime ?? ''}`
+            : '',
+        }
+
+        try {
+          await Promise.all(
+            adminEmails.map(email =>
+              sendEmailNotifications({
+                email,
+                notificationId: 'new_product',
+                data: notificationData,
+              }),
+            ),
+          )
+        } catch (error) {
+          console.error('Failed to send email notifications:', error)
+        }
+      }
+
+      // SMS notifications commented out for now
+      if (adminPhones.length > 0) {
+        try {
+          await Promise.all(
+            adminPhones.map(phone =>
+              sendSmsNotifications({
+                phoneNumber: phone,
+                notificationId: 'new_product',
+                data: {
+                  comment: `Visit the order on ${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/orders`,
+                },
+              }),
+            ),
+          )
+        } catch (error) {
+          console.error('Failed to send SMS notifications:', error)
+        }
+      }
     } catch (error) {
-      console.error('Error sending Flock notification:', error)
-    }
-    // Send notifications
-    const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.split(',') || []
-    const adminPhones = process.env.NEXT_PUBLIC_ADMIN_PHONE_NUMBER?.split(',') || []
-
-    if (adminEmails.length > 0) {
-      const notificationData = {
-        user_name: order.userData.fullName,
-        user_number: order.userData.phone,
-        selected_products: cartItems.map(item => item.product.title).join(', '),
-        delivery_address: order.deliveryInfo.address,
-        delivery_location: order.deliveryInfo.location,
-        delivery_date: `${format(order.deliveryInfo.deliveryDate, 'PPP')} ${order.deliveryInfo.deliveryTime}`,
-      }
-
-      try {
-        await Promise.all(
-          adminEmails.map(email =>
-            sendEmailNotifications({
-              email,
-              notificationId: 'new_product',
-              data: notificationData,
-            }),
-          ),
-        )
-      } catch (error) {
-        console.error('Failed to send email notifications:', error)
-      }
-    }
-
-    // SMS notifications commented out for now
-    if (adminPhones.length > 0) {
-      try {
-        await Promise.all(
-          adminPhones.map(phone =>
-            sendSmsNotifications({
-              phoneNumber: phone,
-              notificationId: 'new_product',
-              data: {
-                comment: `Visit the order on ${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/orders`,
-              },
-            }),
-          ),
-        )
-      } catch (error) {
-        console.error('Failed to send SMS notifications:', error)
-      }
+      console.error('[ORDERS_POST] post-order notifications failed:', error)
     }
 
     return NextResponse.json({ ...newOrder.data, path: newOrder.path }, { status: 201 })

@@ -55,6 +55,10 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     en: 'This discount is no longer available.',
     fr: 'Cette promotion n’est plus disponible.',
   },
+  legal: {
+    en: 'Legal information',
+    fr: 'Informations légales',
+  },
   ordersByStore: {
     en: 'One order per store: each store delivers its own products.',
     fr: 'Une commande par boutique : chaque boutique livre ses propres produits.',
@@ -1164,6 +1168,7 @@ export const enum DictWords {
   promoAddedFromLink = 'promoAddedFromLink',
   removeCode = 'removeCode',
   promotionExhausted = 'promotionExhausted',
+  legal = 'legal',
   ordersByStore = 'ordersByStore',
   soldBy = 'soldBy',
   ourStores = 'ourStores',

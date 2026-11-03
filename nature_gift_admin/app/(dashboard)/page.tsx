@@ -9,7 +9,10 @@ import { ArrowRight, Clock, Star } from 'lucide-react'
 import { getTokens } from 'next-firebase-auth-edge'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
+import { GettingStarted } from '@/components/layout/GettingStarted'
+import { isPlatformAdmin } from '@/lib/actions/platform.actions'
+import { getStoreContext } from '@/lib/tenant'
 
 export default async function Home() {
   const tokens = await getTokens(await cookies(), {
@@ -19,6 +22,9 @@ export default async function Home() {
     serviceAccount: serverConfig.serviceAccount,
   })
   if (!tokens) notFound()
+  const ctx = await getStoreContext()
+  // A new account (self-service sign-up): create its store first.
+  if (!ctx && !(await isPlatformAdmin())) redirect('/onboarding')
 
   const stats = await getDashboardStats()
   const kpis = [
@@ -54,6 +60,7 @@ export default async function Home() {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">
+      {ctx && <GettingStarted />}
       <h1 className="text-2xl font-semibold">Dashboard</h1>
 
       {stats.pendingCount > 0 && (

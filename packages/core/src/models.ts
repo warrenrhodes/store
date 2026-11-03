@@ -318,7 +318,10 @@ export interface CartItem {
 }
 
 export interface OrderItem extends BaseDocument {
-  product: Pick<Product, 'medias' | 'title' | 'creatorId' | 'path' | 'price' | 'storeId'>
+  /** creatorId: written before phase 5, no longer read. */
+  product: Pick<Product, 'medias' | 'title' | 'path' | 'price' | 'storeId'> & {
+    creatorId?: string
+  }
   quantity: number
   price: number
 }
@@ -350,7 +353,8 @@ export interface Order extends CreatorDocument {
   items: OrderItem[]
   orderPrices: OrderPrices
   status: OrderStatus
-  partnersPaths: string[]
+  /** Before stores (phase 5 stopped writing it): users/<creatorId> of the products. */
+  partnersPaths?: string[] | null
   /** Secret in the customer's tracking link (/order/<id>?t=<token>), shared by a group. */
   trackingToken?: string | null
   /**
@@ -384,7 +388,8 @@ export interface Checkout extends BaseDocument {
   total: number
   location?: string | null
   source?: string | null
-  partnersPaths: string[]
+  /** Before stores (phase 5 stopped writing it): users/<creatorId> of the products. */
+  partnersPaths?: string[] | null
   orderPath?: string | null
   contactedAt?: string | null
 }
@@ -459,6 +464,20 @@ export interface StoreSettings {
   metaPixelIds: string[]
   notificationEmails: string[]
   notificationPhones: string[]
+  /** Shown on the store's legal pages (/legal/...): who sells, and the returns policy. */
+  legal?: StoreLegal | null
+}
+
+export interface StoreLegal {
+  /** Raison sociale, or the seller's full name. */
+  companyName?: string | null
+  address?: string | null
+  /** RCCM number. */
+  registration?: string | null
+  /** NIU (tax id). */
+  taxId?: string | null
+  /** Replaces the default returns section of the sales terms. */
+  returnPolicy?: string | null
 }
 
 /** stores/{storeId} */
@@ -477,6 +496,8 @@ export interface Store {
   theme?: StoreTheme | null
   /** Saved but not published: shown only with a preview token (?preview=). */
   themeDraft?: StoreTheme | null
+  /** Self-service sign-up: when the owner accepted the platform's seller terms (ISO). */
+  termsAcceptedAt?: string | null
   createdAt: string
   updatedAt: string
 }

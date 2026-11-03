@@ -402,6 +402,14 @@ Tests :
 3. Nettoyage : retirer la lecture de `creatorId` et les secours sur les variables d'environnement de marque et de notifications.
 4. Pages légales par boutique et pour la plateforme : CGU, confidentialité (loi camerounaise sur la protection des données personnelles), mentions légales.
 
+**Réalisé (branche `multi-tenant`, 2026-11-03), avec ces écarts :**
+- **Inscription en deux temps** : le formulaire d'inscription existant de l'admin crée le compte. Un compte sans boutique est ensuite envoyé de `/` vers `/onboarding` : nom, adresse `/boutique/<slug>`, préréglage de thème (publié comme premier thème) et acceptation des conditions vendeurs (`termsAcceptedAt`). La boutique est créée `pending`, une seule par compte de cette façon (les suivantes passent par `/platform`). La création (boutique, slug en transaction, secrets, adhésion propriétaire) est commune avec la console : `lib/store-creation.ts`, ajouté à la liste blanche de `check-tenant`.
+- **Premier produit et zones** : pas d'assistant qui les recrée. Le tableau de bord affiche « Get your store ready », une liste de 5 étapes (contact, zones, premier produit, thème, paiement) qui renvoie vers les pages existantes et disparaît quand tout est fait. Les compteurs utilisent des requêtes `count()` (`scopedCount` dans `lib/tenant.ts`), et non des lectures complètes.
+- **Activation** : au premier paiement d'une boutique `pending`, l'admin envoie l'email `store_activated` au propriétaire via NotificationAPI (`lib/notify.ts`, mêmes identifiants que la vitrine, nouvelles variables `NOTIFICATIONAPI_CLIENT_ID` et `NOTIFICATIONAPI_CLIENT_SECRET` dans l'admin). Variables de fusion : `store_name`, `store_url`, `paid_until`. Il faut créer cette notification dans NotificationAPI ; sans identifiants, rien n'est envoyé.
+- **Nettoyage** : `creatorId` n'est plus lu ni copié (lignes de commande, avis), et `partnersPaths` n'est plus écrit (commandes, paniers abandonnés, modification de commande dans l'admin). Aucune requête ne les utilisait depuis la phase 1. Les documents créés par l'admin gardent `creatorId` comme trace de leur auteur. Les secours sur les variables d'environnement de marque et de notifications avaient déjà été retirés en phase 2.
+- **Pages légales** : `/legal/conditions`, `/legal/confidentialite` et `/legal/mentions-legales` pour chaque boutique et pour la marketplace, plus `/legal/vendeurs` (conditions vendeurs) sur la marketplace. Ce sont des modèles en français (`src/lib/legal.ts`) qui citent la loi n° 2010/021 (commerce électronique), la loi-cadre n° 2011/012 (protection du consommateur) et la loi n° 2024/017 (données personnelles). Ils sont remplis avec les informations légales de la boutique (nouveau bloc des Réglages : raison sociale, adresse, RCCM, NIU, politique de retour qui remplace la section par défaut) ou avec celles de la plateforme (`PLATFORM_LEGAL` dans `src/lib/platform-site.ts`, RCCM et NIU à compléter). Liens en pied de page, chemins publics dans le proxy. **À faire relire par un juriste avant de s'y fier.**
+- e2e : `scripts/e2e/commerce-checks.cjs` ajoute 4 vérifications (inscription et `/onboarding`, liste de démarrage, paiement qui ouvre la vitrine, pages légales). `store-checks.cjs` vérifie que les nouvelles commandes et les avis ne portent plus `partnersPaths` ni `creatorId`.
+
 ### Phase 6 : plus tard, quand il y aura plusieurs fournisseurs
 
 À ne lancer que sur demande de l'utilisateur.
@@ -437,7 +445,8 @@ Tests :
 - **Phase 1 terminée** (commit `a406737`) : `lib/tenant.ts`, migration, Réglages (plusieurs GTM et Pixels), Équipe, `/platform`, règles Firestore. Voir « Réalisé » en phase 1.
 - **Phase 2 terminée** (commit `adcd241`) : `app/[site]`, routage `/boutique/<slug>`, chargeurs par boutique, `/api/revalidate`, quartiers par boutique, nettoyage des variables d'environnement. Voir « Réalisé » en phase 2.
 - **Phase 3 terminée** (commit `4b255fc`) : thèmes, page Thème avec brouillon et aperçu signé, sections d'accueil, audit axe. Voir « Réalisé » en phase 3.
-- **Phase 4 terminée** (commit « Phase 4: marketplace… », juste après `4b255fc`) : commande découpée par boutique, suivi de groupe, pages vendeur, modération. Voir « Réalisé » en phase 4.
+- **Phase 4 terminée** (commit `e0b0cf4`) : commande découpée par boutique, suivi de groupe, pages vendeur, modération, événements Meta. Voir « Réalisé » en phase 4.
+- **Phase 5 terminée** (commit « Phase 5: self-service sellers… », juste après `e0b0cf4`) : inscription libre des vendeurs, email d'activation, nettoyage de `creatorId`, pages légales. Voir « Réalisé » en phase 5.
 - Ne pas refaire ni relire en détail le code des phases 0 et 1 : partir des sections « Réalisé » et ne lire que les fichiers que la phase 2 touche.
 - Le dev et le build sont en webpack (`--webpack`). Turbopack bloquait le dev avec `packages/core`.
 

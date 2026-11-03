@@ -154,6 +154,17 @@ export async function scopedList<T>(collection: string, filters: QueryFilter[] =
   return fresh(docs) as DatabaseDocument<T>[]
 }
 
+/** How many documents the current store has in `collection` (a count query, ~1 read). */
+export async function scopedCount(collection: string) {
+  const { storeId } = await requireStore()
+  const snapshot = await backend.db
+    .collection(collection)
+    .where('storeId', '==', storeId)
+    .count()
+    .get()
+  return snapshot.data().count
+}
+
 /** One document of the current store, or undefined (also for another store's document). */
 export async function scopedGet<T>(collection: string, id: string) {
   const { storeId } = await requireStore()

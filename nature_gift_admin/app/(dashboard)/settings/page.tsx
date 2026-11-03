@@ -22,6 +22,7 @@ export default async function SettingsPage(props: {
   const secrets = await getSecretsStatus()
   const { store } = ctx
   const pixelLines = store.settings.metaPixelIds.join('\n')
+  const legal = store.settings.legal
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-4">
@@ -120,6 +121,43 @@ export default async function SettingsPage(props: {
                   listed without a token keeps its saved token.
                 </p>
               )}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Legal information</CardTitle>
+            <CardDescription>
+              Shown on your storefront&apos;s legal pages (sales terms, privacy, legal notice).
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4 sm:grid-cols-2">
+            <Field
+              label="Company name (or your full name)"
+              name="legalCompanyName"
+              maxLength={120}
+              defaultValue={legal?.companyName ?? ''}
+            />
+            <Field
+              label="Address"
+              name="legalAddress"
+              maxLength={300}
+              defaultValue={legal?.address ?? ''}
+            />
+            <Field
+              label="RCCM"
+              name="legalRegistration"
+              maxLength={60}
+              defaultValue={legal?.registration ?? ''}
+            />
+            <Field label="NIU" name="legalTaxId" maxLength={60} defaultValue={legal?.taxId ?? ''} />
+            <div className="sm:col-span-2">
+              <Area
+                label="Returns and complaints (replaces the default text; optional)"
+                name="legalReturnPolicy"
+                maxLength={3000}
+                defaultValue={legal?.returnPolicy ?? ''}
+              />
             </div>
           </CardContent>
         </Card>

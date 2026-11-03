@@ -5,7 +5,6 @@ import { getDocumentByPathCache } from '@/lib/api/utils'
 import { checkoutDocId, resolveCartGroups } from '@/lib/api/cart-store'
 import { getStorePixels, requestSignals, sendMetaEvent } from '@/lib/analytics/meta-capi'
 import { getRegularPrice } from '@/lib/utils/utils'
-import { getDatabasePath } from '@spreeloop/database'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
@@ -91,11 +90,6 @@ export async function POST(req: NextRequest) {
           items: lines,
           total: lines.reduce((sum, l) => sum + l.price * l.quantity, 0),
           storeId: store.id,
-          partnersPaths: [
-            ...new Set(
-              indexes.map(i => getDatabasePath(CollectionsName.Users, products[i]!.creatorId)),
-            ),
-          ],
           updatedAt: now,
           ...(existing.exists ? {} : { createdAt: now, orderPath: null, contactedAt: null }),
         },

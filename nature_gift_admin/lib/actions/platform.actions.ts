@@ -6,18 +6,17 @@
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { backend } from '@/lib/firebase/firebase-server/firebase'
 import {
-  defaultStoreSettings,
   isValidStoreSlug,
-  Membership,
   Store,
   StorePayment,
   StorePlan,
-  StoreRole,
-  StoreSecrets,
   StoreStatus,
 } from '@/lib/firebase/models'
-import { getUserTokens, membershipId, revalidateStorefront, Unauthorized } from '@/lib/tenant'
+import { getUserTokens, revalidateStorefront, Unauthorized } from '@/lib/tenant'
 import { extendPaidUntil } from '@ngift/core/store-rules'
+import { createStoreDocs } from '@/lib/store-creation'
+import { emailOwner } from '@/lib/notify'
+import { storefrontUrl } from '@/lib/storefront'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -66,41 +65,8 @@ export async function createStore(formData: FormData) {
     return back({ error: `No admin account for ${ownerEmail}: they must sign up first.` })
   }
 
-  const storeRef = backend.db.collection(CollectionsName.Stores).doc()
-  const slugRef = backend.db.collection(CollectionsName.StoreSlugs).doc(slug)
-  const now = new Date().toISOString()
-  const taken = await backend.db.runTransaction(async tx => {
-    if ((await tx.get(slugRef)).exists) return true
-    tx.create(slugRef, { storeId: storeRef.id })
-    tx.create(storeRef, {
-      name,
-      slug,
-      ownerUid: owner.uid,
-      status: StoreStatus.PENDING,
-      plan: StorePlan.FREE,
-      paidUntil: null,
-      marketplaceListed: true,
-      settings: defaultStoreSettings(),
-      createdAt: now,
-      updatedAt: now,
-    } satisfies Store)
-    tx.create(backend.db.collection(CollectionsName.StoreSecrets).doc(storeRef.id), {
-      metaCapiTokens: {},
-      flockWebhookUrl: null,
-    } satisfies StoreSecrets)
-    tx.set(
-      backend.db.collection(CollectionsName.Memberships).doc(membershipId(storeRef.id, owner.uid)),
-      {
-        storeId: storeRef.id,
-        uid: owner.uid,
-        role: StoreRole.OWNER,
-        email: ownerEmail,
-        createdAt: now,
-      } satisfies Membership,
-    )
-    return false
-  })
-  if (taken) return back({ error: `The address ${slug} is already taken.` })
+  const created = await createStoreDocs({ name, slug, ownerUid: owner.uid, ownerEmail })
+  if (created === 'taken') return back({ error: `The address ${slug} is already taken.` })
   revalidatePath('/platform')
   back({ saved: `${name} created (pending payment).` })
 }
@@ -119,9 +85,11 @@ export async function recordCashPayment(formData: FormData) {
     return back({ error: 'Months: 1 to 24.' })
   }
   const storeRef = backend.db.collection(CollectionsName.Stores).doc(storeId)
+  let activated: Store | undefined
   const paidUntil = await backend.db.runTransaction(async tx => {
     const store = await tx.get(storeRef)
     if (!store.exists) return undefined
+    activated = store.get('status') === StoreStatus.PENDING ? (store.data() as Store) : undefined
     const until = extendPaidUntil(store.get('paidUntil'), months)
     const now = new Date().toISOString()
     tx.create(backend.db.collection(CollectionsName.StorePayments).doc(), {
@@ -139,6 +107,15 @@ export async function recordCashPayment(formData: FormData) {
   })
   if (!paidUntil) return back({ error: 'Store not found.' })
   await revalidateStorefront(storeId)
+  // A store's first payment opens its storefront: its owner is told (if NotificationAPI is set).
+  if (activated) {
+    const owner = await backend.auth.getUser(activated.ownerUid).catch(() => undefined)
+    await emailOwner(owner?.email, 'store_activated', {
+      store_name: activated.name,
+      store_url: storefrontUrl(activated),
+      paid_until: paidUntil.slice(0, 10),
+    })
+  }
   revalidatePath('/platform')
   back({ saved: `Payment recorded, paid until ${paidUntil.slice(0, 10)}.` })
 }

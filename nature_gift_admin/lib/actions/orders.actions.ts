@@ -10,7 +10,6 @@ import {
   stockDelta,
 } from '@/lib/orders/order-logic'
 import { scopedTransaction, Unauthorized } from '@/lib/tenant'
-import { getDatabasePath } from '@spreeloop/database'
 import {
   DocumentReference,
   DocumentSnapshot,
@@ -161,7 +160,6 @@ export async function editOrder(orderId: string, edit: OrderEdit) {
           title: product.title,
           path: doc.ref.path,
           price: product.price,
-          creatorId: product.creatorId,
         },
         quantity: i.quantity,
         price: currentPrice(product),
@@ -211,12 +209,6 @@ export async function editOrder(orderId: string, edit: OrderEdit) {
       promotions: totals.promotions,
       manualDiscount: totals.manualDiscount,
       orderPrices: totals.orderPrices,
-      partnersPaths: [
-        ...new Set([
-          ...order.partnersPaths,
-          ...items.map(i => getDatabasePath(CollectionsName.Users, i.product.creatorId)),
-        ]),
-      ],
       updatedAt: now,
       history: FieldValue.arrayUnion(event(by, { type: 'edit', message: changes.join(' · ') })),
     })

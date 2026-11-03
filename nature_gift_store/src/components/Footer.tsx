@@ -5,12 +5,13 @@ import { navItems } from '@/lib/utils/navItems'
 import { Mail, MapPin, MessageCircle, Phone } from 'lucide-react'
 import { SiteLink as Link, useSite } from '@/components/Site'
 import { BrandMark } from './Header/BrandMark'
+import { LEGAL_TITLES, legalDocsOf } from '@/lib/legal'
 
 const Footer = () => {
   const currentYear = new Date().getFullYear()
   const { localization } = useLocalization()
   const { locale } = useLocale()
-  const { isMarket, whatsapp, email } = useSite()
+  const { isMarket, whatsapp, email, name } = useSite()
 
   return (
     <footer className="bg-foreground text-background/75">
@@ -100,8 +101,24 @@ const Footer = () => {
       </div>
 
       <div className="border-t border-background/15">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-sm">
-          © {currentYear} {localization.copyright}
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4 px-4 py-6 text-sm sm:px-6 lg:px-8">
+          <span>
+            © {currentYear} {isMarket ? localization.copyright : name}
+          </span>
+          <nav aria-label={localization.legal}>
+            <ul className="flex flex-wrap gap-x-5 gap-y-2">
+              {legalDocsOf(isMarket).map(doc => (
+                <li key={doc}>
+                  <Link
+                    href={`/legal/${doc}`}
+                    className="hover:text-background underline-offset-4 hover:underline"
+                  >
+                    {LEGAL_TITLES[doc][locale]}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
         </div>
       </div>
     </footer>

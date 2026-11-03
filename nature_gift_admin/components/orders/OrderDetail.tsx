@@ -180,7 +180,7 @@ export function OrderDetail({
         : [
             ...current,
             {
-              product: { path, title: product.title, medias: [], price: {}, creatorId: '' },
+              product: { path, title: product.title, medias: [], price: {} },
               quantity: 1,
               price: product.price,
             } as unknown as OrderItem,

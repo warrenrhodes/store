@@ -15,6 +15,7 @@ import {
 import {
   getMyStores,
   getStoreContext,
+  getUserTokens,
   inviteId,
   membershipId,
   requireStore,
@@ -28,6 +29,8 @@ import {
   parsePhones,
   parseWhatsapp,
 } from '@ngift/core/store-rules'
+import { createStoreDocs } from '@/lib/store-creation'
+import { THEME_PRESETS, ThemePreset } from '@ngift/core/theme'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
@@ -39,16 +42,55 @@ export async function switchStore(formData: FormData) {
   const storeId = String(formData.get('storeId') ?? '')
   const ctx = await getStoreContext()
   const allowed = ctx?.platformAdmin || (await getMyStores()).some(s => s.id === storeId)
-  if (allowed) {
-    ;(await cookies()).set(STORE_COOKIE, storeId, {
-      path: '/',
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24 * 365,
-    })
-  }
+  if (allowed) await rememberStore(storeId)
   redirect('/')
+}
+
+const rememberStore = async (storeId: string) =>
+  (await cookies()).set(STORE_COOKIE, storeId, {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 60 * 60 * 24 * 365,
+  })
+
+/**
+ * Self-service sign-up (/onboarding): a signed-in account without a store of its own creates
+ * one, `pending` until the platform records its cash payment. One store per account this way;
+ * more come from the platform console.
+ */
+export async function createMyStore(formData: FormData) {
+  const tokens = await getUserTokens()
+  if (!tokens) return back('/onboarding', { error: 'Sign in first.' })
+  const { uid, email } = tokens.decodedToken
+  const fail = (error: string) => back('/onboarding', { error })
+  if ((await getMyStores()).some(s => s.role === StoreRole.OWNER)) {
+    return fail('You already have a store. Ask the platform for another one.')
+  }
+  const name = String(formData.get('name') ?? '').trim()
+  const slug = String(formData.get('slug') ?? '')
+    .trim()
+    .toLowerCase()
+  const preset = String(formData.get('preset') ?? '') as ThemePreset
+  if (name.length < 2 || name.length > 80) return fail('Name: 2 to 80 characters.')
+  if (!isValidStoreSlug(slug)) {
+    return fail('Address: 3 to 40 lower-case letters, digits and single dashes.')
+  }
+  if (!THEME_PRESETS.includes(preset)) return fail('Pick a look for your store.')
+  if (formData.get('terms') !== 'on') return fail('Accept the seller terms to continue.')
+
+  const created = await createStoreDocs({
+    name,
+    slug,
+    ownerUid: uid,
+    ownerEmail: email?.toLowerCase() ?? null,
+    preset,
+    termsAcceptedAt: new Date().toISOString(),
+  })
+  if (created === 'taken') return fail(`The address ${slug} is already taken.`)
+  await rememberStore(created)
+  redirect('/?welcome=1')
 }
 
 /** Which secrets are set, never their values (the settings page shows "saved"). */
@@ -89,6 +131,16 @@ export async function saveStoreSettings(formData: FormData) {
     ...pixels.invalid,
   ]
   if (invalid.length) return fail(`Invalid: ${invalid.join(', ')}`)
+  const legal = {
+    companyName: text('legalCompanyName').slice(0, 120) || null,
+    address: text('legalAddress').slice(0, 300) || null,
+    registration: text('legalRegistration').slice(0, 60) || null,
+    taxId: text('legalTaxId').slice(0, 60) || null,
+    returnPolicy:
+      String(formData.get('legalReturnPolicy') ?? '')
+        .trim()
+        .slice(0, 3000) || null,
+  }
   const flock = text('flockWebhookUrl')
   if (flock && !/^https:\/\/\S+$/.test(flock)) return fail('Flock webhook: an https:// URL.')
 
@@ -125,6 +177,7 @@ export async function saveStoreSettings(formData: FormData) {
       'settings.notificationPhones': phones.values,
       'settings.gtmIds': gtm.values,
       'settings.metaPixelIds': pixels.values.map(p => p.id),
+      'settings.legal': legal,
       updatedAt: new Date().toISOString(),
     })
     return false

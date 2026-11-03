@@ -103,7 +103,13 @@ function StoreBanner(props: { status?: StoreStatus; hasStore: boolean; platformA
     props.platformAdmin ? (
       <>No store selected. Create one in Platform.</>
     ) : (
-      <>You don&apos;t have a store yet. Ask the platform to create one for you.{howToPay}</>
+      <>
+        You don&apos;t have a store yet.{' '}
+        <a className="underline" href="/onboarding">
+          Create your store
+        </a>
+        .
+      </>
     )
   ) : props.status === StoreStatus.PENDING ? (
     <>

@@ -257,18 +257,12 @@ export const POST = async (req: NextRequest) => {
       },
       storeId: store.id,
       checkoutGroupId,
-      partnersPaths: [
-        ...new Set(
-          cart.map(item => getDatabasePath(CollectionsName.Users, item.product.creatorId)),
-        ),
-      ],
       items: cart.map(item => ({
         product: {
           medias: item.product.medias,
           title: item.product.title,
           path: item.product.path,
           price: item.product.price,
-          creatorId: item.product.creatorId,
           storeId: item.product.storeId ?? null,
         },
         quantity: item.quantity,

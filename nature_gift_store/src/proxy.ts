@@ -22,6 +22,8 @@ const PUBLIC_PATHS = [
   new RegExp('^/order/group/[^/]+$'),
   // Marketplace vendor pages.
   new RegExp('^/vendeur/[^/]+$'),
+  // Legal pages (sales terms, privacy, legal notice, seller terms).
+  new RegExp('^/legal/[^/]+$'),
   '/cart',
   '/favoris',
   '/sitemap.xml',

@@ -36,6 +36,11 @@ env:
     availability: [BUILD, RUNTIME]
   - variable: PLATFORM_CONTACT_WHATSAPP
     value: "237696689073"
+  # Owner emails (store activated), same NotificationAPI account as the storefront.
+  - variable: NOTIFICATIONAPI_CLIENT_ID
+    value: "2ldisojs05o7o3av8e4rp2xsjv"
+  - variable: NOTIFICATIONAPI_CLIENT_SECRET
+    value: "hi40l6noacet9umzici8kr8wyeztvkqsyk1zpnkuymjykxgl5k29awjo1g"
   - variable: FIREBASE_CLIENT_EMAIL
     secret: FIREBASE_CLIENT_EMAIL
   - variable: FIREBASE_PRIVATE_KEY

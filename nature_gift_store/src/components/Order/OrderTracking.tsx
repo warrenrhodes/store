@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { useLocalization } from '@/hooks/useLocalization'
-import { cn, priceFormatted } from '@/lib/utils/utils'
+import { cn, foldFreeShipping, priceFormatted } from '@/lib/utils/utils'
 import { Check, CircleX, Loader2, Star } from 'lucide-react'
 import Image from 'next/image'
 import { useState } from 'react'
@@ -50,6 +50,8 @@ export function OrderTracking({ order }: { order: TrackedOrder }) {
   // A failed delivery happened after "out for delivery"; cancel/reject can happen earlier.
   const lastReached = stopped ? Math.max(...STEPS.map((s, i) => (reachedAt(s) ? i : -1))) : current
   const info = order.deliveryInfo
+
+  const shown = foldFreeShipping(order.prices.shipping, order.promotions)
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-10">
@@ -157,15 +159,17 @@ export function OrderTracking({ order }: { order: TrackedOrder }) {
         </div>
         <div className="flex justify-between">
           <dt>{localization.shipping}</dt>
-          <dd className="tabular-nums">
-            {order.prices.shipping > 0
-              ? priceFormatted(order.prices.shipping)
-              : localization.shippingToConfirm}
+          <dd className={shown.waived ? 'font-medium text-primary' : 'tabular-nums'}>
+            {shown.waived
+              ? localization.free
+              : order.prices.shipping > 0
+                ? priceFormatted(order.prices.shipping)
+                : localization.shippingToConfirm}
           </dd>
         </div>
-        {order.promotions.map(p => (
+        {shown.promotions.map(p => (
           <div key={`${p.code}-${p.type}`} className="flex justify-between text-primary">
-            <dt>{p.type === 'FREE_SHIPPING' ? localization.freeShipping : p.code}</dt>
+            <dt>{p.code}</dt>
             <dd className="tabular-nums">-{priceFormatted(p.discountAmount)}</dd>
           </div>
         ))}

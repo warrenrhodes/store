@@ -217,7 +217,7 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
   },
   free: {
     en: 'Free',
-    fr: 'Gratuit',
+    fr: 'Gratuite',
   },
   searching: {
     en: 'Searching…',

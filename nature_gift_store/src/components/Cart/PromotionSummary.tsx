@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { usePromotionCalculator } from '@/hooks/usePromotionCalculator'
-import { priceFormatted } from '@/lib/utils/utils'
+import { foldFreeShipping, priceFormatted } from '@/lib/utils/utils'
 import { Tag } from 'lucide-react'
 import { CartItem } from '@/hooks/useCart'
 import { useLocalization } from '@/hooks/useLocalization'
@@ -52,6 +52,7 @@ export function PromotionSummary({ cartItems, deliveryInfo }: PromotionSummaryPr
     return null
   }
 
+  const shown = foldFreeShipping(summary.shipping, summary.appliedPromotions)
   return (
     <Card>
       <CardHeader>
@@ -65,15 +66,17 @@ export function PromotionSummary({ cartItems, deliveryInfo }: PromotionSummaryPr
         {deliveryInfo && (
           <div className="flex justify-between">
             <span>{localization.shipping}</span>
-            <span>{priceFormatted(summary.shipping)}</span>
+            <span className={shown.waived ? 'font-medium text-primary' : undefined}>
+              {shown.waived && !shown.shipping ? localization.free : priceFormatted(shown.shipping)}
+            </span>
           </div>
         )}
 
-        {summary.appliedPromotions.length > 0 && (
+        {shown.promotions.length > 0 && (
           <div className="border-t pt-4">
             <h4 className="font-medium mb-2">{localization.appliedPromotions}:</h4>
             <div className="space-y-2">
-              {summary.appliedPromotions.map(promo => (
+              {shown.promotions.map(promo => (
                 <div key={promo.id} className="flex justify-between items-center text-sm">
                   <div className="flex items-center gap-2">
                     <Badge className="text-xs h-6">

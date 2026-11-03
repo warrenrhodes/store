@@ -10,7 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { format } from 'date-fns'
 import { Package } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
-import { cn, priceFormatted } from '@/lib/utils/utils'
+import { cn, priceFormatted, foldFreeShipping } from '@/lib/utils/utils'
 import { Button } from '@/components/ui/button'
 import { SiteLink as Link } from '@/components/Site'
 import Image from 'next/image'
@@ -87,6 +87,7 @@ function TabsWrapper({ orders }: { orders: Order[] }) {
           ) : (
             orders?.map(order => {
               const orderPrices = order.orderPrices as OrderPrices
+              const shown = foldFreeShipping(orderPrices.shipping, order.promotions ?? [])
               const status = (localization as Record<string, string>)[`status${order.status}`]
 
               return (
@@ -160,12 +161,14 @@ function TabsWrapper({ orders }: { orders: Order[] }) {
                         </div>
                         <div className="flex justify-between text-sm mb-2">
                           <span>{localization.shipping}</span>
-                          <span>{priceFormatted(orderPrices.shipping)}</span>
+                          <span className={shown.waived ? 'font-medium text-primary' : undefined}>
+                            {shown.waived ? localization.free : priceFormatted(orderPrices.shipping)}
+                          </span>
                         </div>
-                        {orderPrices.discount > 0 && (
+                        {orderPrices.discount - shown.waived > 0 && (
                           <div className="flex justify-between text-sm mb-2">
                             <span>{localization.discount}</span>
-                            <span>-{priceFormatted(orderPrices.discount)}</span>
+                            <span>-{priceFormatted(orderPrices.discount - shown.waived)}</span>
                           </div>
                         )}
                         <div className="flex justify-between font-medium mt-4">

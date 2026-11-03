@@ -4,7 +4,7 @@ import { Check, Loader2, Tag, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { usePromoCodes } from '@/hooks/usePromoCodes'
-import { cn } from '@/lib/utils/utils'
+import { cn, foldFreeShipping } from '@/lib/utils/utils'
 import Image from 'next/image'
 import { Separator } from '@/components/ui/separator'
 import { CartItem, useCart, useCartDeliveryInfo } from '@/hooks/useCart'
@@ -206,6 +206,7 @@ export function OrderSummary({
 /** Subtotal, shipping and promotions of one summary (the cart, or one store of it). */
 function Lines({ summary, shippingKnown }: { summary: OrderSummaryType; shippingKnown: boolean }) {
   const { localization } = useLocalization()
+  const shown = foldFreeShipping(summary.shipping, summary.appliedPromotions)
   return (
     <>
       <div className="flex justify-between">
@@ -215,18 +216,17 @@ function Lines({ summary, shippingKnown }: { summary: OrderSummaryType; shipping
       <div className="flex justify-between gap-4">
         <span>{localization.shipping}</span>
         {shippingKnown ? (
-          <span className="tabular-nums">
-            {summary.shipping > 0 ? priceFormatted(summary.shipping) : localization.free}
+          <span className={shown.waived ? 'font-medium text-primary' : 'tabular-nums'}>
+            {shown.shipping > 0 ? priceFormatted(shown.shipping) : localization.free}
           </span>
         ) : (
           <span className="text-right text-muted-foreground">{localization.shippingToConfirm}</span>
         )}
       </div>
-      {summary.appliedPromotions.map(promo => (
+      {shown.promotions.map(promo => (
         <div key={`${promo.id}-${promo.type}`} className="flex justify-between text-primary">
           <span className="flex items-center gap-1">
-            <Tag className="h-3.5 w-3.5" aria-hidden />{' '}
-            {promo.type === 'FREE_SHIPPING' ? localization.freeShipping : promo.code}
+            <Tag className="h-3.5 w-3.5" aria-hidden /> {promo.code}
           </span>
           <span className="tabular-nums">-{priceFormatted(promo.discountAmount)}</span>
         </div>

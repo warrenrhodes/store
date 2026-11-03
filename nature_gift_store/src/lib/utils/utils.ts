@@ -82,3 +82,21 @@ export { toDate }
 /** Customer reviews wait for approval; reviews created before moderation have no status. */
 export const isPublishedReview = (review: { status?: string | null }) =>
   !review.status || review.status === 'APPROVED'
+
+/**
+ * Free shipping is shown as "Shipping: Free", never as the cost then the same amount off
+ * (customers read it as a fee to pay). The shipping and promotions to display; totals unchanged.
+ */
+export const foldFreeShipping = <P extends { type?: string | null; discountAmount: number }>(
+  shipping: number,
+  promotions: P[],
+) => {
+  const waived = promotions
+    .filter(p => p.type === 'FREE_SHIPPING')
+    .reduce((sum, p) => sum + p.discountAmount, 0)
+  return {
+    shipping: shipping - waived,
+    waived,
+    promotions: promotions.filter(p => p.type !== 'FREE_SHIPPING'),
+  }
+}

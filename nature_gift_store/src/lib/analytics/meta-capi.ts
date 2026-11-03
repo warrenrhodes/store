@@ -3,6 +3,7 @@
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { backend } from '@/lib/firebase/firebase-server/firebase'
 import { StoreSecrets } from '@/lib/firebase/models'
+import { META_CURRENCY, toMetaValue } from '@ngift/core/meta'
 import { createHash } from 'node:crypto'
 import type { NextRequest } from 'next/server'
 
@@ -116,10 +117,11 @@ export async function sendMetaEvent(pixels: MetaPixel[], event: MetaEvent) {
         event_source_url: event.sourceUrl ?? undefined,
         user_data: userData(event),
         custom_data: {
-          currency: 'XAF',
-          value: event.value,
+          // Meta refuses XAF: euros, at the fixed rate (@ngift/core/meta).
+          currency: META_CURRENCY,
+          value: toMetaValue(event.value),
           content_type: 'product',
-          contents: event.contents,
+          contents: event.contents.map(c => ({ ...c, item_price: toMetaValue(c.item_price) })),
         },
       },
     ],

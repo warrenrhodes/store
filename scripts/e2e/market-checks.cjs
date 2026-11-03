@@ -244,7 +244,7 @@ module.exports = async function marketChecks({
     assert.deepEqual(e.user_data.external_id, [phoneHash])
     assert.deepEqual([e.user_data.fn, e.user_data.ln], [[sha256('awa')], [sha256('mbarga')]])
     assert.match(e.user_data.fbc, /^fb\.1\.\d+\.AdClick42$/)
-    assert.equal(e.custom_data.value, 10000)
+    assert.deepEqual([e.custom_data.value, e.custom_data.currency], [15.24, 'EUR'], '10 000 XAF in euros')
   }
   // A second capture of the same session (the customer keeps typing) sends nothing more.
   await post('/api/checkouts', {
@@ -286,7 +286,7 @@ module.exports = async function marketChecks({
       )
       const added = calls.find(c => c[1] === 'AddToCart')
       assert.ok(added, `AddToCart in ${JSON.stringify(events)}`)
-      assert.deepEqual([added[2].content_ids, added[2].currency], [['cafe'], 'XAF'])
+      assert.deepEqual([added[2].content_ids, added[2].currency], [['cafe'], 'EUR'])
       const initiated = calls.find(c => c[1] === 'InitiateCheckout')
       assert.ok(initiated, `InitiateCheckout in ${JSON.stringify(events)}`)
       assert.equal(

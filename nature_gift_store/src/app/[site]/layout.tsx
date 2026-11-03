@@ -7,6 +7,9 @@ import { Toaster } from '@/components/ui/toaster'
 import { siteOf, SiteStore } from '@/lib/api/utils'
 import ToasterProvider from '@/lib/providers/ToasterProvider'
 import { absoluteUrl, PLATFORM_URL } from '@/lib/site'
+import { siteTheme } from '@/lib/theme'
+import { ThemePreviewListener } from '@/components/ThemePreviewListener'
+import { themeCss } from '@ngift/core/theme'
 import type { Metadata } from 'next'
 import Script from 'next/script'
 import { Suspense } from 'react'
@@ -19,10 +22,22 @@ const gtmIdsOf = (store: SiteStore | null) =>
     ? (store.settings?.gtmIds ?? [])
     : [process.env.PLATFORM_GTM_ID].filter((id): id is string => !!id)
 
+/** The platform's icons; a store with a favicon in its theme uses it instead. */
+const PLATFORM_ICONS: Metadata['icons'] = {
+  icon: [
+    { url: '/favicon-96x96.png', type: 'image/png', sizes: '96x96' },
+    { url: '/favicon.svg', type: 'image/svg+xml' },
+  ],
+  shortcut: '/favicon.ico',
+  apple: { url: '/apple-touch-icon.png', sizes: '180x180' },
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { site, store } = await siteOf(params)
   if (!store) {
     return {
+      icons: PLATFORM_ICONS,
+      manifest: '/site.webmanifest',
       metadataBase: new URL(PLATFORM_URL || 'http://localhost'),
       title: { default: 'N.Gift - Santé, Style et Innovation', template: '%s | N.Gift' },
       description:
@@ -31,7 +46,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       twitter: { card: 'summary_large_image' },
     }
   }
+  const { theme, preview } = await siteTheme(store)
   return {
+    icons: theme.faviconUrl ? { icon: theme.faviconUrl } : PLATFORM_ICONS,
+    ...(preview && { robots: { index: false } }),
     metadataBase: new URL(PLATFORM_URL || 'http://localhost'),
     title: { default: store.name, template: `%s | ${store.name}` },
     alternates: { canonical: absoluteUrl(site) },
@@ -45,12 +63,16 @@ export default async function SiteLayout({
   children,
 }: Readonly<Props & { children: React.ReactNode }>) {
   const { site, store } = await siteOf(params)
+  const { theme, custom, preview } = await siteTheme(store)
+  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL
   const info: SiteInfo = store
     ? {
         site,
         name: store.name,
         whatsapp: store.settings?.whatsapp ?? null,
         email: store.settings?.contactEmail ?? null,
+        logoUrl: theme.logoUrl ?? null,
+        announcement: theme.announcement ?? null,
         isMarket: false,
       }
     : PLATFORM_SITE
@@ -59,6 +81,9 @@ export default async function SiteLayout({
 
   return (
     <SiteProvider value={info}>
+      {/* The theme's colors, radius and font (values checked by siteTheme and themeCss). */}
+      {custom && <style dangerouslySetInnerHTML={{ __html: themeCss(theme) }} />}
+      {preview && adminUrl && <ThemePreviewListener adminOrigin={new URL(adminUrl).origin} />}
       {gtmIds.length > 0 && (
         <Script id="gtm-init" strategy="afterInteractive">
           {`window.dataLayer=window.dataLayer||[];window.dataLayer.push({'gtm.start':Date.now(),event:'gtm.js'});`}

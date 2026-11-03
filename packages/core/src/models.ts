@@ -1,4 +1,5 @@
 // Firestore document shapes shared by the store and the admin.
+import type { StoreTheme } from './theme'
 
 // Enums
 export enum MediaType {
@@ -467,6 +468,10 @@ export interface Store {
   paidUntil?: string | null
   marketplaceListed: boolean
   settings: StoreSettings
+  /** Published theme (admin, Theme). Absent: the `nature` preset, N.Gift's look. */
+  theme?: StoreTheme | null
+  /** Saved but not published: shown only with a preview token (?preview=). */
+  themeDraft?: StoreTheme | null
   createdAt: string
   updatedAt: string
 }

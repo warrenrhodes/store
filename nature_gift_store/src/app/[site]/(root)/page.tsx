@@ -4,6 +4,7 @@ import { FeaturedBlogs } from '@/components/Home/FeaturedBlogs'
 import { FeaturedProducts } from '@/components/Home/FeaturedProducts'
 import { HeroSection } from '@/components/Home/HeroSection'
 import { NewArrivals } from '@/components/Home/NewArrivals'
+import { StoreSections } from '@/components/Home/StoreSections'
 import { PromotionBanner } from '@/components/Home/PromotionBanner'
 import Loader from '@/components/Loader'
 import {
@@ -21,10 +22,17 @@ import {
 } from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { Blog, BlogStatus, Category, Product, ProductStatus } from '@/lib/firebase/models'
+import { siteTheme } from '@/lib/theme'
 import { QueryFilter } from '@spreeloop/database'
 
 export default async function Home({ params }: { params: Promise<{ site: string }> }) {
-  const storeId = (await siteOf(params)).store?.id ?? null
+  const { store } = await siteOf(params)
+  // A store: its theme's sections (phase 3). The marketplace keeps its page until phase 4.
+  if (store) {
+    const { theme } = await siteTheme(store)
+    return <StoreSections sections={theme.sections ?? []} storeId={store.id} />
+  }
+  const storeId = null
   return (
     <main>
       <Loader loading={<HeroLoading />}>

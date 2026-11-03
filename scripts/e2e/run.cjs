@@ -5,7 +5,8 @@
 //      locations per store): dry run, apply, and apply again, which must change nothing;
 //   3. starts the built servers (store :3101, admin :3102) and runs the marketplace checks,
 //      the admin store-isolation and form checks, then the per-store storefront checks
-//      (site-checks.cjs, phase 2). E2E_KEEP_OPEN=1 leaves everything running.
+//      (site-checks.cjs, phase 2) and the theme checks (theme-checks.cjs, phase 3).
+//      E2E_KEEP_OPEN=1 leaves everything running.
 // The production builds are used, not `next dev`, and go to .next-e2e (not .next), so the
 // checks can run in a checkout where your own dev servers are running.
 const assert = require('node:assert/strict')
@@ -19,6 +20,7 @@ const storeChecks = require('./store-checks.cjs')
 const adminChecks = require('./admin-checks.cjs')
 const formChecks = require('./form-checks.cjs')
 const siteChecks = require('./site-checks.cjs')
+const themeChecks = require('./theme-checks.cjs')
 
 if (!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AUTH_EMULATOR_HOST) {
   throw new Error('Run through scripts/e2e/run.sh: the emulators must be up, never a real project.')
@@ -248,6 +250,16 @@ async function locationMigrationChecks() {
       apiKey: env.NEXT_PUBLIC_FIREBASE_API_KEY,
       revalidateSecret: env.REVALIDATE_SECRET,
       metaCalls,
+    })
+    await themeChecks({
+      db,
+      STORE: servers[0].url,
+      ADMIN: servers[1].url,
+      AUTH_HOST: process.env.FIREBASE_AUTH_EMULATOR_HOST,
+      apiKey: env.NEXT_PUBLIC_FIREBASE_API_KEY,
+      ADMIN_APP,
+      STORE_APP,
+      revalidateSecret: env.REVALIDATE_SECRET,
     })
     if (process.env.E2E_KEEP_OPEN) {
       // For trying things by hand: accounts in seed.cjs, password Test1234!.

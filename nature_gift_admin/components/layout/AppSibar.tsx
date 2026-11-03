@@ -16,6 +16,7 @@ import {
   MapPin,
   ShoppingCart,
   UsersRound,
+  Palette,
   Settings,
   UserCog,
   Building2,
@@ -129,6 +130,7 @@ export function AppSidebar({
     ...(isOwner
       ? [
           { url: '/settings', icon: Settings, title: 'Store settings' },
+          { url: '/theme', icon: Palette, title: 'Theme' },
           { url: '/team', icon: UserCog, title: 'Team' },
         ]
       : []),

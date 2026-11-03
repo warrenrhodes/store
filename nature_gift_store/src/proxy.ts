@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { authMiddleware } from 'next-firebase-auth-edge'
 import { parseSitePath, siteHref } from '@ngift/core/site'
+import { PREVIEW_HEADER } from '@ngift/core/theme-preview'
 import { clientConfig, serverConfig } from '../config'
 
 const UN_AUTH_PUBLIC_PATHS = ['/reset-password', '/sign-in', '/sign-up']
@@ -53,6 +54,10 @@ export default async function proxy(request: NextRequest) {
     url.pathname = `/${site}${path === '/' ? '' : path}`
     const forwarded = new Headers(headers ?? request.headers)
     forwarded.set(REWRITTEN, MARK)
+    // ?preview=<token> reaches the layout (which has no search params); checked there.
+    const preview = request.nextUrl.searchParams.get('preview')
+    if (preview) forwarded.set(PREVIEW_HEADER, preview)
+    else forwarded.delete(PREVIEW_HEADER)
     return NextResponse.rewrite(url, { request: { headers: forwarded } })
   }
   const toSignIn = () => {

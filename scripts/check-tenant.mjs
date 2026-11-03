@@ -11,6 +11,7 @@ const ALLOWED = new Set([
   'lib/tenant.ts', // the scoped access layer
   'lib/firebase/firebase-server/firebase.ts', // creates the handle
   'lib/actions/store.actions.ts', // the current store's own doc, secrets, members, invites
+  'lib/actions/theme.actions.ts', // the current store's theme and draft (stores/{id})
   'lib/actions/platform.actions.ts', // platform admin: every store, payments
   'app/api/users/route.ts', // users/{uid} profile on sign-up
 ])

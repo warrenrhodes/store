@@ -868,6 +868,14 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     en: 'Customer Reviews',
     fr: 'Avis des clients',
   },
+  ourProducts: {
+    en: 'Our products',
+    fr: 'Nos produits',
+  },
+  frequentlyAskedQuestions: {
+    en: 'Frequently asked questions',
+    fr: 'Questions fréquentes',
+  },
   learnMore: {
     en: 'Learn More',
     fr: 'En savoir plus',
@@ -1401,4 +1409,6 @@ export const enum DictWords {
   quantity = 'quantity',
   addToCart = 'addToCart',
   buyNow = 'buyNow',
+  ourProducts = 'ourProducts',
+  frequentlyAskedQuestions = 'frequentlyAskedQuestions',
 }

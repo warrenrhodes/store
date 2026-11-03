@@ -15,6 +15,10 @@ export type SiteInfo = {
   name: string
   whatsapp: string | null
   email: string | null
+  /** The store's logo (theme); the name is shown as text without one. */
+  logoUrl?: string | null
+  /** The store's announcement bar (theme); the marketplace shows the platform's. */
+  announcement?: string | null
   isMarket: boolean
 }
 

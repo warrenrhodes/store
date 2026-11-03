@@ -29,6 +29,8 @@
     --radius: 0.75rem;
     --prose-strong-foreground: 160 20% 8%;
     --prose-foreground: 160 8% 30%;
+    /* The store's theme font (app/[site]/layout.tsx); the font variables are set on <html>. */
+    --font-theme: var(--font-fredoka);
   }
 }
 
@@ -40,9 +42,9 @@
     @apply bg-background text-foreground;
   }
   /* Some blog articles embed cdn.tailwindcss.com, which re-emits `.font-sans` with Tailwind's
-     default stack. The extra `html` raises specificity so Fredoka always wins. */
+     default stack. The extra `html` raises specificity so the theme font always wins. */
   html :is(body, .font-sans) {
-    font-family: var(--font-fredoka), system-ui, sans-serif;
+    font-family: var(--font-theme), system-ui, sans-serif;
   }
   h1,
   h2,

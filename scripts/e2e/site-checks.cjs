@@ -344,3 +344,5 @@ module.exports = async function siteChecks({
 
   console.log(`All ${step} per-store storefront checks passed\n`)
 }
+
+module.exports.browserTools = browserTools

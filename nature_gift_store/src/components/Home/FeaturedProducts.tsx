@@ -5,14 +5,18 @@ import { SiteLink as Link } from '@/components/Site'
 import { ProductCard } from '../ProductCard'
 import { useLocalization } from '@/hooks/useLocalization'
 import { Product } from '@/lib/firebase/models'
+import { DictWords } from '@/lib/localizations'
 
 export function ProductSection({
   title,
+  titleKey,
   subtitle,
   products,
   className,
 }: {
-  title: string
+  title?: string | null
+  /** Default heading, in the visitor's language, when `title` is empty. */
+  titleKey?: `${DictWords}`
   subtitle?: string
   products: Product[]
   className?: string
@@ -25,7 +29,9 @@ export function ProductSection({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h2>
+            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              {title || (titleKey && localization[titleKey as DictWords])}
+            </h2>
             {subtitle && <p className="mt-2 text-muted-foreground">{subtitle}</p>}
           </div>
           <Link

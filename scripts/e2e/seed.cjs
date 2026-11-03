@@ -141,6 +141,13 @@ module.exports = async function seed(admin) {
     actions: [{ type: 'PERCENTAGE_DISCOUNT', value: '10' }],
     usageLimit: { total: 2, perCustomer: 1 },
   })
+  await promo('p-welcome', {
+    code: 'BIENVENUE',
+    name: '-1000 sur la première commande',
+    requiresCode: true,
+    conditions: [{ type: 'FIRST_ORDER', value: '' }],
+    actions: [{ type: 'FIXED_DISCOUNT', value: '1000' }],
+  })
   await promo('p-min', {
     code: 'DES30K',
     name: '-2000 dès 30 000',
@@ -173,6 +180,7 @@ module.exports = async function seed(admin) {
     customFields: [],
     associateProductPath: 'products/cafe',
     layout: 'DEFAULT',
+    countdown: { mode: 'loop', endsAt: new Date(Date.now() - 3600_000).toISOString(), cycleHours: 24, label: 'Plus que quelques heures' },
   })
   // Vendor B
   const baseB = { creatorId: B, createdAt: now, updatedAt: now }

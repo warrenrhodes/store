@@ -245,6 +245,17 @@ module.exports = async function themeChecks({
       const live = await html(A)
       assert.ok(!live.includes('Titre en direct') && live.includes('--primary:308 62% 30%'), 'published theme unchanged')
       ok('live preview: sample products, nothing clickable; a color and a text edit show at once with no reload and no server call; autosaved as the draft; the storefront is unchanged')
+
+      // A blog page's looping countdown (seed: ended 1 h ago, 24 h cycle): restarted at ~23 h.
+      await tab.goto(`${STORE}/boutique/ngift/blogs/test-pub`)
+      const timer = tab.getByRole('timer')
+      await timer.getByText('Plus que quelques heures').waitFor()
+      const shown = () => timer.locator('.tabular-nums').allTextContents()
+      const first = await shown()
+      assert.equal(first.length, 3, 'no days box under a day')
+      assert.equal(first[0], '22', 'loop restarted after its end date')
+      await until(async () => (await shown()).join() !== first.join(), 'the timer ticks')
+      ok('blog countdown: a loop past its end date starts a new 24 h cycle, with its label, and ticks')
     } finally {
       await browser.close()
     }
@@ -302,7 +313,14 @@ module.exports = async function themeChecks({
           const res = await tab.goto(`${STORE}${A}${p}`, { waitUntil: 'networkidle' })
           assert.equal(res.status(), 200, `${preset} ${A}${p}`)
           // A real page, not an error page: the cart's product, or the home's own banner.
-          await tab.getByText(p ? 'Café Ginseng' : 'Bienvenue chez A').first().waitFor()
+          await tab
+            .getByText(p ? 'Café Ginseng' : 'Bienvenue chez A')
+            .first()
+            .waitFor({ timeout: 15000 })
+            .catch(async e => {
+              const text = (await tab.locator('body').innerText()).slice(0, 600)
+              throw new Error(`${preset} ${A}${p}: ${e.message}\n${text}`)
+            })
           await tab.addScriptTag({ content: axeSource })
           const { passes, violations } = await tab.evaluate(async () => {
             // eslint-disable-next-line no-undef

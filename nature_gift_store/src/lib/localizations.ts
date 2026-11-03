@@ -874,7 +874,7 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
   },
   specialOffer: {
     en: 'Special Offer',
-    fr: 'Offre spécielle',
+    fr: 'Offre spéciale',
   },
   activePromotions: {
     en: 'Available Promotions',
@@ -1155,6 +1155,38 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
   getMoreInformation: {
     en: 'More information',
     fr: 'En savoir plus',
+  },
+  offerEndsIn: {
+    en: 'Offer ends in',
+    fr: "L'offre se termine dans",
+  },
+  offerEnded: {
+    en: 'This offer has ended',
+    fr: "L'offre est terminée",
+  },
+  endsLabel: {
+    en: 'Ends',
+    fr: 'Se termine',
+  },
+  codesLeft: {
+    en: 'Only {n} left',
+    fr: 'Plus que {n} disponibles',
+  },
+  daysShort: {
+    en: 'd',
+    fr: 'j',
+  },
+  hoursShort: {
+    en: 'h',
+    fr: 'h',
+  },
+  minutesShort: {
+    en: 'min',
+    fr: 'min',
+  },
+  secondsShort: {
+    en: 's',
+    fr: 's',
   },
 }
 
@@ -1446,4 +1478,12 @@ export const enum DictWords {
   buyNow = 'buyNow',
   ourProducts = 'ourProducts',
   frequentlyAskedQuestions = 'frequentlyAskedQuestions',
+  offerEndsIn = 'offerEndsIn',
+  offerEnded = 'offerEnded',
+  endsLabel = 'endsLabel',
+  codesLeft = 'codesLeft',
+  daysShort = 'daysShort',
+  hoursShort = 'hoursShort',
+  minutesShort = 'minutesShort',
+  secondsShort = 'secondsShort',
 }

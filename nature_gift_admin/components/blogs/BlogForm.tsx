@@ -76,6 +76,7 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
           },
           categories: [],
           customFields: null,
+          countdown: null,
           tags: [],
         },
   })
@@ -127,8 +128,6 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
       e.preventDefault()
     }
   }
-
-  console.log(initialData)
 
   return (
     <div className="sm:p-10">
@@ -373,6 +372,17 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
           </div>
           <FormField
             control={form.control}
+            name="countdown"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Countdown</FormLabel>
+                <CountdownFields value={field.value} onChange={field.onChange} />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
             name="tags"
             render={({ field }) => (
               <FormItem className="w-full">
@@ -483,6 +493,83 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
           </div>
         </form>
       </Form>
+    </div>
+  )
+}
+
+type CountdownValue = BlogSchemaType['countdown']
+
+/** ISO date → the browser's local "YYYY-MM-DDTHH:mm", for <input type="datetime-local">. */
+const toLocalInput = (iso?: string | null) => {
+  const date = toDate(iso)
+  return date ? format(date, "yyyy-MM-dd'T'HH:mm") : ''
+}
+
+/** Off, limited (stops at the end date) or loop (starts again every cycle after it). */
+function CountdownFields(props: { value: CountdownValue; onChange: (v: CountdownValue) => void }) {
+  const { value, onChange } = props
+  const set = (patch: Partial<NonNullable<CountdownValue>>) => onChange({ ...value!, ...patch })
+  return (
+    <div className="grid gap-4 rounded-md border p-4 sm:grid-cols-2">
+      <Select
+        value={value?.mode ?? 'off'}
+        onValueChange={mode =>
+          onChange(
+            mode === 'off'
+              ? null
+              : {
+                  mode: mode as 'limited' | 'loop',
+                  endsAt: value?.endsAt ?? new Date(Date.now() + 24 * 3600_000).toISOString(),
+                  cycleHours: value?.cycleHours ?? (mode === 'loop' ? 24 : null),
+                  label: value?.label ?? null,
+                },
+          )
+        }
+      >
+        <SelectTrigger aria-label="Countdown mode">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="off">No countdown</SelectItem>
+          <SelectItem value="limited">Limited: stops at the end date</SelectItem>
+          <SelectItem value="loop">Loop: starts again after the end date</SelectItem>
+        </SelectContent>
+      </Select>
+      {value && (
+        <>
+          <label className="grid gap-1 text-sm">
+            {value.mode === 'loop' ? 'End of the first cycle' : 'End date'}
+            <Input
+              type="datetime-local"
+              required
+              value={toLocalInput(value.endsAt)}
+              onChange={e => e.target.value && set({ endsAt: new Date(e.target.value).toISOString() })}
+            />
+          </label>
+          {value.mode === 'loop' && (
+            <label className="grid gap-1 text-sm">
+              Cycle length (hours)
+              <Input
+                type="number"
+                min={1}
+                max={720}
+                required
+                value={value.cycleHours ?? 24}
+                onChange={e => set({ cycleHours: Number(e.target.value) || null })}
+              />
+            </label>
+          )}
+          <label className="grid gap-1 text-sm">
+            Text above the timer (optional)
+            <Input
+              placeholder="L'offre se termine dans"
+              maxLength={80}
+              value={value.label ?? ''}
+              onChange={e => set({ label: e.target.value || null })}
+            />
+          </label>
+        </>
+      )}
     </div>
   )
 }

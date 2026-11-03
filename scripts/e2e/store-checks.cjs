@@ -138,6 +138,16 @@ module.exports = async function storeChecks({ db, STORE }) {
   assert.equal((o7.body.promotions ?? []).length, 0)
   ok('unlisted area: shipping to confirm, no promotion applied')
 
+  // First-order promotion: a phone with past orders in the store doesn't get it.
+  const the = { cartItems: [{ product: { path: 'products/the' }, quantity: 1 }], promoCodes: ['BIENVENUE'] }
+  const returning = await post('/api/orders', order(unlisted, '677000001', the))
+  assert.equal(returning.body.orderPrices.total, 5000)
+  const newcomer = await post('/api/orders', order(unlisted, '670000099', the))
+  assert.equal(newcomer.body.orderPrices.total, 4000)
+  const again = await post('/api/orders', order(unlisted, '670000099', the))
+  assert.equal(again.body.orderPrices.total, 5000)
+  ok('first order: -1 000 for a new phone only, not on its second order nor for a returning one')
+
   // Tracking page
   const id1 = o1.body.path.split('/').pop()
   const page = await fetch(`${STORE}/order/${id1}?t=${o1.body.trackingToken}`)

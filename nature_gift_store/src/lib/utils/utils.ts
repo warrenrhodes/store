@@ -1,12 +1,5 @@
 import { toDate } from '@ngift/core/utils'
 import { type ClassValue, clsx } from 'clsx'
-import {
-  differenceInDays,
-  differenceInHours,
-  differenceInMonths,
-  differenceInYears,
-  format,
-} from 'date-fns'
 import { twMerge } from 'tailwind-merge'
 import { Product, Review } from '../firebase/models'
 import { Price } from '../type'
@@ -61,30 +54,15 @@ export const getPercentageDiscount = (regularPrice: number, salePrice: number) =
   return percentageDiscount
 }
 
-export function getDetailedExpiresIn(endDate: Date): string {
-  const startDate = new Date()
-  const daysDiff = differenceInDays(endDate, startDate)
-  const hoursDiff = differenceInHours(endDate, startDate)
-  const monthsDiff = differenceInMonths(endDate, startDate)
-  const yearsDiff = differenceInYears(endDate, startDate)
-
-  if (hoursDiff < 24) {
-    return `expired in ${hoursDiff} hour${hoursDiff !== 1 ? 's' : ''}`
-  }
-
-  if (daysDiff < 7) {
-    return `expired in ${daysDiff} day${daysDiff !== 1 ? 's' : ''}`
-  }
-
-  if (monthsDiff < 1) {
-    return `expired on ${format(endDate, 'MMM dd, yyyy')}`
-  }
-
-  if (yearsDiff < 1) {
-    return `expired in ${monthsDiff} month${monthsDiff !== 1 ? 's' : ''}`
-  }
-
-  return `expired in ${yearsDiff} year${yearsDiff !== 1 ? 's' : ''}`
+/** "dans 3 jours" / "in 3 days": hours under a day, days under two months, then months. */
+export const endsIn = (endDate: string, locale: string) => {
+  const end = toDate(endDate)
+  if (!end) return ''
+  const hours = Math.max(0, Math.round((end.getTime() - Date.now()) / 3600_000))
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
+  if (hours < 24) return rtf.format(hours, 'hour')
+  if (hours < 60 * 24) return rtf.format(Math.round(hours / 24), 'day')
+  return rtf.format(Math.round(hours / 24 / 30), 'month')
 }
 
 export const canDisplayPromoPrice = (product: Product) => {

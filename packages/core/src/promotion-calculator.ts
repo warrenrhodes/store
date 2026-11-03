@@ -96,15 +96,21 @@ export class PromotionCalculator {
   private deliveryInfo?: Partial<IDeliveryInfo>
   private promotions: Promotion[]
   private codes: string[]
+  private pastOrders: number
 
-  /** `codes`: discount codes typed by the customer or carried by an ad link. */
+  /**
+   * `codes`: discount codes typed by the customer or carried by an ad link. `pastOrders`: orders
+   * the customer already placed in this store (0 when unknown: the preview has no phone yet).
+   */
   constructor(
     cart: CartItem[],
     shipping: Partial<IDeliveryInfo>,
     promotions: Promotion[],
     codes: string[] = [],
+    pastOrders = 0,
   ) {
     this.cart = cart
+    this.pastOrders = pastOrders
     this.deliveryInfo = shipping
     this.codes = [...new Set(codes.map(normalizeCode).filter(Boolean))]
     this.promotions = this.filterValidPromotions(promotions)
@@ -160,6 +166,9 @@ export class PromotionCalculator {
         return this.cart.some(item =>
           (item.product.categories ?? []).some(category => values.includes(category)),
         )
+
+      case 'FIRST_ORDER':
+        return this.pastOrders === 0
 
       default:
         return false

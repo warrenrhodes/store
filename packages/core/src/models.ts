@@ -1,4 +1,5 @@
 // Firestore document shapes shared by the store and the admin.
+import type { Countdown } from './countdown'
 import type { StoreTheme } from './theme'
 
 // Enums
@@ -96,6 +97,8 @@ export enum PromotionConditionType {
   CITY = 'CITY',
   /** At least one cart item in one of these categories (by name, as products store them). */
   SPECIFIC_CATEGORIES = 'SPECIFIC_CATEGORIES',
+  /** The customer's first order in this store (by phone number); no value. */
+  FIRST_ORDER = 'FIRST_ORDER',
 }
 
 export interface OrderSummary {
@@ -287,6 +290,8 @@ export interface Blog extends CreatorDocument {
   customFields: CustomFields[]
   associateProductPath?: string | null
   layout: BlogLayout
+  /** Timer shown on the page (ad landing pages), above the order form. */
+  countdown?: Countdown | null
 }
 
 export interface Review extends CreatorDocument {

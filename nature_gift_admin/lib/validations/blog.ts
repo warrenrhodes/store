@@ -50,6 +50,15 @@ export const blogSchema = z.object({
   layout: z
     .enum([BlogLayout.DEFAULT, BlogLayout.FEATURED, BlogLayout.MINIMAL])
     .default(BlogLayout.DEFAULT),
+  countdown: z
+    .object({
+      mode: z.enum(['limited', 'loop']),
+      endsAt: isoDate(),
+      cycleHours: z.coerce.number().int().min(1).max(720).nullable().default(null),
+      label: z.string().trim().max(80).nullable().default(null),
+    })
+    .nullable()
+    .default(null),
 })
 
 export type BlogSchemaType = z.infer<typeof blogSchema>

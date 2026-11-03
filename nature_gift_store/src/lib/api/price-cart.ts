@@ -68,7 +68,8 @@ export const sumSummaries = (groups: PricedGroup[]): OrderSummary => ({
 
 /**
  * `fresh`: read products from the database (the order) rather than the shared cache (the
- * preview). `uses`: orders this customer already placed per promotion path (per-customer limits).
+ * preview). `uses`: orders this customer already placed per promotion path (per-customer limits);
+ * `pastOrders`: per store id (first-order promotions). Both unknown in the preview.
  */
 export async function priceCart(params: {
   items: unknown
@@ -77,8 +78,9 @@ export async function priceCart(params: {
   codes: string[]
   fresh: boolean
   uses?: Map<string, number>
+  pastOrders?: Map<string, number>
 }): Promise<{ groups: PricedGroup[] } | { error: CartStoreError | 'INVALID_CART' }> {
-  const { items, delivery, codes, fresh, uses = new Map() } = params
+  const { items, delivery, codes, fresh, uses = new Map(), pastOrders = new Map() } = params
   if (!Array.isArray(items) || items.length === 0 || items.length > 50) {
     return { error: 'INVALID_CART' }
   }
@@ -124,6 +126,7 @@ export async function priceCart(params: {
         },
         promotions,
         codes,
+        pastOrders.get(store.id) ?? 0,
       )
       const summary = calculator.calculate()
       return {

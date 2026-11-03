@@ -212,6 +212,11 @@ const categorized = (categories: string[]) =>
 assert.equal(run([categorized(['Thé'])], medong, [teaCategory]).total, 6000)
 assert.equal(run([categorized(['Café'])], medong, [teaCategory]).total, 7000)
 
+// First order: only while the customer has no past order in the store.
+const welcome = promo([{ type: 'FIRST_ORDER', value: '' }], [{ type: 'PERCENTAGE_DISCOUNT', value: '10' }])
+assert.equal(new PromotionCalculator([coffee], medong, [welcome]).calculate().total, 12800)
+assert.equal(new PromotionCalculator([coffee], medong, [welcome], [], 1).calculate().total, 14000)
+
 // Usage limits
 assert.equal(isWithinUsageLimit({ usageLimit: { total: 2 }, usageCount: 1 } as Promotion), true)
 assert.equal(isWithinUsageLimit({ usageLimit: { total: 2 }, usageCount: 2 } as Promotion), false)

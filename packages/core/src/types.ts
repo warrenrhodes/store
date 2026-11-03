@@ -14,6 +14,7 @@ enum PromotionConditionType {
   MINIMUM_AMOUNT = 'MINIMUM_AMOUNT',
   CITY = 'CITY',
   SPECIFIC_CATEGORIES = 'SPECIFIC_CATEGORIES',
+  FIRST_ORDER = 'FIRST_ORDER',
 }
 
 export type PromotionAction = {

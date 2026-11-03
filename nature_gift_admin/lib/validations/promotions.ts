@@ -11,6 +11,7 @@ export const promotionConditionSchema = z.object({
     'MINIMUM_AMOUNT',
     'CITY',
     'SPECIFIC_CATEGORIES',
+    'FIRST_ORDER',
   ]),
   value: z.string(),
 })

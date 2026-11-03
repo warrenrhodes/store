@@ -22,6 +22,7 @@ import { Separator } from '@/components/ui/separator'
 import { RelatedBlogs } from '../BlockDetail/RelatedBlogs'
 import { InternalItem } from './InternalCartItems'
 import { FreeShippingBadge } from '@/components/Shop/ProductDetail/FreeShippingBadge'
+import { Countdown } from '@/components/Countdown'
 
 const AdsBlogDetail = ({
   blog,
@@ -143,6 +144,8 @@ const AdsBlogDetail = ({
       {content.type === 'MARKDOWN' && <div dangerouslySetInnerHTML={{ __html: content.content }} />}
 
       {content.type === 'TEXT' && <div>{content.content}</div>}
+
+      {blog.countdown && <Countdown countdown={blog.countdown} />}
 
       {cartItem && soldOut && (
         <Button disabled className="w-full">

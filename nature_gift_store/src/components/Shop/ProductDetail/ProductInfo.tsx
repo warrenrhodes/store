@@ -1,6 +1,8 @@
 'use client'
 
 import { FreeShippingBadge } from './FreeShippingBadge'
+import { Countdown } from '@/components/Countdown'
+import { toDate } from '@ngift/core/utils'
 import {
   ChevronRight,
   Heart,
@@ -142,6 +144,12 @@ export function ProductInfo({
           </span>
         )}
       </div>
+      {discount > 0 && price.saleEndDate && (
+        <Countdown
+          countdown={{ mode: 'limited', endsAt: toDate(price.saleEndDate)!.toISOString() }}
+          className="items-start"
+        />
+      )}
 
       <p className="flex items-center gap-2 text-sm">
         <span

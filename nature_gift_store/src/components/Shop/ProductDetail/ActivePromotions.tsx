@@ -3,7 +3,9 @@
 import { motion } from 'framer-motion'
 import { Tag, Timer } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { getDetailedExpiresIn } from '@/lib/utils/utils'
+import { endsIn } from '@/lib/utils/utils'
+import { CodesLeft } from '@/components/Home/PromotionBanner'
+import { useLocale } from '@/hooks/useLocale'
 import { useLocalization } from '@/hooks/useLocalization'
 import { Promotion } from '@/lib/firebase/models'
 
@@ -30,6 +32,7 @@ const itemVariants = {
 
 export function ActivePromotions({ activePromotions }: { activePromotions: Promotion[] }) {
   const { localization } = useLocalization()
+  const { locale } = useLocale()
 
   if (activePromotions.length === 0) {
     return <></>
@@ -46,7 +49,7 @@ export function ActivePromotions({ activePromotions }: { activePromotions: Promo
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
       >
         {activePromotions.map(promo => {
-          const expiresIn = getDetailedExpiresIn(new Date(promo.endDate))
+          const expiresIn = `${localization.endsLabel} ${endsIn(promo.endDate, locale)}`
           return (
             <motion.div key={`${promo.path}`} variants={itemVariants} className="h-full">
               <Card className="h-full">
@@ -64,6 +67,7 @@ export function ActivePromotions({ activePromotions }: { activePromotions: Promo
                       <Timer className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm text-muted-foreground">{expiresIn}</span>
                     </div>
+                    <CodesLeft promotion={promo} className="text-sm font-medium text-sale" />
                     {/* <Button variant="outline" size="sm" onClick={() => copyCode(promo.code)}>
                       {promo.code}
                       <Copy className="ml-2 h-4 w-4" />

@@ -97,6 +97,7 @@ export function ConditionFields({
                       <SelectItem value="DELIVERY_METHOD">Delivery Method</SelectItem>
                       <SelectItem value="CITY">City</SelectItem>
                       <SelectItem value="LOCATION">Location (areas)</SelectItem>
+                      <SelectItem value="FIRST_ORDER">First order only</SelectItem>
                     </SelectContent>
                   </Select>
                 </FormControl>
@@ -181,6 +182,10 @@ export function ConditionFields({
                         field.onChange(JSON.stringify(selected.map(s => s.value)))
                       }
                     />
+                  ) : form.watch(`conditions.${index}.type`) === 'FIRST_ORDER' ? (
+                    <p className="py-2 text-sm text-muted-foreground">
+                      Customers who never ordered from this store (by phone number).
+                    </p>
                   ) : (
                     <></>
                   )}

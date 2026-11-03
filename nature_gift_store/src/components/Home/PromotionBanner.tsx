@@ -5,6 +5,7 @@ import { SiteLink as Link } from '@/components/Site'
 import { useEffect, useState } from 'react'
 import { useLocalization } from '@/hooks/useLocalization'
 import { Promotion } from '@/lib/firebase/models'
+import { Countdown } from '@/components/Countdown'
 
 export function PromotionBanner({ promotions }: { promotions: Promotion[] }) {
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -34,7 +35,9 @@ export function PromotionBanner({ promotions }: { promotions: Promotion[] }) {
           {promotion.description && (
             <p className="mt-2 text-primary-foreground/85">{promotion.description}</p>
           )}
+          <CodesLeft promotion={promotion} className="mt-2 font-semibold" />
         </div>
+        <Countdown countdown={{ mode: 'limited', endsAt: promotion.endDate }} />
         <Link
           href="/shop"
           className="group inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-md bg-background px-7 font-medium text-foreground transition hover:bg-background/90"
@@ -45,4 +48,13 @@ export function PromotionBanner({ promotions }: { promotions: Promotion[] }) {
       </div>
     </section>
   )
+}
+
+/** "Only 12 left" for a promotion with a total usage limit (count cached for a few minutes). */
+export function CodesLeft({ promotion, className }: { promotion: Promotion; className?: string }) {
+  const { localization } = useLocalization()
+  const total = promotion.usageLimit?.total
+  if (!total) return null
+  const left = Math.max(0, total - (promotion.usageCount ?? 0))
+  return <p className={className}>{localization.codesLeft.replace('{n}', String(left))}</p>
 }

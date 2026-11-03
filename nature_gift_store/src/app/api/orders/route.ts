@@ -37,17 +37,23 @@ class OrderConflict extends Error {
   }
 }
 
-/** Orders this phone number already placed with each promotion (canceled/rejected excluded). */
-async function promotionUsesByPhone(phone?: string | null) {
+/**
+ * Orders this phone number already placed (canceled/rejected excluded): per promotion
+ * (per-customer limits) and per store (first-order promotions).
+ */
+async function customerHistory(phone?: string | null) {
   const uses = new Map<string, number>()
-  if (!phone) return uses
+  const pastOrders = new Map<string, number>()
+  if (!phone) return { uses, pastOrders }
   const orders = await backend.db
     .collection(CollectionsName.Orders)
     .where('userData.phone', '==', phone)
-    .select('promotions', 'status')
+    .select('promotions', 'status', 'storeId')
     .get()
   for (const doc of orders.docs) {
     if ([OrderStatus.CANCELED, OrderStatus.REJECTED].includes(doc.get('status'))) continue
+    const storeId = String(doc.get('storeId') ?? '')
+    pastOrders.set(storeId, (pastOrders.get(storeId) ?? 0) + 1)
     const ids = new Set<string>(
       (doc.get('promotions') ?? []).map((p: { promotionId?: string; promotionPath?: string }) =>
         String(p.promotionId ?? p.promotionPath),
@@ -55,7 +61,7 @@ async function promotionUsesByPhone(phone?: string | null) {
     )
     ids.forEach(id => uses.set(id, (uses.get(id) ?? 0) + 1))
   }
-  return uses
+  return { uses, pastOrders }
 }
 
 /**
@@ -201,7 +207,7 @@ export const POST = async (req: NextRequest) => {
     delivery: order?.deliveryInfo,
     codes: Array.isArray(promoCodes) ? promoCodes.map(String).slice(0, 5) : [],
     fresh: true,
-    uses: await promotionUsesByPhone(order?.userData?.phone),
+    ...(await customerHistory(order?.userData?.phone)),
   })
   if ('error' in priced) {
     if (priced.error === 'INVALID_CART') {

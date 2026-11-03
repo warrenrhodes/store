@@ -6,12 +6,14 @@ import { CollectionsName } from '@/lib/firebase/collection-name'
 import { backend } from '@/lib/firebase/firebase-server/firebase'
 import { Order, OrderStatus, StoreSecrets } from '@/lib/firebase/models'
 import { FlockNotifier } from '@/lib/notifications/flock/flock'
-import { sendEmailNotifications, sendSmsNotifications } from '@/lib/notifications/sendNotifications'
+import { EMAIL_LOGO, sendEmail, sendSms } from '@/lib/notifications/sendNotifications'
+import { newOrderEmail, newOrderSms, OrderSummary } from '@ngift/core/emails'
 import { getDatabasePath } from '@spreeloop/database'
 import { FieldValue } from 'firebase-admin/firestore'
 import { randomBytes } from 'node:crypto'
 import { getStorePixels, requestSignals, sendMetaEvent } from '@/lib/analytics/meta-capi'
 import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 import { NextRequest, NextResponse } from 'next/server'
 
 /** Where a store's order alerts go: its own settings and secrets (admin, Settings). */
@@ -155,49 +157,32 @@ async function notifyStore(
     } catch (error) {
       console.error('Error sending Flock notification:', error)
     }
+    // Email and SMS alerts, the order in the admin one click away.
     const info = order.deliveryInfo
-    if (channels.emails.length > 0) {
-      const notificationData = {
-        user_name: order.userData.fullName,
-        user_number: order.userData.phone,
-        selected_products: order.items.map(item => item.product.title).join(', '),
-        delivery_address: info.address,
-        delivery_location: info.location,
-        delivery_date: info.deliveryDate
-          ? `${format(info.deliveryDate, 'PPP')} ${info.deliveryTime ?? ''}`
-          : '',
-      }
-      try {
-        await Promise.all(
-          channels.emails.map(email =>
-            sendEmailNotifications({
-              email,
-              notificationId: 'new_product',
-              data: notificationData,
-            }),
-          ),
-        )
-      } catch (error) {
-        console.error('Failed to send email notifications:', error)
-      }
+    const summary: OrderSummary = {
+      id: order.path.split('/').pop()!,
+      customer: order.userData.fullName,
+      phone: order.userData.phone,
+      items: order.items.map(i => ({
+        title: i.product.title,
+        quantity: i.quantity,
+        price: i.price,
+      })),
+      total: order.orderPrices.total,
+      address: info.address,
+      location: info.location,
+      city: info.city,
+      delivery: info.deliveryDate
+        ? `${format(info.deliveryDate, 'PPP', { locale: fr })} ${info.deliveryTime ?? ''}`.trim()
+        : null,
     }
-    if (channels.phones.length > 0) {
-      try {
-        await Promise.all(
-          channels.phones.map(phone =>
-            sendSmsNotifications({
-              phoneNumber: phone,
-              notificationId: 'new_product',
-              data: {
-                comment: `Visit the order on ${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/orders`,
-              },
-            }),
-          ),
-        )
-      } catch (error) {
-        console.error('Failed to send SMS notifications:', error)
-      }
-    }
+    const orderUrl = `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/orders/${summary.id}`
+    const content = newOrderEmail({ logoUrl: EMAIL_LOGO, storeName: store.name, order: summary, orderUrl })
+    const message = newOrderSms({ storeName: store.name, order: summary, orderUrl })
+    await Promise.all([
+      ...channels.emails.map(email => sendEmail({ email, type: 'new_product', content })),
+      ...channels.phones.map(phone => sendSms({ phone, type: 'new_product', message })),
+    ])
   } catch (error) {
     console.error('[ORDERS_POST] post-order notifications failed:', error)
   }

@@ -106,7 +106,15 @@ const data = {
   ],
 }
 
+/** The platform console (/platform): the super admin's own area, apart from any store. */
+const platformNav = [
+  { url: '/platform', icon: Building2, title: 'Stores' },
+  { url: '/platform/products', icon: Tag, title: 'Marketplace products' },
+]
+
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
+  /** The current store's dashboard, or the platform console. */
+  area: 'store' | 'platform'
   stores: { id: string; name: string }[]
   currentStoreId?: string
   /** The current store's storefront (storefrontUrl). */
@@ -116,6 +124,7 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
 }
 
 export function AppSidebar({
+  area,
   stores,
   currentStoreId,
   storeUrl,
@@ -125,24 +134,29 @@ export function AppSidebar({
 }: AppSidebarProps) {
   const { user, logout } = useAuthStore()
   const router = useRouter()
-  const navItems = [
-    ...data.navMain,
-    ...(isOwner
-      ? [
-          { url: '/settings', icon: Settings, title: 'Store settings' },
-          { url: '/theme', icon: Palette, title: 'Theme' },
-          { url: '/team', icon: UserCog, title: 'Team' },
-        ]
-      : []),
-    ...(platformAdmin ? [{ url: '/platform', icon: Building2, title: 'Platform' }] : []),
-  ]
+  const platform = area === 'platform'
+  const navItems = platform
+    ? platformNav
+    : [
+        ...data.navMain,
+        ...(isOwner
+          ? [
+              { url: '/settings', icon: Settings, title: 'Store settings' },
+              { url: '/theme', icon: Palette, title: 'Theme' },
+              { url: '/team', icon: UserCog, title: 'Team' },
+            ]
+          : []),
+      ]
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href="/" aria-label="N.Gift Admin">
+              <Link
+                href={platform ? '/platform' : '/'}
+                aria-label={platform ? 'N.Gift platform console' : 'N.Gift Admin'}
+              >
                 <Image
                   src="/logo-wordmark.png"
                   alt="N.Gift"
@@ -151,14 +165,20 @@ export function AppSidebar({
                   priority
                   className="h-7 w-auto"
                 />
-                <span className="rounded-md bg-sidebar-accent px-1.5 py-0.5 text-xs font-medium text-sidebar-accent-foreground">
-                  Admin
-                </span>
+                {platform ? (
+                  <span className="rounded-md bg-amber-500 px-1.5 py-0.5 text-xs font-medium text-amber-950">
+                    Platform
+                  </span>
+                ) : (
+                  <span className="rounded-md bg-sidebar-accent px-1.5 py-0.5 text-xs font-medium text-sidebar-accent-foreground">
+                    Admin
+                  </span>
+                )}
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        <StoreSwitcher stores={stores} currentStoreId={currentStoreId} />
+        {!platform && <StoreSwitcher stores={stores} currentStoreId={currentStoreId} />}
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navItems} />
@@ -174,7 +194,29 @@ export function AppSidebar({
           />
         )}
         <SidebarMenu>
-          {storeUrl && (
+          {/* The way between the two areas: a platform admin's store(s) and the console. */}
+          {platform ? (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/">
+                  <LayoutDashboard />
+                  <span>Store dashboard</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ) : (
+            platformAdmin && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/platform">
+                    <Building2 />
+                    <span>Platform console</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+          )}
+          {!platform && storeUrl && (
             <>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>

@@ -30,7 +30,7 @@ module.exports = async function adminChecks({ db, ADMIN, AUTH_HOST, apiKey }) {
   const as = cookie => ({
     page: async path => {
       const res = await fetch(ADMIN + path, { headers: { cookie }, redirect: 'manual' })
-      return { status: res.status, html: await res.text() }
+      return { status: res.status, location: res.headers.get('location'), html: await res.text() }
     },
     api: async (method, path, body) =>
       (
@@ -136,11 +136,21 @@ module.exports = async function adminChecks({ db, ADMIN, AUTH_HOST, apiKey }) {
   await pageHas(ownerA, '/settings', ['name="slug"', 'value="nature-gift"'], [])
   ok('staff: catalogue yes, settings and team no; owner: settings')
 
-  // Platform console: platform admin only.
-  await pageHas(ownerA, '/platform', ['Reserved to the platform administrator'], [])
-  await pageHas(platform, '/platform', ['N.Gift', 'Boutique Bertrand', 'Record cash payment'], [])
-  await pageHas(platform, '/products', ['No store selected'], ['Café Ginseng', 'Miel de B'])
-  ok('platform console: refused to a store owner, lists every store for the platform admin')
+  // Platform console: platform admin only, in its own area (sidebar, header) apart from the
+  // store dashboards; a store's dashboard links to it only for the platform admin.
+  await pageHas(ownerA, '/platform', ['Reserved to the platform administrator'], ['Boutique Bertrand'])
+  await pageHas(ownerA, '/products', ['Café Ginseng'], ['href="/platform"', 'Platform console'])
+  await pageHas(
+    platform,
+    '/platform',
+    ['N.Gift', 'Boutique Bertrand', 'Record cash payment', 'Super admin', 'Marketplace products', 'href="/"'],
+    ['Abandoned checkouts', 'Store settings'],
+  )
+  await pageHas(platform, '/products', ['No store selected', 'href="/platform"'], ['Café Ginseng', 'Miel de B'])
+  const home = await platform.page('/')
+  assert.equal(home.status, 307)
+  assert.match(home.location, /\/platform$/)
+  ok('platform console: refused to a store owner, its own area for the platform admin (no store menu), who lands there without a store')
 
   console.log(`All ${step} admin checks passed\n`)
 }

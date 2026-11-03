@@ -30,6 +30,8 @@ import {
   parseWhatsapp,
 } from '@ngift/core/store-rules'
 import { createStoreDocs } from '@/lib/store-creation'
+import { EMAIL_LOGO, sendEmail } from '@/lib/notify'
+import { storeInviteEmail } from '@ngift/core/emails'
 import { THEME_PRESETS, ThemePreset } from '@ngift/core/theme'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -201,7 +203,8 @@ export async function getTeam() {
 
 /**
  * Staff invitation by email: an existing admin account joins right away, otherwise the
- * invitation waits until that email signs in (tenant.ts acceptInvites).
+ * invitation waits until that email signs up (tenant.ts acceptInvites). Either way the person
+ * gets an email (lib/notify); when it can't be sent, the owner is given the link to pass on.
  */
 export async function inviteMember(formData: FormData) {
   const ctx = await requireStore({ owner: true })
@@ -221,19 +224,37 @@ export async function inviteMember(formData: FormData) {
       email,
       createdAt: now,
     } satisfies Membership)
-    return back('/team', { saved: `${email} joined the team.` })
+  } else {
+    await backend.db
+      .collection(CollectionsName.Invites)
+      .doc(inviteId(ctx.storeId, email))
+      .set({
+        storeId: ctx.storeId,
+        email,
+        role: StoreRole.STAFF,
+        invitedBy: ctx.email ?? ctx.uid,
+        createdAt: now,
+      } satisfies Invite)
   }
-  await backend.db
-    .collection(CollectionsName.Invites)
-    .doc(inviteId(ctx.storeId, email))
-    .set({
-      storeId: ctx.storeId,
-      email,
-      role: StoreRole.STAFF,
-      invitedBy: ctx.email ?? ctx.uid,
-      createdAt: now,
-    } satisfies Invite)
-  back('/team', { saved: `${email} will join when they sign in to the admin.` })
+  const link = `${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL ?? ''}${user ? '/sign-in' : '/sign-up'}`
+  const sent = await sendEmail(
+    email,
+    'store_invite',
+    storeInviteEmail({
+      logoUrl: EMAIL_LOGO,
+      storeName: ctx.store.name,
+      invitedBy: ctx.email ?? ctx.store.name,
+      link,
+    }),
+  )
+  const joined = user
+    ? `${email} joined the team.`
+    : `${email} will join when they sign up with this email.`
+  back('/team', {
+    saved: sent
+      ? `${joined} The invitation email is on its way.`
+      : `${joined} No email could be sent: send them this link yourself: ${link}`,
+  })
 }
 
 /** Removes a staff member or a pending invitation. The owner can't be removed. */

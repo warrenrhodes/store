@@ -23,8 +23,9 @@ export default async function Home() {
   })
   if (!tokens) notFound()
   const ctx = await getStoreContext()
-  // A new account (self-service sign-up): create its store first.
-  if (!ctx && !(await isPlatformAdmin())) redirect('/onboarding')
+  // Without a store: a new account creates its own (self-service sign-up); the platform admin
+  // goes to the platform console.
+  if (!ctx) redirect((await isPlatformAdmin()) ? '/platform' : '/onboarding')
 
   const stats = await getDashboardStats()
   const kpis = [

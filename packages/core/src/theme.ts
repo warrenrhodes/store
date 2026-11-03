@@ -295,3 +295,14 @@ export const videoEmbedUrl = (url: string) => {
   )
   return vimeo ? `https://player.vimeo.com/video/${vimeo[1]}` : null
 }
+
+// --- Preview ------------------------------------------------------------------------------
+
+/**
+ * The admin's theme editor shows the storefront's PREVIEW_PATH in an iframe and posts it the
+ * draft ({ type: PREVIEW_MESSAGE, theme, store }) at every change; the page posts PREVIEW_READY
+ * once it listens. Not a store slug (no "_" in slugs): never taken by a store.
+ */
+export const PREVIEW_PATH = '/theme_preview'
+export const PREVIEW_MESSAGE = 'ngift-theme-preview'
+export const PREVIEW_READY = 'ngift-theme-preview-ready'

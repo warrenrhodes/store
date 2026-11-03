@@ -13,7 +13,7 @@ import {
 import { StorePlan, StoreStatus } from '@/lib/firebase/models'
 import { paymentState } from '@ngift/core/store-rules'
 
-export const metadata = { title: 'Platform' }
+export const metadata = { title: 'Stores' }
 
 const STATE_LABEL = { none: 'never paid', expired: 'expired', soon: 'expires soon', ok: '' }
 
@@ -30,7 +30,7 @@ export default async function PlatformPage(props: {
     <div className="mx-auto w-full max-w-5xl space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-semibold">Platform</h1>
+          <h1 className="text-2xl font-semibold">Stores</h1>
           <p className="text-sm text-muted-foreground">
             Stores, cash payments and activation. Pending stores first.
           </p>

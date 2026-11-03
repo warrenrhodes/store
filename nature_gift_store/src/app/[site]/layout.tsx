@@ -9,7 +9,6 @@ import { getListedStoresCache, siteOf, SiteStore } from '@/lib/api/utils'
 import ToasterProvider from '@/lib/providers/ToasterProvider'
 import { absoluteUrl, PLATFORM_URL } from '@/lib/site'
 import { siteTheme } from '@/lib/theme'
-import { ThemePreviewListener } from '@/components/ThemePreviewListener'
 import { PixelPageViews } from '@/components/PixelPageViews'
 import { themeCss } from '@ngift/core/theme'
 import type { Metadata } from 'next'
@@ -68,8 +67,7 @@ export default async function SiteLayout({
   children,
 }: Readonly<Props & { children: React.ReactNode }>) {
   const { site, store } = await siteOf(params)
-  const { theme, custom, preview } = await siteTheme(store)
-  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL
+  const { theme, custom } = await siteTheme(store)
   const info: SiteInfo = store
     ? {
         site,
@@ -93,7 +91,6 @@ export default async function SiteLayout({
     <SiteProvider value={info}>
       {/* The theme's colors, radius and font (values checked by siteTheme and themeCss). */}
       {custom && <style dangerouslySetInnerHTML={{ __html: themeCss(theme) }} />}
-      {preview && adminUrl && <ThemePreviewListener adminOrigin={new URL(adminUrl).origin} />}
       {gtmIds.length > 0 && (
         <Script id="gtm-init" strategy="afterInteractive">
           {`window.dataLayer=window.dataLayer||[];window.dataLayer.push({'gtm.start':Date.now(),event:'gtm.js'});`}

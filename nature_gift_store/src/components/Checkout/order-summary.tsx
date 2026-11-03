@@ -100,9 +100,9 @@ export function OrderSummary({
         ))}
       </ul>
 
-      <Separator className="my-5" />
+      {/* <Separator className="my-5" /> */}
 
-      <form
+      {/* <form
         className="flex gap-2"
         onSubmit={e => {
           e.preventDefault()
@@ -120,7 +120,7 @@ export function OrderSummary({
         <Button type="submit" variant="outline" disabled={!draft.trim()}>
           {localization.apply}
         </Button>
-      </form>
+      </form> */}
       {codes.length > 0 && (
         <ul className="mt-3 flex flex-wrap gap-2" aria-live="polite">
           {codes.map(code => {

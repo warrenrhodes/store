@@ -60,7 +60,7 @@
     "next-cloudinary": "^6.16.0",
     "next-firebase-auth-edge": "^1.8.2",
     "node-cron": "^3.0.3",
-    "notificationapi-node-server-sdk": "^2.2.1",
+    "notificationapi-node-server-sdk": "^2.8.0",
     "npm": "^11.2.0",
     "plaiceholder": "^3.0.0",
     "prettier": "^3.4.2",

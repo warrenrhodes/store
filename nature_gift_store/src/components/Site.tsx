@@ -21,6 +21,8 @@ export type SiteInfo = {
   /** The store's announcement bar (theme); the marketplace shows the platform's. */
   announcement?: string | null
   isMarket: boolean
+  /** The admin's theme preview (sample data): nothing is loaded from the server. */
+  preview?: boolean
   /** On the marketplace: its stores (active and listed) by id, for badges and the cart. */
   stores?: Record<string, { name: string; slug: string }>
 }

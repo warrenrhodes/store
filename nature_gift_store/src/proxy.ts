@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { authMiddleware } from 'next-firebase-auth-edge'
 import { parseSitePath, siteHref } from '@ngift/core/site'
 import { PREVIEW_HEADER } from '@ngift/core/theme-preview'
+import { PREVIEW_PATH } from '@ngift/core/theme'
 import { clientConfig, serverConfig } from '../config'
 
 const UN_AUTH_PUBLIC_PATHS = ['/reset-password', '/sign-in', '/sign-up']
@@ -51,6 +52,8 @@ const isPublic = (path: string) =>
 export default async function proxy(request: NextRequest) {
   if (request.headers.get(REWRITTEN) === MARK) return NextResponse.next()
   const { pathname } = request.nextUrl
+  // The admin's theme preview: one static page outside the sites, sample data only.
+  if (pathname === PREVIEW_PATH) return NextResponse.next()
   const isApi = /^\/(api|trpc)(\/|$)/.test(pathname)
   const { site, path } = parseSitePath(pathname)
   const serve = (headers?: Headers) => {

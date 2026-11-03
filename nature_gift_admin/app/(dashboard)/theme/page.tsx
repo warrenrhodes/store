@@ -5,7 +5,7 @@ import { applyThemePreset, discardThemeDraft } from '@/lib/actions/theme.actions
 import { StoreRole } from '@/lib/firebase/models'
 import { PLATFORM_URL, storefrontUrl } from '@/lib/storefront'
 import { getStoreContext } from '@/lib/tenant'
-import { THEME_PRESETS, themeOf } from '@ngift/core/theme'
+import { PREVIEW_PATH, THEME_PRESETS, themeOf } from '@ngift/core/theme'
 import { previewToken } from '@ngift/core/theme-preview'
 
 export const metadata = { title: 'Theme' }
@@ -22,8 +22,8 @@ export default async function ThemePage(props: {
   const { saved, error } = await props.searchParams
   const { store, storeId } = ctx
   const hasDraft = !!store.themeDraft
-  // The preview link shows the draft for an hour (signed with the secret both apps share).
-  const preview = `${storefrontUrl(store)}?preview=${encodeURIComponent(
+  // The draft on the real storefront, for an hour (signed with the secret both apps share).
+  const draftUrl = `${storefrontUrl(store)}?preview=${encodeURIComponent(
     previewToken(process.env.REVALIDATE_SECRET ?? '', storeId),
   )}`
 
@@ -32,7 +32,8 @@ export default async function ThemePage(props: {
       <div>
         <h1 className="text-2xl font-semibold">Theme</h1>
         <p className="text-sm text-muted-foreground">
-          Changes show in the preview as you make them and are saved as a draft. The storefront only
+          Changes show in the preview (with sample products) as you make them and are saved as a
+          draft. The storefront only
           changes when you publish.
         </p>
       </div>
@@ -69,7 +70,16 @@ export default async function ThemePage(props: {
         )}
       </div>
       {PLATFORM_URL ? (
-        <ThemeForm initial={themeOf(store.themeDraft ?? store.theme)} previewUrl={preview} />
+        <ThemeForm
+          initial={themeOf(store.themeDraft ?? store.theme)}
+          previewUrl={`${PLATFORM_URL}${PREVIEW_PATH}`}
+          draftUrl={draftUrl}
+          store={{
+            name: store.name,
+            whatsapp: store.settings?.whatsapp ?? null,
+            email: store.settings?.contactEmail ?? null,
+          }}
+        />
       ) : (
         <p
           role="alert"

@@ -59,6 +59,7 @@ const NewSideBar = async ({
       <SidebarProvider>
         <div className="contents print:hidden">
           <AppSidebar
+            area="store"
             storeUrl={ctx ? storefront.url : undefined}
             stores={stores.map(s => ({ id: s.id, name: s.store.name }))}
             currentStoreId={ctx?.storeId}
@@ -101,7 +102,13 @@ function StoreBanner(props: { status?: StoreStatus; hasStore: boolean; platformA
   ) : null
   const message = !props.hasStore ? (
     props.platformAdmin ? (
-      <>No store selected. Create one in Platform.</>
+      <>
+        No store selected. Stores are managed in the{' '}
+        <a className="underline" href="/platform">
+          platform console
+        </a>
+        .
+      </>
     ) : (
       <>
         You don&apos;t have a store yet.{' '}

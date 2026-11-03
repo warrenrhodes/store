@@ -28,10 +28,13 @@ export function ProductCard({ product }: { product: Product }) {
   const { isInWishlist, toggleWishlist } = useWishlist()
   const { localization } = useLocalization()
 
+  const { isMarket, stores, preview } = useSite()
+
   useEffect(() => {
+    if (preview) return
     // ponytail: one server action per card; batch on the server if the grid gets large
     getReviewsForProduct(getDocumentId(product.path)).then(setReviews)
-  }, [product.path])
+  }, [product.path, preview])
 
   const price = product.price as unknown as IPrice
   const stock = (product.inventory as Inventory)?.stockQuantity
@@ -44,7 +47,6 @@ export function ProductCard({ product }: { product: Product }) {
   const [main, hover] = product.medias
   // On the marketplace: the store selling it, and the product's page from that store
   // (?vendeur= tells two stores' products with the same slug apart).
-  const { isMarket, stores } = useSite()
   const vendor = isMarket && product.storeId ? stores?.[product.storeId] : undefined
   const href = vendor ? `/shop/${product.slug}?vendeur=${vendor.slug}` : `/shop/${product.slug}`
 

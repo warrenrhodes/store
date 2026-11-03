@@ -15,7 +15,8 @@ import {
 import { getUserTokens, revalidateStorefront, Unauthorized } from '@/lib/tenant'
 import { extendPaidUntil } from '@ngift/core/store-rules'
 import { createStoreDocs } from '@/lib/store-creation'
-import { emailOwner } from '@/lib/notify'
+import { EMAIL_LOGO, sendEmail } from '@/lib/notify'
+import { storeActivatedEmail } from '@ngift/core/emails'
 import { storefrontUrl } from '@/lib/storefront'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -110,11 +111,16 @@ export async function recordCashPayment(formData: FormData) {
   // A store's first payment opens its storefront: its owner is told (if NotificationAPI is set).
   if (activated) {
     const owner = await backend.auth.getUser(activated.ownerUid).catch(() => undefined)
-    await emailOwner(owner?.email, 'store_activated', {
-      store_name: activated.name,
-      store_url: storefrontUrl(activated),
-      paid_until: paidUntil.slice(0, 10),
-    })
+    await sendEmail(
+      owner?.email,
+      'store_activated',
+      storeActivatedEmail({
+        logoUrl: EMAIL_LOGO,
+        storeName: activated.name,
+        storeUrl: storefrontUrl(activated),
+        paidUntil: paidUntil.slice(0, 10).split('-').reverse().join('/'),
+      }),
+    )
   }
   revalidatePath('/platform')
   back({ saved: `Payment recorded, paid until ${paidUntil.slice(0, 10)}.` })

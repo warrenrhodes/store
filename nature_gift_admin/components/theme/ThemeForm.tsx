@@ -10,13 +10,13 @@ import {
   contrastProblems,
   hexToHsl,
   hslToHex,
+  PREVIEW_MESSAGE,
+  PREVIEW_READY,
   Section,
   StoreTheme,
   THEME_FONTS,
   THEME_RADII,
   ThemeFont,
-  themeOf,
-  themeVariables,
 } from '@ngift/core/theme'
 import { useEffect, useRef, useState } from 'react'
 
@@ -28,15 +28,23 @@ const COLORS = [
 ] as const
 const select = 'flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm'
 
-/** Message the storefront applies at once in a preview (ThemePreviewListener). */
-const PREVIEW_MESSAGE = 'ngift-theme-preview'
-
 /**
- * Colors, radius, font, logo, favicon and home sections, next to a live preview of the store.
- * Colors, radius and font reach the preview at once (postMessage); every change is also saved
- * as the draft after a short pause, and the preview reloads when the page's content changed.
+ * Colors, radius, font, logo, favicon and home sections, next to a preview of the store. The
+ * preview (the storefront's PREVIEW_PATH, sample products) gets every change at once by
+ * postMessage, nothing reloads; every change is also saved as the draft after a short pause.
+ * `draftUrl`: the real storefront with the draft (signed link), opened in a new tab.
  */
-export function ThemeForm({ initial, previewUrl }: { initial: StoreTheme; previewUrl: string }) {
+export function ThemeForm({
+  initial,
+  previewUrl,
+  draftUrl,
+  store,
+}: {
+  initial: StoreTheme
+  previewUrl: string
+  draftUrl: string
+  store: { name: string; whatsapp: string | null; email: string | null }
+}) {
   const [colors, setColors] = useState({
     primary: hslToHex(initial.colors.primary),
     background: hslToHex(initial.colors.background),
@@ -50,7 +58,6 @@ export function ThemeForm({ initial, previewUrl }: { initial: StoreTheme; previe
   const [radius, setRadius] = useState(initial.radius)
   const [font, setFont] = useState<ThemeFont>(initial.font)
   const [status, setStatus] = useState('')
-  const [reloads, setReloads] = useState(0)
   const form = useRef<HTMLFormElement>(null)
   const frame = useRef<HTMLIFrameElement>(null)
   const previewOrigin = new URL(previewUrl).origin
@@ -62,27 +69,38 @@ export function ThemeForm({ initial, previewUrl }: { initial: StoreTheme; previe
     accent: hexToHsl(colors.accent),
   })
 
-  // Colors, radius and font: straight into the preview, no save needed.
-  const vars = themeVariables(
-    themeOf({
-      preset: initial.preset,
-      colors: {
-        primary: hexToHsl(colors.primary) ?? initial.colors.primary,
-        background: hexToHsl(colors.background) ?? initial.colors.background,
-        foreground: hexToHsl(colors.foreground) ?? initial.colors.foreground,
-        accent: hexToHsl(colors.accent),
-      },
-      radius,
-      font,
-    }),
-  )
-  const sendVars = () =>
-    frame.current?.contentWindow?.postMessage({ type: PREVIEW_MESSAGE, vars }, previewOrigin)
-  useEffect(sendVars)
+  // The whole draft, straight into the preview at every change (and when it says it's ready).
+  const theme: StoreTheme = {
+    preset: initial.preset,
+    colors: {
+      primary: hexToHsl(colors.primary) ?? initial.colors.primary,
+      background: hexToHsl(colors.background) ?? initial.colors.background,
+      foreground: hexToHsl(colors.foreground) ?? initial.colors.foreground,
+      accent: hexToHsl(colors.accent),
+    },
+    radius,
+    font,
+    logoUrl,
+    faviconUrl,
+    announcement,
+    sections,
+  }
+  const send = () =>
+    frame.current?.contentWindow?.postMessage(
+      { type: PREVIEW_MESSAGE, theme, store },
+      previewOrigin,
+    )
+  useEffect(send)
+  useEffect(() => {
+    const onReady = (event: MessageEvent) => {
+      if (event.origin === previewOrigin && event.data?.type === PREVIEW_READY) send()
+    }
+    window.addEventListener('message', onReady)
+    return () => window.removeEventListener('message', onReady)
+  })
 
-  // Everything: saved as the draft after a pause; the preview reloads if the page changed.
+  // Everything: saved as the draft after a pause.
   const content = JSON.stringify([sections, logoUrl, faviconUrl, announcement])
-  const lastContent = useRef(content)
   const first = useRef(true)
   useEffect(() => {
     if (first.current) {
@@ -93,10 +111,6 @@ export function ThemeForm({ initial, previewUrl }: { initial: StoreTheme; previe
     const timer = setTimeout(async () => {
       const result = await autosaveThemeDraft(new FormData(form.current!))
       setStatus(result.error ? `Draft not saved: ${result.error}` : 'Draft saved.')
-      if (!result.error && content !== lastContent.current) {
-        lastContent.current = content
-        setReloads(n => n + 1)
-      }
     }, 800)
     return () => clearTimeout(timer)
   }, [colors, radius, font, content])
@@ -245,17 +259,15 @@ export function ThemeForm({ initial, previewUrl }: { initial: StoreTheme; previe
       </form>
       <div className="space-y-2 xl:sticky xl:top-20 xl:self-start">
         <div className="flex items-center justify-between text-sm">
-          <span className="font-medium">Live preview (draft)</span>
-          <a href={previewUrl} target="_blank" rel="noreferrer" className="underline">
-            Open in a new tab
+          <span className="font-medium">Preview (sample products)</span>
+          <a href={draftUrl} target="_blank" rel="noreferrer" className="underline">
+            See the draft with your products
           </a>
         </div>
         <iframe
           ref={frame}
-          key={reloads}
           src={previewUrl}
           title="Storefront preview"
-          onLoad={sendVars}
           className="h-[75vh] w-full rounded-lg border bg-white"
         />
       </div>

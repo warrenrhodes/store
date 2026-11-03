@@ -191,8 +191,9 @@ module.exports = async function themeChecks({
   )
   ok('publish: A shows its theme and sections at once; B and the marketplace keep theirs')
 
-  // Live preview, in a real browser on the admin's theme page: a color reaches the preview at
-  // once; a text edit is saved as the draft by itself and the preview reloads with it.
+  // Live preview, in a real browser on the admin's theme page: the preview is the storefront's
+  // sample page, fed by postMessage. A color and a text edit show at once without any reload
+  // or server call from the preview; nothing in it can be clicked; the edit is still autosaved.
   const tools = browserTools()
   if (!tools) {
     console.log('- live preview: skipped (no Playwright Chromium found)')
@@ -207,25 +208,43 @@ module.exports = async function themeChecks({
         }),
       )
       const tab = await context.newPage()
+      const isPreview = f => f.url().startsWith(`${STORE}/theme_preview`)
+      const calls = []
+      tab.on('request', r => {
+        if (isPreview(r.frame()) && (r.method() !== 'GET' || r.url().includes('/api/'))) {
+          calls.push(`${r.method()} ${r.url()}`)
+        }
+      })
       await tab.goto(`${ADMIN}/theme`)
       const preview = tab.frameLocator('iframe[title="Storefront preview"]')
       await preview.getByText('Bienvenue chez A').first().waitFor()
+      await preview.getByText('Savon au karité').first().waitFor()
+      assert.equal(await preview.getByText('Café Ginseng').count(), 0, 'sample products only')
+      assert.equal(await preview.locator('[inert]').count(), 1, 'nothing clickable')
+      // A marker in the preview's window: still there at the end if it never reloaded.
+      await tab.frames().find(isPreview).evaluate(() => (window.__kept = true))
       await tab.locator('input[name=primary]').fill('#0b5394')
       const previewPrimary = () =>
         tab
           .frames()
-          .find(f => f.url().includes(`${A}?preview=`))
+          .find(isPreview)
           ?.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--primary').trim())
       await until(async () => (await previewPrimary()) === '208 86% 31%', 'color in the preview')
-      await until(
-        async () => (await storeA()).themeDraft?.colors.primary === '208 86% 31%',
-        'color saved as the draft',
-      )
       await tab.locator('#hero-title').fill('Titre en direct')
-      await preview.getByText('Titre en direct').first().waitFor({ timeout: 15000 })
+      await preview.getByText('Titre en direct').first().waitFor({ timeout: 3000 })
+      await until(
+        async () => (await storeA()).themeDraft?.sections?.[0]?.title === 'Titre en direct',
+        'edit saved as the draft',
+      )
+      assert.equal((await storeA()).themeDraft.colors.primary, '208 86% 31%')
+      assert.ok(
+        await tab.frames().find(isPreview).evaluate(() => window.__kept === true),
+        'the preview never reloads',
+      )
+      assert.deepEqual(calls, [], 'the preview calls no server')
       const live = await html(A)
       assert.ok(!live.includes('Titre en direct') && live.includes('--primary:308 62% 30%'), 'published theme unchanged')
-      ok('live preview: a color shows at once, a text edit is autosaved as the draft and shown; the storefront is unchanged')
+      ok('live preview: sample products, nothing clickable; a color and a text edit show at once with no reload and no server call; autosaved as the draft; the storefront is unchanged')
     } finally {
       await browser.close()
     }

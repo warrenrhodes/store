@@ -1,7 +1,8 @@
 'use server'
 
 import { getSiteContext } from '@/lib/api/utils'
-import { sendEmailNotifications } from '@/lib/notifications/sendNotifications'
+import { EMAIL_LOGO, sendEmail } from '@/lib/notifications/sendNotifications'
+import { contactEmail } from '@ngift/core/emails'
 
 interface ContactFormData {
   name: string
@@ -38,19 +39,18 @@ export async function submitContactForm(data: ContactFormData) {
     return { success: true } // Return true to avoid showing error to user if config is missing but submission worked "technically"
   }
 
-  const notificationData = {
-    subject: subject,
-    message: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
-  }
-
+  const content = contactEmail({
+    logoUrl: EMAIL_LOGO,
+    siteName: ctx.store?.name ?? 'N.Gift',
+    name,
+    email: email!,
+    subject,
+    message,
+  })
   try {
     await Promise.all(
       adminEmails.map(adminEmail =>
-        sendEmailNotifications({
-          email: adminEmail,
-          notificationId: 'new_message',
-          data: notificationData,
-        }),
+        sendEmail({ email: adminEmail, type: 'new_message', content, replyTo: email }),
       ),
     )
     return { success: true }

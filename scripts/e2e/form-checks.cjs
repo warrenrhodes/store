@@ -217,9 +217,12 @@ module.exports = async function formChecks({ db, admin, ADMIN, AUTH_HOST, apiKey
 
   // Team: invite an existing account (joins now) and a new email (joins at sign-in).
   r = await submit(ownerA, '/team', 'inviteMember', { email: 'vendorb@test.cm' })
-  assert.match(r.location, /joined the team/)
+  // No NotificationAPI in the tests: no email, so the owner is given the link to pass on.
+  const notice = location => new URL(location, ADMIN).searchParams.get('saved')
+  assert.match(notice(r.location), /joined the team\. No email could be sent: .* http:\/\/\S+\/sign-in$/)
   assert.equal((await db.doc('memberships/admin-uid_vendor-b').get()).get('role'), 'staff')
   r = await submit(ownerA, '/team', 'inviteMember', { email: 'New@Test.cm' })
+  assert.match(notice(r.location), /when they sign up with this email\. .* http:\/\/\S+\/sign-up$/)
   assert.ok((await db.doc('invites/admin-uid_new@test.cm').get()).exists)
   await admin.auth().createUser({
     uid: 'new-user',
@@ -231,7 +234,7 @@ module.exports = async function formChecks({ db, admin, ADMIN, AUTH_HOST, apiKey
   assert.ok((await get(newUser, '/products')).includes('Café Ginseng'), 'the invited user sees A')
   assert.equal((await db.doc('memberships/admin-uid_new-user').get()).get('role'), 'staff')
   assert.ok(!(await db.doc('invites/admin-uid_new@test.cm').get()).exists)
-  ok('team: existing account joins as staff; invited email joins on first sign-in')
+  ok('team: existing account joins as staff; invited email joins on first sign-in; without email service the link is shown')
 
   // B now belongs to two stores: the switcher picks A, a forged id is ignored.
   r = await submit(ownerB, '/', 'switchStore', { storeId: 'admin-uid' })

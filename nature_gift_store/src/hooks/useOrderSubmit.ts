@@ -10,6 +10,7 @@ import { useTemporalUser } from '@/hooks/useTemporalUser'
 import { createOrder } from '@/lib/api/orders'
 import { DeliveryFormData } from '@/lib/utils/validation-form'
 import { sendGTMEvent } from '@next/third-parties/google'
+import { trackPixel } from '@/lib/analytics/pixel'
 import { getDocumentId } from '@spreeloop/database'
 import { useSite, useSiteRouter } from '@/components/Site'
 import { useState } from 'react'
@@ -70,31 +71,33 @@ export function useOrderSubmit({ items, onPlaced }: { items: CartItem[]; onPlace
             ? localization.errorOutOfStock
             : result.error === 'PROMOTION_EXHAUSTED'
               ? localization.promotionExhausted
-              : result.error === 'MIXED_STORES'
-                ? localization.mixedStores
-                : localization.orderError,
+              : localization.orderError,
         variant: 'destructive',
       })
       setIsLoading(false)
       return
     }
 
-    const { order } = result
-    const orderId = getDocumentId(order.path)
+    const { orders, checkoutGroupId, trackingToken } = result
+    const [order] = orders
+    // One purchase for the cart: the order id (also the Meta Conversions API event id), or the
+    // group id when the marketplace cart made one order per store.
+    const transactionId = checkoutGroupId ?? getDocumentId(order.path)
     try {
       sendGTMEvent({
         event: 'purchase',
         currency: 'XAF',
-        value: order.orderPrices.total,
-        transaction_id: orderId,
-        // Same id as the server-side Meta Conversions API event, so Meta counts it once.
-        event_id: orderId,
-        items: order.items.map(e => ({
-          item_id: getDocumentId(e.product.path),
-          item_name: e.product.title,
-          quantity: e.quantity,
-          price: e.price,
-        })),
+        value: orders.reduce((sum, o) => sum + o.orderPrices.total, 0),
+        transaction_id: transactionId,
+        event_id: transactionId,
+        items: orders.flatMap(o =>
+          o.items.map(e => ({
+            item_id: getDocumentId(e.product.path),
+            item_name: e.product.title,
+            quantity: e.quantity,
+            price: e.price,
+          })),
+        ),
         userInfo: {
           id: user?.authId,
           email: order.userData?.email,
@@ -105,6 +108,15 @@ export function useOrderSubmit({ items, onPlaced }: { items: CartItem[]; onPlace
           location: order.deliveryInfo?.location,
         },
       })
+      // One Purchase per order, deduplicated with the server's Conversions API event by the
+      // same id (the order id).
+      for (const o of orders) {
+        trackPixel(
+          'Purchase',
+          o.items.map(i => ({ path: i.product.path, quantity: i.quantity, price: i.price })),
+          getDocumentId(o.path),
+        )
+      }
     } catch (error) {
       console.log(error)
     }
@@ -113,7 +125,11 @@ export function useOrderSubmit({ items, onPlaced }: { items: CartItem[]; onPlace
     clearCodes()
     resetCheckoutId()
     onPlaced()
-    router.replace(`/order/success?order=${orderId}&t=${order.trackingToken}`)
+    router.replace(
+      checkoutGroupId
+        ? `/order/success?group=${checkoutGroupId}&t=${trackingToken}`
+        : `/order/success?order=${transactionId}&t=${trackingToken}`,
+    )
   }
 
   return { submit, isLoading }

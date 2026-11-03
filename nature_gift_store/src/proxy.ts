@@ -19,6 +19,9 @@ const PUBLIC_PATHS = [
   '/order/success',
   // Customer order tracking: protected by the secret token in its link, no account needed.
   new RegExp('^/order/[^/]+$'),
+  new RegExp('^/order/group/[^/]+$'),
+  // Marketplace vendor pages.
+  new RegExp('^/vendeur/[^/]+$'),
   '/cart',
   '/favoris',
   '/sitemap.xml',

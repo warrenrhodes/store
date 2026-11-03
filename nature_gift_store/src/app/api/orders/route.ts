@@ -1,23 +1,16 @@
 import { CartItem } from '@/hooks/useCart'
-import {
-  getPromotionsWithFreshUsage,
-  getShippingZonesCache,
-  getDocumentByPathFresh,
-} from '@/lib/api/utils'
-import { cartStoreErrorStatus, resolveCartStore } from '@/lib/api/cart-store'
+import { cartStoreErrorStatus, checkoutDocId } from '@/lib/api/cart-store'
+import { priceCart } from '@/lib/api/price-cart'
 import { SiteStore } from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { backend } from '@/lib/firebase/firebase-server/firebase'
-import { Order, OrderStatus, Product, ProductStatus, StoreSecrets } from '@/lib/firebase/models'
-import { isWithinUsageLimit, PromotionCalculator } from '@/lib/utils/promotion-calculator'
-import { getRegularPrice } from '@/lib/utils/utils'
-import { findArea } from '@/lib/utils/shipping-zones'
+import { Order, OrderStatus, StoreSecrets } from '@/lib/firebase/models'
 import { FlockNotifier } from '@/lib/notifications/flock/flock'
 import { sendEmailNotifications, sendSmsNotifications } from '@/lib/notifications/sendNotifications'
 import { getDatabasePath } from '@spreeloop/database'
 import { FieldValue } from 'firebase-admin/firestore'
 import { randomBytes } from 'node:crypto'
-import { sendMetaPurchase } from '@/lib/analytics/meta-capi'
+import { getStorePixels, requestSignals, sendMetaEvent } from '@/lib/analytics/meta-capi'
 import { format } from 'date-fns'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -30,10 +23,6 @@ async function storeChannels(store: SiteStore) {
     flock: new FlockNotifier({ webhookUrl: secrets?.flockWebhookUrl || '' }),
     emails: store.settings?.notificationEmails ?? [],
     phones: store.settings?.notificationPhones ?? [],
-    pixels: (store.settings?.metaPixelIds ?? []).flatMap(id => {
-      const token = secrets?.metaCapiTokens?.[id]
-      return token ? [{ id, token }] : []
-    }),
   }
 }
 /** Thrown inside the order transaction; turned into a 409 the checkout can explain. */
@@ -68,85 +57,31 @@ async function promotionUsesByPhone(phone?: string | null) {
 }
 
 /**
- * Prices the order from the database, never from the client: product prices, the store,
- * its shipping cost and its promotions are all looked up server-side.
+ * Takes stock and promotion uses for every order of the cart, then writes them all, or nothing
+ * (one store out of stock: no order at all, docs 3.4).
  */
-async function priceOrder(
-  rawItems: unknown,
-  site: unknown,
-  deliveryInfo: { deliveryMethod?: string; locationId?: string } | undefined,
-  codes: string[],
-  phone?: string | null,
-) {
-  if (!Array.isArray(rawItems) || rawItems.length === 0) return null
-
-  const cart = await Promise.all(
-    rawItems.map(async (item): Promise<CartItem | null> => {
-      const quantity = Number(item?.quantity)
-      const path = String(item?.product?.path ?? '')
-      if (!Number.isInteger(quantity) || quantity < 1 || quantity > 99) return null
-      if (!path.startsWith(`${CollectionsName.Products}/`)) return null
-      const product = await getDocumentByPathFresh<Product>({ path })
-      if (!product || product.status !== ProductStatus.PUBLISHED) return null
-      return { product: { ...product, path }, quantity, price: getRegularPrice(product) }
-    }),
-  )
-  if (cart.some(item => !item)) return null
-  const resolved = await resolveCartStore(
-    site,
-    cart.map(item => item!.product),
-  )
-  if ('error' in resolved) return { error: resolved.error }
-  const { store } = resolved
-
-  // The area is matched by id; its name and city come from the database, not the client.
-  const picked = findArea(
-    await getShippingZonesCache(store.id),
-    deliveryInfo?.deliveryMethod,
-    deliveryInfo?.locationId,
-  )
-  const area = picked?.area
-  const cost = picked?.zone.cost ?? 0
-
-  const uses = await promotionUsesByPhone(phone)
-  const cached = await getPromotionsWithFreshUsage(store.id)
-  const promotions = cached.filter(p => isWithinUsageLimit(p, uses.get(p.path) ?? 0))
-  const summary = new PromotionCalculator(
-    cart as CartItem[],
-    {
-      // Without a listed area the shipping cost is unknown: method-based promos don't apply.
-      deliveryMethod: area ? (deliveryInfo?.deliveryMethod as never) : undefined,
-      locationId: area?.id,
-      city: area?.city,
-      cost,
-    },
-    promotions,
-    codes,
-  ).calculate()
-
-  return { cart: cart as CartItem[], summary, area, store }
-}
-
-/** Takes stock and promotion uses, then writes the order, all or nothing. */
-async function placeOrder(
-  data: Record<string, unknown>,
-  cart: CartItem[],
-  promotionPaths: string[],
-  checkoutId?: string,
+async function placeOrders(
+  orders: { data: Record<string, unknown>; cart: CartItem[]; promotionPaths: string[] }[],
 ) {
   const db = backend.db
-  const orderRef = db.collection(CollectionsName.Orders).doc()
-  const lowStock: string[] = []
+  const refs = orders.map(() => db.collection(CollectionsName.Orders).doc())
+  const lowStock = new Map<string, string[]>() // storeId → lines
+  const storeOf = new Map<string, string>() // product path → storeId
 
   await db.runTransaction(async tx => {
     // Reads first (Firestore transactions require it), then writes.
     const quantities = new Map<string, number>()
-    cart.forEach(i =>
-      quantities.set(i.product.path, (quantities.get(i.product.path) ?? 0) + i.quantity),
-    )
+    for (const { cart } of orders) {
+      for (const i of cart) {
+        quantities.set(i.product.path, (quantities.get(i.product.path) ?? 0) + i.quantity)
+        storeOf.set(i.product.path, i.product.storeId ?? '')
+      }
+    }
+    const promotionPaths = [...new Set(orders.flatMap(o => o.promotionPaths))]
     const products = await Promise.all([...quantities.keys()].map(path => tx.get(db.doc(path))))
     const promotions = await Promise.all(promotionPaths.map(path => tx.get(db.doc(path))))
 
+    lowStock.clear()
     for (const doc of products) {
       const stock = doc.get('inventory.stockQuantity')
       // No stockQuantity means stock isn't tracked for this product.
@@ -155,7 +90,11 @@ async function placeOrder(
       if (wanted > stock) throw new OrderConflict('OUT_OF_STOCK', doc.ref.path)
       const threshold = doc.get('inventory.lowStockThreshold')
       if (stock - wanted <= (typeof threshold === 'number' ? threshold : 0)) {
-        lowStock.push(`${doc.get('title')}: ${stock - wanted} left`)
+        const store = storeOf.get(doc.ref.path)!
+        lowStock.set(store, [
+          ...(lowStock.get(store) ?? []),
+          `${doc.get('title')}: ${stock - wanted} left`,
+        ])
       }
       tx.update(doc.ref, { 'inventory.stockQuantity': FieldValue.increment(-wanted) })
     }
@@ -166,193 +105,218 @@ async function placeOrder(
       }
       tx.update(doc.ref, { usageCount: FieldValue.increment(1) })
     }
-    tx.set(orderRef, data)
-    if (checkoutId) {
-      tx.set(
-        db.collection(CollectionsName.Checkouts).doc(checkoutId),
-        { orderPath: orderRef.path, updatedAt: data.createdAt },
-        { merge: true },
-      )
-    }
+    orders.forEach((o, i) => {
+      tx.set(refs[i], o.data)
+      // Each store's abandoned checkout is marked converted by its own order.
+      if (typeof o.data.checkoutId === 'string') {
+        tx.set(
+          db.collection(CollectionsName.Checkouts).doc(o.data.checkoutId),
+          { orderPath: refs[i].path, updatedAt: o.data.createdAt },
+          { merge: true },
+        )
+      }
+    })
   })
-  return { orderRef, lowStock }
+  return { refs, lowStock }
 }
 
-/// Request to create new order.
+/**
+ * After the commit, to the order's store only: low stock and order alerts (Flock, email, SMS)
+ * and the Meta purchase (every Pixel of the store, event id = the order id). Never throws: the
+ * order is saved, an error here would make the customer order twice.
+ */
+async function notifyStore(
+  req: NextRequest,
+  store: SiteStore,
+  order: Order & { path: string },
+  lowStock: string[],
+) {
+  try {
+    const channels = await storeChannels(store)
+    const flockNotifier = channels.flock
+    if (lowStock.length > 0) await flockNotifier.sendText(`⚠️ Low stock\n${lowStock.join('\n')}`)
+    await sendMetaEvent(await getStorePixels(store), {
+      name: 'Purchase',
+      eventId: order.path.split('/').pop()!,
+      value: order.orderPrices.total,
+      contents: order.items.map(i => ({
+        id: i.product.path.split('/').pop()!,
+        quantity: i.quantity,
+        item_price: i.price,
+      })),
+      phone: order.userData?.phone,
+      email: order.userData?.email,
+      fullName: order.userData?.fullName,
+      city: order.deliveryInfo.city,
+      ...requestSignals(req),
+    })
+    try {
+      await flockNotifier.sendOrderNotification(order)
+    } catch (error) {
+      console.error('Error sending Flock notification:', error)
+    }
+    const info = order.deliveryInfo
+    if (channels.emails.length > 0) {
+      const notificationData = {
+        user_name: order.userData.fullName,
+        user_number: order.userData.phone,
+        selected_products: order.items.map(item => item.product.title).join(', '),
+        delivery_address: info.address,
+        delivery_location: info.location,
+        delivery_date: info.deliveryDate
+          ? `${format(info.deliveryDate, 'PPP')} ${info.deliveryTime ?? ''}`
+          : '',
+      }
+      try {
+        await Promise.all(
+          channels.emails.map(email =>
+            sendEmailNotifications({
+              email,
+              notificationId: 'new_product',
+              data: notificationData,
+            }),
+          ),
+        )
+      } catch (error) {
+        console.error('Failed to send email notifications:', error)
+      }
+    }
+    if (channels.phones.length > 0) {
+      try {
+        await Promise.all(
+          channels.phones.map(phone =>
+            sendSmsNotifications({
+              phoneNumber: phone,
+              notificationId: 'new_product',
+              data: {
+                comment: `Visit the order on ${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/orders`,
+              },
+            }),
+          ),
+        )
+      } catch (error) {
+        console.error('Failed to send SMS notifications:', error)
+      }
+    }
+  } catch (error) {
+    console.error('[ORDERS_POST] post-order notifications failed:', error)
+  }
+}
+
+/**
+ * Places the cart: one order per store (a store's page: always one), priced on the server, all
+ * written in one transaction. Orders of the same cart share `checkoutGroupId` and the tracking
+ * token, so /order/group/<id> shows them together.
+ */
 export const POST = async (req: NextRequest) => {
   const { order, cartItems: rawItems, promoCodes, checkoutId, site } = await req.json()
-  const codes = Array.isArray(promoCodes) ? promoCodes.map(String).slice(0, 5) : []
-  const priced = await priceOrder(
-    rawItems,
+  const priced = await priceCart({
+    items: rawItems,
     site,
-    order?.deliveryInfo,
-    codes,
-    order?.userData?.phone,
-  )
-  if (!priced) {
-    return NextResponse.json({ error: 'Invalid cart' }, { status: 400 })
-  }
+    delivery: order?.deliveryInfo,
+    codes: Array.isArray(promoCodes) ? promoCodes.map(String).slice(0, 5) : [],
+    fresh: true,
+    uses: await promotionUsesByPhone(order?.userData?.phone),
+  })
   if ('error' in priced) {
+    if (priced.error === 'INVALID_CART') {
+      return NextResponse.json({ error: 'Invalid cart' }, { status: 400 })
+    }
     return NextResponse.json(
       { error: priced.error },
       { status: cartStoreErrorStatus[priced.error] },
     )
   }
-  const { cart: cartItems, summary, area, store } = priced
   const now = new Date().toISOString()
+  const trackingToken = randomBytes(16).toString('hex')
+  const checkoutGroupId = priced.groups.length > 1 ? randomBytes(10).toString('hex') : null
 
-  const data = {
-    userPath: order.userData?.id
-      ? getDatabasePath(CollectionsName.Users, order.userData?.id)
-      : null,
-    deliveryInfo: {
-      ...order.deliveryInfo,
-      location: area?.name ?? null,
-      locationId: area?.id ?? null,
-      // A listed area sets the city; otherwise keep what the customer typed.
-      city: area?.city || order.deliveryInfo?.city || null,
-    },
-    userData: order.userData,
-    status: OrderStatus.PENDING,
-    orderPrices: {
-      subtotal: summary.subtotal,
-      shipping: summary.shipping,
-      discount: summary.discount,
-      total: summary.total,
-    },
-    // One store per order (checked by resolveCartStore).
-    storeId: store.id,
-    partnersPaths: [
-      ...new Set(
-        cartItems.map(item => getDatabasePath(CollectionsName.Users, item.product.creatorId)),
-      ),
-    ],
-    items: cartItems.map(item => ({
-      product: {
-        medias: item.product.medias,
-        title: item.product.title,
-        path: item.product.path,
-        price: item.product.price,
-        creatorId: item.product.creatorId,
-        storeId: item.product.storeId ?? null,
+  const orders = priced.groups.map(({ store, cart, summary, area }) => ({
+    store,
+    cart,
+    promotionPaths: [...new Set(summary.appliedPromotions.map(p => p.id))],
+    data: {
+      userPath: order.userData?.id
+        ? getDatabasePath(CollectionsName.Users, order.userData?.id)
+        : null,
+      deliveryInfo: {
+        ...order.deliveryInfo,
+        // This store's own area (its location id, name and city); none: to confirm.
+        location: area?.name ?? null,
+        locationId: area?.id ?? null,
+        // A listed area sets the city; otherwise keep what the customer typed.
+        city: area?.city || order.deliveryInfo?.city || null,
       },
-      quantity: item.quantity,
-      price: item.price,
-    })),
-    promotions: summary.appliedPromotions.map(promotion => ({
-      promotionId: promotion.id,
-      discountAmount: promotion.discountAmount,
-      code: promotion.code,
-      type: promotion.type,
-    })),
-    trackingToken: randomBytes(16).toString('hex'),
-    stockReserved: true,
-    checkoutId: typeof checkoutId === 'string' ? checkoutId : null,
-    history: [{ at: now, by: 'customer', type: 'created', status: OrderStatus.PENDING }],
-    createdAt: now,
-    updatedAt: now,
-  }
+      userData: order.userData,
+      status: OrderStatus.PENDING,
+      orderPrices: {
+        subtotal: summary.subtotal,
+        shipping: summary.shipping,
+        discount: summary.discount,
+        total: summary.total,
+      },
+      storeId: store.id,
+      checkoutGroupId,
+      partnersPaths: [
+        ...new Set(
+          cart.map(item => getDatabasePath(CollectionsName.Users, item.product.creatorId)),
+        ),
+      ],
+      items: cart.map(item => ({
+        product: {
+          medias: item.product.medias,
+          title: item.product.title,
+          path: item.product.path,
+          price: item.product.price,
+          creatorId: item.product.creatorId,
+          storeId: item.product.storeId ?? null,
+        },
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      promotions: summary.appliedPromotions.map(promotion => ({
+        promotionId: promotion.id,
+        discountAmount: promotion.discountAmount,
+        code: promotion.code,
+        type: promotion.type,
+      })),
+      trackingToken,
+      stockReserved: true,
+      // Same id rule as /api/checkouts (which only accepts these ids).
+      checkoutId:
+        typeof checkoutId === 'string' && /^[\w-]{10,64}$/.test(checkoutId)
+          ? checkoutDocId(checkoutId, store.id, priced.groups.length)
+          : null,
+      history: [{ at: now, by: 'customer', type: 'created', status: OrderStatus.PENDING }],
+      createdAt: now,
+      updatedAt: now,
+    },
+  }))
+
   try {
     let placed
     try {
-      placed = await placeOrder(
-        data,
-        cartItems,
-        [...new Set(summary.appliedPromotions.map(p => p.id))],
-        data.checkoutId ?? undefined,
-      )
+      placed = await placeOrders(orders)
     } catch (error) {
       if (error instanceof OrderConflict) {
         return NextResponse.json({ error: error.code, detail: error.detail }, { status: 409 })
       }
       throw error
     }
-    const newOrder = { data: data as unknown as Order, path: placed.orderRef.path }
-
-    // The order is saved: alerts and tracking must never turn it into an error (the customer
-    // would retry and order twice). They go to the order's store only.
-    try {
-      const channels = await storeChannels(store)
-      const flockNotifier = channels.flock
-      if (placed.lowStock.length > 0) {
-        await flockNotifier.sendText(`⚠️ Low stock\n${placed.lowStock.join('\n')}`)
-      }
-      await sendMetaPurchase(channels.pixels, {
-        eventId: placed.orderRef.id,
-        value: summary.total,
-        contents: cartItems.map(i => ({
-          id: i.product.path.split('/').pop()!,
-          quantity: i.quantity,
-          item_price: i.price,
-        })),
-        phone: order.userData?.phone,
-        fullName: order.userData?.fullName,
-        city: data.deliveryInfo.city,
-        sourceUrl: req.headers.get('referer'),
-        ip: req.headers.get('x-forwarded-for')?.split(',')[0]?.trim(),
-        userAgent: req.headers.get('user-agent'),
-        fbp: req.cookies.get('_fbp')?.value,
-        fbc: req.cookies.get('_fbc')?.value,
-      })
-
-      try {
-        await flockNotifier.sendOrderNotification({ ...newOrder.data, path: newOrder.path })
-      } catch (error) {
-        console.error('Error sending Flock notification:', error)
-      }
-      const adminEmails = channels.emails
-      const adminPhones = channels.phones
-
-      if (adminEmails.length > 0) {
-        const notificationData = {
-          user_name: order.userData.fullName,
-          user_number: order.userData.phone,
-          selected_products: cartItems.map(item => item.product.title).join(', '),
-          delivery_address: order.deliveryInfo.address,
-          delivery_location: order.deliveryInfo.location,
-          delivery_date: order.deliveryInfo.deliveryDate
-            ? `${format(order.deliveryInfo.deliveryDate, 'PPP')} ${order.deliveryInfo.deliveryTime ?? ''}`
-            : '',
-        }
-
-        try {
-          await Promise.all(
-            adminEmails.map(email =>
-              sendEmailNotifications({
-                email,
-                notificationId: 'new_product',
-                data: notificationData,
-              }),
-            ),
-          )
-        } catch (error) {
-          console.error('Failed to send email notifications:', error)
-        }
-      }
-
-      // SMS notifications commented out for now
-      if (adminPhones.length > 0) {
-        try {
-          await Promise.all(
-            adminPhones.map(phone =>
-              sendSmsNotifications({
-                phoneNumber: phone,
-                notificationId: 'new_product',
-                data: {
-                  comment: `Visit the order on ${process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_URL}/orders`,
-                },
-              }),
-            ),
-          )
-        } catch (error) {
-          console.error('Failed to send SMS notifications:', error)
-        }
-      }
-    } catch (error) {
-      console.error('[ORDERS_POST] post-order notifications failed:', error)
-    }
-
-    return NextResponse.json({ ...newOrder.data, path: newOrder.path }, { status: 201 })
+    const saved = orders.map((o, i) => ({
+      ...(o.data as unknown as Order),
+      path: placed.refs[i].path,
+    }))
+    await Promise.all(
+      orders.map((o, i) =>
+        notifyStore(req, o.store, saved[i], placed.lowStock.get(o.store.id) ?? []),
+      ),
+    )
+    // The first order at the top level, as before the split (one order in a store's page).
+    return NextResponse.json(
+      { ...saved[0], orders: saved, checkoutGroupId, trackingToken },
+      { status: 201 },
+    )
   } catch (error) {
     console.error('[ORDERS_POST]', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })

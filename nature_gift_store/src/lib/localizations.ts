@@ -55,9 +55,33 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     en: 'This discount is no longer available.',
     fr: 'Cette promotion n’est plus disponible.',
   },
-  mixedStores: {
-    en: 'Your cart holds products from several stores: please order them separately.',
-    fr: 'Votre panier contient des produits de plusieurs boutiques : commandez-les séparément.',
+  ordersByStore: {
+    en: 'One order per store: each store delivers its own products.',
+    fr: 'Une commande par boutique : chaque boutique livre ses propres produits.',
+  },
+  soldBy: {
+    en: 'Sold by',
+    fr: 'Vendu par',
+  },
+  ourStores: {
+    en: 'Our stores',
+    fr: 'Nos boutiques',
+  },
+  visitStore: {
+    en: 'Visit the store',
+    fr: 'Voir la boutique',
+  },
+  noProductsYet: {
+    en: 'No products yet.',
+    fr: 'Pas encore de produits.',
+  },
+  yourOrders: {
+    en: 'Your orders',
+    fr: 'Vos commandes',
+  },
+  trackThisOrder: {
+    en: 'Track this order',
+    fr: 'Suivre cette commande',
   },
   trackOrder: {
     en: 'Track my order',
@@ -1140,7 +1164,13 @@ export const enum DictWords {
   promoAddedFromLink = 'promoAddedFromLink',
   removeCode = 'removeCode',
   promotionExhausted = 'promotionExhausted',
-  mixedStores = 'mixedStores',
+  ordersByStore = 'ordersByStore',
+  soldBy = 'soldBy',
+  ourStores = 'ourStores',
+  visitStore = 'visitStore',
+  noProductsYet = 'noProductsYet',
+  yourOrders = 'yourOrders',
+  trackThisOrder = 'trackThisOrder',
   trackOrder = 'trackOrder',
   orderTracking = 'orderTracking',
   orderNumber = 'orderNumber',

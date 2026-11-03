@@ -210,11 +210,8 @@ module.exports = async function siteChecks({
     400,
   )
   assert.equal((await order('nope', ['products/the'], delivery('mendong', 'M'), '671000003')).status, 404)
-  const mixed = await order(undefined, ['products/the', 'products/b-miel'], delivery('mendong', 'M'), '671000004')
-  assert.equal(mixed.status, 409)
-  assert.equal(mixed.body.error, 'MIXED_STORES')
   assert.equal((await db.collection('orders').get()).size, before)
-  ok("B's product sent with site=ngift: 400 (order, preview, checkout); unknown site 404; mixed marketplace cart 409; nothing written")
+  ok("B's product sent with site=ngift: 400 (order, preview, checkout); unknown site 404; nothing written")
 
   // B after the locations migration: its zone and its promotion use its copy of Akwa.
   const oB = await order('boutique-bertrand', ['products/b-miel'], delivery('akwa_vendor-b', 'Akwa'), '671000005')

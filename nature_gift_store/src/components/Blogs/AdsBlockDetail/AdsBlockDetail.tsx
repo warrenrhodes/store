@@ -14,6 +14,7 @@ import { cn, getRegularPrice } from '@/lib/utils/utils'
 import { Button } from '@/components/ui/button'
 import { Inventory } from '@/lib/type'
 import { sendGTMEvent } from '@next/third-parties/google'
+import { trackPixel } from '@/lib/analytics/pixel'
 import { getDocumentId } from '@spreeloop/database'
 
 import { SiteLink as Link } from '@/components/Site'
@@ -62,6 +63,7 @@ const AdsBlogDetail = ({
         },
       ],
     })
+    trackPixel('ViewContent', [{ path: associateProduct.path, quantity: 1, price }])
   }, [associateProduct?.path])
 
   return (

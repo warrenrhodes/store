@@ -32,7 +32,16 @@ export function OrderSummary({
   const { cartDeliveryInfo } = useCartDeliveryInfo()
 
   const [summary, setSummary] = useState<
-    (OrderSummaryType & { codeStatuses?: Record<string, string> }) | null
+    | (OrderSummaryType & {
+        codeStatuses?: Record<string, string>
+        /** One per store of the cart (docs 3.4): each is ordered and delivered apart. */
+        groups?: (OrderSummaryType & {
+          storeId: string
+          storeName: string
+          shippingKnown: boolean
+        })[]
+      })
+    | null
   >(null)
   const { calculatePromotions, isCalculating, error } = usePromotionCalculator()
   const { localization } = useLocalization()
@@ -160,31 +169,26 @@ export function OrderSummary({
         </div>
       ) : (
         <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span>{localization.subtotal}</span>
-            <span className="tabular-nums">{priceFormatted(summary.subtotal)}</span>
-          </div>
-          <div className="flex justify-between gap-4">
-            <span>{localization.shipping}</span>
-            {cartDeliveryInfo?.locationId ? (
-              <span className="tabular-nums">
-                {summary.shipping > 0 ? priceFormatted(summary.shipping) : localization.free}
-              </span>
-            ) : (
-              <span className="text-right text-muted-foreground">
-                {localization.shippingToConfirm}
-              </span>
-            )}
-          </div>
-          {summary.appliedPromotions.map(promo => (
-            <div key={`${promo.id}-${promo.type}`} className="flex justify-between text-primary">
-              <span className="flex items-center gap-1">
-                <Tag className="h-3.5 w-3.5" aria-hidden />{' '}
-                {promo.type === 'FREE_SHIPPING' ? localization.freeShipping : promo.code}
-              </span>
-              <span className="tabular-nums">-{priceFormatted(promo.discountAmount)}</span>
-            </div>
-          ))}
+          {(summary.groups?.length ?? 0) > 1 ? (
+            <>
+              <p className="text-muted-foreground">{localization.ordersByStore}</p>
+              {summary.groups!.map(group => (
+                <div key={group.storeId} className="space-y-1 rounded-lg border bg-background p-3">
+                  <p className="font-medium">{group.storeName}</p>
+                  <Lines
+                    summary={group}
+                    shippingKnown={!!cartDeliveryInfo?.locationId && group.shippingKnown}
+                  />
+                  <div className="flex justify-between font-medium">
+                    <span>{localization.total}</span>
+                    <span className="tabular-nums">{priceFormatted(group.total)}</span>
+                  </div>
+                </div>
+              ))}
+            </>
+          ) : (
+            <Lines summary={summary} shippingKnown={!!cartDeliveryInfo?.locationId} />
+          )}
           <Separator className="!my-4" />
           <div className="flex items-baseline justify-between text-base font-semibold">
             <span>{localization.total}</span>
@@ -196,5 +200,37 @@ export function OrderSummary({
         <p className="mt-3 text-sm text-destructive">{localization.failedToLoadPromotions}</p>
       )}
     </div>
+  )
+}
+
+/** Subtotal, shipping and promotions of one summary (the cart, or one store of it). */
+function Lines({ summary, shippingKnown }: { summary: OrderSummaryType; shippingKnown: boolean }) {
+  const { localization } = useLocalization()
+  return (
+    <>
+      <div className="flex justify-between">
+        <span>{localization.subtotal}</span>
+        <span className="tabular-nums">{priceFormatted(summary.subtotal)}</span>
+      </div>
+      <div className="flex justify-between gap-4">
+        <span>{localization.shipping}</span>
+        {shippingKnown ? (
+          <span className="tabular-nums">
+            {summary.shipping > 0 ? priceFormatted(summary.shipping) : localization.free}
+          </span>
+        ) : (
+          <span className="text-right text-muted-foreground">{localization.shippingToConfirm}</span>
+        )}
+      </div>
+      {summary.appliedPromotions.map(promo => (
+        <div key={`${promo.id}-${promo.type}`} className="flex justify-between text-primary">
+          <span className="flex items-center gap-1">
+            <Tag className="h-3.5 w-3.5" aria-hidden />{' '}
+            {promo.type === 'FREE_SHIPPING' ? localization.freeShipping : promo.code}
+          </span>
+          <span className="tabular-nums">-{priceFormatted(promo.discountAmount)}</span>
+        </div>
+      ))}
+    </>
   )
 }

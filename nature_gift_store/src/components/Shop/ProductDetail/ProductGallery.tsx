@@ -6,6 +6,7 @@ import { FAKE_BLUR } from '@/lib/utils/constants'
 import Image from 'next/image'
 import { useLocalization } from '@/hooks/useLocalization'
 import { sendGTMEvent } from '@next/third-parties/google'
+import { trackPixel } from '@/lib/analytics/pixel'
 import { Price } from '@/lib/type'
 import { Product } from '@/lib/firebase/models'
 import { cn } from '@/lib/utils/utils'
@@ -33,6 +34,7 @@ export function ProductGallery({ product }: { product: Product }) {
         },
       ],
     })
+    trackPixel('ViewContent', [{ path: product.path, quantity: 1, price: price?.regular ?? 0 }])
   }, [])
 
   const go = (step: number) => setCurrentImage(i => (i + step + medias.length) % medias.length)

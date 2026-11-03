@@ -3,13 +3,14 @@ import { toast } from '@/hooks/use-toast'
 import { CartItem, useCartDeliveryInfo } from '@/hooks/useCart'
 import { useLocalization } from '@/hooks/useLocalization'
 import { useTemporalUser } from '@/hooks/useTemporalUser'
-import { useCheckoutCapture } from '@/hooks/useCheckoutCapture'
+import { getCheckoutId, useCheckoutCapture } from '@/hooks/useCheckoutCapture'
 import { useOrderSubmit } from '@/hooks/useOrderSubmit'
 import { OrderSummary as OrderSummaryType } from '@/lib/firebase/models'
 import { ShippingZone } from '@/lib/utils/shipping-zones'
 import { DeliveryFormData, deliverySchema } from '@/lib/utils/validation-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { sendGTMEvent } from '@next/third-parties/google'
+import { trackPixel } from '@/lib/analytics/pixel'
 import { getDocumentId } from '@spreeloop/database'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useRef, useState } from 'react'
@@ -45,6 +46,12 @@ export const AdsForm = (props: { shipments: ShippingZone[]; items: CartItem[] })
         quantity: e.quantity,
       })),
     })
+    // Same event id as the server's InitiateCheckout (/api/checkouts): counted once.
+    trackPixel(
+      'InitiateCheckout',
+      cartItems.map(e => ({ path: e.product.path, quantity: e.quantity, price: e.price })),
+      getCheckoutId(),
+    )
   }
   const form = useForm<DeliveryFormData>({
     resolver: zodResolver(deliverySchema),

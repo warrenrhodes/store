@@ -182,3 +182,50 @@ export async function getPayments(storeId: string) {
     .map(doc => doc.data() as StorePayment)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 }
+
+/** A store's products, for the marketplace moderation page (/platform/products). */
+export async function listStoreProductsForPlatform(storeId: string) {
+  await requirePlatformAdmin()
+  const [store, products] = await Promise.all([
+    backend.db.collection(CollectionsName.Stores).doc(storeId).get(),
+    backend.db
+      .collection(CollectionsName.Products)
+      .where('storeId', '==', storeId)
+      .select('title', 'slug', 'status', 'marketplaceListed')
+      .get(),
+  ])
+  if (!store.exists) return undefined
+  return {
+    name: store.get('name') as string,
+    products: products.docs
+      .map(doc => ({
+        id: doc.id,
+        title: String(doc.get('title') ?? ''),
+        slug: String(doc.get('slug') ?? ''),
+        status: String(doc.get('status') ?? ''),
+        listed: doc.get('marketplaceListed') === true,
+      }))
+      .sort((a, b) => a.title.localeCompare(b.title)),
+  }
+}
+
+/**
+ * Hides a product from the marketplace, or lists it again. The store can't change it (tenant.ts
+ * locks marketplaceListed); its own storefront keeps showing the product.
+ */
+export async function setProductListed(formData: FormData) {
+  await requirePlatformAdmin()
+  const productId = String(formData.get('productId') ?? '')
+  const ref = /^[\w-]{1,200}$/.test(productId)
+    ? backend.db.collection(CollectionsName.Products).doc(productId)
+    : undefined
+  const product = ref && (await ref.get())
+  if (!product?.exists) return back({ error: 'Product not found.' })
+  const storeId = product.get('storeId') as string
+  await ref!.update({
+    marketplaceListed: formData.get('listed') === 'true',
+    updatedAt: new Date().toISOString(),
+  })
+  await revalidateStorefront(storeId)
+  redirect(`/platform/products?store=${encodeURIComponent(storeId)}&saved=1`)
+}

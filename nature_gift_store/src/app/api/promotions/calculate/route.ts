@@ -1,48 +1,38 @@
 import { NextResponse } from 'next/server'
-import { isWithinUsageLimit, PromotionCalculator } from '@/lib/utils/promotion-calculator'
-import { getDocumentByPathCache, getPromotionsWithFreshUsage } from '@/lib/api/utils'
-import { cartStoreErrorStatus, resolveCartStore } from '@/lib/api/cart-store'
-import { CollectionsName } from '@/lib/firebase/collection-name'
-import { Product } from '@/lib/firebase/models'
+import { cartStoreErrorStatus } from '@/lib/api/cart-store'
+import { mergeCodeStatuses, priceCart, sumSummaries } from '@/lib/api/price-cart'
 
 /**
- * Order summary preview for the cart and checkout. `codes`: discount codes typed by the
- * customer or carried by an ad link; `codeStatuses` tells which ones applied. `site`: the
- * page's site; only the promotions of the cart's store apply (its products are read here, the
- * client's storeId is ignored). The order API re-prices everything and enforces per-customer
- * limits when the order is placed.
+ * Order summary preview for the cart and checkout, priced like the order (lib/api/price-cart):
+ * one group per store, each with its shipping and its own promotions, and the totals. `codes`:
+ * discount codes typed by the customer or carried by an ad link; `codeStatuses` tells which
+ * ones applied (in any store). The order API re-prices everything when the order is placed.
  */
 export async function POST(req: Request) {
   try {
     const { cart, shipping, codes, site } = await req.json()
-    const paths: string[] = Array.isArray(cart) ? cart.map(i => String(i?.product?.path ?? '')) : []
-    if (paths.length === 0 || paths.some(p => !p.startsWith(`${CollectionsName.Products}/`))) {
-      return NextResponse.json({ error: 'Invalid cart' }, { status: 400 })
+    const priced = await priceCart({
+      items: cart,
+      site,
+      delivery: shipping,
+      codes: Array.isArray(codes) ? codes.map(String).slice(0, 5) : [],
+      fresh: false,
+    })
+    if ('error' in priced) {
+      const status = priced.error === 'INVALID_CART' ? 400 : cartStoreErrorStatus[priced.error]
+      return NextResponse.json({ error: priced.error }, { status })
     }
-    const products = await Promise.all(paths.map(path => getDocumentByPathCache<Product>({ path })))
-    if (products.some(p => !p?.title)) {
-      return NextResponse.json({ error: 'Invalid cart' }, { status: 400 })
-    }
-    const resolved = await resolveCartStore(site, products as Product[])
-    if ('error' in resolved) {
-      return NextResponse.json(
-        { error: resolved.error },
-        { status: cartStoreErrorStatus[resolved.error] },
-      )
-    }
-
-    const promotions = (await getPromotionsWithFreshUsage(resolved.store.id)).filter(p =>
-      isWithinUsageLimit(p),
-    )
-    const calculator = new PromotionCalculator(
-      cart,
-      shipping,
-      promotions,
-      Array.isArray(codes) ? codes.map(String).slice(0, 5) : [],
-    )
-    const result = calculator.calculate()
-
-    return NextResponse.json({ ...result, codeStatuses: calculator.codeStatuses(result) })
+    return NextResponse.json({
+      ...sumSummaries(priced.groups),
+      codeStatuses: mergeCodeStatuses(priced.groups.map(g => g.codeStatuses)),
+      groups: priced.groups.map(g => ({
+        storeId: g.store.id,
+        storeName: g.store.name,
+        ...g.summary,
+        /** False when this store doesn't deliver to the picked area: shipping to confirm. */
+        shippingKnown: !!g.area,
+      })),
+    })
   } catch (error) {
     console.error('Failed to calculate promotions:', error)
     return NextResponse.json({ error: 'Failed to calculate promotions' }, { status: 500 })

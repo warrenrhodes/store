@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { toast } from '@/hooks/use-toast'
 import { sendGTMEvent } from '@next/third-parties/google'
+import { trackPixel } from '@/lib/analytics/pixel'
 import { CartItem, IDeliveryInfo, Product } from '@/lib/firebase/models'
 import { dictionary, type DictWords } from '@/lib/localizations'
 import { useLocale } from './useLocale'
@@ -65,21 +66,24 @@ const useCart = perSite(storageKey =>
 
           set({ cartItems: [...currentItems, { product, quantity, price }] })
           toast({ title: t('itemAdded'), description: product.title })
+          // The product added (GA4 and Meta both expect the added items, not the cart).
           sendGTMEvent({
             event: 'add_to_cart',
             currency: 'XAF',
-            value: currentItems.reduce((acc, e) => acc + e.price * e.quantity, 0),
-            items: currentItems.map(e => {
-              return {
-                item_id: e.product.path,
-                item_name: e.product.title,
-                quantity: e.quantity,
-                category: e.product.categories?.[0],
-              }
-            }),
+            value: price * quantity,
+            items: [
+              {
+                item_id: product.path,
+                item_name: product.title,
+                quantity,
+                category: product.categories?.[0],
+              },
+            ],
           })
+          trackPixel('AddToCart', [{ path: product.path, quantity, price }])
         },
         removeItem: (idToRemove: string) => {
+          const removed = get().cartItems.find(cartItem => cartItem.product.path === idToRemove)
           const newCartItems = get().cartItems.filter(
             cartItem => cartItem.product.path !== idToRemove,
           )
@@ -88,19 +92,24 @@ const useCart = perSite(storageKey =>
           if (get().cartItems.length === 0) {
             useCartDeliveryInfo.getState().clearDeliveryInfo()
           }
+          if (!removed) return
+          // The product removed, not what is left in the cart.
           sendGTMEvent({
             event: 'remove_from_cart',
             currency: 'XAF',
-            value: newCartItems.reduce((acc, e) => acc + e.price * e.quantity, 0),
-            items: newCartItems.map(e => {
-              return {
-                item_id: e.product.path,
-                item_name: e.product.title,
-                quantity: e.quantity,
-                category: e.product.categories?.[0],
-              }
-            }),
+            value: removed.price * removed.quantity,
+            items: [
+              {
+                item_id: removed.product.path,
+                item_name: removed.product.title,
+                quantity: removed.quantity,
+                category: removed.product.categories?.[0],
+              },
+            ],
           })
+          trackPixel('RemoveFromCart', [
+            { path: removed.product.path, quantity: removed.quantity, price: removed.price },
+          ])
         },
         increaseQuantity: (idToIncrease: string) => {
           const newCartItems = get().cartItems.map(cartItem =>

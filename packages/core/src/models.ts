@@ -351,8 +351,13 @@ export interface Order extends CreatorDocument {
   orderPrices: OrderPrices
   status: OrderStatus
   partnersPaths: string[]
-  /** Secret in the customer's tracking link (/order/<id>?t=<token>). */
+  /** Secret in the customer's tracking link (/order/<id>?t=<token>), shared by a group. */
   trackingToken?: string | null
+  /**
+   * Orders placed together from one marketplace cart, one per store (docs 3.4): same id and
+   * tracking token, shown together on /order/group/<id>?t=<token>. Null for a single order.
+   */
+  checkoutGroupId?: string | null
   history?: OrderEvent[] | null
   /** True while the ordered quantities are taken out of product stock. */
   stockReserved?: boolean | null

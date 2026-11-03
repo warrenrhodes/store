@@ -67,13 +67,15 @@ const getDocumentBySlug = async <T>(props: {
   collection: string
   slug: string
   storeId: StoreScope
+  /** On the marketplace, the store whose document wins when several share the slug. */
+  vendor?: string
 }) => {
-  const [doc] = await query<T>(
+  const docs = await query<T & { storeId?: string | null }>(
     props.collection,
     [new QueryFilter('slug', '==', props.slug)],
     props.storeId,
   )
-  return doc
+  return docs.find(d => props.vendor && d.storeId === props.vendor) ?? docs[0]
 }
 
 const getAllCollection = <T>(props: {
@@ -109,17 +111,20 @@ const SHARED_CACHE_SECONDS = 300
 const cachedRead = <R>(key: unknown[], tags: string[], read: () => Promise<R>) =>
   unstable_cache(read, [JSON.stringify(key)], { revalidate: SHARED_CACHE_SECONDS, tags })()
 
-const readListedStoreIds = () =>
+/** The marketplace's stores (active and listed): id, name and slug, for badges and vendor pages. */
+export type ListedStore = { id: string; name: string; slug: string }
+const readListedStores = () =>
   cachedRead(['listed-stores'], [STORES_TAG], async () =>
     (
       await backend.db
         .collection(CollectionsName.Stores)
         .where('status', '==', StoreStatus.ACTIVE)
         .where('marketplaceListed', '==', true)
-        .select()
+        .select('name', 'slug')
         .get()
-    ).docs.map(doc => doc.id),
+    ).docs.map<ListedStore>(doc => ({ id: doc.id, name: doc.get('name'), slug: doc.get('slug') })),
   )
+const readListedStoreIds = async () => (await readListedStores()).map(s => s.id)
 
 /** Active promotions of a store; of every store on the marketplace (display only, never priced). */
 const readActivePromotions = (storeId: StoreScope) =>
@@ -249,7 +254,12 @@ export const getDocumentBySlugCache = shared(
   'document-by-slug',
   getDocumentBySlug,
   () => undefined,
-) as <T>(props: { collection: string; slug: string; storeId: StoreScope }) => Promise<T | undefined>
+) as <T>(props: {
+  collection: string
+  slug: string
+  storeId: StoreScope
+  vendor?: string
+}) => Promise<T | undefined>
 /** By path, any store: callers check the store where it matters (tagged `market`). */
 export const getDocumentByPathCache = shared(
   'document-by-path',
@@ -263,6 +273,10 @@ export const getAllCollectionCache = shared('collection', getAllCollection, () =
   filters?: QueryFilter[]
   storeId: StoreScope
 }) => Promise<T[]>
+
+export const getListedStoresCache = cache(
+  safe('listed-stores', readListedStores, () => [] as ListedStore[]),
+)
 
 export type SiteStore = Store & { id: string }
 /** What a page is served for: the marketplace (store null) or one active store. */

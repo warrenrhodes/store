@@ -5,6 +5,7 @@ import { FeaturedProducts } from '@/components/Home/FeaturedProducts'
 import { HeroSection } from '@/components/Home/HeroSection'
 import { NewArrivals } from '@/components/Home/NewArrivals'
 import { StoreSections } from '@/components/Home/StoreSections'
+import { StoresShowcase } from '@/components/Market/StoresShowcase'
 import { PromotionBanner } from '@/components/Home/PromotionBanner'
 import Loader from '@/components/Loader'
 import {
@@ -39,6 +40,7 @@ export default async function Home({ params }: { params: Promise<{ site: string 
         <HeroSection />
       </Loader>
       <BrandValues />
+      <StoresShowcase />
       <Loader loading={<CategoryLoading />}>
         <Categories storeId={storeId} />
       </Loader>

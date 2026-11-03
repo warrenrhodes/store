@@ -2,7 +2,8 @@ import { CollectionsName } from '@/lib/firebase/collection-name'
 import { backend } from '@/lib/firebase/firebase-server/firebase'
 import { Product } from '@/lib/firebase/models'
 import { getDocumentByPathCache } from '@/lib/api/utils'
-import { resolveCartStore } from '@/lib/api/cart-store'
+import { checkoutDocId, resolveCartGroups } from '@/lib/api/cart-store'
+import { getStorePixels, requestSignals, sendMetaEvent } from '@/lib/analytics/meta-capi'
 import { getRegularPrice } from '@/lib/utils/utils'
 import { getDatabasePath } from '@spreeloop/database'
 import { NextRequest, NextResponse } from 'next/server'
@@ -44,46 +45,63 @@ export async function POST(req: NextRequest) {
   )
   if (products.some(p => !p?.title))
     return NextResponse.json({ error: 'Invalid items' }, { status: 400 })
-  // The page's store. On the marketplace a cart mixing stores goes to its first product's store
-  // until phase 4 (one checkout per store).
-  const resolved = await resolveCartStore(site, products as Product[])
-  if ('error' in resolved && resolved.error !== 'MIXED_STORES') {
-    return NextResponse.json({ error: 'Invalid items' }, { status: 400 })
-  }
-  const storeId = 'error' in resolved ? products[0]!.storeId : resolved.store.id
+  // One document per store of the cart (a mixed marketplace cart: one per store), each in
+  // its store's abandoned checkouts.
+  const resolved = await resolveCartGroups(site, products as Product[])
+  if ('error' in resolved) return NextResponse.json({ error: 'Invalid items' }, { status: 400 })
 
-  const lines = items.map((item, index) => {
-    const product = products[index]!
-    return {
-      productPath: item.path,
-      title: product.title,
-      quantity: item.quantity,
-      price: getRegularPrice(product),
-    }
-  })
-  const ref = backend.db.collection(CollectionsName.Checkouts).doc(id)
   const now = new Date().toISOString()
   try {
-    const existing = await ref.get()
-    // A converted checkout stays as it is.
-    if (existing.get('orderPath')) return NextResponse.json({ ok: true })
-    await ref.set(
-      {
-        fullName,
-        phone,
-        location: location ?? null,
-        source: source ?? null,
-        items: lines,
-        total: lines.reduce((sum, l) => sum + l.price * l.quantity, 0),
-        storeId: storeId ?? null,
-        partnersPaths: [
-          ...new Set(products.map(p => getDatabasePath(CollectionsName.Users, p!.creatorId))),
-        ],
-        updatedAt: now,
-        ...(existing.exists ? {} : { createdAt: now, orderPath: null, contactedAt: null }),
-      },
-      { merge: true },
-    )
+    for (const { store, indexes } of resolved.groups) {
+      const lines = indexes.map(index => ({
+        productPath: items[index].path,
+        title: products[index]!.title,
+        quantity: items[index].quantity,
+        price: getRegularPrice(products[index]!),
+      }))
+      const ref = backend.db
+        .collection(CollectionsName.Checkouts)
+        .doc(checkoutDocId(id, store.id, resolved.groups.length))
+      const existing = await ref.get()
+      // A converted checkout stays as it is.
+      if (existing.get('orderPath')) continue
+      // The first time the customer is known (name and phone typed): the store's InitiateCheckout,
+      // with their data, deduplicated with the browser's event by the checkout session id.
+      if (!existing.exists) {
+        await sendMetaEvent(await getStorePixels(store), {
+          name: 'InitiateCheckout',
+          eventId: id,
+          value: lines.reduce((sum, l) => sum + l.price * l.quantity, 0),
+          contents: lines.map(l => ({
+            id: l.productPath.split('/').pop()!,
+            quantity: l.quantity,
+            item_price: l.price,
+          })),
+          phone,
+          fullName,
+          ...requestSignals(req),
+        })
+      }
+      await ref.set(
+        {
+          fullName,
+          phone,
+          location: location ?? null,
+          source: source ?? null,
+          items: lines,
+          total: lines.reduce((sum, l) => sum + l.price * l.quantity, 0),
+          storeId: store.id,
+          partnersPaths: [
+            ...new Set(
+              indexes.map(i => getDatabasePath(CollectionsName.Users, products[i]!.creatorId)),
+            ),
+          ],
+          updatedAt: now,
+          ...(existing.exists ? {} : { createdAt: now, orderPath: null, contactedAt: null }),
+        },
+        { merge: true },
+      )
+    }
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error('[CHECKOUTS_POST]', error)

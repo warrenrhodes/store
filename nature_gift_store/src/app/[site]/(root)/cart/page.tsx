@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Lock, ShoppingBag } from 'lucide-react'
 import { SiteLink as Link } from '@/components/Site'
 import { Button } from '@/components/ui/button'
+import { useCartGroups } from '@/components/Cart/useCartGroups'
 import { CartItem } from '@/components/Cart/CartItem'
 import { PromotionSummary } from '@/components/Cart/PromotionSummary'
 import { useCart, useCartDeliveryInfo } from '@/hooks/useCart'
@@ -36,6 +37,7 @@ export default function CartPage() {
     })
   }, [])
 
+  const { groups, showStores } = useCartGroups(cartItems)
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
@@ -69,16 +71,28 @@ export default function CartPage() {
               <div className="lg:col-span-2">
                 <div className="space-y-4">
                   <AnimatePresence initial={false}>
-                    {cartItems.map(item => (
-                      <CartItem
-                        key={`${item.product.path}`}
-                        item={item}
-                        increaseQuantity={increaseQuantity}
-                        decreaseQuantity={decreaseQuantity}
-                        onRemove={removeCartItem}
-                        canRemoveItem={true}
-                      />
-                    ))}
+                    {groups.flatMap(group => [
+                      ...(showStores
+                        ? [
+                            <p
+                              key={`store-${group.storeId}`}
+                              className="pt-2 text-sm font-semibold"
+                            >
+                              {group.name}
+                            </p>,
+                          ]
+                        : []),
+                      ...group.items.map(item => (
+                        <CartItem
+                          key={`${item.product.path}`}
+                          item={item}
+                          increaseQuantity={increaseQuantity}
+                          decreaseQuantity={decreaseQuantity}
+                          onRemove={removeCartItem}
+                          canRemoveItem={true}
+                        />
+                      )),
+                    ])}
                   </AnimatePresence>
                 </div>
               </div>

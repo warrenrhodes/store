@@ -8,6 +8,7 @@ import NextLink from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ComponentProps, createContext, useContext, useMemo } from 'react'
 import type { StoreApi, UseBoundStore } from 'zustand'
+import { PLATFORM_SITE } from '@/lib/platform-site'
 
 export type SiteInfo = {
   site: string
@@ -20,15 +21,8 @@ export type SiteInfo = {
   /** The store's announcement bar (theme); the marketplace shows the platform's. */
   announcement?: string | null
   isMarket: boolean
-}
-
-/** The platform's own brand, on the marketplace. */
-export const PLATFORM_SITE: SiteInfo = {
-  site: MARKET,
-  name: 'N.Gift',
-  whatsapp: '237696689073',
-  email: 'natures.gift.237@gmail.com',
-  isMarket: true,
+  /** On the marketplace: its stores (active and listed) by id, for badges and the cart. */
+  stores?: Record<string, { name: string; slug: string }>
 }
 
 const SiteContext = createContext<SiteInfo>(PLATFORM_SITE)

@@ -164,6 +164,11 @@ export default async function PlatformPage(props: {
                   value={String(!store.marketplaceListed)}
                   label={store.marketplaceListed ? 'Hide from marketplace' : 'List on marketplace'}
                 />
+                <Button variant="outline" size="sm" asChild>
+                  <a href={`/platform/products?store=${encodeURIComponent(store.id)}`}>
+                    Marketplace products
+                  </a>
+                </Button>
               </div>
             </CardContent>
           </Card>

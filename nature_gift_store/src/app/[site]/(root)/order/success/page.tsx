@@ -11,7 +11,11 @@ const OrderSuccess = () => {
   const { user } = useAuthStore()
   const params = useSearchParams()
   const orderId = params.get('order')
+  const groupId = params.get('group')
   const token = params.get('t')
+  // A marketplace cart with several stores: one tracking page for all its orders.
+  const tracking = groupId ? `/order/group/${groupId}?t=${token}` : `/order/${orderId}?t=${token}`
+  const hasTracking = !!(orderId || groupId) && !!token
   const { localization } = useLocalization()
   const isGuest = !user || user.isAnonymous
 
@@ -32,16 +36,17 @@ const OrderSuccess = () => {
         )}
 
         <div className="mt-8 flex flex-col gap-3">
-          {orderId && token && (
+          {groupId && <p className="text-sm text-muted-foreground">{localization.ordersByStore}</p>}
+          {hasTracking && (
             <>
               <Button className="h-12 w-full text-base" asChild>
-                <Link href={`/order/${orderId}?t=${token}`}>{localization.trackOrder}</Link>
+                <Link href={tracking}>{localization.trackOrder}</Link>
               </Button>
               <p className="text-xs text-muted-foreground">{localization.keepTrackingLink}</p>
             </>
           )}
           <Button
-            variant={orderId && token ? 'outline' : 'default'}
+            variant={hasTracking ? 'outline' : 'default'}
             className="h-12 w-full text-base"
             asChild
           >

@@ -20,6 +20,7 @@ import {
   getAllValidPromotionCache,
   getShippingZonesCache,
   getDocumentBySlugCache,
+  getListedStoresCache,
   getStoreCache,
   siteOf,
   StoreScope,
@@ -31,9 +32,20 @@ import { QueryFilter } from '@spreeloop/database'
 import { Inventory, Price } from '@/lib/type'
 import { getRegularPrice, getReviewAverage, isPublishedReview } from '@/lib/utils/utils'
 
-/** The product of this page: in a store, that store's; on the marketplace, a listed one. */
-const productOf = (slug: string, storeId: StoreScope) =>
-  getDocumentBySlugCache<Product>({ collection: CollectionsName.Products, slug, storeId })
+/**
+ * The product of this page: in a store, that store's; on the marketplace, a listed one, the
+ * one sold by `vendor` (a store id, from ?vendeur=) when two stores use the same slug.
+ */
+const productOf = (slug: string, storeId: StoreScope, vendor?: string) =>
+  getDocumentBySlugCache<Product>({ collection: CollectionsName.Products, slug, storeId, vendor })
+
+type Scoped = { slug: string; storeId: StoreScope; vendor?: string }
+
+/** ?vendeur=<store slug> on the marketplace: that listed store's id. */
+const vendorOf = async (storeId: StoreScope, param: unknown) => {
+  if (storeId || typeof param !== 'string') return undefined
+  return (await getListedStoresCache()).find(s => s.slug === param)?.id
+}
 
 /** The product's page in its own store: the canonical URL, also from the marketplace. */
 const productUrl = async (product: Product) => {
@@ -43,9 +55,11 @@ const productUrl = async (product: Product) => {
     : absoluteUrl('_market', `/shop/${product.slug}`)
 }
 
-export async function generateMetadata({ params }: Props) {
+export async function generateMetadata({ params, searchParams }: Props) {
   const ctx = await siteOf(params)
-  const product = await productOf((await params).slug, ctx.store?.id ?? null)
+  const storeId = ctx.store?.id ?? null
+  const vendor = await vendorOf(storeId, (await searchParams).vendeur)
+  const product = await productOf((await params).slug, storeId, vendor)
   if (!product) return {}
   const metadata = product.metadata
   const title = metadata?.seoTitle || product.title
@@ -80,13 +94,14 @@ export default async function ProductDetailPage(props: Props) {
   const { slug } = await props.params
   const storeId = (await siteOf(props.params)).store?.id ?? null
   const searchParams = await props.searchParams
+  const vendor = await vendorOf(storeId, searchParams?.vendeur)
 
   return (
     <div className="bg-background min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-28 lg:pb-16">
         {searchParams?.autoAddToCart ? (
           <Loader loading={<ProductInfoLoading />}>
-            <AutoAddToCartLoader slug={slug} storeId={storeId} />
+            <AutoAddToCartLoader slug={slug} storeId={storeId} vendor={vendor} />
           </Loader>
         ) : (
           <div className="flex flex-col gap-16">
@@ -94,25 +109,26 @@ export default async function ProductDetailPage(props: Props) {
               <FeaturedProductLoader
                 slug={slug}
                 storeId={storeId}
+                vendor={vendor}
                 promoCode={typeof searchParams?.promo === 'string' ? searchParams.promo : undefined}
               />
             </Loader>
             <Loader loading={<ProductsLoading />}>
-              <ActivePromotionsLoader slug={slug} storeId={storeId} />
+              <ActivePromotionsLoader slug={slug} storeId={storeId} vendor={vendor} />
             </Loader>
             <Loader loading={<ProductsLoading />}>
-              <FeaturedProductsLoader slug={slug} storeId={storeId} />
+              <FeaturedProductsLoader slug={slug} storeId={storeId} vendor={vendor} />
             </Loader>
             <div id="reviews" className="scroll-mt-24">
               <Loader loading={<HeroLoading />}>
-                <FeaturedProductReviewLoader slug={slug} storeId={storeId} />
+                <FeaturedProductReviewLoader slug={slug} storeId={storeId} vendor={vendor} />
               </Loader>
             </div>
             <Loader loading={<ProductsLoading />}>
-              <RelatedProductLoader slug={slug} storeId={storeId} />
+              <RelatedProductLoader slug={slug} storeId={storeId} vendor={vendor} />
             </Loader>
             <Loader loading={<BlogsLoading />}>
-              <RelatedBlogLoader slug={slug} storeId={storeId} />
+              <RelatedBlogLoader slug={slug} storeId={storeId} vendor={vendor} />
             </Loader>
           </div>
         )}
@@ -121,8 +137,8 @@ export default async function ProductDetailPage(props: Props) {
   )
 }
 
-async function ActivePromotionsLoader({ slug, storeId }: { slug: string; storeId: StoreScope }) {
-  const product = await productOf(slug, storeId)
+async function ActivePromotionsLoader({ slug, storeId, vendor }: Scoped) {
+  const product = await productOf(slug, storeId, vendor)
   if (!product) return null
   // The product's store's promotions (on the marketplace too), minus those for other products.
   const activePromotions = await getAllValidPromotionCache(product.storeId ?? null)
@@ -132,8 +148,8 @@ async function ActivePromotionsLoader({ slug, storeId }: { slug: string; storeId
 
   return <ActivePromotions activePromotions={relevant} />
 }
-async function AutoAddToCartLoader({ slug, storeId }: { slug: string; storeId: StoreScope }) {
-  const product = await productOf(slug, storeId)
+async function AutoAddToCartLoader({ slug, storeId, vendor }: Scoped) {
+  const product = await productOf(slug, storeId, vendor)
 
   if (!product) return null
 
@@ -146,13 +162,10 @@ async function AutoAddToCartLoader({ slug, storeId }: { slug: string; storeId: S
 async function FeaturedProductLoader({
   slug,
   storeId,
+  vendor,
   promoCode,
-}: {
-  slug: string
-  storeId: StoreScope
-  promoCode?: string
-}) {
-  const product = await productOf(slug, storeId)
+}: Scoped & { promoCode?: string }) {
+  const product = await productOf(slug, storeId, vendor)
   if (!product) return null
 
   const reviews = (
@@ -208,20 +221,14 @@ async function FeaturedProductLoader({
   )
 }
 
-async function FeaturedProductsLoader({ slug, storeId }: { slug: string; storeId: StoreScope }) {
-  const product = await productOf(slug, storeId)
+async function FeaturedProductsLoader({ slug, storeId, vendor }: Scoped) {
+  const product = await productOf(slug, storeId, vendor)
   if (!product) return null
   return <FeaturesForProducts product={product} />
 }
 
-async function FeaturedProductReviewLoader({
-  slug,
-  storeId,
-}: {
-  slug: string
-  storeId: StoreScope
-}) {
-  const product = await productOf(slug, storeId)
+async function FeaturedProductReviewLoader({ slug, storeId, vendor }: Scoped) {
+  const product = await productOf(slug, storeId, vendor)
 
   if (!product) return null
   const reviews = (
@@ -234,8 +241,8 @@ async function FeaturedProductReviewLoader({
   return <ProductReviews product={product} reviews={reviews} />
 }
 
-async function RelatedProductLoader({ slug, storeId }: { slug: string; storeId: StoreScope }) {
-  const product = await productOf(slug, storeId)
+async function RelatedProductLoader({ slug, storeId, vendor }: Scoped) {
+  const product = await productOf(slug, storeId, vendor)
 
   if (!product) return []
   const productWithoutTarget = await getAllRelatedCollectionCache<Product>({
@@ -254,8 +261,8 @@ async function RelatedProductLoader({ slug, storeId }: { slug: string; storeId: 
   return <RelatedProducts relatedProducts={relatedProducts || []} />
 }
 
-async function RelatedBlogLoader({ slug, storeId }: { slug: string; storeId: StoreScope }) {
-  const product = await productOf(slug, storeId)
+async function RelatedBlogLoader({ slug, storeId, vendor }: Scoped) {
+  const product = await productOf(slug, storeId, vendor)
   if (!product) return null
   const allBlog = await getAllCollectionCache<Blog>({
     collection: CollectionsName.Blogs,

@@ -10,12 +10,13 @@ import { DeliveryFormData, deliverySchema } from '@/lib/utils/validation-form'
 import { useTemporalUser } from '@/hooks/useTemporalUser'
 import { toast } from '@/hooks/use-toast'
 import { OrderSummary as OrderSummaryType } from '@/lib/firebase/models'
-import { ShippingZone } from '@/lib/utils/shipping-zones'
+import { normalize, ShippingZone } from '@/lib/utils/shipping-zones'
 import { useCart } from '@/hooks/useCart'
-import { useCheckoutCapture } from '@/hooks/useCheckoutCapture'
+import { getCheckoutId, useCheckoutCapture } from '@/hooks/useCheckoutCapture'
 import { useOrderSubmit } from '@/hooks/useOrderSubmit'
 import { useLocalization } from '@/hooks/useLocalization'
 import { sendGTMEvent } from '@next/third-parties/google'
+import { trackPixel } from '@/lib/analytics/pixel'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useAuthStore } from '@/hooks/store/auth-store'
@@ -23,9 +24,21 @@ import { getDocumentId } from '@spreeloop/database'
 
 export default function CheckoutPageView(props: { shipments: ShippingZone[] }) {
   const { cartItems, clearCart } = useCart()
-  // On the marketplace the page has every store's zones: keep the cart's store's.
-  const cartStore = cartItems[0]?.product.storeId
-  const zones = props.shipments.filter(z => !cartStore || !z.storeId || z.storeId === cartStore)
+  // On the marketplace the page has every store's zones: keep the cart's stores'. Two stores
+  // delivering the same area (name and city) list it once; the server finds each store's own
+  // area and shipping cost (lib/api/price-cart).
+  const cartStores = new Set(cartItems.map(i => i.product.storeId))
+  const seen = new Set<string>()
+  const zones = props.shipments
+    .filter(z => !z.storeId || cartStores.has(z.storeId))
+    .map(z => ({
+      ...z,
+      areas: z.areas.filter(a => {
+        const key = `${z.method}|${normalize(a.name)}|${normalize(a.city)}`
+        return !seen.has(key) && !!seen.add(key)
+      }),
+    }))
+    .filter(z => z.areas.length > 0)
   const [total, setTotal] = useState<number>()
   const orderSummary = useRef<OrderSummaryType>()
   const { user } = useAuthStore()
@@ -63,6 +76,12 @@ export default function CheckoutPageView(props: { shipments: ShippingZone[] }) {
         }
       }),
     })
+    // Same event id as the server's InitiateCheckout (/api/checkouts): counted once.
+    trackPixel(
+      'InitiateCheckout',
+      cartItems.map(e => ({ path: e.product.path, quantity: e.quantity, price: e.price })),
+      getCheckoutId(),
+    )
   }, [])
 
   useCheckoutCapture(form, cartItems)

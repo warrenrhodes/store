@@ -208,9 +208,10 @@ export async function scopedCreate(collection: string, data: Record<string, unkn
   await checkOwnLocations(collection, data, ctx.storeId)
   const now = new Date().toISOString()
   const created = await backend.database.createRecord(collection, {
-    // New products show on the marketplace (if the store is listed), like migrated ones.
-    ...(collection === CollectionsName.Products ? { marketplaceListed: true } : {}),
     ...data,
+    // New products show on the marketplace (if the store is listed), like migrated ones; only
+    // the platform's moderation (/platform/products) hides one.
+    ...(collection === CollectionsName.Products ? { marketplaceListed: true } : {}),
     storeId: ctx.storeId,
     creatorId: ctx.uid,
     createdAt: now,
@@ -220,7 +221,8 @@ export async function scopedCreate(collection: string, data: Record<string, unkn
   return created
 }
 
-const LOCKED_FIELDS = ['storeId', 'creatorId', 'createdAt'] as const
+// marketplaceListed: set by the platform's moderation only, never by the store's own edits.
+const LOCKED_FIELDS = ['storeId', 'creatorId', 'createdAt', 'marketplaceListed'] as const
 
 /** Merges `data` into a document of the current store. False if it isn't one. */
 export async function scopedUpdate(collection: string, id: string, data: Record<string, unknown>) {

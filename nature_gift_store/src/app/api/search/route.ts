@@ -41,6 +41,7 @@ export async function GET(request: Request) {
       medias: product.medias.slice(0, 1),
       price: product.price,
       isFeature: product.isFeature,
+      storeId: product.storeId ?? null,
     }))
 
   return NextResponse.json(filteredProducts)

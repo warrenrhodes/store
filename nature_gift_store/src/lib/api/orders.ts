@@ -2,10 +2,17 @@ import { CartItem } from '@/hooks/useCart'
 import { Order } from '../firebase/models'
 
 export type CreateOrderResult =
-  | { ok: true; order: Order }
+  | {
+      ok: true
+      /** One order per store of the cart (a store's page: one). */
+      orders: (Order & { path: string })[]
+      /** Set when the cart made several orders: /order/group/<id>. */
+      checkoutGroupId: string | null
+      trackingToken: string
+    }
   | {
       ok: false
-      error: 'OUT_OF_STOCK' | 'PROMOTION_EXHAUSTED' | 'MIXED_STORES' | 'FAILED'
+      error: 'OUT_OF_STOCK' | 'PROMOTION_EXHAUSTED' | 'FAILED'
       detail?: string
     }
 
@@ -24,7 +31,14 @@ export const createOrder = async (params: {
       body: JSON.stringify(params),
     })
     const body = await response.json().catch(() => ({}))
-    if (response.ok) return { ok: true, order: body }
+    if (response.ok) {
+      return {
+        ok: true,
+        orders: body.orders,
+        checkoutGroupId: body.checkoutGroupId ?? null,
+        trackingToken: body.trackingToken,
+      }
+    }
     if (response.status === 409) return { ok: false, error: body.error, detail: body.detail }
     return { ok: false, error: 'FAILED' }
   } catch {

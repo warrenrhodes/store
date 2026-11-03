@@ -17,8 +17,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['var(--font-fredoka)', 'system-ui', 'sans-serif'],
-        heading: ['var(--font-fredoka)', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-theme)', 'system-ui', 'sans-serif'],
+        heading: ['var(--font-theme)', 'system-ui', 'sans-serif'],
       },
       typography: {
         base: {

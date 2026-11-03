@@ -1,7 +1,7 @@
 # Overrides apphosting.yaml for backends whose environment name is "dev" (project nature-s-gift-dev).
 # Secrets keep the same names, with dev values in the dev project.
 env:
-  - variable: NEXT_PUBLIC_ECOMMERCE_STORE_URL
+  - variable: NEXT_PUBLIC_PLATFORM_URL
     value: "https://store--nature-s-gift-dev.us-east4.hosted.app"
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_ADMIN_DASHBOARD_URL

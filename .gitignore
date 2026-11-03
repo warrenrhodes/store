@@ -33,6 +33,7 @@ yarn-error.log*
 /.env*.local
 .env
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -43,3 +44,7 @@ yarn-error.log*
 **/tmp/
 **/migrations/
 
+
+# firebase emulators (scripts/e2e)
+*-debug.log
+/**/.next-e2e/

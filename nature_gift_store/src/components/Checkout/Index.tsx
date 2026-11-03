@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, ShoppingBag } from 'lucide-react'
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/Site'
 import { Button } from '@/components/ui/button'
 import { DeliveryForm } from '@/components/Checkout/delivery-form'
 import { OrderSummary } from '@/components/Checkout/order-summary'
@@ -10,22 +10,35 @@ import { DeliveryFormData, deliverySchema } from '@/lib/utils/validation-form'
 import { useTemporalUser } from '@/hooks/useTemporalUser'
 import { toast } from '@/hooks/use-toast'
 import { OrderSummary as OrderSummaryType } from '@/lib/firebase/models'
-import { ShippingZone } from '@/lib/utils/shipping-zones'
+import { normalize, ShippingZone } from '@/lib/utils/shipping-zones'
 import { useCart } from '@/hooks/useCart'
-import { useRouter } from 'next/navigation'
-import { createOrder } from '@/lib/api/orders'
+import { getCheckoutId, useCheckoutCapture } from '@/hooks/useCheckoutCapture'
+import { useOrderSubmit } from '@/hooks/useOrderSubmit'
 import { useLocalization } from '@/hooks/useLocalization'
 import { sendGTMEvent } from '@next/third-parties/google'
+import { trackPixel } from '@/lib/analytics/pixel'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useAuthStore } from '@/hooks/store/auth-store'
 import { getDocumentId } from '@spreeloop/database'
 
 export default function CheckoutPageView(props: { shipments: ShippingZone[] }) {
-  const router = useRouter()
-  const { setUserData } = useTemporalUser()
   const { cartItems, clearCart } = useCart()
-  const [isLoading, setIsLoading] = useState(false)
+  // On the marketplace the page has every store's zones: keep the cart's stores'. Two stores
+  // delivering the same area (name and city) list it once; the server finds each store's own
+  // area and shipping cost (lib/api/price-cart).
+  const cartStores = new Set(cartItems.map(i => i.product.storeId))
+  const seen = new Set<string>()
+  const zones = props.shipments
+    .filter(z => !z.storeId || cartStores.has(z.storeId))
+    .map(z => ({
+      ...z,
+      areas: z.areas.filter(a => {
+        const key = `${z.method}|${normalize(a.name)}|${normalize(a.city)}`
+        return !seen.has(key) && !!seen.add(key)
+      }),
+    }))
+    .filter(z => z.areas.length > 0)
   const [total, setTotal] = useState<number>()
   const orderSummary = useRef<OrderSummaryType>()
   const { user } = useAuthStore()
@@ -63,7 +76,16 @@ export default function CheckoutPageView(props: { shipments: ShippingZone[] }) {
         }
       }),
     })
+    // Same event id as the server's InitiateCheckout (/api/checkouts): counted once.
+    trackPixel(
+      'InitiateCheckout',
+      cartItems.map(e => ({ path: e.product.path, quantity: e.quantity, price: e.price })),
+      getCheckoutId(),
+    )
   }, [])
+
+  useCheckoutCapture(form, cartItems)
+  const { submit, isLoading } = useOrderSubmit({ items: cartItems, onPlaced: clearCart })
 
   const onOrderConfirm = async (data: DeliveryFormData) => {
     if (!orderSummary.current) {
@@ -73,97 +95,7 @@ export default function CheckoutPageView(props: { shipments: ShippingZone[] }) {
       })
       return
     }
-
-    sendGTMEvent({
-      event: 'add_shipping_info',
-      currency: 'XAF',
-      items: cartItems.map(e => {
-        return {
-          item_id: getDocumentId(e.product.path),
-          item_name: e.product.title,
-          quantity: e.quantity,
-        }
-      }),
-    })
-
-    setIsLoading(true)
-    const order = {
-      deliveryInfo: {
-        address: data.address,
-        deliveryDate: data.deliveryDate,
-        deliveryTime: data.deliveryTime,
-        city: data.city,
-        additionalNotes: data.additionalNotes || null,
-        deliveryMethod: data.shipping.method,
-        location: data.shipping.location,
-        locationId: data.shipping.locationId,
-      },
-      userData: {
-        id: user?.authId || '',
-        email: data.email || '',
-        fullName: data.fullName,
-        phone: data.phone,
-      },
-      status: 'PENDING',
-      orderPrices: {
-        subtotal: orderSummary.current.subtotal,
-        shipping: orderSummary.current.shipping,
-        total: orderSummary.current.total,
-        discount: orderSummary.current.discount,
-      },
-      promotions: orderSummary.current.appliedPromotions.map(promotion => ({
-        promotionId: promotion.id,
-        discountAmount: promotion.discountAmount,
-        code: promotion.code,
-      })),
-      id: '',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      userId: user?.authId || '',
-    }
-    const confirmOrder = await createOrder({ order: order, cartItems: cartItems })
-
-    if (!confirmOrder) {
-      toast({ description: localization.orderError, variant: 'destructive' })
-      setIsLoading(false)
-
-      return
-    }
-
-    const userData = confirmOrder.userData
-    const orderPrices = confirmOrder.orderPrices
-    const deliveryInfo = confirmOrder.deliveryInfo
-    try {
-      sendGTMEvent({
-        event: 'purchase',
-        currency: 'XAF',
-        value: orderPrices.total,
-        transaction_id: getDocumentId(confirmOrder.path),
-        items: confirmOrder.items.map(e => {
-          return {
-            item_id: getDocumentId(e.product.path),
-            item_name: e.product.title,
-            quantity: e.quantity,
-            price: e.price,
-          }
-        }),
-        userInfo: {
-          id: user?.authId,
-          email: userData?.email,
-          full_name: userData?.fullName,
-          phone: userData?.phone,
-          address: deliveryInfo.address,
-          city: deliveryInfo?.city,
-          location: deliveryInfo?.location,
-        },
-      })
-    } catch (error) {
-      console.log(error)
-    }
-
-    setUserData({ ...data })
-    clearCart()
-    router.replace('/order/success')
+    await submit(data)
   }
 
   if (cartItems.length === 0) {
@@ -203,7 +135,7 @@ export default function CheckoutPageView(props: { shipments: ShippingZone[] }) {
       <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-5">
         <div className="order-2 lg:order-1 lg:col-span-3">
           <DeliveryForm
-            shipment={props.shipments}
+            shipment={zones}
             onSubmit={onOrderConfirm}
             form={form}
             isLoading={isLoading}

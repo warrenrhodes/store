@@ -8,6 +8,25 @@ import { getDocumentId } from '@spreeloop/database'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown, Copy, Edit } from 'lucide-react'
 import Link from 'next/link'
+import { useStorefront } from '@/components/layout/Storefront'
+
+/** Copies the article's address in the current store. */
+function CopyBlogLink({ slug }: { slug: string }) {
+  const { url } = useStorefront()
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      aria-label="Copy link"
+      onClick={() => {
+        navigator.clipboard.writeText(`${url}/blogs/${slug}`)
+        toast({ description: 'Link copied to clipboard!' })
+      }}
+    >
+      <Copy className="h-4 w-4" />
+    </Button>
+  )
+}
 import Delete from '../custom-ui/Delete'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
@@ -94,25 +113,9 @@ export const blogsColumns: ColumnDef<IBlog>[] = [
         return res.ok
       }
 
-      const copyLink = (code: string) => {
-        navigator.clipboard.writeText(code)
-        toast({ description: 'Link copied to clipboard!' })
-      }
-
       return (
         <div className="flex items-center justify-end gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Copy link"
-            onClick={() =>
-              copyLink(
-                `${new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').protocol}//${new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').hostname}/blogs/${blogs.data.slug}`,
-              )
-            }
-          >
-            <Copy className="h-4 w-4" />
-          </Button>
+          <CopyBlogLink slug={blogs.data.slug} />
           <Button asChild variant="ghost" size="icon" aria-label="Edit">
             <Link href={`/blogs/${getDocumentId(blogs.path)}`}>
               <Edit className="h-4 w-4" />

@@ -1,35 +1,24 @@
 'use server'
 
 import { CollectionsName } from '@/lib/firebase/collection-name'
-import { backend } from '@/lib/firebase/firebase-server/firebase'
 import { productSchema, ProductSchemaType } from '@/lib/validations/product'
-import { getDatabasePath } from '@spreeloop/database'
 import { revalidatePath } from 'next/cache'
-import { checkDocumentExists, getUserTokens } from './server'
+import { isTakenInStore, scopedCreate, scopedDelete, scopedUpdate } from '@/lib/tenant'
 
 export async function createProduct(data: ProductSchemaType) {
   try {
-    const token = await getUserTokens()
-    if (!token) {
-      throw new Error('Unauthorized')
-    }
-
     // Validate data using schema
     const validatedData = productSchema.parse(data)
 
     // Check for duplicate slug
-    const existingProduct = await checkDocumentExists(
-      CollectionsName.Products,
-      'slug',
-      validatedData.slug
-    )
-
-    if (existingProduct) {
+    if (await isTakenInStore(CollectionsName.Products, 'slug', validatedData.slug)) {
       return { success: false, error: 'Product with this slug already exists' }
     }
 
+    const stock = validatedData.inventory?.stockQuantity ?? validatedData.inventory?.quantity ?? 0
     const productData = {
       ...validatedData,
+      inventory: { ...validatedData.inventory, stockQuantity: stock, quantity: stock },
       price: {
         ...validatedData.price,
         saleStartDate: validatedData.price.saleStartDate
@@ -41,12 +30,7 @@ export async function createProduct(data: ProductSchemaType) {
       },
     }
 
-    const result = await backend.database.createRecord(CollectionsName.Products, {
-      ...productData,
-      creatorId: token.decodedToken.uid,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    })
+    const result = await scopedCreate(CollectionsName.Products, productData)
 
     if (!result) {
       return { success: false, error: 'Failed to create product' }
@@ -60,24 +44,36 @@ export async function createProduct(data: ProductSchemaType) {
   }
 }
 
-export async function updateProduct(productId: string, data: ProductSchemaType) {
+/**
+ * `loadedStock`: stock shown when the form opened. If unchanged, the stored stock is kept, so
+ * saving a product never undoes the orders placed while it was being edited.
+ */
+export async function updateProduct(
+  productId: string,
+  data: ProductSchemaType,
+  loadedStock?: number,
+) {
   try {
-    const token = await getUserTokens()
-    if (!token) {
-      throw new Error('Unauthorized')
-    }
-
     // Validate data using schema
     const validatedData = productSchema.parse(data)
 
-    const productPath = getDatabasePath(CollectionsName.Products, productId)
-    
-    // We might want to check ownership here if strictly required, 
-    // but typical admin usage assumes access. 
-    // Ideally we should check if product exists and creatorId matches or user is admin.
+    if (await isTakenInStore(CollectionsName.Products, 'slug', validatedData.slug, productId)) {
+      return { success: false, error: 'Product with this slug already exists' }
+    }
 
+    const stock = validatedData.inventory?.stockQuantity ?? validatedData.inventory?.quantity
+    const {
+      quantity: _quantity,
+      stockQuantity: _stock,
+      ...inventoryRest
+    } = validatedData.inventory ?? {}
+    const inventory =
+      stock === loadedStock
+        ? inventoryRest
+        : { ...inventoryRest, stockQuantity: stock, quantity: stock }
     const productData = {
       ...validatedData,
+      inventory,
       price: {
         ...validatedData.price,
         saleStartDate: validatedData.price.saleStartDate
@@ -89,10 +85,8 @@ export async function updateProduct(productId: string, data: ProductSchemaType) 
       },
     }
 
-    const result = await backend.database.setRecord(productPath, {
-      ...productData,
-      updatedAt: new Date().toISOString(),
-    })
+    // Only a product of the current store (false otherwise).
+    const result = await scopedUpdate(CollectionsName.Products, productId, productData)
 
     if (!result) {
       return { success: false, error: 'Failed to update product' }
@@ -109,19 +103,9 @@ export async function updateProduct(productId: string, data: ProductSchemaType) 
 
 export async function deleteProduct(productId: string) {
   try {
-    const token = await getUserTokens()
-    if (!token) {
-      throw new Error('Unauthorized')
+    if (!(await scopedDelete(CollectionsName.Products, productId))) {
+      return { success: false, error: 'Not Found or Unauthorized' }
     }
-
-    const dataRef = backend.db.collection(CollectionsName.Products).doc(productId)
-    const dataDoc = await dataRef.get()
-
-    if (!dataDoc.exists || dataDoc?.data()?.creatorId !== token.decodedToken.uid) {
-       return { success: false, error: 'Not Found or Unauthorized' }
-    }
-
-    await dataRef.delete()
 
     revalidatePath('/products')
     return { success: true }

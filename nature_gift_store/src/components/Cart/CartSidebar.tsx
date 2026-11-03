@@ -12,17 +12,18 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { useCartGroups } from '@/components/Cart/useCartGroups'
 import { CartItem } from './CartItem'
 import { PromotionSummary } from './PromotionSummary'
 import { useCart, useCartDeliveryInfo, useCartSideBar } from '@/hooks/useCart'
-import { useRouter } from 'next/navigation'
+import { useSiteRouter } from '@/components/Site'
 import { useLocalization } from '@/hooks/useLocalization'
 import { useEffect } from 'react'
 import { sendGTMEvent } from '@next/third-parties/google'
 
 export function CartSidebar() {
   const cart = useCart()
-  const router = useRouter()
+  const router = useSiteRouter()
   const { cartItems, increaseQuantity, decreaseQuantity, removeItem } = cart
   const { cartDeliveryInfo } = useCartDeliveryInfo()
   const { localization } = useLocalization()
@@ -46,6 +47,7 @@ export function CartSidebar() {
     router.push(href)
   }
 
+  const { groups, showStores } = useCartGroups(cartItems)
   return (
     <Sheet open={cartSideBar.isSideBarCartOpen} onOpenChange={cartSideBar.onOpenChange}>
       <SheetTrigger asChild>
@@ -88,16 +90,25 @@ export function CartSidebar() {
             <ScrollArea className="flex-1 px-6">
               <div className="space-y-3 py-4">
                 <AnimatePresence initial={false}>
-                  {cartItems.map(item => (
-                    <CartItem
-                      key={`${item.product.path}`}
-                      item={item}
-                      increaseQuantity={increaseQuantity}
-                      decreaseQuantity={decreaseQuantity}
-                      onRemove={removeItem}
-                      canRemoveItem={true}
-                    />
-                  ))}
+                  {groups.flatMap(group => [
+                    ...(showStores
+                      ? [
+                          <p key={`store-${group.storeId}`} className="pt-2 text-sm font-semibold">
+                            {group.name}
+                          </p>,
+                        ]
+                      : []),
+                    ...group.items.map(item => (
+                      <CartItem
+                        key={`${item.product.path}`}
+                        item={item}
+                        increaseQuantity={increaseQuantity}
+                        decreaseQuantity={decreaseQuantity}
+                        onRemove={removeItem}
+                        canRemoveItem={true}
+                      />
+                    )),
+                  ])}
                 </AnimatePresence>
               </div>
             </ScrollArea>

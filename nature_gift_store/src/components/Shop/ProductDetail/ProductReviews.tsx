@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Star, ThumbsUp } from 'lucide-react'
+import { BadgeCheck, Star, ThumbsUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -110,6 +110,12 @@ export function ProductReviews({ reviews }: { product: Product; reviews: Review[
                   </span>
                 </div>
                 <div className="flex items-center mt-1">
+                  {review.verify && (
+                    <span className="mr-2 inline-flex items-center gap-1 text-xs font-medium text-primary">
+                      <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
+                      {localization.verifiedPurchase}
+                    </span>
+                  )}
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star
                       key={i}

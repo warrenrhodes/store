@@ -2,12 +2,18 @@
 
 import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/Site'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
 import { Category } from '@/lib/firebase/models'
 
-export function CategoryShowcase({ categories }: { categories: Category[] }) {
+export function CategoryShowcase({
+  categories,
+  title,
+}: {
+  categories: Category[]
+  title?: string | null
+}) {
   const { localization } = useLocalization()
   if (categories.length === 0) return null
 
@@ -15,7 +21,7 @@ export function CategoryShowcase({ categories }: { categories: Category[] }) {
     <section className="py-16 sm:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-          {localization.exploreCategories}
+          {title || localization.exploreCategories}
         </h2>
 
         <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">

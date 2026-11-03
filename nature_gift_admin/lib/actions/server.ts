@@ -1,15 +1,24 @@
-import { clientConfig, serverConfig } from '@/config'
-import { DatabaseDocument, getDatabasePath, QueryFilter } from '@spreeloop/database'
-import { getTokens, Tokens } from 'next-firebase-auth-edge'
-import { cookies } from 'next/headers'
+import { DatabaseDocument } from '@spreeloop/database'
 import { NextRequest, NextResponse } from 'next/server'
 import { cache } from 'react'
 import z from 'zod'
 import { CollectionsName } from '../firebase/collection-name'
-import { backend } from '../firebase/firebase-server/firebase'
+import {
+  getUserTokens,
+  getUserTokensOnApiRoute,
+  isTakenInStore,
+  requireStore,
+  scopedCreate,
+  scopedDelete,
+  scopedGet,
+  scopedList,
+  scopedUpdate,
+  Unauthorized,
+} from '../tenant'
 import {
   Blog,
   Category,
+  Checkout,
   DeliveryLocation,
   Order,
   OrderStatus,
@@ -19,6 +28,7 @@ import {
   Shipment,
 } from '../firebase/models'
 import { OrderPrices, UserData } from '../type'
+import { refusalRate, SALE_STATUSES } from '../orders/order-logic'
 
 export type ICategory = DatabaseDocument<Category>
 export type IShipment = DatabaseDocument<Shipment>
@@ -28,12 +38,9 @@ export type IBlog = DatabaseDocument<Blog>
 export type IPromotion = DatabaseDocument<Promotion>
 export type IProduct = DatabaseDocument<Product>
 export type IOrder = DatabaseDocument<Order>
+export type ICheckout = DatabaseDocument<Checkout>
 
-const COUNTED_STATUSES = new Set<string>([
-  OrderStatus.PENDING,
-  OrderStatus.ACCEPTED,
-  OrderStatus.COMPLETED,
-])
+const COUNTED_STATUSES = new Set<string>(SALE_STATUSES)
 
 /** KPIs for the dashboard. Cancelled and rejected orders are excluded from revenue. */
 export const getDashboardStats = async () => {
@@ -67,6 +74,45 @@ export const getDashboardStats = async () => {
     .sort((a, b) => new Date(b.data.createdAt).getTime() - new Date(a.data.createdAt).getTime())
     .slice(0, 5)
 
+  // Best sellers by units, over orders that count as sales.
+  const sold = new Map<string, { title: string; units: number; revenue: number }>()
+  for (const o of counted) {
+    for (const item of o.data.items ?? []) {
+      const line = sold.get(item.product.path) ?? {
+        title: item.product.title,
+        units: 0,
+        revenue: 0,
+      }
+      line.units += item.quantity
+      line.revenue += item.price * item.quantity
+      sold.set(item.product.path, line)
+    }
+  }
+  const topProducts = [...sold.values()].sort((a, b) => b.units - a.units).slice(0, 5)
+
+  const delivered = orders.filter(o => o.data.status === OrderStatus.COMPLETED).length
+  const failed = orders.filter(o => o.data.status === OrderStatus.FAILED_DELIVERY).length
+  const toShip = orders.filter(o =>
+    [OrderStatus.ACCEPTED, OrderStatus.OUT_FOR_DELIVERY].includes(o.data.status),
+  ).length
+
+  // Abandoned checkouts of the last 30 days and how many became orders.
+  const since = Date.now() - 30 * 24 * 3600 * 1000
+  const checkouts = (await getCheckouts()).filter(
+    c => new Date(c.data.createdAt).getTime() >= since,
+  )
+  const recovered = checkouts.filter(c => c.data.orderPath).length
+
+  const lowStock = (await getProducts())
+    .map(p => ({
+      title: p.data.title,
+      id: p.path.split('/').pop()!,
+      stock: p.data.inventory?.stockQuantity,
+      threshold: p.data.inventory?.lowStockThreshold ?? 0,
+    }))
+    .filter(p => typeof p.stock === 'number' && p.stock <= Math.max(p.threshold, 0))
+    .sort((a, b) => (a.stock ?? 0) - (b.stock ?? 0))
+
   return {
     revenue,
     orderCount: counted.length,
@@ -75,306 +121,83 @@ export const getDashboardStats = async () => {
     customers,
     salesByMonth: months.map(({ name, sales }) => ({ name, sales })),
     recentOrders,
+    topProducts,
+    refusalRate: refusalRate(delivered, failed),
+    finishedDeliveries: delivered + failed,
+    toShip,
+    abandoned: checkouts.length - recovered,
+    checkoutConversion: checkouts.length ? recovered / checkouts.length : 0,
+    lowStock,
+    pendingReviews: (await getReviews()).filter(r => r.data.status === 'PENDING').length,
   }
 }
 
-async function getProducts(): Promise<IProduct[]> {
+/** Logs and falls back to empty, like the pages expect (signed out or no store included). */
+const orEmpty = async <T>(label: string, load: () => Promise<T[]>): Promise<T[]> => {
   try {
-    const token = await getUserTokens()
-    if (!token?.decodedToken.uid) return []
-
-    const products = await backend.database.getCollection<Product>({
-      collectionPath: CollectionsName.Products,
-      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
-    })
-
-    return JSON.parse(JSON.stringify(products))
+    return await load()
   } catch (error) {
-    console.error('Failed to fetch products:', error)
+    if (!(error instanceof Unauthorized)) console.error(`Failed to fetch ${label}:`, error)
     return []
   }
 }
 
-async function getProductById(productId: string): Promise<IProduct | undefined> {
-  const productPath = getDatabasePath(CollectionsName.Products, productId)
+const orNone = async <T>(label: string, load: () => Promise<T | undefined>) => {
   try {
-    const token = await getUserTokens()
-    if (!token?.decodedToken.uid) return
-
-    const products = await backend.database.getCollection<Product>({
-      collectionPath: CollectionsName.Products,
-      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
-    })
-
-    return JSON.parse(JSON.stringify(products.find(product => product.path === productPath)))
+    return await load()
   } catch (error) {
-    console.error('Failed to fetch product:', error)
-    return
+    if (!(error instanceof Unauthorized)) console.error(`Failed to fetch ${label}:`, error)
+    return undefined
   }
 }
 
-async function getCategories(): Promise<ICategory[]> {
-  try {
-    const token = await getUserTokens()
-    if (!token?.decodedToken.uid) return []
+/** Orders and checkouts are addressed by id (path = id) in the admin pages. */
+const byId = <T>(docs: DatabaseDocument<T>[]) =>
+  docs.map(d => ({ ...d, path: d.path.split('/').pop()! }))
 
-    const categories = await backend.database.getCollection<Category>({
-      collectionPath: CollectionsName.Categories,
-      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
-    })
-
-    return JSON.parse(JSON.stringify(categories))
-  } catch (error) {
-    console.error('Failed to fetch categories:', error)
-    return []
-  }
-}
-async function getCategoryById(categoryId: string): Promise<ICategory | undefined> {
-  const categoryPath = getDatabasePath(CollectionsName.Categories, categoryId)
-  try {
-    const token = await getUserTokens()
-    if (!token?.decodedToken.uid) return
-
-    const category = await backend.database.getCollection<Category>({
-      collectionPath: CollectionsName.Categories,
-      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
-    })
-
-    return JSON.parse(JSON.stringify(category.find(category => category.path === categoryPath)))
-  } catch (error) {
-    console.error('Failed to fetch category:', error)
-    return
-  }
-}
-
-async function getShipments(): Promise<IShipment[]> {
-  try {
-    const token = await getUserTokens()
-    if (!token?.decodedToken.uid) return []
-
-    const shipments = await backend.database.getCollection<Shipment>({
-      collectionPath: CollectionsName.Shipments,
-      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
-    })
-
-    return JSON.parse(JSON.stringify(shipments))
-  } catch (error) {
-    console.error('Failed to fetch shipments:', error)
-    return []
-  }
-}
-
-async function getBlogs(): Promise<IBlog[]> {
-  try {
-    const token = await getUserTokens()
-    if (!token?.decodedToken.uid) return []
-
-    const blogs = await backend.database.getCollection<Blog>({
-      collectionPath: CollectionsName.Blogs,
-      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
-    })
-
-    return JSON.parse(JSON.stringify(blogs))
-  } catch (error) {
-    console.error('Failed to fetch blogs:', error)
-    return []
-  }
-}
-
-async function getBlogById(blogId: string): Promise<IBlog | undefined> {
-  const blogPath = getDatabasePath(CollectionsName.Blogs, blogId)
-  try {
-    const token = await getUserTokens()
-    if (!token?.decodedToken.uid) return
-
-    const blogs = await backend.database.getCollection<Blog>({
-      collectionPath: CollectionsName.Blogs,
-      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
-    })
-
-    return JSON.parse(JSON.stringify(blogs.find(blog => blog.path === blogPath)))
-  } catch (error) {
-    console.error('Failed to fetch blog post:', error)
-    return
-  }
-}
-
-async function getReviews(): Promise<IReview[]> {
-  try {
-    const token = await getUserTokens()
-    if (!token?.decodedToken.uid) return []
-
-    const reviews = await backend.database.getCollection<Review>({
-      collectionPath: CollectionsName.Reviews,
-      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
-    })
-
-    return JSON.parse(JSON.stringify(reviews))
-  } catch (error) {
-    console.error('Failed to fetch reviews:', error)
-    return []
-  }
-}
-
-async function getReviewById(reviewId: string): Promise<IReview | undefined> {
-  const reviewPath = getDatabasePath(CollectionsName.Reviews, reviewId)
-  try {
-    const token = await getUserTokens()
-    if (!token?.decodedToken.uid) return
-
-    const reviews = await backend.database.getCollection<Review>({
-      collectionPath: CollectionsName.Reviews,
-      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
-    })
-
-    return JSON.parse(JSON.stringify(reviews.find(review => review.path === reviewPath)))
-  } catch (error) {
-    console.error('Failed to fetch review:', error)
-    return
-  }
-}
-
-async function getOrders(): Promise<IOrder[]> {
-  try {
-    const token = await getUserTokens()
-    if (!token?.decodedToken.uid) return []
-
-    const ordersRef = backend.db.collection(CollectionsName.Orders)
-    const ordersSnapshot = await ordersRef
-      .where(
-        'partnersPaths',
-        'array-contains',
-        getDatabasePath(CollectionsName.Users, token?.decodedToken.uid),
-      )
-      .get()
-
-    const orders: IOrder[] = []
-    ordersSnapshot.forEach(doc => {
-      orders.push({ path: doc.id, data: doc.data() } as IOrder)
-    })
-
-    return JSON.parse(JSON.stringify(orders))
-  } catch (error) {
-    console.error('Failed to fetch orders:', error)
-    return []
-  }
-}
-
-async function getPromotions(): Promise<IPromotion[]> {
-  try {
-    const token = await getUserTokens()
-    if (!token?.decodedToken.uid) return []
-
-    const promotions = await backend.database.getCollection<Promotion>({
-      collectionPath: CollectionsName.Promotions,
-      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
-    })
-
-    return JSON.parse(JSON.stringify(promotions))
-  } catch (error) {
-    console.error('Failed to fetch promotions:', error)
-    return []
-  }
-}
-
-async function getPromotionById(promotionId: string): Promise<IPromotion | undefined> {
-  const promotionPath = getDatabasePath(CollectionsName.Promotions, promotionId)
-  try {
-    const token = await getUserTokens()
-    if (!token?.decodedToken.uid) return
-
-    const promotions = await backend.database.getCollection<Promotion>({
-      collectionPath: CollectionsName.Promotions,
-      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
-    })
-
-    return JSON.parse(
-      JSON.stringify(promotions.find(promotion => promotion.path === promotionPath)),
-    )
-  } catch (error) {
-    console.error('Failed to fetch promotion:', error)
-    return
-  }
-}
-
-/** All locations, shared by every admin (shipments and promotions reference them). */
-async function getLocations(): Promise<ILocation[]> {
-  try {
-    const token = await getUserTokens()
-    if (!token?.decodedToken.uid) return []
-    const locations = await backend.database.getCollection<DeliveryLocation>({
-      collectionPath: CollectionsName.Locations,
-    })
-    return JSON.parse(JSON.stringify(locations)).sort(
-      (a: ILocation, b: ILocation) =>
-        a.data.city.localeCompare(b.data.city) || a.data.name.localeCompare(b.data.name),
-    )
-  } catch (error) {
-    console.error('Failed to fetch locations:', error)
-    return []
-  }
-}
-
-async function getShipmentById(shipmentId: string): Promise<IShipment | undefined> {
-  const shipmentPath = getDatabasePath(CollectionsName.Shipments, shipmentId)
-  try {
-    const token = await getUserTokens()
-    if (!token?.decodedToken.uid) return
-
-    const shipment = await backend.database.getCollection<Shipment>({
-      collectionPath: CollectionsName.Shipments,
-      filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
-    })
-
-    return JSON.parse(JSON.stringify(shipment.find(shipment => shipment.path === shipmentPath)))
-  } catch (error) {
-    console.error('Failed to fetch shipment:', error)
-    return
-  }
-}
-
-export const getUserTokens = async (): Promise<Tokens | undefined> => {
-  const tokens = await getTokens(await cookies(), {
-    apiKey: clientConfig.apiKey,
-    cookieName: serverConfig.cookieName,
-    cookieSignatureKeys: serverConfig.cookieSignatureKeys,
-    serviceAccount: serverConfig.serviceAccount,
+const getProducts = () =>
+  orEmpty('products', () => scopedList<Product>(CollectionsName.Products)) as Promise<IProduct[]>
+const getProductById = (id: string) =>
+  orNone('product', () => scopedGet<Product>(CollectionsName.Products, id))
+const getCategories = () =>
+  orEmpty('categories', () => scopedList<Category>(CollectionsName.Categories))
+const getCategoryById = (id: string) =>
+  orNone('category', () => scopedGet<Category>(CollectionsName.Categories, id))
+const getShipments = () =>
+  orEmpty('shipments', () => scopedList<Shipment>(CollectionsName.Shipments))
+const getShipmentById = (id: string) =>
+  orNone('shipment', () => scopedGet<Shipment>(CollectionsName.Shipments, id))
+const getBlogs = () => orEmpty('blogs', () => scopedList<Blog>(CollectionsName.Blogs))
+const getBlogById = (id: string) => orNone('blog', () => scopedGet<Blog>(CollectionsName.Blogs, id))
+const getReviews = () => orEmpty('reviews', () => scopedList<Review>(CollectionsName.Reviews))
+const getReviewById = (id: string) =>
+  orNone('review', () => scopedGet<Review>(CollectionsName.Reviews, id))
+const getPromotions = () =>
+  orEmpty('promotions', () => scopedList<Promotion>(CollectionsName.Promotions))
+const getPromotionById = (id: string) =>
+  orNone('promotion', () => scopedGet<Promotion>(CollectionsName.Promotions, id))
+const getOrders = () =>
+  orEmpty('orders', async () => byId(await scopedList<Order>(CollectionsName.Orders)))
+const getOrderById = (id: string) =>
+  orNone('order', async () => {
+    const order = await scopedGet<Order>(CollectionsName.Orders, id)
+    return order && byId([order])[0]
   })
+const getCheckouts = () =>
+  orEmpty('checkouts', async () => byId(await scopedList<Checkout>(CollectionsName.Checkouts)))
 
-  if (!tokens) {
-    return
-  }
-  return tokens
-}
+/** The store's locations (its shipments and promotions reference them). */
+const getLocations = () =>
+  orEmpty('locations', async () =>
+    (await scopedList<DeliveryLocation>(CollectionsName.Locations)).sort(
+      (a, b) => a.data.city.localeCompare(b.data.city) || a.data.name.localeCompare(b.data.name),
+    ),
+  )
 
-export const checkDocumentExists = async (
-  collection: string,
-  field: string,
-  value: string,
-): Promise<boolean> => {
-  const snapshot = await backend.database.getCollection({
-    collectionPath: collection,
-    filters: [new QueryFilter(field, '==', value)],
-  })
+export { getUserTokens, getUserTokensOnApiRoute }
 
-  return snapshot.length > 0
-}
-
-export const getUserTokensOnApiRoute = async (
-  request: NextRequest,
-): Promise<Tokens | undefined> => {
-  const tokens = await getTokens(request.cookies, {
-    apiKey: clientConfig.apiKey,
-    cookieName: serverConfig.cookieName,
-    cookieSignatureKeys: serverConfig.cookieSignatureKeys,
-    serviceAccount: serverConfig.serviceAccount,
-  })
-
-  if (!tokens) {
-    return
-  }
-  return tokens
-}
+const forbidden = (error: unknown) =>
+  error instanceof Unauthorized ? new NextResponse('Unauthorized', { status: 403 }) : undefined
 
 export const postData = async (
   req: NextRequest,
@@ -384,55 +207,41 @@ export const postData = async (
   uniqueField?: string,
   value: string = '',
 ) => {
-  const token = await getUserTokensOnApiRoute(req)
+  try {
+    await requireStore()
+    const json = await req.json()
+    schema.parse(json)
 
-  if (!token) {
-    return new NextResponse('Unauthorized', { status: 403 })
-  }
-
-  const json = await req.json()
-  schema.parse(json)
-
-  if (verifyRecordExists && uniqueField) {
-    const existingCategory = await checkDocumentExists(collection, uniqueField, value)
-
-    if (existingCategory) {
-      return new NextResponse(`${collection} already exists`, { status: 409 })
+    if (verifyRecordExists && uniqueField) {
+      if (await isTakenInStore(collection, uniqueField, value)) {
+        return new NextResponse(`${collection} already exists`, { status: 409 })
+      }
     }
-  }
 
-  const result = await backend.database.createRecord(collection, {
-    ...json,
-    creatorId: token.decodedToken.uid,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  })
-
-  if (!result) {
-    return new NextResponse(`Failed to create ${collection}`, { status: 500 })
+    const result = await scopedCreate(collection, json)
+    if (!result) {
+      return new NextResponse(`Failed to create ${collection}`, { status: 500 })
+    }
+    return new NextResponse(null, { status: 200 })
+  } catch (error) {
+    const response = forbidden(error)
+    if (response) return response
+    throw error
   }
-  return new NextResponse(null, { status: 200 })
 }
 
-export const getDataById = async <T>(req: NextRequest, collection: string, id: string) => {
-  const token = await getUserTokensOnApiRoute(req)
-
-  if (!token) {
-    return new NextResponse('Unauthorized', { status: 403 })
+export const getDataById = async (_req: NextRequest, collection: string, id: string) => {
+  try {
+    const data = await scopedGet(collection, id)
+    if (!data) {
+      return new NextResponse(`${collection} not found`, { status: 404 })
+    }
+    return NextResponse.json(data, { status: 200 })
+  } catch (error) {
+    const response = forbidden(error)
+    if (response) return response
+    throw error
   }
-  const path = getDatabasePath(collection, id)
-
-  const result = await backend.database.getCollection<T>({
-    collectionPath: collection,
-    filters: [new QueryFilter('creatorId', '==', token?.decodedToken.uid)],
-  })
-
-  const data = result.find(shipment => shipment.path === path)
-
-  if (!data) {
-    return new NextResponse(`${collection} not found`, { status: 404 })
-  }
-  return NextResponse.json(data, { status: 200 })
 }
 
 export const putData = async (
@@ -441,48 +250,40 @@ export const putData = async (
   collection: string,
   id: string,
 ) => {
-  const token = await getUserTokensOnApiRoute(req)
-
-  if (!token) {
-    return new NextResponse('Unauthorized', { status: 403 })
+  try {
+    await requireStore()
+    const json = await req.json()
+    schema.parse(json)
+    if (!(await scopedUpdate(collection, id, json))) {
+      return new NextResponse(`${collection} not found`, { status: 404 })
+    }
+    return NextResponse.json(true, { status: 200 })
+  } catch (error) {
+    const response = forbidden(error)
+    if (response) return response
+    throw error
   }
-
-  const json = await req.json()
-  schema.parse(json)
-  const result = await backend.database.setRecord(getDatabasePath(collection, id), {
-    ...json,
-    updatedAt: new Date().toISOString(),
-  })
-
-  if (!result) {
-    return new NextResponse(`${collection} not found`, { status: 404 })
-  }
-
-  return NextResponse.json(result, { status: 200 })
 }
-export const deleteData = async (req: NextRequest, collection: string, id: string) => {
-  const token = await getUserTokensOnApiRoute(req)
 
-  if (!token) {
-    return new NextResponse('Unauthorized', { status: 403 })
+export const deleteData = async (_req: NextRequest, collection: string, id: string) => {
+  try {
+    if (!(await scopedDelete(collection, id))) {
+      return new NextResponse('Not Found or Unauthorized', { status: 404 })
+    }
+    return NextResponse.json(null, { status: 200 })
+  } catch (error) {
+    const response = forbidden(error)
+    if (response) return response
+    throw error
   }
-
-  const dataRef = backend.db.collection(collection).doc(id)
-  const dataDoc = await dataRef.get()
-
-  if (!dataDoc.exists || dataDoc?.data()?.creatorId !== token.decodedToken.uid) {
-    return new NextResponse('Not Found or Unauthorized', { status: 404 })
-  }
-
-  await dataRef.delete()
-
-  return NextResponse.json(null, { status: 200 })
 }
 
 export const getPromotionsCache = cache(getPromotions)
 export const getShipmentByIdCache = cache(getShipmentById)
 export const getPromotionByIdCache = cache(getPromotionById)
 export const getOrdersCache = cache(getOrders)
+export const getOrderByIdCache = cache(getOrderById)
+export const getCheckoutsCache = cache(getCheckouts)
 export const getReviewByIdCache = cache(getReviewById)
 export const getProductsCache = cache(getProducts)
 export const getProductByIdCache = cache(getProductById)

@@ -18,7 +18,14 @@ export const promotionsColumns: ColumnDef<IPromotion>[] = [
     accessorKey: 'code',
     accessorFn: row => row.data.code,
     header: 'Code',
-    cell: ({ row }) => <div className="font-mono leading-none">{row.original.data.code}</div>,
+    cell: ({ row }) => (
+      <div className="space-y-1">
+        <div className="font-mono leading-none">{row.original.data.code}</div>
+        <Badge variant="outline" className="text-[10px] font-normal">
+          {row.original.data.requiresCode ? 'Code' : 'Automatic'}
+        </Badge>
+      </div>
+    ),
   },
   {
     accessorKey: 'name',
@@ -88,6 +95,19 @@ export const promotionsColumns: ColumnDef<IPromotion>[] = [
           >
             {row.original.data.status}
           </Badge>
+        </div>
+      )
+    },
+  },
+  {
+    id: 'usage',
+    header: 'Used',
+    cell: ({ row }) => {
+      const { usageCount = 0, usageLimit } = row.original.data
+      return (
+        <div className="tabular-nums">
+          {usageCount}
+          {usageLimit?.total ? ` / ${usageLimit.total}` : ''}
         </div>
       )
     },

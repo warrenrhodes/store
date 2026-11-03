@@ -1,0 +1,12 @@
+{
+  "//": "Type check of the e2e build (scripts/e2e, E2E_DIST_DIR): only its own generated types, not those a dev server left in .next.",
+  "extends": "./tsconfig.json",
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next-e2e/types/**/*.ts",
+    ".next-e2e/dev/types/**/*.ts"
+  ],
+  "exclude": ["node_modules", ".next"]
+}

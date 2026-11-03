@@ -1,58 +1,56 @@
-import { AuthProvider } from '@/components/Auth/AuthProvider'
-import Footer from '@/components/Footer'
-import { Header } from '@/components/Header/Index'
-import { Toaster } from '@/components/ui/toaster'
-import ToasterProvider from '@/lib/providers/ToasterProvider'
-import { GoogleTagManager } from '@next/third-parties/google'
-import type { Metadata } from 'next'
-import { Fredoka } from 'next/font/google'
+import { DM_Sans, Fredoka, Inter, Playfair_Display, Poppins } from 'next/font/google'
 import './globals.css'
 
 export const dynamic = 'force-dynamic'
 
+// The theme fonts (THEME_FONTS in @ngift/core/theme): each store's theme picks one through
+// --font-theme. Self-hosted by next/font; a browser only downloads the one in use.
+// next/font needs each call assigned to a module const, with literal options.
 const fredoka = Fredoka({
   subsets: ['latin'],
-  variable: '--font-fredoka',
   weight: ['400', '500', '600'],
+  display: 'swap',
+  variable: '--font-fredoka',
 })
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  display: 'swap',
+  variable: '--font-inter',
+})
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  display: 'swap',
+  variable: '--font-poppins',
+})
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  display: 'swap',
+  variable: '--font-playfair',
+})
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  display: 'swap',
+  variable: '--font-dm-sans',
+})
+const fonts = [fredoka, inter, poppins, playfair, dmSans]
 
-export const metadata: Metadata = {
-  metadataBase: new URL(`${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}`),
-  title: {
-    default: 'N.Gift - Santé, Style et Innovation',
-    template: '%s | N.Gift',
-  },
-  description: 'Explore N.Gift, your online boutique dedicated to health, style and innovation.',
-  keywords: ['Gift', 'Longrich', 'Health', 'Style', 'Innovation'],
-  twitter: {
-    card: 'summary_large_image',
-  },
-}
-
-export default async function RootLayout({
+// The marketplace and every store render under app/[site]/layout.tsx (header, trackers, brand).
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   return (
-    <html lang="fr" suppressHydrationWarning className="!scroll-smooth">
-      <head>
-        <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link rel="shortcut icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        <link rel="manifest" href="/site.webmanifest" />
-      </head>
-      <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID} />
-      <body className={`${fredoka.variable} antialiased font-sans`}>
-        <div>
-          <ToasterProvider />
-          <Header />
-          <AuthProvider>{children}</AuthProvider>
-          <Footer />
-          <Toaster />
-        </div>
-      </body>
+    <html
+      lang="fr"
+      suppressHydrationWarning
+      className={`!scroll-smooth ${fonts.map(f => f.variable).join(' ')}`}
+    >
+      <body className="antialiased font-sans">{children}</body>
     </html>
   )
 }

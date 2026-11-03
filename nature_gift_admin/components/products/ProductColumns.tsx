@@ -91,20 +91,25 @@ export const productColumns: ColumnDef<IProduct>[] = [
     ),
   },
   {
-    accessorKey: 'inventory',
-    accessorFn: row => (row.data.inventory as Inventory).quantity,
-    header: 'Inventory',
-    cell: ({ row }) => (
-      <div>
-        {(row.original.data.inventory as Inventory).quantity}
-        {(row.original.data.inventory as Inventory).quantity <=
-          (row.original.data.inventory as Inventory).lowStockThreshold && (
-          <Badge variant="destructive" className="ml-2">
-            Low Stock
-          </Badge>
-        )}
-      </div>
-    ),
+    id: 'stock',
+    accessorFn: row => (row.data.inventory as Inventory)?.stockQuantity ?? -1,
+    header: 'Stock',
+    cell: ({ row }) => {
+      const inventory = row.original.data.inventory as Inventory | undefined
+      const stock = inventory?.stockQuantity
+      if (typeof stock !== 'number')
+        return <span className="text-muted-foreground">Not tracked</span>
+      return (
+        <div className="flex items-center gap-2 tabular-nums">
+          {stock}
+          {stock === 0 ? (
+            <Badge variant="destructive">Out of stock</Badge>
+          ) : stock <= (inventory?.lowStockThreshold ?? 0) ? (
+            <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">Low stock</Badge>
+          ) : null}
+        </div>
+      )
+    },
   },
   {
     id: 'actions',

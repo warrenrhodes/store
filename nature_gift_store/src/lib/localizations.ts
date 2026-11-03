@@ -19,6 +19,150 @@ export const localization = {
 }
 
 export const dictionary: Record<DictWords, Record<Locale, string>> = {
+  errorOutOfStock: {
+    en: 'Sorry, a product is no longer available in this quantity.',
+    fr: 'Désolé, un produit n’est plus disponible en quantité suffisante.',
+  },
+  promoCode: {
+    en: 'Discount code',
+    fr: 'Code promo',
+  },
+  apply: {
+    en: 'Apply',
+    fr: 'Appliquer',
+  },
+  codeApplied: {
+    en: 'Applied',
+    fr: 'Appliqué',
+  },
+  codeNotApplicable: {
+    en: 'Conditions not met',
+    fr: 'Conditions non remplies',
+  },
+  codeInvalid: {
+    en: 'Invalid code',
+    fr: 'Code invalide',
+  },
+  promoAddedFromLink: {
+    en: 'Discount code added',
+    fr: 'Code promo ajouté',
+  },
+  removeCode: {
+    en: 'Remove code',
+    fr: 'Retirer le code',
+  },
+  promotionExhausted: {
+    en: 'This discount is no longer available.',
+    fr: 'Cette promotion n’est plus disponible.',
+  },
+  legal: {
+    en: 'Legal information',
+    fr: 'Informations légales',
+  },
+  ordersByStore: {
+    en: 'One order per store: each store delivers its own products.',
+    fr: 'Une commande par boutique : chaque boutique livre ses propres produits.',
+  },
+  soldBy: {
+    en: 'Sold by',
+    fr: 'Vendu par',
+  },
+  ourStores: {
+    en: 'Our stores',
+    fr: 'Nos boutiques',
+  },
+  visitStore: {
+    en: 'Visit the store',
+    fr: 'Voir la boutique',
+  },
+  noProductsYet: {
+    en: 'No products yet.',
+    fr: 'Pas encore de produits.',
+  },
+  yourOrders: {
+    en: 'Your orders',
+    fr: 'Vos commandes',
+  },
+  trackThisOrder: {
+    en: 'Track this order',
+    fr: 'Suivre cette commande',
+  },
+  trackOrder: {
+    en: 'Track my order',
+    fr: 'Suivre ma commande',
+  },
+  orderTracking: {
+    en: 'Order tracking',
+    fr: 'Suivi de commande',
+  },
+  orderNumber: {
+    en: 'Order',
+    fr: 'Commande',
+  },
+  keepTrackingLink: {
+    en: 'Keep this page to follow your order.',
+    fr: 'Gardez cette page pour suivre votre commande.',
+  },
+  orderNotFound: {
+    en: 'Order not found',
+    fr: 'Commande introuvable',
+  },
+  statusPENDING: {
+    en: 'Received',
+    fr: 'Reçue',
+  },
+  statusACCEPTED: {
+    en: 'Confirmed',
+    fr: 'Confirmée',
+  },
+  statusOUT_FOR_DELIVERY: {
+    en: 'Out for delivery',
+    fr: 'En cours de livraison',
+  },
+  statusCOMPLETED: {
+    en: 'Delivered',
+    fr: 'Livrée',
+  },
+  statusFAILED_DELIVERY: {
+    en: 'Delivery failed',
+    fr: 'Livraison échouée',
+  },
+  statusCANCELED: {
+    en: 'Canceled',
+    fr: 'Annulée',
+  },
+  statusREJECTED: {
+    en: 'Rejected',
+    fr: 'Refusée',
+  },
+  leaveReview: {
+    en: 'Rate this product',
+    fr: 'Donnez votre avis',
+  },
+  yourReview: {
+    en: 'Your review',
+    fr: 'Votre avis',
+  },
+  sendReview: {
+    en: 'Send',
+    fr: 'Envoyer',
+  },
+  reviewThanks: {
+    en: 'Thank you! Your review will be published after moderation.',
+    fr: 'Merci ! Votre avis sera publié après vérification.',
+  },
+  reviewAlreadySent: {
+    en: 'Review sent',
+    fr: 'Avis envoyé',
+  },
+  verifiedPurchase: {
+    en: 'Verified purchase',
+    fr: 'Achat vérifié',
+  },
+  deliveryArea: {
+    en: 'Delivery',
+    fr: 'Livraison',
+  },
   errorZoneRequired: {
     en: 'Please choose your delivery area',
     fr: 'Veuillez choisir votre quartier',
@@ -752,6 +896,14 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
     en: 'Customer Reviews',
     fr: 'Avis des clients',
   },
+  ourProducts: {
+    en: 'Our products',
+    fr: 'Nos produits',
+  },
+  frequentlyAskedQuestions: {
+    en: 'Frequently asked questions',
+    fr: 'Questions fréquentes',
+  },
   learnMore: {
     en: 'Learn More',
     fr: 'En savoir plus',
@@ -1007,6 +1159,42 @@ export const dictionary: Record<DictWords, Record<Locale, string>> = {
 }
 
 export const enum DictWords {
+  errorOutOfStock = 'errorOutOfStock',
+  promoCode = 'promoCode',
+  apply = 'apply',
+  codeApplied = 'codeApplied',
+  codeNotApplicable = 'codeNotApplicable',
+  codeInvalid = 'codeInvalid',
+  promoAddedFromLink = 'promoAddedFromLink',
+  removeCode = 'removeCode',
+  promotionExhausted = 'promotionExhausted',
+  legal = 'legal',
+  ordersByStore = 'ordersByStore',
+  soldBy = 'soldBy',
+  ourStores = 'ourStores',
+  visitStore = 'visitStore',
+  noProductsYet = 'noProductsYet',
+  yourOrders = 'yourOrders',
+  trackThisOrder = 'trackThisOrder',
+  trackOrder = 'trackOrder',
+  orderTracking = 'orderTracking',
+  orderNumber = 'orderNumber',
+  keepTrackingLink = 'keepTrackingLink',
+  orderNotFound = 'orderNotFound',
+  statusPENDING = 'statusPENDING',
+  statusACCEPTED = 'statusACCEPTED',
+  statusOUT_FOR_DELIVERY = 'statusOUT_FOR_DELIVERY',
+  statusCOMPLETED = 'statusCOMPLETED',
+  statusFAILED_DELIVERY = 'statusFAILED_DELIVERY',
+  statusCANCELED = 'statusCANCELED',
+  statusREJECTED = 'statusREJECTED',
+  leaveReview = 'leaveReview',
+  yourReview = 'yourReview',
+  sendReview = 'sendReview',
+  reviewThanks = 'reviewThanks',
+  reviewAlreadySent = 'reviewAlreadySent',
+  verifiedPurchase = 'verifiedPurchase',
+  deliveryArea = 'deliveryArea',
   errorZoneRequired = 'errorZoneRequired',
   errorNameRequired = 'errorNameRequired',
   errorInvalidPhone = 'errorInvalidPhone',
@@ -1256,4 +1444,6 @@ export const enum DictWords {
   quantity = 'quantity',
   addToCart = 'addToCart',
   buyNow = 'buyNow',
+  ourProducts = 'ourProducts',
+  frequentlyAskedQuestions = 'frequentlyAskedQuestions',
 }

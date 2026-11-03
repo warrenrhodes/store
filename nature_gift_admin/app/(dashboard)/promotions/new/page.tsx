@@ -1,9 +1,13 @@
 import { getDocumentId } from '@spreeloop/database'
 import { PromotionFormV2 } from '@/components/promotions/PromotionsFormV2'
-import { getProductsCache, getLocationsCache } from '@/lib/actions/server'
+import { getProductsCache, getLocationsCache, getCategoriesCache } from '@/lib/actions/server'
 
 export default async function NewPromotionPage() {
-  const [products, locations] = await Promise.all([getProductsCache(), getLocationsCache()])
+  const [products, locations, categories] = await Promise.all([
+    getProductsCache(),
+    getLocationsCache(),
+    getCategoriesCache(),
+  ])
   return (
     <div className="mx-auto w-full max-w-6xl">
       <div className="mb-8">
@@ -16,6 +20,8 @@ export default async function NewPromotionPage() {
           id: getDocumentId(l.path),
           name: `${l.data.name} (${l.data.city})`,
         }))}
+        cities={[...new Set(locations.map(l => l.data.city).filter(Boolean))].sort()}
+        categories={categories.map(c => c.data.name).sort()}
       />
     </div>
   )

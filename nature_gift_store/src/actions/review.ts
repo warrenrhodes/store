@@ -5,6 +5,7 @@ import { backend } from '@/lib/firebase/firebase-server/firebase'
 import { Review } from '@/lib/firebase/models'
 import { QueryFilter, getDatabasePath } from '@spreeloop/database'
 import { unstable_cache } from 'next/cache'
+import { isPublishedReview } from '@/lib/utils/utils'
 
 // Called by every product card: shared across visitors for 5 minutes (a failure is not cached).
 const readReviews = unstable_cache(
@@ -20,7 +21,9 @@ const readReviews = unstable_cache(
           ),
         ],
       })
-    ).map(e => ({ ...e.data, path: e.path })),
+    )
+      .map(e => ({ ...e.data, path: e.path }))
+      .filter(isPublishedReview),
   ['product-reviews'],
   { revalidate: 300 },
 )

@@ -14,7 +14,15 @@ import {
   Tag,
   Truck,
   MapPin,
+  ShoppingCart,
+  UsersRound,
+  Palette,
+  Settings,
+  UserCog,
+  Building2,
+  Copy,
 } from 'lucide-react'
+import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
 import {
   Sidebar,
@@ -31,6 +39,7 @@ import { useAuthStore } from '@/hooks/auth-store'
 import { ROUTES } from '@/lib/router'
 import { NavUser } from './NavUser'
 import { useRouter } from 'next/navigation'
+import { StoreSwitcher } from './StoreSwitcher'
 
 const data = {
   navMain: [
@@ -43,6 +52,16 @@ const data = {
       url: '/orders',
       icon: ShoppingBag,
       title: 'Orders',
+    },
+    {
+      url: '/checkouts',
+      icon: ShoppingCart,
+      title: 'Abandoned checkouts',
+    },
+    {
+      url: '/customers',
+      icon: UsersRound,
+      title: 'Customers',
     },
     {
       title: 'Categories',
@@ -63,11 +82,6 @@ const data = {
     //   url: '/medias',
     //   icon: LucideImage,
     //   title: 'Medias',
-    // },
-    // {
-    //   url: '/customers',
-    //   icon: UsersRound,
-    //   title: 'Customers',
     // },
     {
       url: '/blogs',
@@ -92,16 +106,57 @@ const data = {
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+/** The platform console (/platform): the super admin's own area, apart from any store. */
+const platformNav = [
+  { url: '/platform', icon: Building2, title: 'Stores' },
+  { url: '/platform/products', icon: Tag, title: 'Marketplace products' },
+]
+
+type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
+  /** The current store's dashboard, or the platform console. */
+  area: 'store' | 'platform'
+  stores: { id: string; name: string }[]
+  currentStoreId?: string
+  /** The current store's storefront (storefrontUrl). */
+  storeUrl?: string
+  isOwner: boolean
+  platformAdmin: boolean
+}
+
+export function AppSidebar({
+  area,
+  stores,
+  currentStoreId,
+  storeUrl,
+  isOwner,
+  platformAdmin,
+  ...props
+}: AppSidebarProps) {
   const { user, logout } = useAuthStore()
   const router = useRouter()
+  const platform = area === 'platform'
+  const navItems = platform
+    ? platformNav
+    : [
+        ...data.navMain,
+        ...(isOwner
+          ? [
+              { url: '/settings', icon: Settings, title: 'Store settings' },
+              { url: '/theme', icon: Palette, title: 'Theme' },
+              { url: '/team', icon: UserCog, title: 'Team' },
+            ]
+          : []),
+      ]
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href="/" aria-label="N.Gift Admin">
+              <Link
+                href={platform ? '/platform' : '/'}
+                aria-label={platform ? 'N.Gift platform console' : 'N.Gift Admin'}
+              >
                 <Image
                   src="/logo-wordmark.png"
                   alt="N.Gift"
@@ -110,16 +165,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   priority
                   className="h-7 w-auto"
                 />
-                <span className="rounded-md bg-sidebar-accent px-1.5 py-0.5 text-xs font-medium text-sidebar-accent-foreground">
-                  Admin
-                </span>
+                {platform ? (
+                  <span className="rounded-md bg-amber-500 px-1.5 py-0.5 text-xs font-medium text-amber-950">
+                    Platform
+                  </span>
+                ) : (
+                  <span className="rounded-md bg-sidebar-accent px-1.5 py-0.5 text-xs font-medium text-sidebar-accent-foreground">
+                    Admin
+                  </span>
+                )}
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        {!platform && <StoreSwitcher stores={stores} currentStoreId={currentStoreId} />}
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={navItems} />
       </SidebarContent>
       <SidebarFooter>
         {user && (
@@ -132,19 +194,50 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           />
         )}
         <SidebarMenu>
-          {process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL && (
+          {/* The way between the two areas: a platform admin's store(s) and the console. */}
+          {platform ? (
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a
-                  href={process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <ExternalLink />
-                  <span>View store</span>
-                </a>
+                <Link href="/">
+                  <LayoutDashboard />
+                  <span>Store dashboard</span>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
+          ) : (
+            platformAdmin && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/platform">
+                    <Building2 />
+                    <span>Platform console</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+          )}
+          {!platform && storeUrl && (
+            <>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <a href={storeUrl} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink />
+                    <span>View my store</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(storeUrl)
+                    toast({ description: `Link copied: ${storeUrl}` })
+                  }}
+                >
+                  <Copy />
+                  <span>Copy store link</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </>
           )}
           <SidebarMenuItem>
             {user ? (

@@ -4,8 +4,8 @@ import { useLocale } from '@/hooks/useLocale'
 import { useLocalization } from '@/hooks/useLocalization'
 import { navItems } from '@/lib/utils/navItems'
 import { Menu, X } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
+import { SiteLink as Link, useSiteHref } from '@/components/Site'
+import { BrandMark } from './BrandMark'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { Button } from '../ui/button'
@@ -17,6 +17,7 @@ export function MobileNav() {
   const pathname = usePathname()
   const { localization } = useLocalization()
   const { locale } = useLocale()
+  const href = useSiteHref()
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
@@ -28,13 +29,7 @@ export function MobileNav() {
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between py-4">
             <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-              <Image
-                src="/logo-wordmark.png"
-                alt="N.Gift"
-                width={258}
-                height={79}
-                className="h-7 w-auto"
-              />
+              <BrandMark className="h-7 w-auto" />
             </Link>
             <Button
               variant="ghost"
@@ -54,7 +49,9 @@ export function MobileNav() {
                 key={item.href}
                 href={item.href}
                 className={`relative rounded-md px-4 py-3 text-base font-medium transition-colors hover:text-primary ${
-                  pathname === item.href ? 'text-primary bg-primary/10' : 'text-muted-foreground'
+                  pathname === href(item.href)
+                    ? 'text-primary bg-primary/10'
+                    : 'text-muted-foreground'
                 }`}
                 onClick={() => setOpen(false)}
               >

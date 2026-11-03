@@ -1,7 +1,7 @@
 'use client'
 
 import { Heart } from 'lucide-react'
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/Site'
 import { useLocalization } from '@/hooks/useLocalization'
 import { useWishlistStore } from '@/hooks/store/useWishlistStore'
 import { buttonVariants } from '../ui/button'

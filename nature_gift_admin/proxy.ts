@@ -25,7 +25,8 @@ export default async function proxy(request: NextRequest) {
     enableMultipleCookies: true,
     enableCustomToken: false,
     debug: true,
-    checkRevoked: true,
+    // The revocation check needs a Google OAuth token, which the Auth emulator can't give.
+    checkRevoked: !process.env.FIREBASE_AUTH_EMULATOR_HOST,
     authorizationHeaderName: 'Authorization',
     handleValidToken: async ({ token, decodedToken }, headers) => {
       if (PUBLIC_PATHS.includes(request.nextUrl.pathname)) {

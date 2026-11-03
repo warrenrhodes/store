@@ -17,7 +17,8 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { AuthCard, AuthError } from '../Auth/AuthCard'
 import { useLocalization } from '@/hooks/useLocalization'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { useSiteRouter } from '@/components/Site'
 import { useState } from 'react'
 import { GoogleIcon } from './components/Google'
 import { useAuthStore } from '@/hooks/store/auth-store'
@@ -30,7 +31,7 @@ export function SignUpForm({ onToggleForm }: SignUpFormProps) {
   const { toast } = useToast()
   const { signUp, signInWithGoogle, loading } = useAuthStore()
   const { localization } = useLocalization()
-  const router = useRouter()
+  const router = useSiteRouter()
   const searchParams = useSearchParams()
   // See SignInForm: keeps the form locked until navigation completes.
   const [redirecting, setRedirecting] = useState(false)
@@ -77,7 +78,9 @@ export function SignUpForm({ onToggleForm }: SignUpFormProps) {
       await signInWithGoogle()
       setRedirecting(true)
       toast({ title: localization.signedIn })
-      router.replace(searchParams.get('redirect') || '/')
+      // An in-site path (set by the proxy or a link); never another host.
+      const redirect = searchParams.get('redirect')
+      router.replace(redirect?.startsWith('/') && !redirect.startsWith('//') ? redirect : '/')
     } catch {
       onError()
     }

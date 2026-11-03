@@ -7,6 +7,9 @@ export async function POST(req: NextRequest) {
   try {
     const token = await getUserTokensOnApiRoute(req)
     const json = await req.clone().json()
+    // The order API maintains usageCount; the code is stored upper-case and must be unique.
+    delete json.usageCount
+    json.code = String(json.code ?? '').trim().toUpperCase()
     json.metadata = {
       createdBy: token?.decodedToken.email || token?.decodedToken.uid,
       updatedBy: token?.decodedToken.email || token?.decodedToken.uid,
@@ -20,8 +23,8 @@ export async function POST(req: NextRequest) {
       promotionSchema,
       CollectionsName.Promotions,
       true,
-      'slug',
-      json.slug,
+      'code',
+      json.code,
     )
   } catch (error) {
     console.error('[PROMOTIONS_POST]', error)

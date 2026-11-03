@@ -1,14 +1,2 @@
-/**
- * Contains a set of used firestore collection name.
- */
-export class CollectionsName {
-  static readonly Users = 'users'
-  static readonly Products = 'products'
-  static readonly Categories = 'categories'
-  static readonly Blogs = 'blogs'
-  static readonly Orders = 'orders'
-  static readonly Shipments = 'shipments'
-  static readonly Locations = 'locations'
-  static readonly Promotions = 'promotions'
-  static readonly Reviews = 'reviews'
-}
+// Moved to packages/core (shared with the store).
+export * from '@ngift/core/collection-name'

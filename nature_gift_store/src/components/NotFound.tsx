@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/Site'
 
 /** Shared 404 / error screen. */
 export default function StatusPage({

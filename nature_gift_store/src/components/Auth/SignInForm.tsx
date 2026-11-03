@@ -15,7 +15,8 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { useToast } from '@/hooks/use-toast'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { useSiteRouter } from '@/components/Site'
 import { useState } from 'react'
 import { AuthCard, AuthError } from '../Auth/AuthCard'
 import { GoogleIcon } from './components/Google'
@@ -28,7 +29,7 @@ interface SignInFormProps {
 }
 
 export function SignInForm({ onToggleForm, onForgotPassword }: SignInFormProps) {
-  const router = useRouter()
+  const router = useSiteRouter()
   const { toast } = useToast()
   const { signIn, signInWithGoogle, loading } = useAuthStore()
   const searchParams = useSearchParams()
@@ -50,7 +51,9 @@ export function SignInForm({ onToggleForm, onForgotPassword }: SignInFormProps) 
   const onSuccess = () => {
     setRedirecting(true)
     toast({ title: localization.signedIn })
-    router.replace(searchParams.get('redirect') || '/')
+    // An in-site path (set by the proxy or a link); never another host.
+    const redirect = searchParams.get('redirect')
+    router.replace(redirect?.startsWith('/') && !redirect.startsWith('//') ? redirect : '/')
   }
   const onError = () =>
     form.setError('root', {

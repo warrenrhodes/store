@@ -11,15 +11,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/Site'
 import { useLocalization } from '@/hooks/useLocalization'
 import { useAuthStore } from '@/hooks/store/auth-store'
-import { useRouter } from 'next/navigation'
+import { useSiteRouter } from '@/components/Site'
 
 export function UserNav() {
   const { user, logout } = useAuthStore()
   const { localization } = useLocalization()
-  const router = useRouter()
+  const router = useSiteRouter()
 
   return (
     <DropdownMenu>

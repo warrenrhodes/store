@@ -9,8 +9,8 @@ import { getRegularPrice, priceFormatted } from '@/lib/utils/utils'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Search } from 'lucide-react'
 import Image from 'next/image'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { SiteLink as Link } from '@/components/Site'
+import { useSite, useSiteRouter } from '@/components/Site'
 import { useEffect, useState } from 'react'
 
 export function SearchBar() {
@@ -19,7 +19,8 @@ export function SearchBar() {
   const [loading, setLoading] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
   const { localization } = useLocalization()
-  const router = useRouter()
+  const router = useSiteRouter()
+  const { site } = useSite()
   const debouncedQuery = useDebounce(query, 300)
 
   useEffect(() => {
@@ -31,7 +32,9 @@ export function SearchBar() {
 
       setLoading(true)
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(debouncedQuery)}`)
+        const res = await fetch(
+          `/api/search?q=${encodeURIComponent(debouncedQuery)}&site=${encodeURIComponent(site)}`,
+        )
         const data = await res.json()
         setResults(data)
       } catch (error) {
@@ -88,7 +91,9 @@ export function SearchBar() {
           >
             <div className="p-2">
               {loading ? (
-                <p className="text-sm text-muted-foreground text-center">{localization.searching}</p>
+                <p className="text-sm text-muted-foreground text-center">
+                  {localization.searching}
+                </p>
               ) : results.length > 0 ? (
                 <div className="flex flex-col gap-1 max-h-[400px] overflow-y-auto">
                   {results.map(e => (
@@ -107,27 +112,31 @@ export function SearchBar() {
 }
 
 /** Shape returned by /api/search: a trimmed product, not a full `Product`. */
-type SearchResult = Pick<Product, 'title' | 'slug' | 'path' | 'medias' | 'price'>
+type SearchResult = Pick<Product, 'title' | 'slug' | 'path' | 'medias' | 'price' | 'storeId'>
 
-const ItemResult = ({ product }: { product: SearchResult }) => (
-  <Link
-    href={`/shop/${product.slug}`}
-    className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted"
-  >
-    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-muted">
-      <Image
-        src={product.medias[0].url}
-        fill
-        alt=""
-        className="object-cover"
-        placeholder="blur"
-        blurDataURL={product.medias[0].blurDataUrl || FAKE_BLUR}
-        sizes="56px"
-      />
-    </div>
-    <span className="flex-1 text-sm font-medium line-clamp-2">{product.title}</span>
-    <span className="text-sm tabular-nums">
-      {priceFormatted(getRegularPrice(product as Product))}
-    </span>
-  </Link>
-)
+const ItemResult = ({ product }: { product: SearchResult }) => {
+  // On the marketplace, the product of the store that sells it (two may share a slug).
+  const vendor = useSite().stores?.[product.storeId ?? '']
+  return (
+    <Link
+      href={vendor ? `/shop/${product.slug}?vendeur=${vendor.slug}` : `/shop/${product.slug}`}
+      className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted"
+    >
+      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-muted">
+        <Image
+          src={product.medias[0].url}
+          fill
+          alt=""
+          className="object-cover"
+          placeholder="blur"
+          blurDataURL={product.medias[0].blurDataUrl || FAKE_BLUR}
+          sizes="56px"
+        />
+      </div>
+      <span className="flex-1 text-sm font-medium line-clamp-2">{product.title}</span>
+      <span className="text-sm tabular-nums">
+        {priceFormatted(getRegularPrice(product as Product))}
+      </span>
+    </Link>
+  )
+}

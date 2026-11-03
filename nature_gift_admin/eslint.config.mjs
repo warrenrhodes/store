@@ -12,6 +12,7 @@ const compat = new FlatCompat({
 })
 
 const config = [
+  { ignores: ['.next/**', '.next-e2e/**', 'dist/**', '.history/**'] },
   ...compat.config({
     extends: ['next/core-web-vitals'],
     plugins: ['@typescript-eslint', 'prettier'],

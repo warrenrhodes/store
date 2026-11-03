@@ -1,5 +1,6 @@
 'use client'
 
+import { useStorefront } from '@/components/layout/Storefront'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2, Trash2, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -8,19 +9,19 @@ import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { generateSlug } from '@/lib/utils/slugify'
 import {
-    productSchema,
-    ProductSchemaType,
-    productVerificationForm,
+  productSchema,
+  ProductSchemaType,
+  productVerificationForm,
 } from '@/lib/validations/product'
 
 import { useToast } from '@/hooks/use-toast'
@@ -48,6 +49,7 @@ interface ProductFormProps {
 }
 
 export function ProductFormV2({ initialData, categories, blogs }: ProductFormProps) {
+  const storefront = useStorefront()
   const { toast } = useToast()
 
   const router = useRouter()
@@ -111,9 +113,14 @@ export function ProductFormV2({ initialData, categories, blogs }: ProductFormPro
     }
     setIsLoading(true)
     try {
-      let res;
+      let res
       if (initialData) {
-        res = await updateProduct(getDocumentId(initialData.path || ''), data)
+        // Untouched stock isn't written back: orders may have changed it since the page loaded.
+        res = await updateProduct(
+          getDocumentId(initialData.path || ''),
+          data,
+          initialData.data.inventory?.stockQuantity ?? initialData.data.inventory?.quantity,
+        )
       } else {
         res = await createProduct(data)
       }
@@ -145,13 +152,13 @@ export function ProductFormV2({ initialData, categories, blogs }: ProductFormPro
     const res = await deleteProduct(getDocumentId(initialData?.path || ''))
     if (res.success) {
       toast({
-         variant: "success",
-         description: "Product deleted"
+        variant: 'success',
+        description: 'Product deleted',
       })
       router.push('/products')
       return true
     } else {
-       toast({
+      toast({
         variant: 'destructive',
         description: res.error || 'Failed to delete',
       })
@@ -325,7 +332,7 @@ export function ProductFormV2({ initialData, categories, blogs }: ProductFormPro
                       <SelectContent unselectable="on">
                         {blogs.map(e => (
                           <SelectItem
-                            value={`${new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').protocol}//${new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').hostname}/blogs/${e.data.slug}`}
+                            value={`${storefront.url}/blogs/${e.data.slug}`}
                             key={`blogs: ${e.data.slug}`}
                           >
                             {e.data.title}

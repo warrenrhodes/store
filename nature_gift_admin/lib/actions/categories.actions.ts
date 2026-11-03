@@ -1,37 +1,19 @@
 'use server'
 
 import { CollectionsName } from '@/lib/firebase/collection-name'
-import { backend } from '@/lib/firebase/firebase-server/firebase'
 import { categorySchema, CategorySchemaType } from '@/lib/validations/category'
-import { getDatabasePath } from '@spreeloop/database'
 import { revalidatePath } from 'next/cache'
-import { checkDocumentExists, getUserTokens } from './server'
+import { isTakenInStore, scopedCreate, scopedDelete, scopedUpdate } from '@/lib/tenant'
 
 export async function createCategory(data: CategorySchemaType) {
   try {
-    const token = await getUserTokens()
-    if (!token) {
-      throw new Error('Unauthorized')
-    }
-
     const validatedData = categorySchema.parse(data)
 
-    const existingCategory = await checkDocumentExists(
-      CollectionsName.Categories,
-      'slug',
-      validatedData.slug
-    )
-
-    if (existingCategory) {
+    if (await isTakenInStore(CollectionsName.Categories, 'slug', validatedData.slug)) {
       return { success: false, error: 'Category with this slug already exists' }
     }
 
-    const result = await backend.database.createRecord(CollectionsName.Categories, {
-      ...validatedData,
-      creatorId: token.decodedToken.uid,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    })
+    const result = await scopedCreate(CollectionsName.Categories, validatedData)
 
     if (!result) {
       return { success: false, error: 'Failed to create category' }
@@ -47,18 +29,8 @@ export async function createCategory(data: CategorySchemaType) {
 
 export async function updateCategory(categoryId: string, data: CategorySchemaType) {
   try {
-    const token = await getUserTokens()
-    if (!token) {
-      throw new Error('Unauthorized')
-    }
-
     const validatedData = categorySchema.parse(data)
-    const categoryPath = getDatabasePath(CollectionsName.Categories, categoryId)
-
-    const result = await backend.database.setRecord(categoryPath, {
-      ...validatedData,
-      updatedAt: new Date().toISOString(),
-    })
+    const result = await scopedUpdate(CollectionsName.Categories, categoryId, validatedData)
 
     if (!result) {
       return { success: false, error: 'Failed to update category' }
@@ -75,19 +47,9 @@ export async function updateCategory(categoryId: string, data: CategorySchemaTyp
 
 export async function deleteCategory(categoryId: string) {
   try {
-    const token = await getUserTokens()
-    if (!token) {
-      throw new Error('Unauthorized')
+    if (!(await scopedDelete(CollectionsName.Categories, categoryId))) {
+      return { success: false, error: 'Not Found or Unauthorized' }
     }
-
-    const dataRef = backend.db.collection(CollectionsName.Categories).doc(categoryId)
-    const dataDoc = await dataRef.get()
-
-    if (!dataDoc.exists || dataDoc?.data()?.creatorId !== token.decodedToken.uid) {
-       return { success: false, error: 'Not Found or Unauthorized' }
-    }
-
-    await dataRef.delete()
 
     revalidatePath('/categories')
     return { success: true }

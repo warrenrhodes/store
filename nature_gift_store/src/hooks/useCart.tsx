@@ -2,9 +2,11 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { toast } from '@/hooks/use-toast'
 import { sendGTMEvent } from '@next/third-parties/google'
-import { IDeliveryInfo, Product } from '@/lib/firebase/models'
+import { trackPixel } from '@/lib/analytics/pixel'
+import { CartItem, IDeliveryInfo, Product } from '@/lib/firebase/models'
 import { dictionary, type DictWords } from '@/lib/localizations'
 import { useLocale } from './useLocale'
+import { perSite } from '@/components/Site'
 
 const t = (key: `${DictWords}`) => dictionary[key as DictWords][useLocale.getState().locale]
 export interface CartShipment {
@@ -12,11 +14,7 @@ export interface CartShipment {
   cost: number
   location: string
 }
-export interface CartItem {
-  product: Product
-  quantity: number
-  price: number
-}
+export type { CartItem }
 
 interface CartStore {
   cartItems: CartItem[]
@@ -51,93 +49,104 @@ const useCartDeliveryInfo = create<CartDeliveryInfo>(set => ({
   },
 }))
 
-const useCart = create(
-  persist<CartStore>(
-    (set, get) => ({
-      cartItems: [],
-      addItem: (data: CartItem) => {
-        const { product, quantity, price } = data
-        const currentItems = get().cartItems
-        const isExisting = currentItems.find(cartItem => cartItem.product.path === product.path)
+// One cart per site (cart-storage:<slug>): a store's cart only holds that store's products.
+const useCart = perSite(storageKey =>
+  create(
+    persist<CartStore>(
+      (set, get) => ({
+        cartItems: [],
+        addItem: (data: CartItem) => {
+          const { product, quantity, price } = data
+          const currentItems = get().cartItems
+          const isExisting = currentItems.find(cartItem => cartItem.product.path === product.path)
 
-        if (isExisting) {
-          return useCartSideBar.getState().onOpenChange(true)
-        }
-
-        set({ cartItems: [...currentItems, { product, quantity, price }] })
-        toast({ title: t('itemAdded'), description: product.title })
-        sendGTMEvent({
-          event: 'add_to_cart',
-          currency: 'XAF',
-          value: currentItems.reduce((acc, e) => acc + e.price * e.quantity, 0),
-          items: currentItems.map(e => {
-            return {
-              item_id: e.product.path,
-              item_name: e.product.title,
-              quantity: e.quantity,
-              category: e.product.categories?.[0],
-            }
-          }),
-        })
-      },
-      removeItem: (idToRemove: string) => {
-        const newCartItems = get().cartItems.filter(
-          cartItem => cartItem.product.path !== idToRemove,
-        )
-        set({ cartItems: newCartItems })
-
-        if (get().cartItems.length === 0) {
-          useCartDeliveryInfo.getState().clearDeliveryInfo()
-        }
-        sendGTMEvent({
-          event: 'remove_from_cart',
-          currency: 'XAF',
-          value: newCartItems.reduce((acc, e) => acc + e.price * e.quantity, 0),
-          items: newCartItems.map(e => {
-            return {
-              item_id: e.product.path,
-              item_name: e.product.title,
-              quantity: e.quantity,
-              category: e.product.categories?.[0],
-            }
-          }),
-        })
-      },
-      increaseQuantity: (idToIncrease: string) => {
-        const newCartItems = get().cartItems.map(cartItem =>
-          cartItem.product.path === idToIncrease
-            ? { ...cartItem, quantity: cartItem.quantity + 1 }
-            : cartItem,
-        )
-        set({ cartItems: newCartItems })
-      },
-      decreaseQuantity: (idToDecrease: string) => {
-        const newCartItems = get().cartItems.map(cartItem => {
-          if (cartItem.product.path === idToDecrease) {
-            return { ...cartItem, quantity: cartItem.quantity - 1 }
+          if (isExisting) {
+            return useCartSideBar.getState().onOpenChange(true)
           }
-          return cartItem
-        })
-        set({ cartItems: newCartItems })
-      },
-      setQuantity: (id: string, quantity: number) => {
-        set({
-          cartItems: get().cartItems.map(cartItem =>
-            cartItem.product.path === id
-              ? { ...cartItem, quantity: Math.max(1, quantity) }
+
+          set({ cartItems: [...currentItems, { product, quantity, price }] })
+          toast({ title: t('itemAdded'), description: product.title })
+          // The product added (GA4 and Meta both expect the added items, not the cart).
+          sendGTMEvent({
+            event: 'add_to_cart',
+            currency: 'XAF',
+            value: price * quantity,
+            items: [
+              {
+                item_id: product.path,
+                item_name: product.title,
+                quantity,
+                category: product.categories?.[0],
+              },
+            ],
+          })
+          trackPixel('AddToCart', [{ path: product.path, quantity, price }])
+        },
+        removeItem: (idToRemove: string) => {
+          const removed = get().cartItems.find(cartItem => cartItem.product.path === idToRemove)
+          const newCartItems = get().cartItems.filter(
+            cartItem => cartItem.product.path !== idToRemove,
+          )
+          set({ cartItems: newCartItems })
+
+          if (get().cartItems.length === 0) {
+            useCartDeliveryInfo.getState().clearDeliveryInfo()
+          }
+          if (!removed) return
+          // The product removed, not what is left in the cart.
+          sendGTMEvent({
+            event: 'remove_from_cart',
+            currency: 'XAF',
+            value: removed.price * removed.quantity,
+            items: [
+              {
+                item_id: removed.product.path,
+                item_name: removed.product.title,
+                quantity: removed.quantity,
+                category: removed.product.categories?.[0],
+              },
+            ],
+          })
+          trackPixel('RemoveFromCart', [
+            { path: removed.product.path, quantity: removed.quantity, price: removed.price },
+          ])
+        },
+        increaseQuantity: (idToIncrease: string) => {
+          const newCartItems = get().cartItems.map(cartItem =>
+            cartItem.product.path === idToIncrease
+              ? { ...cartItem, quantity: cartItem.quantity + 1 }
               : cartItem,
-          ),
-        })
+          )
+          set({ cartItems: newCartItems })
+        },
+        decreaseQuantity: (idToDecrease: string) => {
+          const newCartItems = get().cartItems.map(cartItem => {
+            if (cartItem.product.path === idToDecrease) {
+              return { ...cartItem, quantity: cartItem.quantity - 1 }
+            }
+            return cartItem
+          })
+          set({ cartItems: newCartItems })
+        },
+        setQuantity: (id: string, quantity: number) => {
+          set({
+            cartItems: get().cartItems.map(cartItem =>
+              cartItem.product.path === id
+                ? { ...cartItem, quantity: Math.max(1, quantity) }
+                : cartItem,
+            ),
+          })
+        },
+        clearCart: () => {
+          set({ cartItems: [] })
+          useCartDeliveryInfo.getState().clearDeliveryInfo()
+        },
+      }),
+      {
+        name: storageKey('cart-storage'),
+        storage: createJSONStorage(() => localStorage),
       },
-      clearCart: () => {
-        set({ cartItems: [] })
-        useCartDeliveryInfo.getState().clearDeliveryInfo()
-      },
-    }),
-    {
-      name: 'cart-storage',
-      storage: createJSONStorage(() => localStorage),
-    },
+    ),
   ),
 )
 

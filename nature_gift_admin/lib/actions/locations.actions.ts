@@ -1,10 +1,13 @@
 'use server'
 
 import { CollectionsName } from '@/lib/firebase/collection-name'
-import { backend } from '@/lib/firebase/firebase-server/firebase'
+import { DeliveryLocation, Shipment } from '@/lib/firebase/models'
+import { scopedCreate, scopedDelete, scopedList, scopedUpdate, Unauthorized } from '@/lib/tenant'
 import { locationSchema, LocationSchemaType } from '@/lib/validations/location'
 import { revalidatePath } from 'next/cache'
-import { getUserTokens } from './server'
+
+// Each store has its own locations (docs/MULTI_TENANT_PLAN.md, phase 2): its zones and
+// promotions reference them, and another store's are neither listed nor editable.
 
 /** 'Yaoundé – Biyem-Assi' and 'yaounde biyem assi' are the same: no case, accents, dashes or extra spaces. */
 const key = (text: string = '') =>
@@ -15,83 +18,68 @@ const key = (text: string = '') =>
     .replace(/[\s\-–—_'’.]+/g, ' ')
     .trim()
 
-const isDuplicate = async (data: LocationSchemaType, ignoreId?: string) => {
-  const existing = await backend.db.collection(CollectionsName.Locations).get()
-  return existing.docs.some(
+/** Same name and city in this store. */
+const isDuplicate = async (data: LocationSchemaType, ignoreId?: string) =>
+  (await scopedList<DeliveryLocation>(CollectionsName.Locations)).some(
     doc =>
-      doc.id !== ignoreId &&
-      key(doc.get('name')) === key(data.name) &&
-      key(doc.get('city')) === key(data.city),
+      doc.path.split('/').pop() !== ignoreId &&
+      key(doc.data.name) === key(data.name) &&
+      key(doc.data.city) === key(data.city),
   )
+
+const failure = (error: unknown, action: string) => {
+  if (error instanceof Unauthorized) return { success: false, error: 'Unauthorized' }
+  console.error(`Error ${action} location:`, error)
+  return { success: false, error: 'Internal server error' }
 }
 
 export async function createLocation(data: LocationSchemaType) {
   try {
-    const token = await getUserTokens()
-    if (!token) return { success: false, error: 'Unauthorized' }
-
     const validated = locationSchema.parse(data)
     if (await isDuplicate(validated)) {
       return { success: false, error: `${validated.name} (${validated.city}) already exists` }
     }
-    await backend.db.collection(CollectionsName.Locations).add({
-      ...validated,
-      creatorId: token.decodedToken.uid,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    })
+    await scopedCreate(CollectionsName.Locations, validated)
     revalidatePath('/locations')
     return { success: true }
   } catch (error) {
-    console.error('Error creating location:', error)
-    return { success: false, error: 'Internal server error' }
+    return failure(error, 'creating')
   }
 }
 
 /** Renaming keeps the id, so shipments and promotions referencing it keep working. */
 export async function updateLocation(locationId: string, data: LocationSchemaType) {
   try {
-    const token = await getUserTokens()
-    if (!token) return { success: false, error: 'Unauthorized' }
-
     const validated = locationSchema.parse(data)
     if (await isDuplicate(validated, locationId)) {
       return { success: false, error: `${validated.name} (${validated.city}) already exists` }
     }
-    await backend.db
-      .collection(CollectionsName.Locations)
-      .doc(locationId)
-      .update({ ...validated, updatedAt: new Date().toISOString() })
+    if (!(await scopedUpdate(CollectionsName.Locations, locationId, validated))) {
+      return { success: false, error: 'Not Found or Unauthorized' }
+    }
     revalidatePath('/locations')
     return { success: true }
   } catch (error) {
-    console.error('Error updating location:', error)
-    return { success: false, error: 'Internal server error' }
+    return failure(error, 'updating')
   }
 }
 
 /** Refused while a shipment uses the location: deactivate it instead, or remove it from the shipment first. */
 export async function deleteLocation(locationId: string) {
   try {
-    const token = await getUserTokens()
-    if (!token) return { success: false, error: 'Unauthorized' }
-
-    const used = await backend.db
-      .collection(CollectionsName.Shipments)
-      .where('locationIds', 'array-contains', locationId)
-      .limit(1)
-      .get()
-    if (!used.empty) {
+    const shipments = await scopedList<Shipment>(CollectionsName.Shipments)
+    if (shipments.some(s => s.data.locationIds?.includes(locationId))) {
       return {
         success: false,
         error: 'This location is used by a shipment. Remove it there first.',
       }
     }
-    await backend.db.collection(CollectionsName.Locations).doc(locationId).delete()
+    if (!(await scopedDelete(CollectionsName.Locations, locationId))) {
+      return { success: false, error: 'Not Found or Unauthorized' }
+    }
     revalidatePath('/locations')
     return { success: true }
   } catch (error) {
-    console.error('Error deleting location:', error)
-    return { success: false, error: 'Internal server error' }
+    return failure(error, 'deleting')
   }
 }

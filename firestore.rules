@@ -1,90 +1,17 @@
 rules_version = '2';
 
+// Both apps read and write through firebase-admin on the server, which ignores these rules;
+// store isolation is enforced there (nature_gift_admin/lib/tenant.ts). The browser only reads
+// its own users/{uid} profile right after signing in to the admin (lib/actions/client.ts).
+// Everything else is closed to browsers. docs/MULTI_TENANT_PLAN.md, 3.6.
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper functions
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-    
-    function isAdmin() {
-      return isAuthenticated() && request.auth.token.admin == true;
-    }
-    
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-    
-    function isCreator(resource) {
-      return isAuthenticated() && resource.data.creatorPath == request.auth.uid;
-    }
-    
-    // Users collection
     match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow write: if isOwner(userId) || isAdmin();
-      
-      // Wishlist subcollection
-      match /wishlist/{productId} {
-        allow read: if isOwner(userId);
-        allow write: if isOwner(userId);
-      }
+      allow read: if request.auth != null && request.auth.uid == userId;
     }
-    
-    // Products collection
-    match /products/{productId} {
-      allow read: if true;
-      allow create: if isAdmin();
-      allow update: if isAdmin() || isCreator(resource);
-      allow delete: if isAdmin();
-      
-      // Reviews subcollection
-      match /reviews/{reviewId} {
-        allow read: if true;
-        allow create: if isAuthenticated();
-        allow update, delete: if isCreator(resource) || isAdmin();
-      }
-    }
-    
-    // Categories collection
-    match /categories/{categoryId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    
-    // Blogs collection
-    match /blogs/{blogId} {
-      allow read: if true;
-      allow create: if isAuthenticated();
-      allow update, delete: if isCreator(resource) || isAdmin();
-      
-      // Comments subcollection
-      match /comments/{commentId} {
-        allow read: if true;
-        allow create: if isAuthenticated();
-        allow update, delete: if isCreator(resource) || isAdmin();
-      }
-    }
-    
-    // Orders collection
-    match /orders/{orderId} {
-      allow read: if isAuthenticated() && (
-        resource.data.userId == request.auth.uid || isAdmin()
-      );
-      allow create: if true;
-      allow update: if isAdmin();
-    }
-    
-    // Shipments collection
-    match /shipments/{shipmentId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    
-    // Promotions collection
-    match /promotions/{promotionId} {
-      allow read: if true;
-      allow write: if isAdmin();
+
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

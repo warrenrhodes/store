@@ -17,7 +17,7 @@ import {
 import { getDocumentId } from '@spreeloop/database'
 import { Heart, Plus, Star } from 'lucide-react'
 import Image from 'next/image'
-import Link from 'next/link'
+import { SiteLink as Link, useSite } from '@/components/Site'
 import { useEffect, useState } from 'react'
 import { Price } from './Price'
 import { Button } from './ui/button'
@@ -28,10 +28,13 @@ export function ProductCard({ product }: { product: Product }) {
   const { isInWishlist, toggleWishlist } = useWishlist()
   const { localization } = useLocalization()
 
+  const { isMarket, stores, preview } = useSite()
+
   useEffect(() => {
+    if (preview) return
     // ponytail: one server action per card; batch on the server if the grid gets large
     getReviewsForProduct(getDocumentId(product.path)).then(setReviews)
-  }, [product.path])
+  }, [product.path, preview])
 
   const price = product.price as unknown as IPrice
   const stock = (product.inventory as Inventory)?.stockQuantity
@@ -42,11 +45,15 @@ export function ProductCard({ product }: { product: Product }) {
   const rating = getReviewAverage(reviews)
   const wished = isInWishlist(product.path)
   const [main, hover] = product.medias
+  // On the marketplace: the store selling it, and the product's page from that store
+  // (?vendeur= tells two stores' products with the same slug apart).
+  const vendor = isMarket && product.storeId ? stores?.[product.storeId] : undefined
+  const href = vendor ? `/shop/${product.slug}?vendeur=${vendor.slug}` : `/shop/${product.slug}`
 
   return (
     <div className="group relative flex h-full flex-col">
       <Link
-        href={`/shop/${product.slug}`}
+        href={href}
         className="relative block aspect-square overflow-hidden rounded-lg bg-muted"
       >
         <Image
@@ -105,11 +112,19 @@ export function ProductCard({ product }: { product: Product }) {
           </span>
         )}
         <Link
-          href={`/shop/${product.slug}`}
+          href={href}
           className="line-clamp-2 text-sm font-medium leading-snug hover:underline underline-offset-4"
         >
           {product.title}
         </Link>
+        {vendor && (
+          <Link
+            href={`/vendeur/${vendor.slug}`}
+            className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+          >
+            {localization.soldBy} {vendor.name}
+          </Link>
+        )}
         {rating > 0 && (
           <div className="flex items-center gap-1 text-xs">
             <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" aria-hidden />

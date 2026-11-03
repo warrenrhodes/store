@@ -13,11 +13,15 @@ import {
 
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
-/** Breadcrumb derived from the URL: /products/abc123 → Dashboard / Products / Edit. */
-export function PageBreadcrumb() {
-  const segments = usePathname().split('/').filter(Boolean)
+/**
+ * Breadcrumb derived from the URL: /products/abc123 → Dashboard / Products / Edit. `root`: the
+ * area's home (the store dashboard, or the platform console for /platform/…).
+ */
+export function PageBreadcrumb({ root = { label: 'Dashboard', href: '/' } }) {
+  const base = root.href.split('/').filter(Boolean)
+  const segments = usePathname().split('/').filter(Boolean).slice(base.length)
   const crumbs = segments.map((segment, i) => ({
-    href: '/' + segments.slice(0, i + 1).join('/'),
+    href: '/' + [...base, ...segments.slice(0, i + 1)].join('/'),
     label: i === 0 ? capitalize(segment) : segment === 'new' ? 'New' : 'Edit',
   }))
 
@@ -26,9 +30,9 @@ export function PageBreadcrumb() {
       <BreadcrumbList>
         <BreadcrumbItem>
           {crumbs.length ? (
-            <BreadcrumbLink href="/">Dashboard</BreadcrumbLink>
+            <BreadcrumbLink href={root.href}>{root.label}</BreadcrumbLink>
           ) : (
-            <BreadcrumbPage>Dashboard</BreadcrumbPage>
+            <BreadcrumbPage>{root.label}</BreadcrumbPage>
           )}
         </BreadcrumbItem>
         {crumbs.map((crumb, i) => (

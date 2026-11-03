@@ -1,12 +1,15 @@
 'use server'
 
-import { sendEmailNotifications } from '@/lib/notifications/sendNotifications'
+import { getSiteContext } from '@/lib/api/utils'
+import { EMAIL_LOGO, sendEmail } from '@/lib/notifications/sendNotifications'
+import { contactEmail } from '@ngift/core/emails'
 
 interface ContactFormData {
   name: string
   email: string
   subject: string
   message: string
+  site: string
 }
 
 export async function submitContactForm(data: ContactFormData) {
@@ -18,26 +21,36 @@ export async function submitContactForm(data: ContactFormData) {
     return { success: false, error: 'Invalid form' }
   }
 
-  const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.split(',') || []
+  // A store's messages go to its alert emails (else its public email), the marketplace's to the platform.
+  const ctx = await getSiteContext(data.site)
+  if (!ctx) return { success: false, error: 'Invalid form' }
+  const settings = ctx.store?.settings
+  const adminEmails = ctx.store
+    ? settings?.notificationEmails?.length
+      ? settings.notificationEmails
+      : [settings?.contactEmail].filter((e): e is string => !!e)
+    : (process.env.PLATFORM_CONTACT_EMAIL ?? '')
+        .split(',')
+        .map(e => e.trim())
+        .filter(Boolean)
 
   if (adminEmails.length === 0) {
     console.warn('No admin emails configured')
     return { success: true } // Return true to avoid showing error to user if config is missing but submission worked "technically"
   }
 
-  const notificationData = {
-    subject: subject,
-    message: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
-  }
-
+  const content = contactEmail({
+    logoUrl: EMAIL_LOGO,
+    siteName: ctx.store?.name ?? 'N.Gift',
+    name,
+    email: email!,
+    subject,
+    message,
+  })
   try {
     await Promise.all(
       adminEmails.map(adminEmail =>
-        sendEmailNotifications({
-          email: adminEmail,
-          notificationId: 'new_message',
-          data: notificationData,
-        }),
+        sendEmail({ email: adminEmail, type: 'new_message', content, replyTo: email }),
       ),
     )
     return { success: true }

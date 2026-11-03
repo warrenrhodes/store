@@ -1,8 +1,8 @@
-import { CldUploadWidget } from 'next-cloudinary'
-import { Plus, Trash } from 'lucide-react'
+'use client'
 
+import { Loader2, Plus, Trash } from 'lucide-react'
+import { useId, useState } from 'react'
 import { Button } from '../ui/button'
-import Image from 'next/image'
 
 interface ImageUploadProps {
   value: string[]
@@ -10,40 +10,75 @@ interface ImageUploadProps {
   onRemove: (value: string) => void
 }
 
+/** One image at a time, sent to Cloudinary through /api/media/upload (signed on the server). */
 const ImageUpload: React.FC<ImageUploadProps> = ({ onChange, onRemove, value }) => {
-  const onUpload = (result: any) => {
-    onChange(result.info.secure_url)
+  const id = useId()
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  const upload = async (file: File | undefined) => {
+    if (!file) return
+    if (!file.type.startsWith('image/')) return setError('Choose an image.')
+    if (file.size > 5 * 1024 * 1024) return setError('5 MB at most.')
+    setBusy(true)
+    setError('')
+    try {
+      const body = new FormData()
+      body.append('files', file)
+      const res = await fetch('/api/media/upload', { method: 'POST', body })
+      const url = res.ok ? (await res.json()).data?.files?.[0]?.url : undefined
+      if (url) onChange(url)
+      else setError('Upload failed.')
+    } catch {
+      setError('Upload failed.')
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
-    <div>
-      <div className="mb-4 flex flex-wrap items-center gap-4">
-        {value.map(url => (
-          <div key={url} className="relative w-[200px] h-[200px]">
-            <div className="absolute top-0 right-0 z-10">
-              <Button
-                type="button"
-                onClick={() => onRemove(url)}
-                size="sm"
-                className="bg-destructive text-destructive-foreground"
-              >
-                <Trash className="h-4 w-4" />
-              </Button>
-            </div>
-            <Image src={url} alt="collection" className="object-cover rounded-lg" fill />
-          </div>
-        ))}
-      </div>
-      <CldUploadWidget uploadPreset="nuxt-cloudinary-unsigned" onUpload={onUpload}>
-        {({ open }) => {
-          return (
-            <Button type="button" onClick={() => open()} className=" text-white">
-              <Plus className="h-4 w-4 mr-2" />
-              Upload Image
-            </Button>
-          )
+    <div className="space-y-2">
+      {value.map(url => (
+        <div key={url} className="flex items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element -- any uploaded size */}
+          <img src={url} alt="" className="h-20 max-w-[200px] rounded border object-contain" />
+          <Button
+            type="button"
+            size="sm"
+            variant="destructive"
+            aria-label="Remove the image"
+            onClick={() => onRemove(url)}
+          >
+            <Trash className="h-4 w-4" />
+          </Button>
+        </div>
+      ))}
+      <input
+        id={id}
+        type="file"
+        accept="image/*"
+        className="sr-only"
+        disabled={busy}
+        onChange={e => {
+          upload(e.target.files?.[0])
+          e.target.value = ''
         }}
-      </CldUploadWidget>
+      />
+      <Button type="button" variant="outline" size="sm" asChild disabled={busy}>
+        <label htmlFor={id} className="cursor-pointer">
+          {busy ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Plus className="mr-2 h-4 w-4" />
+          )}
+          {value.length ? 'Replace image' : 'Upload image'}
+        </label>
+      </Button>
+      {error && (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
     </div>
   )
 }

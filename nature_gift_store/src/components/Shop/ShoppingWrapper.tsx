@@ -6,7 +6,8 @@ import { ProductGrid } from '@/components/Shop/ProductGrid'
 import { ProductHero } from '@/components/Shop/ProductHero'
 import useFilter from '@/hooks/useFilter'
 import { Category, Product } from '@/lib/firebase/models'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { useSiteRouter } from '@/components/Site'
 import { useEffect, useState } from 'react'
 
 interface ProductPageData {
@@ -23,7 +24,7 @@ export const ShoppingWrapper = ({
   categories: Category[]
 }) => {
   const { filters, MAX_PRICE, MIN_PRICE, setFilters, clearFilters } = useFilter()
-  const router = useRouter()
+  const router = useSiteRouter()
   const searchParams = useSearchParams()
   const [pageData] = useState<ProductPageData>({
     categories: categories,

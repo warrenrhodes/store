@@ -50,6 +50,20 @@ module.exports = async function formChecks({ db, admin, ADMIN, AUTH_HOST, apiKey
     }
   }
   const get = async (cookie, path) => (await fetch(ADMIN + path, { headers: { cookie } })).text()
+  /** Calls a server action with plain arguments, as the admin's client components do. */
+  const call = async (cookie, page, action, args) =>
+    (
+      await fetch(ADMIN + page, {
+        method: 'POST',
+        headers: {
+          cookie,
+          'Next-Action': actionId(action),
+          'Content-Type': 'text/plain;charset=UTF-8',
+          Accept: 'text/x-component',
+        },
+        body: JSON.stringify(args),
+      })
+    ).text()
   let step = 0
   const ok = m => console.log(`✔ ${++step}. ${m}`)
 
@@ -234,6 +248,29 @@ module.exports = async function formChecks({ db, admin, ADMIN, AUTH_HOST, apiKey
     'removed member loses access at once',
   )
   ok('switcher: member store opens, foreign store refused; owner kept; removed member loses access')
+
+  // Locations per store: B's can't be changed or deleted by A; names are unique per store.
+  const bona = (await db.doc('locations/bonamoussadi').get()).data()
+  await call(ownerA, '/locations', 'updateLocation', [
+    'bonamoussadi',
+    { name: 'Hacked', city: 'Douala', isActive: false },
+  ])
+  await call(ownerA, '/locations', 'deleteLocation', ['bonamoussadi'])
+  assert.deepEqual((await db.doc('locations/bonamoussadi').get()).data(), bona)
+  const ofA = async () =>
+    (await db.collection('locations').where('storeId', '==', 'admin-uid').get()).docs.map(d =>
+      d.get('name'),
+    )
+  const countA = (await ofA()).length
+  await call(ownerA, '/locations', 'createLocation', [
+    { name: 'Bonamoussadi', city: 'Douala', isActive: true },
+  ])
+  await call(ownerA, '/locations', 'createLocation', [
+    { name: 'mendong marche', city: 'yaounde', isActive: true },
+  ])
+  assert.equal((await ofA()).length, countA + 1)
+  assert.ok((await ofA()).includes('Bonamoussadi'), "A may reuse a name B has")
+  ok("locations: A can't edit or delete B's; same name as B's allowed, duplicate in A refused")
 
   console.log(`All ${step} form checks passed\n`)
 }

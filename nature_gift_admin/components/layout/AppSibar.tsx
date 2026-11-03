@@ -19,7 +19,9 @@ import {
   Settings,
   UserCog,
   Building2,
+  Copy,
 } from 'lucide-react'
+import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
 import {
   Sidebar,
@@ -106,6 +108,8 @@ const data = {
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   stores: { id: string; name: string }[]
   currentStoreId?: string
+  /** The current store's storefront (storefrontUrl). */
+  storeUrl?: string
   isOwner: boolean
   platformAdmin: boolean
 }
@@ -113,6 +117,7 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
 export function AppSidebar({
   stores,
   currentStoreId,
+  storeUrl,
   isOwner,
   platformAdmin,
   ...props
@@ -167,19 +172,28 @@ export function AppSidebar({
           />
         )}
         <SidebarMenu>
-          {process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL && (
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <a
-                  href={process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
+          {storeUrl && (
+            <>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <a href={storeUrl} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink />
+                    <span>View my store</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(storeUrl)
+                    toast({ description: `Link copied: ${storeUrl}` })
+                  }}
                 >
-                  <ExternalLink />
-                  <span>View store</span>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+                  <Copy />
+                  <span>Copy store link</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </>
           )}
           <SidebarMenuItem>
             {user ? (

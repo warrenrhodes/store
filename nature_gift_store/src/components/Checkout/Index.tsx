@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, ShoppingBag } from 'lucide-react'
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/Site'
 import { Button } from '@/components/ui/button'
 import { DeliveryForm } from '@/components/Checkout/delivery-form'
 import { OrderSummary } from '@/components/Checkout/order-summary'
@@ -23,6 +23,9 @@ import { getDocumentId } from '@spreeloop/database'
 
 export default function CheckoutPageView(props: { shipments: ShippingZone[] }) {
   const { cartItems, clearCart } = useCart()
+  // On the marketplace the page has every store's zones: keep the cart's store's.
+  const cartStore = cartItems[0]?.product.storeId
+  const zones = props.shipments.filter(z => !cartStore || !z.storeId || z.storeId === cartStore)
   const [total, setTotal] = useState<number>()
   const orderSummary = useRef<OrderSummaryType>()
   const { user } = useAuthStore()
@@ -113,7 +116,7 @@ export default function CheckoutPageView(props: { shipments: ShippingZone[] }) {
       <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-5">
         <div className="order-2 lg:order-1 lg:col-span-3">
           <DeliveryForm
-            shipment={props.shipments}
+            shipment={zones}
             onSubmit={onOrderConfirm}
             form={form}
             isLoading={isLoading}

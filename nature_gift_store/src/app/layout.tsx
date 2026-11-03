@@ -1,12 +1,3 @@
-import { AuthProvider } from '@/components/Auth/AuthProvider'
-import Footer from '@/components/Footer'
-import { Header } from '@/components/Header/Index'
-import { Toaster } from '@/components/ui/toaster'
-import ToasterProvider from '@/lib/providers/ToasterProvider'
-import { GoogleTagManager } from '@next/third-parties/google'
-import type { Metadata } from 'next'
-import { Suspense } from 'react'
-import { PromoLinkCapture } from '@/components/Promotions/PromoLinkCapture'
 import { Fredoka } from 'next/font/google'
 import './globals.css'
 
@@ -18,20 +9,8 @@ const fredoka = Fredoka({
   weight: ['400', '500', '600'],
 })
 
-export const metadata: Metadata = {
-  metadataBase: new URL(`${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL}`),
-  title: {
-    default: 'N.Gift - Santé, Style et Innovation',
-    template: '%s | N.Gift',
-  },
-  description: 'Explore N.Gift, your online boutique dedicated to health, style and innovation.',
-  keywords: ['Gift', 'Longrich', 'Health', 'Style', 'Innovation'],
-  twitter: {
-    card: 'summary_large_image',
-  },
-}
-
-export default async function RootLayout({
+// The marketplace and every store render under app/[site]/layout.tsx (header, trackers, brand).
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
@@ -45,19 +24,7 @@ export default async function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
       </head>
-      <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID} />
-      <body className={`${fredoka.variable} antialiased font-sans`}>
-        <div>
-          <ToasterProvider />
-          <Header />
-          <AuthProvider>{children}</AuthProvider>
-          <Footer />
-          <Toaster />
-          <Suspense>
-            <PromoLinkCapture />
-          </Suspense>
-        </div>
-      </body>
+      <body className={`${fredoka.variable} antialiased font-sans`}>{children}</body>
     </html>
   )
 }

@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/Site'
 import type { FC } from 'react'
 
 interface LogoProps {

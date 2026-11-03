@@ -4,9 +4,11 @@ import {
   getShippingZonesCache,
   getDocumentByPathFresh,
 } from '@/lib/api/utils'
+import { cartStoreErrorStatus, resolveCartStore } from '@/lib/api/cart-store'
+import { SiteStore } from '@/lib/api/utils'
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { backend } from '@/lib/firebase/firebase-server/firebase'
-import { Order, OrderStatus, Product, ProductStatus } from '@/lib/firebase/models'
+import { Order, OrderStatus, Product, ProductStatus, StoreSecrets } from '@/lib/firebase/models'
 import { isWithinUsageLimit, PromotionCalculator } from '@/lib/utils/promotion-calculator'
 import { getRegularPrice } from '@/lib/utils/utils'
 import { findArea } from '@/lib/utils/shipping-zones'
@@ -19,9 +21,21 @@ import { sendMetaPurchase } from '@/lib/analytics/meta-capi'
 import { format } from 'date-fns'
 import { NextRequest, NextResponse } from 'next/server'
 
-const flockNotifier = new FlockNotifier({
-  webhookUrl: process.env.FLOCK_WEBHOOK_URL as string,
-})
+/** Where a store's order alerts go: its own settings and secrets (admin, Settings). */
+async function storeChannels(store: SiteStore) {
+  const secrets = (
+    await backend.db.collection(CollectionsName.StoreSecrets).doc(store.id).get()
+  ).data() as StoreSecrets | undefined
+  return {
+    flock: new FlockNotifier({ webhookUrl: secrets?.flockWebhookUrl || '' }),
+    emails: store.settings?.notificationEmails ?? [],
+    phones: store.settings?.notificationPhones ?? [],
+    pixels: (store.settings?.metaPixelIds ?? []).flatMap(id => {
+      const token = secrets?.metaCapiTokens?.[id]
+      return token ? [{ id, token }] : []
+    }),
+  }
+}
 /** Thrown inside the order transaction; turned into a 409 the checkout can explain. */
 class OrderConflict extends Error {
   constructor(
@@ -54,11 +68,12 @@ async function promotionUsesByPhone(phone?: string | null) {
 }
 
 /**
- * Prices the order from the database, never from the client: product prices,
- * shipping cost and promotions are all looked up server-side.
+ * Prices the order from the database, never from the client: product prices, the store,
+ * its shipping cost and its promotions are all looked up server-side.
  */
 async function priceOrder(
   rawItems: unknown,
+  site: unknown,
   deliveryInfo: { deliveryMethod?: string; locationId?: string } | undefined,
   codes: string[],
   phone?: string | null,
@@ -77,10 +92,16 @@ async function priceOrder(
     }),
   )
   if (cart.some(item => !item)) return null
+  const resolved = await resolveCartStore(
+    site,
+    cart.map(item => item!.product),
+  )
+  if ('error' in resolved) return { error: resolved.error }
+  const { store } = resolved
 
   // The area is matched by id; its name and city come from the database, not the client.
   const picked = findArea(
-    await getShippingZonesCache(),
+    await getShippingZonesCache(store.id),
     deliveryInfo?.deliveryMethod,
     deliveryInfo?.locationId,
   )
@@ -88,7 +109,7 @@ async function priceOrder(
   const cost = picked?.zone.cost ?? 0
 
   const uses = await promotionUsesByPhone(phone)
-  const cached = await getPromotionsWithFreshUsage()
+  const cached = await getPromotionsWithFreshUsage(store.id)
   const promotions = cached.filter(p => isWithinUsageLimit(p, uses.get(p.path) ?? 0))
   const summary = new PromotionCalculator(
     cart as CartItem[],
@@ -103,7 +124,7 @@ async function priceOrder(
     codes,
   ).calculate()
 
-  return { cart: cart as CartItem[], summary, area }
+  return { cart: cart as CartItem[], summary, area, store }
 }
 
 /** Takes stock and promotion uses, then writes the order, all or nothing. */
@@ -159,13 +180,25 @@ async function placeOrder(
 
 /// Request to create new order.
 export const POST = async (req: NextRequest) => {
-  const { order, cartItems: rawItems, promoCodes, checkoutId } = await req.json()
+  const { order, cartItems: rawItems, promoCodes, checkoutId, site } = await req.json()
   const codes = Array.isArray(promoCodes) ? promoCodes.map(String).slice(0, 5) : []
-  const priced = await priceOrder(rawItems, order?.deliveryInfo, codes, order?.userData?.phone)
+  const priced = await priceOrder(
+    rawItems,
+    site,
+    order?.deliveryInfo,
+    codes,
+    order?.userData?.phone,
+  )
   if (!priced) {
     return NextResponse.json({ error: 'Invalid cart' }, { status: 400 })
   }
-  const { cart: cartItems, summary, area } = priced
+  if ('error' in priced) {
+    return NextResponse.json(
+      { error: priced.error },
+      { status: cartStoreErrorStatus[priced.error] },
+    )
+  }
+  const { cart: cartItems, summary, area, store } = priced
   const now = new Date().toISOString()
 
   const data = {
@@ -187,9 +220,8 @@ export const POST = async (req: NextRequest) => {
       discount: summary.discount,
       total: summary.total,
     },
-    // The store of the first product. One store per order once the storefront is per store
-    // (phase 2); until then a cart mixing stores only shows in the first store's admin.
-    storeId: cartItems[0].product.storeId ?? null,
+    // One store per order (checked by resolveCartStore).
+    storeId: store.id,
     partnersPaths: [
       ...new Set(
         cartItems.map(item => getDatabasePath(CollectionsName.Users, item.product.creatorId)),
@@ -238,12 +270,14 @@ export const POST = async (req: NextRequest) => {
     const newOrder = { data: data as unknown as Order, path: placed.orderRef.path }
 
     // The order is saved: alerts and tracking must never turn it into an error (the customer
-    // would retry and order twice).
+    // would retry and order twice). They go to the order's store only.
     try {
+      const channels = await storeChannels(store)
+      const flockNotifier = channels.flock
       if (placed.lowStock.length > 0) {
         await flockNotifier.sendText(`⚠️ Low stock\n${placed.lowStock.join('\n')}`)
       }
-      await sendMetaPurchase({
+      await sendMetaPurchase(channels.pixels, {
         eventId: placed.orderRef.id,
         value: summary.total,
         contents: cartItems.map(i => ({
@@ -266,10 +300,8 @@ export const POST = async (req: NextRequest) => {
       } catch (error) {
         console.error('Error sending Flock notification:', error)
       }
-      // Send notifications
-      const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.split(',').filter(Boolean) || []
-      const adminPhones =
-        process.env.NEXT_PUBLIC_ADMIN_PHONE_NUMBER?.split(',').filter(Boolean) || []
+      const adminEmails = channels.emails
+      const adminPhones = channels.phones
 
       if (adminEmails.length > 0) {
         const notificationData = {

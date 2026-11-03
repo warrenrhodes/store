@@ -3,7 +3,12 @@ import { DeliveryLocation, Shipment, ShipmentMethod } from './models'
 export type ShippingArea = { id: string; name: string; city: string }
 
 /** A shipment with its locations resolved: what the storefront and the orders API work with. */
-export type ShippingZone = { method: ShipmentMethod; cost: number; areas: ShippingArea[] }
+export type ShippingZone = {
+  method: ShipmentMethod
+  cost: number
+  areas: ShippingArea[]
+  storeId?: string | null
+}
 
 const idOf = (path: string) => path.split('/').pop() ?? path
 
@@ -16,7 +21,9 @@ export const normalize = (text: string) =>
     .trim()
 
 /**
- * Active shipments with their active locations. Shipments not yet migrated
+ * Active shipments with their active locations, only those of the shipment's own store
+ * (locations without a storeId predate scripts/migrate-locations-per-store.mjs and still count).
+ * Shipments not yet migrated
  * (scripts/migrate-locations.mjs) still hold names: the name then doubles as the id, which
  * still matches promotions saved with names.
  */
@@ -30,10 +37,12 @@ export const toShippingZones = (
     .map(s => ({
       method: s.method,
       cost: s.cost,
+      storeId: s.storeId ?? null,
       areas: s.locationIds
         ? s.locationIds.flatMap(id => {
             const location = byId.get(id)
-            return location ? [{ id, name: location.name, city: location.city }] : []
+            const foreign = location?.storeId && s.storeId && location.storeId !== s.storeId
+            return location && !foreign ? [{ id, name: location.name, city: location.city }] : []
           })
         : ((s.locations ?? []) as Array<string | { id: string; name: string }>).map(l =>
             typeof l === 'string'

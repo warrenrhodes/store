@@ -3,12 +3,14 @@ import { getOrderByIdCache } from '@/lib/actions/server'
 import { DeliveryInfo, OrderPrices, UserData } from '@/lib/type'
 import { priceFormatted } from '@/lib/utils/utils'
 import { notFound } from 'next/navigation'
+import { getStoreContext } from '@/lib/tenant'
+import { storefrontUrl } from '@/lib/storefront'
 
 /** Invoice + delivery slip on one A4 page: the rider keeps the slip, the customer the invoice. */
 export default async function PrintOrderPage(props: { params: Promise<{ orderId: string }> }) {
   const { orderId } = await props.params
-  const order = await getOrderByIdCache(orderId)
-  if (!order) notFound()
+  const [order, ctx] = await Promise.all([getOrderByIdCache(orderId), getStoreContext()])
+  if (!order || !ctx) notFound()
 
   const data = order.data
   const user = data.userData as UserData
@@ -31,9 +33,9 @@ export default async function PrintOrderPage(props: { params: Promise<{ orderId:
       <section className="space-y-6 rounded-lg border p-8 print:rounded-none print:border-0 print:p-0">
         <header className="flex items-start justify-between">
           <div>
-            <p className="text-2xl font-semibold">N.Gift</p>
+            <p className="text-2xl font-semibold">{ctx.store.name}</p>
             <p className="text-sm text-gray-600">
-              {process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL?.replace(/^https?:\/\//, '')}
+              {storefrontUrl(ctx.store).replace(/^https?:\/\//, '')}
             </p>
           </div>
           <div className="text-right text-sm">

@@ -3,7 +3,7 @@
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { productSchema, ProductSchemaType } from '@/lib/validations/product'
 import { revalidatePath } from 'next/cache'
-import { isTakenAcrossStores, scopedCreate, scopedDelete, scopedUpdate } from '@/lib/tenant'
+import { isTakenInStore, scopedCreate, scopedDelete, scopedUpdate } from '@/lib/tenant'
 
 export async function createProduct(data: ProductSchemaType) {
   try {
@@ -11,7 +11,7 @@ export async function createProduct(data: ProductSchemaType) {
     const validatedData = productSchema.parse(data)
 
     // Check for duplicate slug
-    if (await isTakenAcrossStores(CollectionsName.Products, 'slug', validatedData.slug)) {
+    if (await isTakenInStore(CollectionsName.Products, 'slug', validatedData.slug)) {
       return { success: false, error: 'Product with this slug already exists' }
     }
 
@@ -57,9 +57,7 @@ export async function updateProduct(
     // Validate data using schema
     const validatedData = productSchema.parse(data)
 
-    if (
-      await isTakenAcrossStores(CollectionsName.Products, 'slug', validatedData.slug, productId)
-    ) {
+    if (await isTakenInStore(CollectionsName.Products, 'slug', validatedData.slug, productId)) {
       return { success: false, error: 'Product with this slug already exists' }
     }
 

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { motion } from 'framer-motion'
 import { AnimatePresence } from 'framer-motion'
 import { Card, CardContent } from '../ui/card'
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/Site'
 import { useLocalization } from '@/hooks/useLocalization'
 import { Blog } from '@/lib/firebase/models'
 

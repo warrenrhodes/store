@@ -1,5 +1,6 @@
 'use server'
 
+import { getSiteContext } from '@/lib/api/utils'
 import { sendEmailNotifications } from '@/lib/notifications/sendNotifications'
 
 interface ContactFormData {
@@ -7,6 +8,7 @@ interface ContactFormData {
   email: string
   subject: string
   message: string
+  site: string
 }
 
 export async function submitContactForm(data: ContactFormData) {
@@ -18,7 +20,18 @@ export async function submitContactForm(data: ContactFormData) {
     return { success: false, error: 'Invalid form' }
   }
 
-  const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.split(',') || []
+  // A store's messages go to its alert emails (else its public email), the marketplace's to the platform.
+  const ctx = await getSiteContext(data.site)
+  if (!ctx) return { success: false, error: 'Invalid form' }
+  const settings = ctx.store?.settings
+  const adminEmails = ctx.store
+    ? settings?.notificationEmails?.length
+      ? settings.notificationEmails
+      : [settings?.contactEmail].filter((e): e is string => !!e)
+    : (process.env.PLATFORM_CONTACT_EMAIL ?? '')
+        .split(',')
+        .map(e => e.trim())
+        .filter(Boolean)
 
   if (adminEmails.length === 0) {
     console.warn('No admin emails configured')

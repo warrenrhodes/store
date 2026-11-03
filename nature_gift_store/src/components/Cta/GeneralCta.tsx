@@ -1,11 +1,11 @@
 'use client'
 import { useLocalization } from '@/hooks/useLocalization'
 import { motion } from 'framer-motion'
-import { useRouter } from 'next/navigation'
+import { useSiteRouter } from '@/components/Site'
 import Image from 'next/image'
 
 function GeneralCTAComponent() {
-  const router = useRouter()
+  const router = useSiteRouter()
   const { localization } = useLocalization()
 
   return (

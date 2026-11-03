@@ -3,13 +3,13 @@
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { blogSchema, BlogSchemaType } from '@/lib/validations/blog'
 import { revalidatePath } from 'next/cache'
-import { isTakenAcrossStores, scopedCreate, scopedDelete, scopedUpdate } from '@/lib/tenant'
+import { isTakenInStore, scopedCreate, scopedDelete, scopedUpdate } from '@/lib/tenant'
 
 export async function createBlog(data: BlogSchemaType) {
   try {
     const validatedData = blogSchema.parse(data)
 
-    if (await isTakenAcrossStores(CollectionsName.Blogs, 'slug', validatedData.slug)) {
+    if (await isTakenInStore(CollectionsName.Blogs, 'slug', validatedData.slug)) {
       return { success: false, error: 'Blog with this slug already exists' }
     }
 

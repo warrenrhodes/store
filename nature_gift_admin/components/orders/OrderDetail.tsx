@@ -22,6 +22,7 @@ import { addOrderNote, editOrder, updateOrderStatus } from '@/lib/actions/orders
 import { IOrder } from '@/lib/actions/server'
 import { OrderEvent, OrderItem } from '@/lib/firebase/models'
 import { orderMessages, trackingUrl, whatsappUrl } from '@/lib/orders/messages'
+import { useStorefront } from '@/components/layout/Storefront'
 import {
   EDITABLE_STATUSES,
   FINAL_STATUSES,
@@ -82,6 +83,7 @@ export function OrderDetail({
   customer: CustomerStats
 }) {
   const router = useRouter()
+  const storefront = useStorefront()
   const id = getDocumentId(order.path)
   const data = order.data
   const user = data.userData as UserData
@@ -187,9 +189,10 @@ export function OrderDetail({
     setAdding('')
   }
 
-  const tracking = trackingUrl(id, data.trackingToken)
+  const tracking = trackingUrl(storefront.url, id, data.trackingToken)
   const messages = user?.phone
     ? orderMessages({
+        store: storefront.name,
         id,
         firstName: (user.fullName ?? '').split(' ')[0] || 'cher client',
         items: data.items.map(i => `${i.quantity} × ${i.product.title}`).join(', '),

@@ -1,5 +1,6 @@
 'use client'
 
+import { useStorefront } from '@/components/layout/Storefront'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2, Trash2, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -48,6 +49,7 @@ interface ProductFormProps {
 }
 
 export function ProductFormV2({ initialData, categories, blogs }: ProductFormProps) {
+  const storefront = useStorefront()
   const { toast } = useToast()
 
   const router = useRouter()
@@ -330,7 +332,7 @@ export function ProductFormV2({ initialData, categories, blogs }: ProductFormPro
                       <SelectContent unselectable="on">
                         {blogs.map(e => (
                           <SelectItem
-                            value={`${new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').protocol}//${new URL(process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? '').hostname}/blogs/${e.data.slug}`}
+                            value={`${storefront.url}/blogs/${e.data.slug}`}
                             key={`blogs: ${e.data.slug}`}
                           >
                             {e.data.title}

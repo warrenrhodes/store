@@ -5,6 +5,8 @@ const crypto = require('node:crypto')
 
 const STORE_PORT = process.env.E2E_STORE_PORT || '3101'
 const ADMIN_PORT = process.env.E2E_ADMIN_PORT || '3102'
+// Stands in for graph.facebook.com: records the Conversions API calls (run.cjs).
+const META_PORT = process.env.E2E_META_PORT || '3109'
 
 const { privateKey } = crypto.generateKeyPairSync('rsa', {
   modulusLength: 2048,
@@ -33,27 +35,21 @@ const env = {
   AUTH_COOKIE_SIGNATURE_KEY_PREVIOUS: 'e2e-previous-signature-key-0123456789',
   USE_SECURE_COOKIES: 'false',
   // URLs between the two apps.
-  NEXT_PUBLIC_ECOMMERCE_STORE_URL: `http://localhost:${STORE_PORT}`,
+  NEXT_PUBLIC_PLATFORM_URL: `http://localhost:${STORE_PORT}`,
   NEXT_PUBLIC_ADMIN_DASHBOARD_URL: `http://localhost:${ADMIN_PORT}`,
   // Nothing real gets sent.
-  FLOCK_WEBHOOK_URL: '',
-  NEXT_PUBLIC_ADMIN_EMAIL: '',
-  NEXT_PUBLIC_ADMIN_PHONE_NUMBER: '',
-  NEXT_PUBLIC_NOTIFICATIONAPI_CLIENT_ID: '',
-  NEXT_PUBLIC_NOTIFICATIONAPI_CLIENT_SECRET: '',
-  META_PIXEL_ID: '',
-  META_CAPI_ACCESS_TOKEN: '',
+  PLATFORM_FLOCK_WEBHOOK_URL: '',
+  PLATFORM_CONTACT_EMAIL: '',
+  NOTIFICATIONAPI_CLIENT_ID: '',
+  NOTIFICATIONAPI_CLIENT_SECRET: '',
   META_TEST_EVENT_CODE: '',
-  NEXT_PUBLIC_FACEBOOK_PIXEL_ID: '',
-  NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID: '',
+  META_GRAPH_URL: `http://127.0.0.1:${META_PORT}`,
+  // Admin → storefront cache invalidation (POST /api/revalidate).
+  REVALIDATE_SECRET: 'e2e-revalidate-secret',
+  PLATFORM_GTM_ID: '',
   CLOUDINARY_API_KEY: '',
   CLOUDINARY_API_SECRET: '',
-  CLOUDINARY_URL: '',
-  OPENAI_API_KEY: '',
-  OPTIMIZE_API_KEY: '',
-  OPTIMIZE_DB: '',
-  DATABASE_URL: '',
   PLATFORM_CONTACT_WHATSAPP: '237600000000',
 }
 
-module.exports = { env, STORE_PORT, ADMIN_PORT }
+module.exports = { env, STORE_PORT, ADMIN_PORT, META_PORT }

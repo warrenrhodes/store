@@ -10,16 +10,10 @@ env:
   - variable: NEXT_PUBLIC_ADMIN_DASHBOARD_URL
     value: "https://nature-gift-admin--nature-s-gift.us-east4.hosted.app"
     availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_ADMIN_EMAIL
-    value: "webanalyse237@gmail.com, naturesgift.busines@gmail.com"
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_ADMIN_PHONE_NUMBER
-    value: "+237696689073,+237694579519"
-    availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
     value: "dhpyekjmh"
     availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_ECOMMERCE_STORE_URL
+  - variable: NEXT_PUBLIC_PLATFORM_URL
     value: "https://store--nature-s-gift.us-east4.hosted.app"
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
@@ -40,15 +34,8 @@ env:
   - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
     value: "nature-s-gift.firebasestorage.app"
     availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_NOTIFICATIONAPI_CLIENT_ID
-    value: "2ldisojs05o7o3av8e4rp2xsjv"
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_NOTIFICATIONAPI_CLIENT_SECRET
-    value: "hi40l6noacet9umzici8kr8wyeztvkqsyk1zpnkuymjykxgl5k29awjo1g"
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_RICH_TEXT_VERSION
-    value: "v1"
-    availability: [BUILD, RUNTIME]
+  - variable: PLATFORM_CONTACT_WHATSAPP
+    value: "237696689073"
   - variable: FIREBASE_CLIENT_EMAIL
     secret: FIREBASE_CLIENT_EMAIL
   - variable: FIREBASE_PRIVATE_KEY
@@ -61,3 +48,5 @@ env:
     secret: CLOUDINARY_API_KEY
   - variable: CLOUDINARY_API_SECRET
     secret: CLOUDINARY_API_SECRET
+  - variable: REVALIDATE_SECRET
+    secret: REVALIDATE_SECRET

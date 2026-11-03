@@ -29,10 +29,12 @@ set_secret FIREBASE_PRIVATE_KEY "$(val nature_gift_admin FIREBASE_PRIVATE_KEY)"
 # Old cookie keys are committed in the public Dockerfiles: rotate them (users get logged out once).
 set_secret AUTH_COOKIE_SIGNATURE_KEY_CURRENT "$(openssl rand -base64 32)"
 set_secret AUTH_COOKIE_SIGNATURE_KEY_PREVIOUS "$(openssl rand -base64 32)"
-set_secret FLOCK_WEBHOOK_URL "$(val nature_gift_store FLOCK_WEBHOOK_URL)"
+set_secret FLOCK_WEBHOOK_URL "$(val nature_gift_store PLATFORM_FLOCK_WEBHOOK_URL)"
+# Shared by both apps: the admin clears the storefront cache with it.
+set_secret REVALIDATE_SECRET "$(openssl rand -base64 32)"
 set_secret CLOUDINARY_API_KEY "$(val nature_gift_admin CLOUDINARY_API_KEY)"
 set_secret CLOUDINARY_API_SECRET "$(val nature_gift_admin CLOUDINARY_API_SECRET)"
 
-COMMON=FIREBASE_CLIENT_EMAIL,FIREBASE_PRIVATE_KEY,AUTH_COOKIE_SIGNATURE_KEY_CURRENT,AUTH_COOKIE_SIGNATURE_KEY_PREVIOUS
+COMMON=FIREBASE_CLIENT_EMAIL,FIREBASE_PRIVATE_KEY,AUTH_COOKIE_SIGNATURE_KEY_CURRENT,AUTH_COOKIE_SIGNATURE_KEY_PREVIOUS,REVALIDATE_SECRET
 firebase apphosting:secrets:grantaccess "$COMMON,FLOCK_WEBHOOK_URL" --backend "$STORE" --project "$PROJECT"
 firebase apphosting:secrets:grantaccess "$COMMON,CLOUDINARY_API_KEY,CLOUDINARY_API_SECRET" --backend "$ADMIN" --project "$PROJECT"

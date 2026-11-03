@@ -3,13 +3,13 @@
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { categorySchema, CategorySchemaType } from '@/lib/validations/category'
 import { revalidatePath } from 'next/cache'
-import { isTakenAcrossStores, scopedCreate, scopedDelete, scopedUpdate } from '@/lib/tenant'
+import { isTakenInStore, scopedCreate, scopedDelete, scopedUpdate } from '@/lib/tenant'
 
 export async function createCategory(data: CategorySchemaType) {
   try {
     const validatedData = categorySchema.parse(data)
 
-    if (await isTakenAcrossStores(CollectionsName.Categories, 'slug', validatedData.slug)) {
+    if (await isTakenInStore(CollectionsName.Categories, 'slug', validatedData.slug)) {
       return { success: false, error: 'Category with this slug already exists' }
     }
 

@@ -119,7 +119,7 @@ interface BaseDocument {
 interface CreatorDocument extends BaseDocument {
   creatorId: string
   path: string
-  /** Store the document belongs to (stores/{storeId}). Not set on the global `locations`. */
+  /** Store the document belongs to (stores/{storeId}). Locations too, since phase 2. */
   storeId?: string | null
 }
 
@@ -255,6 +255,8 @@ export interface Category extends CreatorDocument {
 }
 
 export interface Product extends CreatorDocument {
+  /** Shown on the marketplace (when its store is active and listed too). */
+  marketplaceListed?: boolean
   title: string
   slug: string
   description: ProductDescription

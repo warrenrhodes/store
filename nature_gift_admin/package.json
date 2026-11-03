@@ -8,7 +8,6 @@
   },
   "scripts": {
     "dev": "next dev --webpack -p 3000",
-    "seed": "tsc --project tsconfig.seed.json && node dist/scripts/seed.js",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint .",

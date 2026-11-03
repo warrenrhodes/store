@@ -2,12 +2,14 @@ import { CollectionsName } from '@/lib/firebase/collection-name'
 import { backend } from '@/lib/firebase/firebase-server/firebase'
 import { Product } from '@/lib/firebase/models'
 import { getDocumentByPathCache } from '@/lib/api/utils'
+import { resolveCartStore } from '@/lib/api/cart-store'
 import { getRegularPrice } from '@/lib/utils/utils'
 import { getDatabasePath } from '@spreeloop/database'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
 const checkoutSchema = z.object({
+  site: z.string().max(60).optional(),
   id: z.string().regex(/^[\w-]{10,64}$/),
   fullName: z.string().trim().min(2).max(80),
   phone: z
@@ -35,13 +37,20 @@ const checkoutSchema = z.object({
 export async function POST(req: NextRequest) {
   const parsed = checkoutSchema.safeParse(await req.json().catch(() => null))
   if (!parsed.success) return NextResponse.json({ error: 'Invalid checkout' }, { status: 400 })
-  const { id, fullName, phone, location, source, items } = parsed.data
+  const { id, fullName, phone, location, source, items, site } = parsed.data
 
   const products = await Promise.all(
     items.map(i => getDocumentByPathCache<Product>({ path: i.path })),
   )
   if (products.some(p => !p?.title))
     return NextResponse.json({ error: 'Invalid items' }, { status: 400 })
+  // The page's store. On the marketplace a cart mixing stores goes to its first product's store
+  // until phase 4 (one checkout per store).
+  const resolved = await resolveCartStore(site, products as Product[])
+  if ('error' in resolved && resolved.error !== 'MIXED_STORES') {
+    return NextResponse.json({ error: 'Invalid items' }, { status: 400 })
+  }
+  const storeId = 'error' in resolved ? products[0]!.storeId : resolved.store.id
 
   const lines = items.map((item, index) => {
     const product = products[index]!
@@ -66,7 +75,7 @@ export async function POST(req: NextRequest) {
         source: source ?? null,
         items: lines,
         total: lines.reduce((sum, l) => sum + l.price * l.quantity, 0),
-        storeId: products[0]!.storeId ?? null,
+        storeId: storeId ?? null,
         partnersPaths: [
           ...new Set(products.map(p => getDatabasePath(CollectionsName.Users, p!.creatorId))),
         ],

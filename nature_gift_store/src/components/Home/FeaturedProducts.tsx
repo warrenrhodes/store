@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowRight } from 'lucide-react'
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/Site'
 import { ProductCard } from '../ProductCard'
 import { useLocalization } from '@/hooks/useLocalization'
 import { Product } from '@/lib/firebase/models'

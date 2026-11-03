@@ -1,4 +1,5 @@
-import { getAllCollectionCache } from '@/lib/api/utils'
+import { getAllCollectionCache, getSiteContext } from '@/lib/api/utils'
+import { MARKET } from '@ngift/core/site'
 import { CollectionsName } from '@/lib/firebase/collection-name'
 import { Product, ProductStatus } from '@/lib/firebase/models'
 import { QueryFilter } from '@spreeloop/database'
@@ -11,10 +12,14 @@ export async function GET(request: Request) {
   if (!q) {
     return NextResponse.json([])
   }
+  // The page's site: a store's products, or the marketplace's.
+  const ctx = await getSiteContext(searchParams.get('site') || MARKET)
+  if (!ctx) return NextResponse.json([])
 
   // Fetch all published products
   const products = await getAllCollectionCache<Product>({
     collection: CollectionsName.Products,
+    storeId: ctx.store?.id ?? null,
     filters: [
       new QueryFilter('status', '==', ProductStatus.PUBLISHED),
       new QueryFilter('visibility', '==', true),
@@ -26,9 +31,9 @@ export async function GET(request: Request) {
   // This is still efficient for < 1000 items and prevents the client from receiving the entire catalog.
   const searchTerm = q.toLowerCase()
   const filteredProducts = products
-    .filter((product) => product.title.toLowerCase().includes(searchTerm))
+    .filter(product => product.title.toLowerCase().includes(searchTerm))
     .slice(0, 10) // Limit to 10 results for search bar
-    .map((product) => ({
+    .map(product => ({
       // Return only necessary fields to minimize payload
       title: product.title,
       slug: product.slug,

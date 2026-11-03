@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowRight, Zap } from 'lucide-react'
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/Site'
 import { useEffect, useState } from 'react'
 import { useLocalization } from '@/hooks/useLocalization'
 import { Promotion } from '@/lib/firebase/models'

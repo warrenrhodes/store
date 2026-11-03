@@ -78,8 +78,7 @@ module.exports = async function adminChecks({ db, ADMIN, AUTH_HOST, apiKey }) {
     await pageHides(ownerA, '/products/b-miel', ['Miel de B']),
     await pageHides(ownerA, '/orders/order-b', ['Bertrand Bee', '690000009']),
     await pageHides(ownerA, '/promotions/p-b', ['B-PROMO']),
-    // The zone form lists every location (a global directory), so look for B's zone itself.
-    await pageHides(ownerA, '/shipments/z-b', ['shipments/z-b']),
+    await pageHides(ownerA, '/shipments/z-b', ['shipments/z-b', 'Bonamoussadi']),
   ]
   ok(
     `B's product, order, promotion and zone opened by URL as A: nothing shown (HTTP ${statuses.join(', ')})`,
@@ -102,6 +101,23 @@ module.exports = async function adminChecks({ db, ADMIN, AUTH_HOST, apiKey }) {
     assert.ok((await db.doc(path).get()).exists, `${path} still exists`)
   }
   ok("B's documents through the API as A: 404, nothing changed or deleted")
+
+  // Locations per store: A lists only its own, and can't put B's in a zone.
+  // ('Mendong' is also the new-location placeholder: look for Etoudi.)
+  await pageHas(ownerA, '/locations', ['Etoudi', 'Akwa', 'Ekounou'], ['Bonamoussadi'])
+  await pageHas(ownerB, '/locations', ['Bonamoussadi', 'Akwa'], ['Etoudi', 'Ekounou'])
+  await pageHas(ownerA, '/shipments/z-yde', ['Etoudi'], ['Bonamoussadi'])
+  const zone = { method: 'DELIVERY', isActive: true, cost: 1000 }
+  assert.equal(
+    await ownerA.api('POST', '/api/shipments', { ...zone, locationIds: ['bonamoussadi'] }),
+    403,
+  )
+  assert.equal(
+    await ownerA.api('PUT', '/api/shipments/z-yde', { ...zone, locationIds: ['mendong', 'akwa_vendor-b'] }),
+    403,
+  )
+  assert.deepEqual((await db.doc('shipments/z-yde').get()).get('locationIds'), ['mendong', 'etoudi'])
+  ok("locations: each store lists its own; a zone with another store's location is refused")
 
   // A forged store cookie doesn't open B's store.
   const forged = as(`${await signIn('admin@test.cm')}; current-store=vendor-b`)

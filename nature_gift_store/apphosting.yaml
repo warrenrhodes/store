@@ -10,20 +10,11 @@ env:
   - variable: NEXT_PUBLIC_ADMIN_DASHBOARD_URL
     value: "https://nature-gift-admin--nature-s-gift.us-east4.hosted.app"
     availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_ADMIN_EMAIL
+  # Marketplace contact form; a store's goes to the emails of its Settings.
+  - variable: PLATFORM_CONTACT_EMAIL
     value: "webanalyse237@gmail.com"
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_ADMIN_PHONE_NUMBER
-    value: "+237696689073"
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
-    value: "dnikg4pog"
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_ECOMMERCE_STORE_URL
+  - variable: NEXT_PUBLIC_PLATFORM_URL
     value: "https://store--nature-s-gift.us-east4.hosted.app"
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_FACEBOOK_PIXEL_ID
-    value: "16954863204662"
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
     value: "AIzaSyCohQ9FJ0q2VRCivBrBuRKjwBcw4K7Pv3o"
@@ -43,15 +34,13 @@ env:
   - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
     value: "nature-s-gift.firebasestorage.app"
     availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID
+  # GTM of the marketplace pages; a store's containers are in its Settings.
+  - variable: PLATFORM_GTM_ID
     value: "GTM-PZPWRLKC"
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_NOTIFICATIONAPI_CLIENT_ID
+  - variable: NOTIFICATIONAPI_CLIENT_ID
     value: "2ldisojs05o7o3av8e4rp2xsjv"
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_NOTIFICATIONAPI_CLIENT_SECRET
+  - variable: NOTIFICATIONAPI_CLIENT_SECRET
     value: "hi40l6noacet9umzici8kr8wyeztvkqsyk1zpnkuymjykxgl5k29awjo1g"
-    availability: [BUILD, RUNTIME]
   - variable: FIREBASE_CLIENT_EMAIL
     secret: FIREBASE_CLIENT_EMAIL
   - variable: FIREBASE_PRIVATE_KEY
@@ -60,5 +49,8 @@ env:
     secret: AUTH_COOKIE_SIGNATURE_KEY_CURRENT
   - variable: AUTH_COOKIE_SIGNATURE_KEY_PREVIOUS
     secret: AUTH_COOKIE_SIGNATURE_KEY_PREVIOUS
-  - variable: FLOCK_WEBHOOK_URL
+  # Platform alert when the storefront can't read Firestore; a store's order Flock is in its Settings.
+  - variable: PLATFORM_FLOCK_WEBHOOK_URL
     secret: FLOCK_WEBHOOK_URL
+  - variable: REVALIDATE_SECRET
+    secret: REVALIDATE_SECRET

@@ -10,13 +10,18 @@ import {
   Blog,
   Category,
   DeliveryLocation,
+  isValidStoreSlug,
   Order,
   Product,
   Promotion,
   PromotionStatus,
   Review,
   Shipment,
+  Store,
+  StoreStatus,
 } from '../firebase/models'
+import { MARKET } from '@ngift/core/site'
+import { notFound } from 'next/navigation'
 
 export type ICategory = DatabaseDocument<Category>
 export type IShipment = DatabaseDocument<Shipment>
@@ -27,34 +32,65 @@ export type IProduct = Product & { path: string }
 export type IOrder = DatabaseDocument<Order>
 
 // Raw readers throw on failure; the exported wrappers below log and fall back.
-const getDocumentBySlug = async <T>(props: { collection: string; slug: string }) => {
+
+/**
+ * Whose data a storefront read returns: one store's (its id), or the marketplace's (null):
+ * marketplace product lists keep the listed products of active, listed stores only.
+ */
+export type StoreScope = string | null
+
+/** Cache tags, dropped by POST /api/revalidate when the admin writes (docs/MULTI_TENANT_PLAN.md, 3.3). */
+export const storeTag = (storeId: string) => `store:${storeId}`
+/** Reads spanning stores: marketplace lists, reads by path. */
+export const MARKET_TAG = 'market'
+/** Store slugs and statuses. */
+export const STORES_TAG = 'stores'
+const scopeTags = (storeId: StoreScope) => [storeId ? storeTag(storeId) : MARKET_TAG]
+
+const query = async <T>(collection: string, filters: QueryFilter[] = [], storeId: StoreScope) => {
+  const scoped = storeId
+    ? [new QueryFilter('storeId', '==', storeId)]
+    : collection === CollectionsName.Products
+      ? [new QueryFilter('marketplaceListed', '==', true)]
+      : []
   const data = await backend.database.getCollection<T>({
-    collectionPath: props.collection,
-    filters: [new QueryFilter('slug', '==', props.slug)],
+    collectionPath: collection,
+    filters: [...filters, ...scoped],
   })
-  const doc = data[0]?.data
-  return doc ? { ...doc, path: data[0].path } : undefined
+  const docs = data.map(item => ({ ...item.data, path: item.path }))
+  if (storeId || collection !== CollectionsName.Products) return docs
+  const listed = new Set(await readListedStoreIds())
+  return docs.filter(doc => listed.has((doc as { storeId?: string }).storeId ?? ''))
 }
 
-const getAllCollection = async <T>(props: { collection: string; filters?: QueryFilter[] }) => {
-  const data = await backend.database.getCollection<T>({
-    collectionPath: props.collection,
-    filters: props.filters,
-  })
-  return data.map(item => ({ ...item.data, path: item.path }))
+const getDocumentBySlug = async <T>(props: {
+  collection: string
+  slug: string
+  storeId: StoreScope
+}) => {
+  const [doc] = await query<T>(
+    props.collection,
+    [new QueryFilter('slug', '==', props.slug)],
+    props.storeId,
+  )
+  return doc
 }
+
+const getAllCollection = <T>(props: {
+  collection: string
+  filters?: QueryFilter[]
+  storeId: StoreScope
+}) => query<T>(props.collection, props.filters, props.storeId)
 
 const getAllRelatedCollection = async <T extends { slug: string }>(props: {
   collection: string
   slug: string
   filters?: QueryFilter[]
-}) => {
-  const data = await backend.database.getCollection<T>({
-    collectionPath: props.collection,
-    filters: props.filters,
-  })
-  return data.filter(item => item.data.slug != props.slug).map(e => ({ ...e.data, path: e.path }))
-}
+  storeId: StoreScope
+}) =>
+  (await query<T>(props.collection, props.filters, props.storeId)).filter(
+    item => item.slug != props.slug,
+  )
 
 const getDocumentByPath = async <T>(props: { path: string }) => {
   const data = await backend.database.getRecord<T>(props.path)
@@ -66,26 +102,43 @@ const getDocumentByPath = async <T>(props: { path: string }) => {
  * shared across requests and instances for a few minutes; admin edits show up within that delay.
  * Reads that fail throw inside the cache, so a failure is never cached.
  */
-// ponytail: time-based only; on-demand revalidation needs the admin to call a store webhook.
+// The admin drops them earlier through POST /api/revalidate; the delay is the safety net.
 const SHARED_CACHE_SECONDS = 300
 
-const readActivePromotions = unstable_cache(
-  async () =>
+/** `read` shared under `key` for SHARED_CACHE_SECONDS, or until one of `tags` is revalidated. */
+const cachedRead = <R>(key: unknown[], tags: string[], read: () => Promise<R>) =>
+  unstable_cache(read, [JSON.stringify(key)], { revalidate: SHARED_CACHE_SECONDS, tags })()
+
+const readListedStoreIds = () =>
+  cachedRead(['listed-stores'], [STORES_TAG], async () =>
     (
       await backend.db
-        .collection(CollectionsName.Promotions)
-        .where('status', '==', PromotionStatus.ACTIVE)
+        .collection(CollectionsName.Stores)
+        .where('status', '==', StoreStatus.ACTIVE)
+        .where('marketplaceListed', '==', true)
+        .select()
         .get()
-    ).docs.map<Promotion>(doc => ({ ...(doc.data() as Promotion), path: doc.ref.path })),
-  ['active-promotions'],
-  { revalidate: SHARED_CACHE_SECONDS },
-)
+    ).docs.map(doc => doc.id),
+  )
 
-const getAllValidPromotion = async (): Promise<Promotion[]> => {
+/** Active promotions of a store; of every store on the marketplace (display only, never priced). */
+const readActivePromotions = (storeId: StoreScope) =>
+  cachedRead(['active-promotions', storeId], scopeTags(storeId), async () => {
+    let promotions = backend.db
+      .collection(CollectionsName.Promotions)
+      .where('status', '==', PromotionStatus.ACTIVE)
+    if (storeId) promotions = promotions.where('storeId', '==', storeId)
+    return (await promotions.get()).docs.map<Promotion>(doc => ({
+      ...(doc.data() as Promotion),
+      path: doc.ref.path,
+    }))
+  })
+
+const getAllValidPromotion = async (storeId: StoreScope): Promise<Promotion[]> => {
   try {
     const now = Date.now()
     // Date window filtered after the cache (and in memory: avoids a composite index)
-    return (await readActivePromotions()).filter(p => {
+    return (await readActivePromotions(storeId)).filter(p => {
       const start = toDate(p.startDate)?.getTime()
       const end = toDate(p.endDate)?.getTime()
       return start !== undefined && end !== undefined && start <= now && now <= end
@@ -97,12 +150,19 @@ const getAllValidPromotion = async (): Promise<Promotion[]> => {
   }
 }
 
-/** Shipments plus only the locations they use (not the whole collection). */
-const readShippingZones = unstable_cache(
-  async () => {
-    const shipments = (await backend.db.collection(CollectionsName.Shipments).get()).docs.map(
-      doc => ({ ...(doc.data() as Shipment), path: doc.ref.path }),
-    )
+/**
+ * A store's shipments plus only the locations they use (not the whole collection). On the
+ * marketplace, every store's zones, each with its storeId: the checkout keeps the cart's store's.
+ */
+const readShippingZones = (storeId: StoreScope) =>
+  cachedRead(['shipping-zones', storeId], scopeTags(storeId), async () => {
+    const shipments = (
+      await (
+        storeId
+          ? backend.db.collection(CollectionsName.Shipments).where('storeId', '==', storeId)
+          : backend.db.collection(CollectionsName.Shipments)
+      ).get()
+    ).docs.map(doc => ({ ...(doc.data() as Shipment), path: doc.ref.path }))
     const ids = [
       ...new Set(shipments.filter(s => s.isActive !== false).flatMap(s => s.locationIds ?? [])),
     ]
@@ -116,14 +176,11 @@ const readShippingZones = unstable_cache(
           .map(doc => ({ ...(doc.data() as DeliveryLocation), path: doc.ref.path }))
       : []
     return toShippingZones(shipments, locations)
-  },
-  ['shipping-zones'],
-  { revalidate: SHARED_CACHE_SECONDS },
-)
+  })
 
-const getShippingZones = async () => {
+const getShippingZones = async (storeId: StoreScope) => {
   try {
-    return await readShippingZones()
+    return await readShippingZones(storeId)
   } catch (error) {
     console.error('Error fetching shipping zones:', error)
     alertReadFailure('shipping-zones', error)
@@ -137,7 +194,7 @@ let lastAlert = 0
 const alertReadFailure = (name: string, error: unknown) => {
   if (Date.now() - lastAlert < 10 * 60_000) return
   lastAlert = Date.now()
-  new FlockNotifier({ webhookUrl: process.env.FLOCK_WEBHOOK_URL as string }).sendText(
+  new FlockNotifier({ webhookUrl: process.env.PLATFORM_FLOCK_WEBHOOK_URL ?? '' }).sendText(
     `🚨 Store can't read Firestore (${name}): ${String((error as Error)?.message ?? error).slice(0, 300)}`,
   )
 }
@@ -155,12 +212,27 @@ const safe =
     }
   }
 
-/** Shared across requests for SHARED_CACHE_SECONDS (keyed by the arguments), deduped per request. */
-const shared = <A extends unknown[], R>(
+/**
+ * Shared across requests (keyed by the arguments, tagged by their store), deduped per request.
+ * Catalogue reads take a `storeId` (StoreScope): no storefront list without it.
+ */
+const shared = <P extends object, R>(
   name: string,
-  read: (...args: A) => Promise<R>,
+  read: (props: P) => Promise<R>,
   fallback: () => R,
-) => cache(safe(name, unstable_cache(read, [name], { revalidate: SHARED_CACHE_SECONDS }), fallback))
+) =>
+  cache(
+    safe(
+      name,
+      (props: P) =>
+        cachedRead(
+          [name, props],
+          'storeId' in props ? scopeTags(props.storeId as StoreScope) : [MARKET_TAG],
+          () => read(props),
+        ),
+      fallback,
+    ),
+  )
 
 // Catalogue data (products, blogs, categories, reviews): a few minutes stale is fine.
 export const getAllRelatedCollectionCache = shared(
@@ -171,12 +243,14 @@ export const getAllRelatedCollectionCache = shared(
   collection: string
   slug: string
   filters?: QueryFilter[]
+  storeId: StoreScope
 }) => Promise<T[]>
 export const getDocumentBySlugCache = shared(
   'document-by-slug',
   getDocumentBySlug,
   () => undefined,
-) as <T>(props: { collection: string; slug: string }) => Promise<T | undefined>
+) as <T>(props: { collection: string; slug: string; storeId: StoreScope }) => Promise<T | undefined>
+/** By path, any store: callers check the store where it matters (tagged `market`). */
 export const getDocumentByPathCache = shared(
   'document-by-path',
   getDocumentByPath,
@@ -187,7 +261,54 @@ export const getAllCollectionCache = shared('collection', getAllCollection, () =
 >(props: {
   collection: string
   filters?: QueryFilter[]
+  storeId: StoreScope
 }) => Promise<T[]>
+
+export type SiteStore = Store & { id: string }
+/** What a page is served for: the marketplace (store null) or one active store. */
+export type SiteContext = { site: string; store: SiteStore | null }
+
+/** stores/{id}, or null. */
+export const getStoreCache = cache(
+  safe(
+    'store',
+    (id: string) =>
+      cachedRead(['store', id], [storeTag(id)], async () => {
+        const doc = await backend.db.collection(CollectionsName.Stores).doc(id).get()
+        return doc.exists ? ({ ...(doc.data() as Store), id } as SiteStore) : null
+      }),
+    () => null,
+  ),
+)
+
+const readStoreIdBySlug = safe(
+  'store-slug',
+  (slug: string) =>
+    cachedRead(['store-slug', slug], [STORES_TAG], async () => {
+      const doc = await backend.db.collection(CollectionsName.StoreSlugs).doc(slug).get()
+      return (doc.get('storeId') as string | undefined) ?? null
+    }),
+  () => null,
+)
+
+/**
+ * The site a request is for: the marketplace, or an active store found by its slug. Null (a
+ * 404) for an unknown slug or a store that isn't active (waiting for its payment, suspended).
+ */
+export const getSiteContext = cache(async (site: string): Promise<SiteContext | null> => {
+  if (site === MARKET) return { site, store: null }
+  if (!isValidStoreSlug(site)) return null
+  const id = await readStoreIdBySlug(site)
+  const store = id ? await getStoreCache(id) : null
+  return store?.status === StoreStatus.ACTIVE ? { site, store } : null
+})
+
+/** The page's site (params of app/[site]), or a 404. */
+export const siteOf = async (params: Promise<{ site: string }>) => {
+  const ctx = await getSiteContext((await params).site)
+  if (!ctx) notFound()
+  return ctx
+}
 
 // Fresh reads: price and stock when ordering, a customer's own orders.
 export const getDocumentByPathFresh = cache(
@@ -204,11 +325,12 @@ export const getAllValidPromotionCache = cache(getAllValidPromotion)
 export const getShippingZonesCache = cache(getShippingZones)
 
 /**
- * Active promotions with up-to-date usage counts for those with a total limit (the list itself
- * is cached for a few minutes; a few extra reads keep an exhausted code from showing as valid).
+ * A store's active promotions with up-to-date usage counts for those with a total limit (the
+ * list itself is cached for a few minutes; a few extra reads keep an exhausted code from
+ * showing as valid). Always one store: promotions are never priced across stores.
  */
-export const getPromotionsWithFreshUsage = async (): Promise<Promotion[]> => {
-  const promotions = await getAllValidPromotionCache()
+export const getPromotionsWithFreshUsage = async (storeId: string): Promise<Promotion[]> => {
+  const promotions = await getAllValidPromotionCache(storeId)
   const limited = promotions.filter(p => p.usageLimit?.total)
   if (limited.length === 0) return promotions
   try {

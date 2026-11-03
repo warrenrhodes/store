@@ -16,7 +16,7 @@ import {
   StoreSecrets,
   StoreStatus,
 } from '@/lib/firebase/models'
-import { getUserTokens, membershipId, Unauthorized } from '@/lib/tenant'
+import { getUserTokens, membershipId, revalidateStorefront, Unauthorized } from '@/lib/tenant'
 import { extendPaidUntil } from '@ngift/core/store-rules'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -138,6 +138,7 @@ export async function recordCashPayment(formData: FormData) {
     return until
   })
   if (!paidUntil) return back({ error: 'Store not found.' })
+  await revalidateStorefront(storeId)
   revalidatePath('/platform')
   back({ saved: `Payment recorded, paid until ${paidUntil.slice(0, 10)}.` })
 }
@@ -166,6 +167,7 @@ export async function updateStoreFlags(formData: FormData) {
   const listed = formData.get('marketplaceListed')
   if (listed !== null) changes.marketplaceListed = listed === 'true'
   await storeRef.update({ ...changes, updatedAt: new Date().toISOString() })
+  await revalidateStorefront(storeRef.id)
   revalidatePath('/platform')
   back({ saved: 'Saved.' })
 }

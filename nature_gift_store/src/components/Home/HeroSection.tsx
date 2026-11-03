@@ -3,7 +3,7 @@
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/Site'
 import { useLocalization } from '@/hooks/useLocalization'
 
 export function HeroSection() {

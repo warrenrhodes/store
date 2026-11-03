@@ -10,7 +10,8 @@ import { NextRequest } from 'next/server'
 import { cache } from 'react'
 import { CollectionsName } from './firebase/collection-name'
 import { backend } from './firebase/firebase-server/firebase'
-import { DeliveryLocation, Invite, Membership, Store, StoreRole } from './firebase/models'
+import { Invite, Membership, Store, StoreRole } from './firebase/models'
+import { PLATFORM_URL } from './storefront'
 
 /** Cookie written by the store switcher. Only a hint: the membership is checked on every request. */
 export const STORE_COOKIE = 'current-store'
@@ -162,17 +163,61 @@ export async function scopedGet<T>(collection: string, id: string) {
   return fresh({ path: doc.ref.path, data: doc.data() as T }) as DatabaseDocument<T>
 }
 
+/**
+ * Drops the storefront's cached reads of this store (and the marketplace's) through its
+ * POST /api/revalidate, so an edit shows at once; the 5-minute cache TTL covers a failure.
+ * Called after every write below. Never throws.
+ */
+export async function revalidateStorefront(storeId: string) {
+  const secret = process.env.REVALIDATE_SECRET
+  if (!secret || !PLATFORM_URL) return
+  try {
+    const res = await fetch(`${PLATFORM_URL}/api/revalidate`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${secret}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tags: [`store:${storeId}`, 'market', 'stores'] }),
+      signal: AbortSignal.timeout(3000),
+    })
+    if (!res.ok) console.error('Storefront revalidation failed:', res.status)
+  } catch (error) {
+    console.error('Storefront revalidation failed:', error)
+  }
+}
+
+/** A zone may only list its own store's locations (ids of another store's are refused). */
+async function checkOwnLocations(
+  collection: string,
+  data: Record<string, unknown>,
+  storeId: string,
+) {
+  if (collection !== CollectionsName.Shipments || !Array.isArray(data.locationIds)) return
+  const ids = data.locationIds.map(String)
+  if (ids.length === 0) return
+  if (!ids.every(isDocId)) throw new Unauthorized('Invalid location')
+  const docs = await backend.db.getAll(
+    ...ids.map(id => backend.db.collection(CollectionsName.Locations).doc(id)),
+  )
+  if (docs.some(doc => !doc.exists || doc.get('storeId') !== storeId)) {
+    throw new Unauthorized("Another store's location")
+  }
+}
+
 /** Creates a document in the current store. storeId, creatorId and the dates can't be forged. */
 export async function scopedCreate(collection: string, data: Record<string, unknown>) {
   const ctx = await requireStore()
+  await checkOwnLocations(collection, data, ctx.storeId)
   const now = new Date().toISOString()
-  return backend.database.createRecord(collection, {
+  const created = await backend.database.createRecord(collection, {
+    // New products show on the marketplace (if the store is listed), like migrated ones.
+    ...(collection === CollectionsName.Products ? { marketplaceListed: true } : {}),
     ...data,
     storeId: ctx.storeId,
     creatorId: ctx.uid,
     createdAt: now,
     updatedAt: now,
   })
+  await revalidateStorefront(ctx.storeId)
+  return created
 }
 
 const LOCKED_FIELDS = ['storeId', 'creatorId', 'createdAt'] as const
@@ -180,19 +225,24 @@ const LOCKED_FIELDS = ['storeId', 'creatorId', 'createdAt'] as const
 /** Merges `data` into a document of the current store. False if it isn't one. */
 export async function scopedUpdate(collection: string, id: string, data: Record<string, unknown>) {
   if (!(await scopedGet(collection, id))) return false
+  const { storeId } = await requireStore()
+  await checkOwnLocations(collection, data, storeId)
   const rest = { ...data }
   for (const field of LOCKED_FIELDS) delete rest[field]
   await backend.database.setRecord(`${collection}/${id}`, {
     ...rest,
     updatedAt: new Date().toISOString(),
   })
+  await revalidateStorefront(storeId)
   return true
 }
 
 /** Deletes a document of the current store. False if it isn't one. */
 export async function scopedDelete(collection: string, id: string) {
   if (!(await scopedGet(collection, id))) return false
+  const { storeId } = await requireStore()
   await backend.db.collection(collection).doc(id).delete()
+  await revalidateStorefront(storeId)
   return true
 }
 
@@ -214,7 +264,7 @@ export async function scopedTransaction<T, R>(
   const ctx = await requireStore()
   if (!isDocId(id)) return undefined
   const ref = backend.db.collection(collection).doc(id)
-  return backend.db.runTransaction(async tx => {
+  const result = await backend.db.runTransaction(async tx => {
     const doc = await tx.get(ref)
     if (!doc.exists || doc.get('storeId') !== ctx.storeId) return undefined
     const getScoped = async (path: string) => {
@@ -225,21 +275,8 @@ export async function scopedTransaction<T, R>(
     }
     return work({ tx, data: doc.data() as T, ref, ctx, getScoped })
   })
-}
-
-/**
- * True if another document already uses this value. Checked across all stores, not per store,
- * for product and blog slugs and promotion codes: until the storefront is per store (phase 2)
- * it finds products by slug and promotions by code globally. Phase 2: add the storeId filter.
- */
-export async function isTakenAcrossStores(
-  collection: string,
-  field: string,
-  value: string,
-  exceptId?: string,
-) {
-  const snapshot = await backend.db.collection(collection).where(field, '==', value).limit(2).get()
-  return snapshot.docs.some(doc => doc.id !== exceptId)
+  if (result !== undefined) await revalidateStorefront(ctx.storeId)
+  return result
 }
 
 /** True if another document of the current store uses this value. */
@@ -257,13 +294,4 @@ export async function isTakenInStore(
     .limit(2)
     .get()
   return snapshot.docs.some(doc => doc.id !== exceptId)
-}
-
-/** The neighbourhood directory, shared by every store (shipments reference it). */
-export async function listLocations() {
-  await requireStore()
-  const docs = await backend.database.getCollection<DeliveryLocation>({
-    collectionPath: CollectionsName.Locations,
-  })
-  return fresh(docs)
 }

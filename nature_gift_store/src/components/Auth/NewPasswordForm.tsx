@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
-import { useRouter } from 'next/navigation'
+import { useSiteRouter } from '@/components/Site'
 import { confirmPasswordReset, verifyPasswordResetCode } from 'firebase/auth'
 import { auth } from '@/lib/firebase/firebase-client/firebase'
 import { AuthCard } from '../Auth/AuthCard'
@@ -16,7 +16,7 @@ interface NewPasswordFormProps {
 }
 
 export const NewPasswordForm = ({ token }: NewPasswordFormProps) => {
-  const router = useRouter()
+  const router = useSiteRouter()
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)

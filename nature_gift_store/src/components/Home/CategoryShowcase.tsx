@@ -2,7 +2,7 @@
 
 import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/Site'
 import { FAKE_BLUR } from '@/lib/utils/constants'
 import { useLocalization } from '@/hooks/useLocalization'
 import { Category } from '@/lib/firebase/models'

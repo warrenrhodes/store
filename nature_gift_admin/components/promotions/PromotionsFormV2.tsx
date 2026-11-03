@@ -1,5 +1,6 @@
 'use client'
 
+import { useStorefront } from '@/components/layout/Storefront'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { addDays, endOfDay, format, subDays } from 'date-fns'
 import { CalendarIcon, Copy, Link2, Loader2, Trash2 } from 'lucide-react'
@@ -62,6 +63,7 @@ export function PromotionFormV2({
 }: PromotionFormProps) {
   const router = useRouter()
   const { toast } = useToast()
+  const storefront = useStorefront()
   const [isLoading, setIsLoading] = useState(false)
   // The code follows the name until the admin types one.
   const [codeEdited, setCodeEdited] = useState(!!initialData)
@@ -145,9 +147,8 @@ export function PromotionFormV2({
   )
   const requiresCode = form.watch('requiresCode')
   const code = form.watch('code')
-  const discountLink = `${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? ''}/?promo=${encodeURIComponent(
-    (code ?? '').toUpperCase(),
-  )}`
+  // The store's own address: the code only works on its store.
+  const discountLink = `${storefront.url}?promo=${encodeURIComponent((code ?? '').toUpperCase())}`
   const usageCount = (initialData?.data as { usageCount?: number } | undefined)?.usageCount ?? 0
 
   const handleKeyPress = (

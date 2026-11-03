@@ -2,7 +2,7 @@ import { deleteData, getDataById, putData } from '@/lib/actions/server'
 import { promotionSchema } from '@/lib/validations/promotions'
 import { NextRequest, NextResponse } from 'next/server'
 import { CollectionsName } from '@/lib/firebase/collection-name'
-import { isTakenAcrossStores } from '@/lib/tenant'
+import { isTakenInStore } from '@/lib/tenant'
 
 export const GET = async (
   req: NextRequest,
@@ -30,7 +30,7 @@ export const PUT = async (
       .trim()
       .toUpperCase()
     if (
-      await isTakenAcrossStores(CollectionsName.Promotions, 'code', json.code, params.promotionId)
+      await isTakenInStore(CollectionsName.Promotions, 'code', json.code, params.promotionId)
     ) {
       return new NextResponse('A promotion already uses this code', { status: 409 })
     }

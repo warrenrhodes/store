@@ -1,5 +1,6 @@
 'use client'
 
+import { useSite } from '@/components/Site'
 import { CartItem } from '@/hooks/useCart'
 import { DeliveryFormData } from '@/lib/utils/validation-form'
 import { useEffect, useRef } from 'react'
@@ -28,12 +29,14 @@ export function useCheckoutCapture(form: UseFormReturn<DeliveryFormData>, items:
   const phone = form.watch('phone')?.replace(/\s+/g, '')
   const location = form.watch('shipping.location')
   const lastSent = useRef('')
+  const { site } = useSite()
 
   useEffect(() => {
     if (!fullName || fullName.trim().length < 2 || !PHONE.test(phone ?? '') || items.length === 0) {
       return
     }
     const payload = {
+      site,
       id: getCheckoutId(),
       fullName: fullName.trim(),
       phone,
@@ -53,5 +56,5 @@ export function useCheckoutCapture(form: UseFormReturn<DeliveryFormData>, items:
       }).catch(() => {})
     }, 1500)
     return () => clearTimeout(timer)
-  }, [fullName, phone, location, items])
+  }, [site, fullName, phone, location, items])
 }

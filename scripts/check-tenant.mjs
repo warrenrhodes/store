@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // CI guard for store isolation (docs/MULTI_TENANT_PLAN.md, 3.5): in the admin, only the files
 // below may use the server Firestore handle. Everything else goes through lib/tenant.ts, which
-// filters every read and stamps every write with the current store.
+// filters every read and stamps every write with the current store (locations included).
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -12,7 +12,6 @@ const ALLOWED = new Set([
   'lib/firebase/firebase-server/firebase.ts', // creates the handle
   'lib/actions/store.actions.ts', // the current store's own doc, secrets, members, invites
   'lib/actions/platform.actions.ts', // platform admin: every store, payments
-  'lib/actions/locations.actions.ts', // global neighbourhood directory
   'app/api/users/route.ts', // users/{uid} profile on sign-up
 ])
 const DIRS = ['app', 'lib', 'components', 'hooks']

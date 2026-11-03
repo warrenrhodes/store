@@ -123,6 +123,15 @@ assert.deepEqual(toShippingZones([{ ...zone1, isActive: false }], locations), []
 assert.equal(findArea(shipments, 'DELIVERY', 'loc_etoudi')?.zone.cost, 2000)
 assert.equal(findArea(shipments, 'EXPEDITION', 'loc_etoudi'), undefined)
 
+// Per-store locations: a zone keeps only its own store's locations (or not yet migrated ones)
+const zoneA = { ...zone1, storeId: 'a' } as Shipment
+const ofStore = (storeId: string | undefined) =>
+  locations.map(l => ({ ...l, storeId }) as DeliveryLocation)
+assert.equal(toShippingZones([zoneA], ofStore('a'))[0].areas.length, 2)
+assert.equal(toShippingZones([zoneA], ofStore('a'))[0].storeId, 'a')
+assert.equal(toShippingZones([zoneA], ofStore(undefined))[0].areas.length, 2)
+assert.deepEqual(toShippingZones([zoneA], ofStore('b')), [])
+
 // Renaming a location: the badge shows the new name, the promotion still matches
 const renamed = toShippingZones([zone1], [location('loc_medong', 'Yaoundé – Medong')])
 assert.deepEqual(getFreeShippingAreas([freeShipMedong], 'products/tea', renamed), [

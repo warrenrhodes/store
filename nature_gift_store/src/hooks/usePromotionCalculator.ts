@@ -3,8 +3,10 @@
 import { useCallback, useState } from 'react'
 import { CartItem } from './useCart'
 import { IDeliveryInfo } from '@/lib/firebase/models'
+import { useSite } from '@/components/Site'
 
 const calculatePromotion = async (
+  site: string,
   cart: CartItem[],
   deliveryInfo?: Partial<IDeliveryInfo>,
   codes: string[] = [],
@@ -15,6 +17,7 @@ const calculatePromotion = async (
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
+      site,
       cart,
       shipping: deliveryInfo,
       codes,
@@ -26,12 +29,13 @@ const calculatePromotion = async (
 export function usePromotionCalculator() {
   const [isCalculating, setIsCalculating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { site } = useSite()
 
   const _calculatePromotion = useCallback(
     async (cart: CartItem[], deliveryInfo?: Partial<IDeliveryInfo>, codes?: string[]) => {
-      return await calculatePromotion(cart, deliveryInfo, codes)
+      return await calculatePromotion(site, cart, deliveryInfo, codes)
     },
-    [],
+    [site],
   )
 
   const calculatePromotions = useCallback(

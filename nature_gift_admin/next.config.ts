@@ -4,6 +4,7 @@ const nextConfig = {
   output: 'standalone',
   // scripts/e2e builds into .next-e2e, so a dev server running in this folder keeps its .next.
   distDir: process.env.E2E_DIST_DIR || '.next',
+  typescript: { tsconfigPath: process.env.E2E_DIST_DIR ? 'tsconfig.e2e.json' : 'tsconfig.json' },
   // Shared models and rules (packages/core), linked from outside the app folder.
   transpilePackages: ['@ngift/core'],
   productionBrowserSourceMaps: true,

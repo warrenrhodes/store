@@ -3,9 +3,15 @@ import { Order } from '../firebase/models'
 
 export type CreateOrderResult =
   | { ok: true; order: Order }
-  | { ok: false; error: 'OUT_OF_STOCK' | 'PROMOTION_EXHAUSTED' | 'FAILED'; detail?: string }
+  | {
+      ok: false
+      error: 'OUT_OF_STOCK' | 'PROMOTION_EXHAUSTED' | 'MIXED_STORES' | 'FAILED'
+      detail?: string
+    }
 
 export const createOrder = async (params: {
+  /** The page's site: the server checks the cart against it. */
+  site: string
   order: Record<string, unknown>
   cartItems: CartItem[]
   promoCodes?: string[]

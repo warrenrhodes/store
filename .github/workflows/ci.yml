@@ -18,6 +18,8 @@ jobs:
         run: for f in packages/core/src/*.check.ts; do npx -y tsx@4 "$f"; done
       - name: Store isolation guard (admin)
         run: node scripts/check-tenant.mjs
+      - name: Storefront links keep their store
+        run: node scripts/check-store-links.mjs
 
   app:
     runs-on: ubuntu-latest

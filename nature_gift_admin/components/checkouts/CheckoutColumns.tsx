@@ -12,15 +12,18 @@ import { formatDistanceToNow } from 'date-fns'
 import { Check, MessageCircle, Phone, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useStorefront } from '@/components/layout/Storefront'
+import { PLATFORM_URL } from '@/lib/storefront'
 
-const recoveryMessage = (c: ICheckout) => {
+const recoveryMessage = (c: ICheckout, store: string) => {
   const firstName = c.data.fullName.split(' ')[0]
   const items = c.data.items.map(i => `${i.quantity} × ${i.title}`).join(', ')
   const link = c.data.source
-    ? `${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? ''}${c.data.source}`
+    ? // The page's path as the storefront saw it, /boutique/<slug> prefix included.
+      `${PLATFORM_URL}${c.data.source}`
     : ''
   return (
-    `Bonjour ${firstName}, vous avez commencé une commande chez N.Gift (${items})` +
+    `Bonjour ${firstName}, vous avez commencé une commande chez ${store} (${items})` +
     ` sans la terminer. Avez-vous rencontré un souci ? Nous pouvons la finaliser pour vous` +
     ` par téléphone.${link ? ` Ou reprenez ici : ${link}` : ''}`
   )
@@ -28,6 +31,7 @@ const recoveryMessage = (c: ICheckout) => {
 
 function Actions({ checkout }: { checkout: ICheckout }) {
   const router = useRouter()
+  const { name } = useStorefront()
   const id = checkout.path.split('/').pop()!
   const run = async (action: () => Promise<{ success: boolean; error?: string }>, done: string) => {
     const res = await action()
@@ -49,7 +53,7 @@ function Actions({ checkout }: { checkout: ICheckout }) {
     <div className="flex items-center gap-1">
       <Button asChild size="sm">
         <a
-          href={whatsappUrl(checkout.data.phone, recoveryMessage(checkout))}
+          href={whatsappUrl(checkout.data.phone, recoveryMessage(checkout, name))}
           target="_blank"
           rel="noopener noreferrer"
           onClick={() =>

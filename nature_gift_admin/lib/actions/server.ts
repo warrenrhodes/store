@@ -6,8 +6,7 @@ import { CollectionsName } from '../firebase/collection-name'
 import {
   getUserTokens,
   getUserTokensOnApiRoute,
-  isTakenAcrossStores,
-  listLocations,
+  isTakenInStore,
   requireStore,
   scopedCreate,
   scopedDelete,
@@ -187,10 +186,10 @@ const getOrderById = (id: string) =>
 const getCheckouts = () =>
   orEmpty('checkouts', async () => byId(await scopedList<Checkout>(CollectionsName.Checkouts)))
 
-/** All locations, shared by every store (shipments and promotions reference them). */
+/** The store's locations (its shipments and promotions reference them). */
 const getLocations = () =>
   orEmpty('locations', async () =>
-    (await listLocations()).sort(
+    (await scopedList<DeliveryLocation>(CollectionsName.Locations)).sort(
       (a, b) => a.data.city.localeCompare(b.data.city) || a.data.name.localeCompare(b.data.name),
     ),
   )
@@ -214,7 +213,7 @@ export const postData = async (
     schema.parse(json)
 
     if (verifyRecordExists && uniqueField) {
-      if (await isTakenAcrossStores(collection, uniqueField, value)) {
+      if (await isTakenInStore(collection, uniqueField, value)) {
         return new NextResponse(`${collection} already exists`, { status: 409 })
       }
     }

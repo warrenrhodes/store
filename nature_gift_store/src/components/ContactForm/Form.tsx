@@ -1,6 +1,7 @@
 'use client'
 
 import { submitContactForm } from '@/actions/contact'
+import { useSite } from '@/components/Site'
 import { useToast } from '@/hooks/use-toast'
 import { useLocalization } from '@/hooks/useLocalization'
 import { Loader2, Send } from 'lucide-react'
@@ -13,6 +14,7 @@ import { Textarea } from '../ui/textarea'
 export function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { localization } = useLocalization()
+  const { site } = useSite()
   const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -25,6 +27,7 @@ export function ContactForm() {
       email: formData.get('email') as string,
       subject: formData.get('subject') as string,
       message: formData.get('message') as string,
+      site,
     })
 
     if (result.success) {

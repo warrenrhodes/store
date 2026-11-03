@@ -11,7 +11,7 @@ import { createOrder } from '@/lib/api/orders'
 import { DeliveryFormData } from '@/lib/utils/validation-form'
 import { sendGTMEvent } from '@next/third-parties/google'
 import { getDocumentId } from '@spreeloop/database'
-import { useRouter } from 'next/navigation'
+import { useSite, useSiteRouter } from '@/components/Site'
 import { useState } from 'react'
 
 /**
@@ -20,7 +20,8 @@ import { useState } from 'react'
  * opens the confirmation page with the customer's tracking link. Prices are computed server-side.
  */
 export function useOrderSubmit({ items, onPlaced }: { items: CartItem[]; onPlaced: () => void }) {
-  const router = useRouter()
+  const router = useSiteRouter()
+  const { site } = useSite()
   const { user } = useAuthStore()
   const { localization } = useLocalization()
   const { setUserData } = useTemporalUser()
@@ -37,6 +38,7 @@ export function useOrderSubmit({ items, onPlaced }: { items: CartItem[]; onPlace
 
     setIsLoading(true)
     const result = await createOrder({
+      site,
       order: {
         deliveryInfo: {
           address: data.address,
@@ -68,7 +70,9 @@ export function useOrderSubmit({ items, onPlaced }: { items: CartItem[]; onPlace
             ? localization.errorOutOfStock
             : result.error === 'PROMOTION_EXHAUSTED'
               ? localization.promotionExhausted
-              : localization.orderError,
+              : result.error === 'MIXED_STORES'
+                ? localization.mixedStores
+                : localization.orderError,
         variant: 'destructive',
       })
       setIsLoading(false)

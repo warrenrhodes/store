@@ -17,7 +17,7 @@ import {
 import { getDocumentId } from '@spreeloop/database'
 import { Heart, Plus, Star } from 'lucide-react'
 import Image from 'next/image'
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/Site'
 import { useEffect, useState } from 'react'
 import { Price } from './Price'
 import { Button } from './ui/button'

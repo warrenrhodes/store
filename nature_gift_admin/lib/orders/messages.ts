@@ -8,10 +8,13 @@ export const whatsappUrl = (phone: string, text?: string) => {
   return `https://wa.me/${number}${text ? `?text=${encodeURIComponent(text)}` : ''}`
 }
 
-export const trackingUrl = (orderId: string, token?: string | null) =>
-  token ? `${process.env.NEXT_PUBLIC_ECOMMERCE_STORE_URL ?? ''}/order/${orderId}?t=${token}` : ''
+/** The order's tracking page in its store (`storeUrl`: storefrontUrl of the store). */
+export const trackingUrl = (storeUrl: string, orderId: string, token?: string | null) =>
+  token ? `${storeUrl}/order/${orderId}?t=${token}` : ''
 
 type MessageOrder = {
+  /** Store name, as the customer knows it. */
+  store: string
   id: string
   firstName: string
   items: string
@@ -28,7 +31,7 @@ export const orderMessages = (o: MessageOrder) => {
     {
       label: 'Confirm order',
       text:
-        `Bonjour ${o.firstName}, merci pour votre commande ${ref} chez N.Gift (${o.items}).` +
+        `Bonjour ${o.firstName}, merci pour votre commande ${ref} chez ${o.store} (${o.items}).` +
         ` Montant à payer à la livraison : ${priceFormatted(o.total)}.` +
         `${o.zone ? ` Livraison : ${o.zone}` : ''}${o.date ? `, le ${o.date}` : ''}.` +
         ` Pouvez-vous nous confirmer ?${follow}`,

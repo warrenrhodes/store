@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { authMiddleware, redirectToHome, redirectToLogin } from 'next-firebase-auth-edge'
+import { authMiddleware } from 'next-firebase-auth-edge'
+import { parseSitePath, siteHref } from '@ngift/core/site'
 import { clientConfig, serverConfig } from '../config'
 
 const UN_AUTH_PUBLIC_PATHS = ['/reset-password', '/sign-in', '/sign-up']
+// Paths inside a site: the same for the marketplace and for /boutique/<slug>/...
 const PUBLIC_PATHS = [
   '/',
   '/shop',
@@ -27,8 +29,40 @@ const PUBLIC_PATHS = [
   '/sign-in',
   '/sign-up',
 ]
+// Next runs the proxy again on the path it rewrote to (/_market/…, /<slug>/…): that second pass
+// is recognised by this header, which only the first pass can set (unguessable per server).
+const REWRITTEN = 'x-site-rewritten'
+const MARK = crypto.randomUUID()
 
+const isPublic = (path: string) =>
+  PUBLIC_PATHS.some(p => (typeof p === 'string' ? p === path : p.test(path)))
+
+/**
+ * Path routing (docs/MULTI_TENANT_PLAN.md, 3.2), without reading the database:
+ * /boutique/<slug>/rest is served by app/[site] with site = <slug>, any other page with
+ * site = _market. API routes are not rewritten: the client sends its site, the server checks it.
+ */
 export default async function proxy(request: NextRequest) {
+  if (request.headers.get(REWRITTEN) === MARK) return NextResponse.next()
+  const { pathname } = request.nextUrl
+  const isApi = /^\/(api|trpc)(\/|$)/.test(pathname)
+  const { site, path } = parseSitePath(pathname)
+  const serve = (headers?: Headers) => {
+    if (isApi) return NextResponse.next(headers && { request: { headers } })
+    const url = request.nextUrl.clone()
+    url.pathname = `/${site}${path === '/' ? '' : path}`
+    const forwarded = new Headers(headers ?? request.headers)
+    forwarded.set(REWRITTEN, MARK)
+    return NextResponse.rewrite(url, { request: { headers: forwarded } })
+  }
+  const toSignIn = () => {
+    if (isApi || isPublic(path)) return serve()
+    const url = request.nextUrl.clone()
+    url.pathname = siteHref(site, '/sign-in')
+    url.search = `redirect=${encodeURIComponent(path + request.nextUrl.search)}`
+    return NextResponse.redirect(url)
+  }
+
   return authMiddleware(request, {
     loginPath: '/api/login',
     logoutPath: '/api/logout',
@@ -49,38 +83,20 @@ export default async function proxy(request: NextRequest) {
     debug: true,
     checkRevoked: true,
     authorizationHeaderName: 'Authorization',
-    handleValidToken: async ({ token, decodedToken }, headers) => {
-      if (!decodedToken.email_verified) {
-        return redirectToLogin(request, {
-          path: '/sign-in',
-          publicPaths: PUBLIC_PATHS,
-        })
+    handleValidToken: async ({ decodedToken }, headers) => {
+      if (!decodedToken.email_verified) return toSignIn()
+      if (UN_AUTH_PUBLIC_PATHS.includes(path)) {
+        return NextResponse.redirect(new URL(siteHref(site, '/'), request.url))
       }
-      if (UN_AUTH_PUBLIC_PATHS.includes(request.nextUrl.pathname)) {
-        return redirectToHome(request)
-      }
-
-      return NextResponse.next({
-        request: {
-          headers,
-        },
-      })
+      return serve(headers)
     },
     handleInvalidToken: async reason => {
       console.info('Missing or malformed credentials', { reason })
-
-      return redirectToLogin(request, {
-        path: '/sign-in',
-        publicPaths: PUBLIC_PATHS,
-      })
+      return toSignIn()
     },
     handleError: async error => {
       console.error('Unhandled authentication error', { error })
-
-      return redirectToLogin(request, {
-        path: '/sign-in',
-        publicPaths: PUBLIC_PATHS,
-      })
+      return toSignIn()
     },
   })
 }

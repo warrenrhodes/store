@@ -197,13 +197,18 @@ module.exports = async function seed(admin) {
   await db
     .doc('locations/bonamoussadi')
     .set({ ...base, name: 'Bonamoussadi', city: 'Douala', isActive: true })
+  // Akwa is also in A's Douala zone: the locations migration copies it for B.
   await db.doc('shipments/z-b').set({
     ...baseB,
     method: 'DELIVERY',
     cost: 3000,
     isActive: true,
-    locationIds: ['bonamoussadi'],
+    locationIds: ['bonamoussadi', 'akwa'],
   })
+  // Used by no zone or promotion: goes to the default store.
+  await db
+    .doc('locations/unused-loc')
+    .set({ ...base, name: 'Ekounou', city: 'Yaoundé', isActive: true })
   await db.doc('promotions/p-b').set({
     ...baseB,
     code: 'B-PROMO',
@@ -218,6 +223,21 @@ module.exports = async function seed(admin) {
     metadata: { createdBy: 'seed', updatedBy: 'seed' },
     conditions: [{ type: 'SPECIFIC_PRODUCTS', value: '["products/b-miel"]' }],
     actions: [{ type: 'PERCENTAGE_DISCOUNT', value: '5' }],
+  })
+  await db.doc('promotions/p-b-akwa').set({
+    ...baseB,
+    code: 'B-AKWA',
+    name: 'Livraison offerte à Akwa (B)',
+    description: null,
+    requiresCode: false,
+    startDate: new Date(Date.now() - day).toISOString(),
+    endDate: new Date(Date.now() + 7 * day).toISOString(),
+    status: 'ACTIVE',
+    priority: 0,
+    usageCount: 0,
+    metadata: { createdBy: 'seed', updatedBy: 'seed' },
+    conditions: [{ type: 'LOCATION', value: '["akwa"]' }],
+    actions: [{ type: 'FREE_SHIPPING', value: '' }],
   })
   const line = (path, title, price, creatorId) => ({
     product: { path, title, medias: [], price: { regular: price }, creatorId },

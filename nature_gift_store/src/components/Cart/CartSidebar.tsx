@@ -15,14 +15,14 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { CartItem } from './CartItem'
 import { PromotionSummary } from './PromotionSummary'
 import { useCart, useCartDeliveryInfo, useCartSideBar } from '@/hooks/useCart'
-import { useRouter } from 'next/navigation'
+import { useSiteRouter } from '@/components/Site'
 import { useLocalization } from '@/hooks/useLocalization'
 import { useEffect } from 'react'
 import { sendGTMEvent } from '@next/third-parties/google'
 
 export function CartSidebar() {
   const cart = useCart()
-  const router = useRouter()
+  const router = useSiteRouter()
   const { cartItems, increaseQuantity, decreaseQuantity, removeItem } = cart
   const { cartDeliveryInfo } = useCartDeliveryInfo()
   const { localization } = useLocalization()

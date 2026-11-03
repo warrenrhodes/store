@@ -11,6 +11,8 @@ import React from 'react'
 import { isPlatformAdmin } from '@/lib/actions/platform.actions'
 import { StoreRole, StoreStatus } from '@/lib/firebase/models'
 import { getMyStores, getStoreContext } from '@/lib/tenant'
+import { StorefrontProvider } from '@/components/layout/Storefront'
+import { PLATFORM_URL, storefrontUrl } from '@/lib/storefront'
 
 const fredoka = Fredoka({
   subsets: ['latin'],
@@ -48,28 +50,39 @@ const NewSideBar = async ({
     getMyStores(),
     isPlatformAdmin(),
   ])
+  const storefront = {
+    url: ctx ? storefrontUrl(ctx.store) : PLATFORM_URL,
+    name: ctx?.store.name ?? 'N.Gift',
+  }
   return (
-    <SidebarProvider>
-      <div className="contents print:hidden">
-        <AppSidebar
-          stores={stores.map(s => ({ id: s.id, name: s.store.name }))}
-          currentStoreId={ctx?.storeId}
-          isOwner={ctx?.role === StoreRole.OWNER}
-          platformAdmin={platformAdmin}
-        />
-      </div>
-      <SidebarInset>
-        <header className="sticky top-0 z-10 flex print:hidden h-14 shrink-0 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <PageBreadcrumb />
-        </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 sm:p-6 print:p-0">
-          <StoreBanner status={ctx?.store.status} hasStore={!!ctx} platformAdmin={platformAdmin} />
-          {children}
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+    <StorefrontProvider value={storefront}>
+      <SidebarProvider>
+        <div className="contents print:hidden">
+          <AppSidebar
+            storeUrl={ctx ? storefront.url : undefined}
+            stores={stores.map(s => ({ id: s.id, name: s.store.name }))}
+            currentStoreId={ctx?.storeId}
+            isOwner={ctx?.role === StoreRole.OWNER}
+            platformAdmin={platformAdmin}
+          />
+        </div>
+        <SidebarInset>
+          <header className="sticky top-0 z-10 flex print:hidden h-14 shrink-0 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <PageBreadcrumb />
+          </header>
+          <main className="flex flex-1 flex-col gap-4 p-4 sm:p-6 print:p-0">
+            <StoreBanner
+              status={ctx?.store.status}
+              hasStore={!!ctx}
+              platformAdmin={platformAdmin}
+            />
+            {children}
+          </main>
+        </SidebarInset>
+      </SidebarProvider>
+    </StorefrontProvider>
   )
 }
 

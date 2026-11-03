@@ -18,6 +18,7 @@ import {
   inviteId,
   membershipId,
   requireStore,
+  revalidateStorefront,
   STORE_COOKIE,
 } from '@/lib/tenant'
 import {
@@ -129,6 +130,7 @@ export async function saveStoreSettings(formData: FormData) {
     return false
   })
   if (taken) return fail(`The address ${slug} is already taken.`)
+  await revalidateStorefront(ctx.storeId)
   back('/settings', { saved: '1' })
 }
 

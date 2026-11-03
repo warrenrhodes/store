@@ -31,12 +31,12 @@ import {
 import { useCart, useCartSideBar } from '@/hooks/useCart'
 import { useWishlist } from '@/hooks/useWishlist'
 import { toast } from '@/hooks/use-toast'
-import { useRouter } from 'next/navigation'
+import { useSiteRouter } from '@/components/Site'
 import { useLocalization } from '@/hooks/useLocalization'
 import { Feature, Inventory, Price, ProductDescription } from '@/lib/type'
 import { Product, Review } from '@/lib/firebase/models'
 import { useState } from 'react'
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/Site'
 
 export function ProductInfo({
   product,
@@ -48,7 +48,7 @@ export function ProductInfo({
   freeShippingAreas?: string[] | null
 }) {
   const cart = useCart()
-  const router = useRouter()
+  const router = useSiteRouter()
   const cartSideBar = useCartSideBar()
   const { isInWishlist, toggleWishlist } = useWishlist()
   const { localization } = useLocalization()

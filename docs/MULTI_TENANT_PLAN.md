@@ -19,7 +19,7 @@ Transformer le produit actuel (un admin séparé par fournisseur, mais une seule
 
 1. **Ne jamais lire ni écrire la base Firestore de production.** Les migrations et les seeds sont des scripts que l'utilisateur lance lui-même. Ils ont un mode `--dry-run` par défaut et sont relançables sans risque.
 2. **Ne jamais pousser sur `main`** : le push déclenche le déploiement en prod. Pousser des branches de fonctionnalité, l'utilisateur fusionne.
-3. **Tester sur les émulateurs Firebase** (Firestore 8085, Auth 9099, projet `demo-nature-gift`), dans un `git worktree` avec `node_modules` en liens symboliques et `next dev --webpack` sur les ports 3101 (store) et 3102 (admin). **Ne jamais toucher aux serveurs de l'utilisateur** sur :3000 (admin) et :3001 (store).
+3. **Tester sur les émulateurs Firebase** (Firestore 8085, Auth 9099, projet `demo-nature-gift`) avec `scripts/e2e/run.sh`. Il construit dans `.next-e2e` et lance les serveurs standalone sur :3101 (store) et :3102 (admin). Travailler **directement dans le dossier `/Volumes/Data/Project/store`**, pas dans un worktree (demande de l'utilisateur). **Ne jamais toucher aux serveurs de l'utilisateur** sur :3000 (admin) et :3001 (store) : ni `next dev` ni `npm run build` dans les dossiers des apps, car un build vide `.next/`, y compris le `.next/dev` de ses serveurs.
    - Variables d'environnement : `FIRESTORE_EMULATOR_HOST`, `FIREBASE_AUTH_EMULATOR_HOST`, `NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST`, `NEXT_PUBLIC_FIREBASE_PROJECT_ID=demo-nature-gift`.
    - Laisser vides Flock, NotificationAPI, Meta et les emails/téléphones admin.
 4. **Lectures Firestore** : jamais de lecture d'une collection entière à chaque page vue (incident de quota du 2026-11-01). Tout chargeur de la vitrine passe par les helpers en cache de `nature_gift_store/src/lib/api/utils.ts` (`shared()` / `safe()` avec `unstable_cache`). Les vérifications de prix, de stock et de limites d'usage au moment de la commande restent des lectures fraîches, en transaction.
@@ -115,7 +115,7 @@ interface StoreTheme {
 Un champ **`storeId: string`** est ajouté sur `products`, `categories`, `blogs`, `shipments`, `promotions`, `reviews`, `orders` et `checkouts`.
 
 - `creatorId` est **conservé** pendant la transition (écrit et lu en secours), puis retiré en phase 5.
-- `locations` reste **global** : c'est le répertoire des quartiers. Chaque boutique crée ses `shipments` (zones et tarifs) qui référencent des `locations`.
+- `locations` devient **par boutique** (décision de l'utilisateur, 2026-11-03 : « chaque store doit gérer ses locations »). Ces documents portent un `storeId`, comme les autres collections de boutique, et les `shipments` d'une boutique ne référencent que ses propres `locations`. Fait en phase 2 (item 7).
 - Les commandes gagnent `checkoutGroupId?: string`, qui lie les commandes d'un même panier marketplace. `partnersPaths` est conservé pour compatibilité, mais une commande ne concerne plus **qu'une seule** boutique.
 - Unicité : un slug de produit est unique **par boutique**, un code promo est unique **par boutique**, une catégorie est unique par `(storeId, name)`.
 - Index composites à ajouter dans `firestore.indexes.json`, par exemple `storeId + createdAt desc` sur products, orders, checkouts et reviews, `storeId + slug`, `storeId + status`.
@@ -142,7 +142,7 @@ localhost:3001/boutique/<slug>/...        → idem en dev
 - Le panier est en localStorage, partagé par toutes les boutiques puisqu'elles ont la même origine. La clé zustand devient donc **`cart-storage:{site}`** (idem pour les codes promo de `usePromoCodes` et la wishlist si elle est locale). Un panier de boutique ne contient ainsi que ses produits.
 - `getSiteContext(site)` (cache React + `unstable_cache` 5 min, tag `store:{id}`) renvoie `{ mode: 'market' } | { mode: 'store', store }`. Il lit `storeSlugs/{slug}` puis `stores/{id}`. Un slug inconnu ou une boutique non `active` (`pending`, `suspended`) renvoie une 404.
 - Les routes API (`/api/orders`, `/api/promotions/calculate`, `/api/checkouts`, `/api/reviews`, `/api/search`) ne sont **pas** réécrites. Le client envoie le `site` (slug ou `_market`), le serveur le résout avec `getSiteContext` et **vérifie** que chaque produit du panier appartient bien à la boutique. Le serveur ne fait jamais confiance à un `storeId` envoyé par le client.
-- URL absolues : `PLATFORM_URL=https://<projet>.vercel.app` (env), en remplacement de `NEXT_PUBLIC_ECOMMERCE_STORE_URL`. L'URL d'une boutique se calcule **uniquement** par `storeUrl(store)` (= `${PLATFORM_URL}/boutique/${slug}` aujourd'hui), utilisé dans les liens de suivi, WhatsApp, sitemap, metadata et liens de promo copiés depuis l'admin.
+- URL absolues : `NEXT_PUBLIC_PLATFORM_URL=https://<projet>.vercel.app` (env), en remplacement de `NEXT_PUBLIC_ECOMMERCE_STORE_URL`. L'URL d'une boutique se calcule **uniquement** par `storeUrl(store)` (= `${PLATFORM_URL}/boutique/${slug}` aujourd'hui), utilisé dans les liens de suivi, WhatsApp, sitemap, metadata et liens de promo copiés depuis l'admin.
 
 **Plus tard (phase 6) : routage par hôte**
 
@@ -289,7 +289,7 @@ Tests e2e émulateur :
 - **Unicité des slugs (produits, articles, catégories) et des codes promo : vérifiée sur toutes les boutiques, pas par boutique**, tant que la vitrine les cherche globalement. Phase 2 : passer à `isTakenInStore` (déjà écrit dans `lib/tenant.ts`).
 - Ordre de mise en prod : lancer la migration en `--apply` **juste avant** le déploiement de l'admin, puis une seconde fois juste après (rattrapage des documents créés entre-temps). Avant la migration, le nouvel admin n'affiche rien : aucun document n'a de `storeId`, et aucun utilisateur n'a de boutique.
 - Pas de `DomainRecord` (phase 6) ni de `theme` (phase 3) dans les types, et pas d'index composite : les nouvelles requêtes ne font que des égalités.
-- Les `locations` restent modifiables par toutes les boutiques, comme avant. À décider : les réserver au super-admin ?
+- Les `locations` restent globales à la fin de la phase 1. Décision du 2026-11-03 : chaque boutique gère ses propres quartiers. C'est fait en phase 2 (item 7).
 - Le middleware de l'admin saute la vérification de révocation de jeton quand `FIREBASE_AUTH_EMULATOR_HOST` est défini : elle demande un jeton OAuth Google, que l'émulateur ne fournit pas.
 - e2e : `scripts/e2e/run.sh` fait le build (dans `.next-e2e`), le seed avant migration, la migration (dry run, apply, puis un second apply qui ne change rien), les 11 vérifications vitrine, 7 vérifications d'isolation dans l'admin et 8 sur les formulaires (console `/platform`, paiement cash, réglages avec plusieurs GTM et Pixels, équipe, sélecteur).
 
@@ -301,6 +301,13 @@ Tests e2e émulateur :
 4. Réglages par boutique : marque (nom, logo), WhatsApp (Footer, contact), tous les conteneurs GTM et tous les Pixels Meta de la boutique dans le layout, notifications et CAPI depuis `settings` / `storeSecrets`, avec secours sur les variables d'environnement.
 5. SEO par boutique (sitemap, robots, metadata, canonique) via `storeUrl()`.
 6. Admin : bouton « Voir ma boutique » et « Copier le lien » (`storeUrl(store)`), et liens de promo copiés avec le préfixe de la boutique.
+7. **Quartiers par boutique** :
+   - `storeId` sur `locations` ;
+   - l'admin y accède par `lib/tenant.ts` : retirer `locations.actions.ts` de la liste blanche de `check-tenant`, et `listLocations` devient un `scopedList` ;
+   - l'unicité (nom, ville) se vérifie dans la boutique, et une zone ne peut référencer que les quartiers de sa boutique ;
+   - migration `scripts/migrate-locations-per-store.mjs`, en simulation par défaut et idempotente : un quartier utilisé par une seule boutique (par ses `shipments` ou par ses conditions de promo `LOCATION`) reçoit ce `storeId`. Un quartier partagé est copié pour chaque boutique, avec un nouvel id, et les `locationIds` et conditions concernés sont réécrits. Un quartier inutilisé va à la boutique N.Gift, à préciser avec `--default-store` ;
+   - côté vitrine, les zones sont lues par boutique.
+8. Unicité **par boutique** des slugs (produits, articles, catégories) et des codes promo : remplacer `isTakenAcrossStores` par `isTakenInStore` une fois la vitrine résolue par boutique.
 
 Tests e2e émulateur :
 - `localhost:3101/boutique/a` n'affiche que les produits, promos et zones de A ; tous les liens de la page restent sous `/boutique/a` ; une commande sur A a `storeId = A` et aucune promo de B ne s'y applique ;
@@ -310,7 +317,26 @@ Tests e2e émulateur :
 - un slug inconnu renvoie 404, une boutique `pending` ou `suspended` renvoie 404 ;
 - le sitemap de A ne contient que A ;
 - une boutique avec deux Pixels et deux conteneurs GTM les charge tous les quatre, et une commande envoie l'achat CAPI aux deux Pixels avec le même `event_id` ;
-- modifier un produit dans l'admin met à jour la vitrine via `/api/revalidate` sans attendre 5 minutes.
+- modifier un produit dans l'admin met à jour la vitrine via `/api/revalidate` sans attendre 5 minutes ;
+- A ne voit ni ne modifie les quartiers de B. Après la migration des quartiers, une commande sur A trouve toujours sa zone et son tarif, et la migration relancée ne change rien ;
+- deux boutiques peuvent avoir le même slug de produit et le même code promo.
+
+**Réalisé (branche `multi-tenant`, 2026-11-03), avec ces écarts :**
+- **Liens** : `SiteLink` (`src/components/Site.tsx`) remplace `next/link` partout et ajoute le préfixe lui-même, avec `useSiteRouter` pour `router.push` et `replace`. Les `href="/shop"` restent donc écrits tels quels. Le garde-fou `scripts/check-store-links.mjs` (en CI) interdit `next/link`, `useRouter` de `next/navigation`, `redirect('/…')` et `<a href="/…">` dans `nature_gift_store/src`, au lieu d'interdire `href="/`. Le paramètre `?redirect=` de la connexion est un chemin interne au site.
+- **URL de la plateforme** : `NEXT_PUBLIC_PLATFORM_URL` (renommée depuis `NEXT_PUBLIC_ECOMMERCE_STORE_URL`) dans les deux apps. Elle est publique (`NEXT_PUBLIC_`) parce que les composants client de l'admin en ont besoin. `storeUrl()` et `siteHref()` sont dans `packages/core/src/site.ts` (avec `site.check.ts`).
+- **Marketplace (racine) en phase 2** : c'est le site actuel. Elle affiche les produits `marketplaceListed` des boutiques actives et listées, et les liens publicitaires existants (`/shop/<slug>`, `/blogs/<slug>`) continuent de marcher. Prix, zones et promos viennent toujours de la boutique du produit ou de l'article. Un panier qui mélange deux boutiques est **refusé** (409 `MIXED_STORES`, message au paiement) jusqu'au découpage de la phase 4. Le bandeau promo de l'accueil marketplace montre les promos de toutes les boutiques (affichage seulement). Le paiement marketplace reçoit les zones de toutes les boutiques et ne garde que celles de la boutique du panier. Si deux boutiques ont le même slug, `/shop/<slug>` à la racine prend le premier produit listé (phase 4 : pages vendeur).
+- **Paniers** : la marketplace garde les clés `cart-storage` et `promo-codes`, pour que les paniers existants survivent. Les boutiques utilisent `cart-storage:<slug>` et `promo-codes:<slug>`. La wishlist reste commune : elle ne contient que des chemins de produits, et la page Favoris de chaque site n'affiche que ses produits.
+- **Variables d'environnement** : la liste exacte de chaque app est dans son `.env.example`. Aucune variable ne remplace un réglage de boutique : Flock, emails, SMS, GTM, Pixels et jetons CAPI de chaque boutique, N.Gift comprise, se règlent dans l'admin (Réglages). Restent seulement celles de la plateforme, préfixées `PLATFORM_` : `PLATFORM_GTM_ID` (GTM des pages marketplace), `PLATFORM_CONTACT_EMAIL` (formulaire de contact de la marketplace ; celui d'une boutique va à ses emails d'alerte, sinon à son email public), `PLATFORM_FLOCK_WEBHOOK_URL` (alerte quand la vitrine ne lit plus Firestore) et `PLATFORM_CONTACT_WHATSAPP` (admin). NotificationAPI passe en `NOTIFICATIONAPI_CLIENT_ID` et `NOTIFICATIONAPI_CLIENT_SECRET`, côté serveur uniquement. Sont supprimées : `LEGACY_STORE_ID`, `FLOCK_WEBHOOK_URL`, `META_PIXEL_ID`, `META_CAPI_ACCESS_TOKEN`, `NEXT_PUBLIC_ADMIN_EMAIL`, `NEXT_PUBLIC_ADMIN_PHONE_NUMBER`, `NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID`, `NEXT_PUBLIC_FACEBOOK_PIXEL_ID`, `NEXT_PUBLIC_RICH_TEXT_VERSION`, `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` (vitrine), `CLOUDINARY_URL`, `OPENAI_API_KEY`, `DATABASE_URL` et `OPTIMIZE_*` (avec l'ancien seed Prisma de l'admin, déjà entièrement commenté).
+- **Pixels navigateur** : le code de base Meta est chargé une fois, avec un `fbq('init')` par Pixel. L'achat part aussi par `fbq('track', 'Purchase', …, { eventID: <id commande> })`, le même id que l'événement CAPI. `META_GRAPH_URL` (vide en prod) permet aux tests de remplacer `graph.facebook.com`.
+- **Revalidation** : les tags sont `store:<id>`, `market` (lectures sur plusieurs boutiques ou par chemin) et `stores` (slugs et statuts). L'admin envoie les trois après chaque écriture passée par `lib/tenant.ts` (`scopedCreate`, `Update`, `Delete`, `Transaction`), et après les réglages et les actions `/platform`. Il faut la variable `REVALIDATE_SECRET`, avec la même valeur, dans les deux apps.
+- **SEO** : `app/[site]/robots.txt` et `app/[site]/sitemap.xml` sont des gestionnaires de route, pas les fichiers de métadonnées de Next. Les robots ne lisent que `/robots.txt` (celui de la marketplace), qui pointe vers le sitemap marketplace. Ce sitemap liste les produits à leur adresse dans leur boutique. Canonique d'un produit : sa page dans sa boutique, même vu depuis la marketplace.
+- **Marque** : en mode boutique, le nom de la boutique en texte (le logo vient avec le thème en phase 3), son WhatsApp et son email (pied de page, contact, `<title>`). L'adresse physique de N.Gift ne s'affiche que sur la marketplace. Dans l'admin, les messages WhatsApp (commande, panier abandonné) et le bon d'impression utilisent le nom de la boutique.
+- **Quartiers** : une zone qui cite le quartier d'une autre boutique est refusée (403) dans `scopedCreate` et `scopedUpdate`. La vitrine ignore aussi un tel quartier (`toShippingZones`). Les copies créées par la migration ont l'id `<id>_<storeId>`. Si la migration est interrompue, une relance réécrit les zones et les promos vers les copies déjà créées.
+- **Produits** : un produit créé dans l'admin reçoit `marketplaceListed: true`, comme les produits migrés. Un suivi `/boutique/<slug>/order/<id>` n'ouvre que les commandes de cette boutique, et le profil client en mode boutique ne liste que ses commandes.
+- Pas d'index composite : toutes les nouvelles requêtes ne font que des égalités.
+- **Ordre de mise en prod** : (1) dans l'admin de prod, remplir les Réglages de N.Gift : emails et numéros d'alerte, Flock, GTM `GTM-PZPWRLKC`, Pixel Meta et son jeton CAPI. Sans ça, ses commandes n'alertent plus personne après le déploiement. (2) Créer le secret `REVALIDATE_SECRET` et y donner accès aux deux backends (`scripts/apphosting-secrets.sh` le fait). (3) Lancer `scripts/migrate-locations-per-store.mjs --default-store <id N.Gift>`, d'abord en simulation puis avec `--apply`, juste avant le déploiement des deux apps, puis une seconde fois juste après.
+- e2e : `scripts/e2e/run.sh` ajoute la migration des quartiers (simulation, application, relance sans effet), 2 vérifications de quartiers dans l'admin (liste, zone avec le quartier d'une autre boutique, modification et suppression par A d'un quartier de B, unicité par boutique) et 13 vérifications vitrine par boutique (`site-checks.cjs`). Le test des paniers tourne dans un vrai Chromium (Playwright, déjà installé avec `react-scan`). Il est sauté si aucun navigateur n'est trouvé.
+- Outillage e2e : la vitrine applique les réécritures du proxy à son propre chemin réécrit. Le proxy marque donc sa réécriture avec un en-tête interne (une valeur aléatoire par serveur) et laisse passer ce second passage. Le build e2e utilise `tsconfig.e2e.json` (`typescript.tsconfigPath` quand `E2E_DIST_DIR` est défini), qui ignore les types qu'un serveur de dev a laissés dans `.next/`. Il relance le build jusqu'à 3 fois quand `next/font` échoue : le 2026-11-03, Google Fonts renvoyait par moments des URL sans extension (`/l/font?kit=…`), que Next 16.1.5 ne sait pas lire. Le même échec peut toucher un build Vercel.
 
 ### Phase 3 : thèmes (2 à 4 semaines)
 
@@ -357,7 +383,7 @@ Tests :
 - Firestore est conservé. La couche `lib/tenant.ts` permettra un passage à Postgres (Supabase ou Neon, avec isolation par ligne) plus tard, sans toucher aux pages.
 - Vercel pour la vitrine. **Au départ, lien gratuit `*.vercel.app` et routage par chemin `/boutique/<slug>`** ; sous-domaines et domaines personnalisés en phase 6. L'admin reste sur son propre lien.
 - **Abonnements payés en cash au départ**, boutique `pending` jusqu'à l'activation manuelle par le super-admin ; Mobile Money en phase 6.
-- Les `locations` sont globales, les zones et tarifs par boutique.
+- Les `locations` (quartiers), les zones et les tarifs sont **par boutique** (2026-11-03).
 - Pas d'éditeur libre de type Wix : préréglages, réglages et sections uniquement, pour garantir l'accessibilité.
 - La commande marketplace est découpée en une commande par boutique, liées par `checkoutGroupId`.
 
@@ -371,4 +397,11 @@ Tests :
 
 ## 7. Démarrer la prochaine conversation
 
-> Lis `docs/MULTI_TENANT_PLAN.md` et les mémoires `emulator-testing` et `firestore-quota-incident`. Travaille sur la branche `multi-tenant`. Exécute la **phase 0** en entier en respectant la section 1, teste sur l'émulateur, puis fais un résumé et attends mon feu vert pour la phase suivante.
+**État au 2026-11-03 :**
+- **Phase 0 terminée** (commit `dabd94d`) : `packages/core` lié par `file:`, CI, e2e. Voir « Réalisé » en phase 0.
+- **Phase 1 terminée** (commit `a406737`) : `lib/tenant.ts`, migration, Réglages (plusieurs GTM et Pixels), Équipe, `/platform`, règles Firestore. Voir « Réalisé » en phase 1.
+- **Phase 2 terminée** (non commitée tant que l'utilisateur ne l'a pas demandé) : `app/[site]`, routage `/boutique/<slug>`, chargeurs par boutique, `/api/revalidate`, quartiers par boutique. Voir « Réalisé » en phase 2.
+- Ne pas refaire ni relire en détail le code des phases 0 et 1 : partir des sections « Réalisé » et ne lire que les fichiers que la phase 2 touche.
+- Le dev et le build sont en webpack (`--webpack`). Turbopack bloquait le dev avec `packages/core`.
+
+> Lis `docs/MULTI_TENANT_PLAN.md` (sections 1, 3.2 à 3.4, la phase 2 et les notes « Réalisé » des phases 0 et 1) et les mémoires `work-in-main-checkout`, `emulator-testing` et `firestore-quota-incident`. Les phases 0 et 1 sont terminées : ne les refais pas. Travaille directement dans `/Volumes/Data/Project/store`, sur la branche `multi-tenant`. Exécute la **phase 2** en entier, quartiers par boutique compris, en respectant la section 1. Teste avec `scripts/e2e/run.sh`, en y ajoutant les tests de la phase 2. Ensuite, fais un résumé et attends mon feu vert pour la phase 3.

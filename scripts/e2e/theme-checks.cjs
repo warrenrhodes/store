@@ -257,6 +257,69 @@ module.exports = async function themeChecks({
       await until(async () => (await shown()).join() !== first.join(), 'the timer ticks')
       ok('blog countdown: a loop past its end date starts a new 24 h cycle, with its label, and ticks')
 
+      // The order form's place on an ad page: the position field, the builder's block, the tag.
+      const pub = (await db.doc('blogs/pub').get()).data()
+      const adPage = (id, html, orderFormPosition) =>
+        db.doc(`blogs/${id}`).set({
+          ...pub,
+          slug: id,
+          associateProductPath: 'products/the',
+          countdown: null,
+          orderFormPosition,
+          content: { ...pub.content, content: html },
+        })
+      const article = '<p id="before">Avant</p><p id="after">Après</p>'
+      await adPage('form-end', article, null)
+      await adPage('form-start', article, 'start')
+      await adPage('form-block', '<section id="wrap"><p id="before">Avant</p><div data-order-form=""></div><p id="after">Après</p></section>', 'start')
+      await adPage('form-tag', '<p id="before">Avant</p>{{orderForm}}<p id="after">Après</p>{{orderForm}}', 'start')
+      const form = tab.locator('#checkout-form')
+      const openAd = async id => {
+        await tab.goto(`${STORE}/boutique/ngift/blogs/${id}`)
+        await form.waitFor({ timeout: 15000 }).catch(async e => {
+          throw new Error(`${id}: ${e.message}\n${(await tab.locator('body').innerText()).slice(0, 500)}`)
+        })
+        assert.equal(await form.count(), 1, `${id}: one form`)
+      }
+      const isBefore = (a, b) =>
+        tab.evaluate(
+          ([a, b]) =>
+            !!(document.querySelector(a).compareDocumentPosition(document.querySelector(b)) &
+              Node.DOCUMENT_POSITION_FOLLOWING),
+          [a, b],
+        )
+      await openAd('form-end')
+      assert.ok(await isBefore('#after', '#checkout-form'), 'default: after the content')
+      // Details or comment: only once a listed delivery area is picked, never with a typed address.
+      const notes = form.getByText('Précisions ou commentaire')
+      const zone = form.locator('button[role=combobox][aria-haspopup=dialog]')
+      assert.equal(await notes.count(), 0, 'no area yet: no notes')
+      await zone.click()
+      await tab.getByRole('option').first().click()
+      await notes.waitFor()
+      await zone.click()
+      await tab.getByRole('button', { name: "Mon quartier n'est pas dans la liste" }).click()
+      await form.locator('input[name=address]').waitFor()
+      assert.equal(await notes.count(), 0, 'typed address: no notes')
+      await openAd('form-start')
+      assert.ok(await isBefore('#checkout-form', '#before'), 'start: before the content')
+      await openAd('form-tag')
+      assert.ok(await isBefore('#before', '#checkout-form'), 'tag: after what precedes it')
+      assert.ok(await isBefore('#checkout-form', '#after'), 'tag: before what follows it')
+      assert.equal(await tab.getByText('{{orderForm}}').count(), 0, 'the tag never shows')
+      await openAd('form-block')
+      assert.equal(await tab.locator('#wrap [data-order-form] #checkout-form').count(), 1, 'block: inside its section, over the position field')
+      assert.ok(await isBefore('#before', '#checkout-form'))
+      assert.ok(await isBefore('#checkout-form', '#after'))
+      // What the customer typed survives the page's updates (the quantity bar).
+      await form.locator('input[name=fullName]').fill('Awa Test')
+      await tab.locator('footer button').last().click()
+      await tab.locator('footer').getByText('2', { exact: true }).waitFor()
+      assert.equal(await form.locator('input[name=fullName]').inputValue(), 'Awa Test', 'form kept')
+      assert.equal(await tab.locator('#wrap #checkout-form').count(), 1, 'still in its place')
+      for (const id of ['form-end', 'form-start', 'form-block', 'form-tag']) await db.doc(`blogs/${id}`).delete()
+      ok('ad page order form: at the end by default, at the start when set, or where the content places it (block or tag, which win), once; typed values survive a quantity change; details field only with a listed area')
+
       // Blog cover (one image, already set): no drop zone, a Replace button; a new pick replaces it.
       await tab.goto(`${ADMIN}/blogs/pub`)
       const replace = tab.getByRole('button', { name: 'Replace image' })
@@ -317,11 +380,24 @@ module.exports = async function themeChecks({
         }
         await (await askDelete()).getByRole('button', { name: 'Cancel' }).click()
         assert.ok((await db.doc(doc).get()).exists, `${doc}: Cancel keeps it`)
+        let pickedDay
+        if (doc.startsWith('blogs/')) {
+          // The countdown's end: a day in the calendar and a time.
+          await tab.getByRole('button', { name: 'End date' }).click()
+          const lastDay = tab.locator('[data-radix-popper-content-wrapper] button:not([disabled])').last()
+          pickedDay = Number(await lastDay.innerText())
+          await lastDay.click()
+          await tab.getByRole('textbox', { name: 'End time' }).or(tab.getByLabel('End time')).first().fill('18:30')
+        }
         await tab.getByRole('button', { name: 'Save changes' }).click()
         await tab.waitForURL(`**${list}`, { timeout: 15000 }).catch(async () => {
           throw new Error(`${path} not saved: ${await tab.locator('[role=status], li[role=status]').allInnerTexts()}`)
         })
         await until(async () => (await db.doc(doc).get()).get('updatedAt') !== 'before', `${doc} saved`)
+        if (pickedDay) {
+          const endsAt = new Date((await db.doc(doc).get()).get('countdown.endsAt'))
+          assert.deepEqual([endsAt.getDate(), endsAt.getHours(), endsAt.getMinutes()], [pickedDay, 18, 30])
+        }
         await tab.goto(ADMIN + path)
         await (await askDelete()).getByRole('button', { name: 'Delete' }).click()
         await until(async () => !(await db.doc(doc).get()).exists, `${doc} deleted`)

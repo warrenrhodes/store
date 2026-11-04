@@ -42,8 +42,8 @@ function Option(props: { label: string; selected: boolean; onSelect: () => void 
 /**
  * Delivery area picker built from the admin shipments. Sets shipping.method/location on the
  * form and the shipping cost used by the order summary (and by location/free-shipping
- * promotions). The address is only asked when the area is not listed; an optional details
- * field lets the customer add a landmark or a comment.
+ * promotions). The address is only asked when the area is not listed; once a listed area is
+ * picked, an optional details field lets the customer add a landmark or a comment.
  */
 export function ShippingLocationField({
   form,
@@ -93,7 +93,7 @@ export function ShippingLocationField({
     form.clearErrors('address')
     if (value === OTHER) {
       form.setValue('shipping', { method: 'DELIVERY', location: '', locationId: '' })
-      // The address field takes the details then; the notes field is hidden.
+      // The address field takes the details then; the notes field is hidden and emptied.
       form.setValue('additionalNotes', '')
       setShipment(undefined)
       return
@@ -218,7 +218,8 @@ export function ShippingLocationField({
           )}
         />
       )}
-      {!other && (
+      {/* Only with a listed area: a typed address already holds its own details. */}
+      {!!locationId && (
         <FormField
           control={form.control}
           name="additionalNotes"

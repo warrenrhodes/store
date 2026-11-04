@@ -1,5 +1,6 @@
 'use client'
 
+import { ORDER_FORM_ATTR } from '@ngift/core/order-form-slot'
 import type { ComponentConfig, Config, Field, Slot } from '@puckeditor/core'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
@@ -593,6 +594,7 @@ type Props = {
   Spacer: { height: number }
   Divider: { color?: string; thickness: number; spacing: number }
   RawHtml: { html: string }
+  OrderForm: Record<string, never>
   Hero: TemplateProps & CtaProps & { title: string; subtitle: string; image?: string; align: Align }
   ImageText: TemplateProps &
     CtaProps & {
@@ -632,6 +634,7 @@ export const puckConfig: Config<Props> = {
     },
     basics: { title: 'Basics', components: ['Heading', 'Text', 'RichText', 'Button', 'Image'] },
     sections: { title: 'Sections', components: ['Hero', 'ImageText', 'Features', 'Testimonials'] },
+    sales: { title: 'Sales page', components: ['OrderForm'] },
     advanced: { title: 'Advanced', components: ['RawHtml'] },
   },
   components: {
@@ -1252,6 +1255,27 @@ export const puckConfig: Config<Props> = {
       ),
     },
 
+    // Saved as an empty element: the storefront puts the real form in it (ad pages only).
+    OrderForm: {
+      label: 'Order form',
+      render: ({ puck }) =>
+        puck.isEditing ? (
+          <div
+            style={{
+              padding: 24,
+              border: '2px dashed rgba(0,0,0,.25)',
+              borderRadius: 8,
+              textAlign: 'center',
+              fontSize: 14,
+            }}
+          >
+            The order form appears here, for the product sold on this page.
+          </div>
+        ) : (
+          <div {...{ [ORDER_FORM_ATTR]: '' }} />
+        ),
+    },
+
     RawHtml: {
       label: 'Raw HTML',
       fields: { html: { type: 'textarea', label: 'HTML' } },
@@ -1266,7 +1290,7 @@ for (const [name, component] of Object.entries(puckConfig.components) as [
   string,
   ComponentConfig<any>,
 ][]) {
-  if (['Spacer', 'Divider', 'RawHtml'].includes(name)) continue
+  if (['Spacer', 'Divider', 'RawHtml', 'OrderForm'].includes(name)) continue
   const render = component.render
   component.fields = { ...component.fields, ...animationFields }
   component.defaultProps = { ...component.defaultProps, animation: 'none', animationDelay: 0 }

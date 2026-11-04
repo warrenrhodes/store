@@ -1,7 +1,7 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { format } from 'date-fns'
+import { format, startOfToday } from 'date-fns'
 import { AlertTriangle, CalendarIcon, Copy, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -40,6 +40,7 @@ import { getDocumentId } from '@spreeloop/database'
 import { ContentEditor } from '../custom-ui/ContentEditor'
 import { FormActionBar, FormColumns, FormSection, SwitchField } from '../custom-ui/FormLayout'
 import CustomRichTextEditor from '../accordion/CustomRichText'
+import { hasOrderFormSlot } from '@ngift/core/order-form-slot'
 import { THANK_YOU_TAGS } from '@ngift/core/thank-you'
 import { THANK_YOU_TEMPLATES } from '@ngift/core/thank-you-templates'
 import { FileUploader } from '../custom-ui/FileUploader'
@@ -82,6 +83,7 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
           categories: [],
           customFields: null,
           countdown: null,
+          orderFormPosition: 'end',
           thankYouPage: null,
           tags: [],
         },
@@ -137,6 +139,7 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
 
   const thankYouOn = form.watch('thankYouPage') !== null && form.watch('thankYouPage') !== undefined
   const slug = form.watch('slug')
+  const contentPlacesForm = hasOrderFormSlot(form.watch('content.content') ?? '')
 
   const remove = async () => {
     if (!initialData) return
@@ -412,6 +415,36 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
             )}
             <FormField
               control={form.control}
+              name="orderFormPosition"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Order form position</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value ?? 'end'}
+                    disabled={contentPlacesForm}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="end">At the end of the page</SelectItem>
+                      <SelectItem value="start">At the start of the page</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {contentPlacesForm
+                      ? 'Your content places the form itself (Order form block or {{orderForm}}).'
+                      : 'Or anywhere in the page: add the Order form block in the Page Builder, or write {{orderForm}} in your HTML.'}
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="countdown"
               render={({ field }) => (
                 <FormItem>
@@ -533,16 +566,17 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
 
 type CountdownValue = BlogSchemaType['countdown']
 
-/** ISO date → the browser's local "YYYY-MM-DDTHH:mm", for <input type="datetime-local">. */
-const toLocalInput = (iso?: string | null) => {
-  const date = toDate(iso)
-  return date ? format(date, "yyyy-MM-dd'T'HH:mm") : ''
-}
-
 /** Off, limited (stops at the end date) or loop (starts again every cycle after it). */
 function CountdownFields(props: { value: CountdownValue; onChange: (v: CountdownValue) => void }) {
   const { value, onChange } = props
   const set = (patch: Partial<NonNullable<CountdownValue>>) => onChange({ ...value!, ...patch })
+  const end = toDate(value?.endsAt) ?? new Date()
+  /** The end date with another day and/or time, in the browser's time zone. */
+  const setEnd = (day: Date, hours = end.getHours(), minutes = end.getMinutes()) => {
+    const next = new Date(day)
+    next.setHours(hours, minutes, 0, 0)
+    set({ endsAt: next.toISOString() })
+  }
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <Select
@@ -571,17 +605,44 @@ function CountdownFields(props: { value: CountdownValue; onChange: (v: Countdown
       </Select>
       {value && (
         <>
-          <label className="grid gap-1 text-sm">
+          <div className="grid gap-1 text-sm">
             {value.mode === 'loop' ? 'End of the first cycle' : 'End date'}
-            <Input
-              type="datetime-local"
-              required
-              value={toLocalInput(value.endsAt)}
-              onChange={e =>
-                e.target.value && set({ endsAt: new Date(e.target.value).toISOString() })
-              }
-            />
-          </label>
+            <div className="flex gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    aria-label="End date"
+                    className="min-w-0 flex-1 pl-3 text-left font-normal"
+                  >
+                    <span className="truncate">{format(end, 'PPP')}</span>
+                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={end}
+                    defaultMonth={end}
+                    onSelect={day => day && setEnd(day)}
+                    disabled={day => day < startOfToday()}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <Input
+                type="time"
+                aria-label="End time"
+                className="w-28 shrink-0"
+                value={format(end, 'HH:mm')}
+                onChange={e => {
+                  const [hours, minutes] = e.target.value.split(':').map(Number)
+                  if (e.target.value) setEnd(end, hours, minutes)
+                }}
+              />
+            </div>
+          </div>
           {value.mode === 'loop' && (
             <label className="grid gap-1 text-sm">
               Cycle length (hours)

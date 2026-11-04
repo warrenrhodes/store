@@ -9,7 +9,9 @@ import { Blog, Product } from '@/lib/firebase/models'
 import { ShippingZone } from '@/lib/utils/shipping-zones'
 import { AdsForm } from './AdsForm'
 import { CartItem as CartItemType } from '@/hooks/useCart'
-import { useEffect, useState } from 'react'
+import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { hasOrderFormSlot, ORDER_FORM_ATTR, placeOrderFormSlot } from '@ngift/core/order-form-slot'
 import { cn, getRegularPrice } from '@/lib/utils/utils'
 import { Button } from '@/components/ui/button'
 import { Inventory } from '@/lib/type'
@@ -50,6 +52,34 @@ const AdsBlogDetail = ({
     ? { product: associateProduct, quantity, price: getRegularPrice(associateProduct) }
     : null
   const soldOut = (associateProduct?.inventory as Inventory | undefined)?.stockQuantity === 0
+
+  // The form's place: inside the content when it says so (a portal: the content stays whole,
+  // in a section or a column), else before or after it.
+  const isHtml = content.type === 'HTML' || content.type === 'MARKDOWN'
+  const html = isHtml ? placeOrderFormSlot(content.content) : content.content
+  const placedInContent = isHtml && hasOrderFormSlot(html)
+  // The same object between renders: a new one makes React rewrite the HTML, and lose the form.
+  const markup = useMemo(() => ({ __html: html }), [html])
+  const [slot, setSlot] = useState<Element | null>(null)
+  const articleRef = useCallback(
+    (article: HTMLDivElement | null) =>
+      setSlot(placedInContent && article ? article.querySelector(`[${ORDER_FORM_ATTR}]`) : null),
+    [placedInContent],
+  )
+
+  const orderBlock = (
+    <div className="space-y-8">
+      {blog.countdown && <Countdown countdown={blog.countdown} />}
+      {cartItem && soldOut && (
+        <Button disabled className="w-full">
+          {localization.outOfStock}
+        </Button>
+      )}
+      {cartItem && !soldOut && <FreeShippingBadge areas={freeShippingAreas} />}
+      {cartItem && !soldOut && <AdsForm shipments={shipments} items={[cartItem]} adId={adId} />}
+    </div>
+  )
+  const position = placedInContent ? null : blog.orderFormPosition === 'start' ? 'start' : 'end'
 
   useEffect(() => {
     if (!associateProduct) return
@@ -135,28 +165,26 @@ const AdsBlogDetail = ({
         </div>
       </div>
 
-      {content.type === 'HTML' && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          dangerouslySetInnerHTML={{ __html: content.content }}
-        />
-      )}
+      {position === 'start' && orderBlock}
 
-      {content.type === 'MARKDOWN' && <div dangerouslySetInnerHTML={{ __html: content.content }} />}
+      <div ref={articleRef}>
+        {content.type === 'HTML' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            dangerouslySetInnerHTML={markup}
+          />
+        )}
 
-      {content.type === 'TEXT' && <div>{content.content}</div>}
+        {content.type === 'MARKDOWN' && <div dangerouslySetInnerHTML={markup} />}
 
-      {blog.countdown && <Countdown countdown={blog.countdown} />}
+        {content.type === 'TEXT' && <div>{content.content}</div>}
+      </div>
 
-      {cartItem && soldOut && (
-        <Button disabled className="w-full">
-          {localization.outOfStock}
-        </Button>
-      )}
-      {cartItem && !soldOut && <FreeShippingBadge areas={freeShippingAreas} />}
-      {cartItem && !soldOut && <AdsForm shipments={shipments} items={[cartItem]} adId={adId} />}
+      {position === 'end' && orderBlock}
+      {slot && (createPortal(orderBlock, slot) as unknown as ReactNode)}
+
       {cartItem && !soldOut && (
         <motion.footer
           className={cn(

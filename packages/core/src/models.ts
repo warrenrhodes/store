@@ -292,6 +292,8 @@ export interface Blog extends CreatorDocument {
   layout: BlogLayout
   /** Timer shown on the page (ad landing pages), above the order form. */
   countdown?: Countdown | null
+  /** Where the order form goes, unless the content places it (order-form-slot.ts). Default: end. */
+  orderFormPosition?: 'start' | 'end' | null
   /**
    * Shown instead of the platform's confirmation after an order placed from this page: HTML from
    * the page builder, merge tags filled per order (thank-you.ts), cleaned when shown.

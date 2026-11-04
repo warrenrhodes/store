@@ -4,7 +4,7 @@ import { ProductSchemaType } from '@/lib/validations/product'
 import { Input } from '@/components/ui/input'
 import { ContentEditor } from '../../custom-ui/ContentEditor'
 import { useFieldArray, UseFormReturn } from 'react-hook-form'
-import { FormLabel, FormField, FormItem, FormControl, FormMessage } from '@/components/ui/form'
+import { FormField, FormItem, FormControl, FormMessage } from '@/components/ui/form'
 import CustomAccordion from '@/components/accordion/CustomAccordion'
 
 type Feature = {
@@ -39,8 +39,7 @@ export const FeaturesForm: React.FC<FeaturesFormProps> = ({ form }) => {
 
   return (
     <div>
-      <div className="flex justify-between items-center">
-        <FormLabel>Features</FormLabel>
+      <div className="flex justify-end">
         <Button
           type="button"
           variant="outline"

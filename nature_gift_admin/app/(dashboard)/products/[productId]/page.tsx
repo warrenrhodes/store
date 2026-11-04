@@ -12,8 +12,8 @@ export default async function EditProductPage(props: { params: Promise<{ product
   return (
     <div className="mx-auto w-full max-w-6xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold">Edit Product</h1>
-        <p className="text-muted-foreground">Make changes to your product</p>
+        <h1 className="text-2xl font-semibold">Edit product</h1>
+        <p className="text-muted-foreground">{product?.data.title}</p>
       </div>
       <ProductFormV2 initialData={product} categories={categories} blogs={blogs} />
     </div>

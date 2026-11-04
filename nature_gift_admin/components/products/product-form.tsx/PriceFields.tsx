@@ -44,8 +44,6 @@ export function PriceFields({ form }: PriceFieldsProps) {
     }
   }
 
-  console.log(date)
-
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <FormField
@@ -53,7 +51,7 @@ export function PriceFields({ form }: PriceFieldsProps) {
         name="price.regular"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Regular Price</FormLabel>
+            <FormLabel>Regular price (FCFA)</FormLabel>
             <FormControl>
               <Input
                 type="number"
@@ -73,7 +71,7 @@ export function PriceFields({ form }: PriceFieldsProps) {
         name="price.sale"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Sale Price (Optional)</FormLabel>
+            <FormLabel>Sale price (optional)</FormLabel>
             <FormControl>
               <FormControl>
                 <Input
@@ -89,15 +87,15 @@ export function PriceFields({ form }: PriceFieldsProps) {
           </FormItem>
         )}
       />
-      <div className={cn('grid gap-2')}>
-        <FormLabel>Sale Date Range (Optional)</FormLabel>
+      <div className="grid gap-2 sm:col-span-2">
+        <FormLabel>Sale dates</FormLabel>
         <Popover>
           <PopoverTrigger asChild>
             <Button
               id="date"
               variant={'outline'}
               className={cn(
-                'w-[300px] justify-start text-left font-normal',
+                'w-full justify-start text-left font-normal',
                 !date && 'text-muted-foreground',
               )}
             >

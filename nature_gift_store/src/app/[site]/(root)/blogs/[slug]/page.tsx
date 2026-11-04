@@ -14,7 +14,7 @@ import { CollectionsName } from '@/lib/firebase/collection-name'
 import { Blog, BlogMetadata, BlogStatus, Product } from '@/lib/firebase/models'
 import { getFreeShippingAreas } from '@/lib/utils/promotion-calculator'
 import { filterZonesByCity } from '@/lib/utils/shipping-zones'
-import { QueryFilter } from '@spreeloop/database'
+import { getDocumentId, QueryFilter } from '@spreeloop/database'
 import { notFound } from 'next/navigation'
 
 type Props = {
@@ -118,7 +118,11 @@ export default async function BlogAdsDetailPage(props: Props) {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <Loader loading={<BlogSkeleton />}>
           <AdsBlogDetail
-            blog={blog}
+            // The thank-you page is shown by /order/success: not sent to the browser here.
+            blog={{ ...blog, thankYouPage: null }}
+            // Always sent: /order/success decides, so a page opened before its thank-you page was
+            // set (or served from cache) still leads to it.
+            adId={getDocumentId(blog.path)}
             shipments={shipments}
             associateProduct={associateProduct}
             relatedBlogs={relatedBlogs}

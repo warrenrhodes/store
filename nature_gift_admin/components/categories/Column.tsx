@@ -54,7 +54,7 @@ export const categoryColumns: ColumnDef<ICategory>[] = [
               <Edit className="h-4 w-4" />
             </Link>
           </Button>
-          <Delete item="categories" handleDelete={onDelete} />
+          <Delete handleDelete={onDelete} />
         </div>
       )
     },

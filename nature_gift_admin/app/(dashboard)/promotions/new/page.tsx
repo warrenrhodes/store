@@ -11,8 +11,8 @@ export default async function NewPromotionPage() {
   return (
     <div className="mx-auto w-full max-w-6xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold">Create New Promotion</h1>
-        <p className="text-muted-foreground">Add a new promotion to your store</p>
+        <h1 className="text-2xl font-semibold">New promotion</h1>
+        <p className="text-muted-foreground">Add a promotion to your store</p>
       </div>
       <PromotionFormV2
         products={products}

@@ -18,11 +18,10 @@ import { useRouter } from 'next/navigation'
 import { Button } from '../ui/button'
 
 interface DeleteProps {
-  item: string
   handleDelete: () => Promise<boolean>
 }
 
-const Delete: React.FC<DeleteProps> = ({ item, handleDelete }) => {
+const Delete: React.FC<DeleteProps> = ({ handleDelete }) => {
   const { toast } = useToast()
   const router = useRouter()
 
@@ -31,7 +30,7 @@ const Delete: React.FC<DeleteProps> = ({ item, handleDelete }) => {
       const result = await handleDelete()
 
       if (result) {
-        toast({ description: `${item} deleted` })
+        toast({ description: 'Deleted' })
         router.refresh()
       } else {
         toast({ variant: 'destructive', description: `Could not delete this item.` })
@@ -53,15 +52,13 @@ const Delete: React.FC<DeleteProps> = ({ item, handleDelete }) => {
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your {item}.
-          </AlertDialogDescription>
+          <AlertDialogTitle>Delete this item?</AlertDialogTitle>
+          <AlertDialogDescription>This can&apos;t be undone.</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            className="bg-red-500 hover:bg-red-500/40 text-white hover:bg-red-500 hover:bg-red-500/40/70 "
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             onClick={onDelete}
           >
             Delete

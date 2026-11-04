@@ -21,8 +21,8 @@ export default async function EditPromotionPage(props: {
   return (
     <div className="mx-auto w-full max-w-6xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold">Edit Promotion</h1>
-        <p className="text-muted-foreground">Make changes to your promotion</p>
+        <h1 className="text-2xl font-semibold">Edit promotion</h1>
+        <p className="text-muted-foreground">{promotion?.data.name}</p>
       </div>
       <PromotionFormV2
         initialData={promotion}

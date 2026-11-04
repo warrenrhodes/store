@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { DataTable } from '../custom-ui/DataTable'
+import { ListHeader } from '../custom-ui/ListParts'
 import { promotionsColumns } from './PromotionsColumn'
 import { IPromotion } from '@/lib/actions/server'
 interface PromotionListProps {
@@ -13,23 +14,28 @@ interface PromotionListProps {
 export function PromotionsList({ promotions }: PromotionListProps) {
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold">Promotions</h1>
-        <Button asChild>
-          <Link href="/promotions/new">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Promotion
-          </Link>
-        </Button>
-      </div>
+      <ListHeader
+        title="Promotions"
+        description="Your automatic discounts and discount codes."
+        actions={
+          <Button asChild>
+            <Link href="/promotions/new">
+              <Plus className="w-4 h-4 mr-2" />
+              New promotion
+            </Link>
+          </Button>
+        }
+      />
       <DataTable
         columns={promotionsColumns}
         data={promotions}
         searchKey="name"
+        searchPlaceholder="Search promotions"
+        emptyMessage="No promotions yet. Create your first one with New promotion."
         filterButton={{
           label: 'Status',
           columnKey: 'status',
-          values: ['ACTIVE', 'DRAFT', 'EXPIRED', 'DISABLED'],
+          values: ['ACTIVE', 'SCHEDULED', 'EXPIRED', 'DRAFT', 'DISABLED'],
         }}
       />
     </div>

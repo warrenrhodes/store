@@ -26,7 +26,7 @@ export function InventoryFields({ form }: InventoryFieldsProps) {
         name="inventory.stockQuantity"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Stock</FormLabel>
+            <FormLabel>Quantity in stock</FormLabel>
             <FormControl>
               <Input
                 type="number"

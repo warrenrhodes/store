@@ -15,7 +15,7 @@ export const CategoriesForm: React.FC<CategoriesFieldsProps> = ({ form, categori
       name="categories"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Categories*</FormLabel>
+          <FormLabel>Categories</FormLabel>
           <FormControl>
             {categories.length > 0 ? (
               <MultiSelect
@@ -37,9 +37,9 @@ export const CategoriesForm: React.FC<CategoriesFieldsProps> = ({ form, categori
                 onChange={values => field.onChange([...values.map(value => value.label)])}
               />
             ) : (
-              <div className="text-red-500 flex items-center gap-3 justify-center">
-                <AlertTriangle /> Adds least of one category before create a product
-              </div>
+              <p className="flex items-center gap-2 text-sm text-destructive">
+                <AlertTriangle className="h-4 w-4 shrink-0" /> Create a category first.
+              </p>
             )}
           </FormControl>
           <FormMessage />

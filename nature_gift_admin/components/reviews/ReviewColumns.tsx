@@ -82,7 +82,7 @@ export const reviewColumns: ColumnDef<IReview>[] = [
               <Edit className="h-4 w-4" />
             </Link>
           </Button>
-          <Delete item="reviews" handleDelete={onDelete} />
+          <Delete handleDelete={onDelete} />
         </div>
       )
     },

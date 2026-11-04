@@ -4,7 +4,7 @@ import { getBlogsCache } from '@/lib/actions/server'
 export default async function BlogPage() {
   const blogs = await getBlogsCache()
   return (
-    <div className="py-10">
+    <div className="mx-auto w-full max-w-6xl">
       <BlogList blogs={blogs} />
     </div>
   )

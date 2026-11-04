@@ -26,7 +26,7 @@ export function MetadataFields({ form }: MetadataFieldsProps) {
         name="metadata.seoTitle"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>SEO Title</FormLabel>
+            <FormLabel>SEO title</FormLabel>
             <FormControl>
               <Input {...field} onKeyDown={handleKeyPress} />
             </FormControl>
@@ -40,7 +40,7 @@ export function MetadataFields({ form }: MetadataFieldsProps) {
         name="metadata.seoDescription"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>SEO Description</FormLabel>
+            <FormLabel>SEO description</FormLabel>
             <FormControl>
               <Textarea {...field} />
             </FormControl>
@@ -54,10 +54,11 @@ export function MetadataFields({ form }: MetadataFieldsProps) {
         name="metadata.keywords"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Keywords (comma-separated)</FormLabel>
+            <FormLabel>Keywords</FormLabel>
             <FormControl>
               <Input
                 {...field}
+                placeholder="café, ginseng, énergie"
                 value={field.value?.join(', ') || ''}
                 onKeyDown={handleKeyPress}
                 onChange={e =>

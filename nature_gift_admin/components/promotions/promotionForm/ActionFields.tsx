@@ -3,7 +3,7 @@
 import { useFieldArray, UseFormReturn } from 'react-hook-form'
 import { Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import {
   Select,
   SelectContent,
@@ -36,12 +36,12 @@ export function ActionFields({ form, products }: ActionFieldsProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <FormLabel>Actions</FormLabel>
+      <div className="flex justify-end">
         <Button
           type="button"
           variant="outline"
-          disabled={form.watch('conditions').length == 0}
+          // A code is itself a condition: only an automatic promotion must have one first.
+          disabled={form.watch('conditions').length == 0 && !form.watch('requiresCode')}
           size="sm"
           onClick={() => append({ type: 'PERCENTAGE_DISCOUNT', value: '0' })}
         >

@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
-import { AlertTriangle, CalendarIcon, Loader2, Trash2, X } from 'lucide-react'
+import { AlertTriangle, CalendarIcon, Copy, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Select,
@@ -37,6 +38,10 @@ import { toDate } from '@/lib/utils/utils'
 import { blogSchema, BlogSchemaType } from '@/lib/validations/blog'
 import { getDocumentId } from '@spreeloop/database'
 import { ContentEditor } from '../custom-ui/ContentEditor'
+import { FormActionBar, FormColumns, FormSection, SwitchField } from '../custom-ui/FormLayout'
+import CustomRichTextEditor from '../accordion/CustomRichText'
+import { THANK_YOU_TAGS } from '@ngift/core/thank-you'
+import { THANK_YOU_TEMPLATES } from '@ngift/core/thank-you-templates'
 import { FileUploader } from '../custom-ui/FileUploader'
 import MultiSelect from '../custom-ui/MultiSelect'
 import MultiText from '../custom-ui/MultiText'
@@ -77,6 +82,7 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
           categories: [],
           customFields: null,
           countdown: null,
+          thankYouPage: null,
           tags: [],
         },
   })
@@ -129,11 +135,187 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
     }
   }
 
+  const thankYouOn = form.watch('thankYouPage') !== null && form.watch('thankYouPage') !== undefined
+  const slug = form.watch('slug')
+
+  const remove = async () => {
+    if (!initialData) return
+    setIsLoading(true)
+    try {
+      const res = await deleteBlog(getDocumentId(initialData.path))
+      // replace, not refresh + push: refreshing re-requests this deleted post (404), and
+      // /blogs is dynamic so it reloads anyway.
+      if (res.success) router.replace('/blogs')
+      else toast({ variant: 'destructive', description: res.error || 'Failed to delete' })
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
-    <div className="sm:p-10">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <div className="grid gap-4 sm:grid-cols-2">
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit, () =>
+          toast({ variant: 'destructive', description: 'Some fields need your attention.' }),
+        )}
+      >
+        <FormColumns
+          side={
+            <>
+              <FormSection title="Publishing">
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value={BlogStatus.DRAFT}>Draft</SelectItem>
+                          <SelectItem value={BlogStatus.PUBLISHED}>Published</SelectItem>
+                          <SelectItem value={BlogStatus.ARCHIVED}>Archived</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="publishedAt"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Publish date</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className={cn(
+                                'w-full pl-3 text-left font-normal',
+                                !field.value && 'text-muted-foreground',
+                              )}
+                            >
+                              {toDate(field.value) ? (
+                                format(toDate(field.value)!, 'PPP')
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={toDate(field.value)}
+                            onSelect={date => field.onChange(date?.toISOString() ?? null)}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="layout"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Layout</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select layout" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="DEFAULT">Default</SelectItem>
+                          <SelectItem value="FEATURED">Featured</SelectItem>
+                          <SelectItem value="MINIMAL">Minimal</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <SwitchField
+                  control={form.control}
+                  name="metadata.featured"
+                  label="Featured"
+                  hint="Highlighted in the article list"
+                />
+              </FormSection>
+
+              <FormSection title="Cover image">
+                <FormField
+                  control={form.control}
+                  name="metadata.coverImage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <FileUploader
+                          medias={field.value ? [field.value] : []}
+                          setContent={(value: Media[]) =>
+                            value.length == 0 ? field.onChange(null) : field.onChange(value[0])
+                          }
+                          fileType={MediaType.IMAGE}
+                          maxFiles={1}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </FormSection>
+
+              <FormSection title="Categories">
+                <FormField
+                  control={form.control}
+                  name="categories"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        {categories.length > 0 ? (
+                          <MultiSelect
+                            placeholder="Select categories"
+                            selectedValues={(field.value || []).map(value => ({
+                              value,
+                              label: categories.find(c => c.data.name === value)?.data
+                                .name as string,
+                            }))}
+                            values={categories.map(category => ({
+                              value: category.data.name,
+                              label: category.data.name,
+                            }))}
+                            onChange={values =>
+                              field.onChange([...values.map(value => value.label)])
+                            }
+                          />
+                        ) : (
+                          <p className="flex items-center gap-2 text-sm text-destructive">
+                            <AlertTriangle className="h-4 w-4 shrink-0" /> Create a category first.
+                          </p>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </FormSection>
+            </>
+          }
+        >
+          <FormSection title="Article" description="What visitors read.">
             <FormField
               control={form.control}
               name="title"
@@ -146,53 +328,61 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
                       value={field.value || ''}
                       onChange={onTitleChange}
                       onKeyDown={handleKeyPress}
+                      placeholder="Le café qui donne la pêche"
+                      className="h-11 text-base"
+                    />
+                  </FormControl>
+                  {slug && (
+                    <p className="truncate text-xs text-muted-foreground">
+                      Address: <span className="font-mono">/blogs/{slug}</span>
+                    </p>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="content.excerpt"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Summary</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      value={field.value || ''}
+                      rows={2}
+                      placeholder="One or two sentences shown under the title and in the article list."
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
-            <FormField
-              control={form.control}
-              name="slug"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Slug</FormLabel>
-                  <FormControl>
-                    <Input {...field} disabled onKeyDown={handleKeyPress} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <ContentEditor
+              label="Content"
+              form={form}
+              contentTypeFieldKey="content.type"
+              contentFieldKey="content.content"
             />
-          </div>
-          <FormField
-            control={form.control}
-            name="content.excerpt"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Excerpt</FormLabel>
-                <FormControl>
-                  <Input {...field} value={field.value || ''} onKeyDown={handleKeyPress} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {products.length > 0 && (
-            <FormField
-              control={form.control}
-              name="associateProductPath"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Associate Product(optional)</FormLabel>
-                  <FormControl>
-                    <div className="flex gap-2 items-center">
+          </FormSection>
+
+          <FormSection
+            title="Sales page"
+            description="Sell a product right from this page: an order form appears under the article."
+          >
+            {products.length > 0 && (
+              <FormField
+                control={form.control}
+                name="associateProductPath"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Product sold</FormLabel>
+                    <div className="flex items-center gap-2">
                       <Select onValueChange={field.onChange} value={field.value || ''}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a product" />
+                            <SelectValue placeholder="None: a regular article" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -203,297 +393,141 @@ export function BlogForm({ initialData, categories, products }: BlogFormProps) {
                           ))}
                         </SelectContent>
                       </Select>
-                      <X
-                        size={20}
-                        className={cn(
-                          {
-                            hidden: !field.value,
-                          },
-                          'text-red-500 cursor-pointer',
-                        )}
-                        onClick={() => field.onChange(null)}
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-          <ContentEditor
-            label="Content"
-            form={form}
-            contentTypeFieldKey="content.type"
-            contentFieldKey="content.content"
-          />
-          <FormField
-            control={form.control}
-            name="metadata.coverImage"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Cover Image URL</FormLabel>
-                <FormControl>
-                  <div className="flex gap-2">
-                    <FileUploader
-                      medias={field.value ? [field.value] : []}
-                      setContent={(value: Media[]) =>
-                        value.length == 0 ? field.onChange(null) : field.onChange(value[0])
-                      }
-                      fileType={MediaType.IMAGE}
-                      maxFiles={1}
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="categories"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Categories</FormLabel>
-                <FormControl>
-                  {categories.length > 0 ? (
-                    <MultiSelect
-                      placeholder="Select categories"
-                      selectedValues={(field.value || []).map(value => {
-                        return {
-                          value,
-                          label: categories.find(category => {
-                            return category.data.name === value
-                          })?.data.name as string,
-                        }
-                      })}
-                      values={categories.map(category => {
-                        return {
-                          value: category.data.name,
-                          label: category.data.name,
-                        }
-                      })}
-                      onChange={values => field.onChange([...values.map(value => value.label)])}
-                    />
-                  ) : (
-                    <div className="text-red-500 flex items-center gap-3 justify-center">
-                      <AlertTriangle /> Adds least of one category before create a blog
-                    </div>
-                  )}
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <div className="grid gap-4 sm:grid-cols-3 items-end">
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value={BlogStatus.DRAFT}>Draft</SelectItem>
-                      <SelectItem value={BlogStatus.PUBLISHED}>Published</SelectItem>
-                      <SelectItem value={BlogStatus.ARCHIVED}>Archived</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="layout"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Layout</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select layout" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="DEFAULT">Default</SelectItem>
-                      <SelectItem value="FEATURED">Featured</SelectItem>
-                      <SelectItem value="MINIMAL">Minimal</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="publishedAt"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Publish Date</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
+                      {field.value && (
                         <Button
-                          variant="outline"
-                          className={cn(
-                            'w-full pl-3 text-left font-normal',
-                            !field.value && 'text-muted-foreground',
-                          )}
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label="No product"
+                          onClick={() => field.onChange(null)}
                         >
-                          {toDate(field.value) ? (
-                            format(toDate(field.value)!, 'PPP')
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          <X className="h-4 w-4" />
                         </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={toDate(field.value)}
-                        onSelect={date => field.onChange(date?.toISOString() ?? null)}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          <FormField
-            control={form.control}
-            name="countdown"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Countdown</FormLabel>
-                <CountdownFields value={field.value} onChange={field.onChange} />
-                <FormMessage />
-              </FormItem>
+                      )}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
-          />
-          <FormField
-            control={form.control}
-            name="tags"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Tags</FormLabel>
-                <FormControl>
-                  <MultiText
-                    placeholder="Tags"
-                    value={field.value || []}
-                    onChange={tag => field.onChange([...(field.value || []), tag])}
-                    onRemove={tagToRemove =>
-                      field.onChange([...(field.value || []).filter(tag => tag !== tagToRemove)])
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="metadata.title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Metadata Title</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value}
-                    onKeyDown={handleKeyPress}
-                    onChange={field.onChange}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />{' '}
-          <FormField
-            control={form.control}
-            name="metadata.keywords"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Metadata Keywords (comma-separated)</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value?.join(', ') || ''}
-                    onKeyDown={handleKeyPress}
-                    onChange={e =>
-                      field.onChange(e.target.value.split(',').map(keyword => keyword.trim()))
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <div className="flex items-center gap-4">
             <FormField
               control={form.control}
-              name="metadata.featured"
+              name="countdown"
               render={({ field }) => (
-                <FormItem className="flex items-center gap-2">
-                  <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                  <FormLabel className="!mt-0">Featured Post</FormLabel>
+                <FormItem>
+                  <FormLabel>Countdown</FormLabel>
+                  <CountdownFields value={field.value} onChange={field.onChange} />
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </div>
-          <div className="flex justify-between">
-            <Button type="submit" disabled={isLoading || categories.length < 1}>
-              {isLoading && <Loader2 className="animate-spin" />}
-              {initialData ? 'Update' : 'Create'} Blog
-            </Button>
+          </FormSection>
 
-            {initialData && (
-              <Button
-                type="button"
-                variant="destructive"
-                disabled={isLoading}
-                onClick={async () => {
-                  setIsLoading(true)
-                  try {
-                    const res = await deleteBlog(getDocumentId(initialData.path))
-                    if (res.success) {
-                      // replace, not refresh + push: refreshing re-requests this
-                      // deleted post (404), and /blogs is dynamic so it reloads anyway.
-                      router.replace('/blogs')
-                    } else {
-                      toast({
-                        variant: 'destructive',
-                        description: res.error || 'Failed to delete',
-                      })
-                    }
-                  } catch (error) {
-                    console.error(error)
-                  } finally {
-                    setIsLoading(false)
-                  }
-                }}
+          <FormField
+            control={form.control}
+            name="thankYouPage"
+            render={({ field }) => (
+              <FormSection
+                title="After the order"
+                description="Your own thank-you page for orders placed here. Off: the platform's confirmation. The order number and tracking link are always added below."
+                action={
+                  <Switch
+                    checked={thankYouOn}
+                    onCheckedChange={on => field.onChange(on ? THANK_YOU_TEMPLATES[0].html : null)}
+                    aria-label="Custom thank-you page"
+                  />
+                }
               >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete Blog Post
-              </Button>
+                {thankYouOn && (
+                  <FormItem className="space-y-4">
+                    <Templates
+                      onPick={html =>
+                        (!field.value?.trim() ||
+                          confirm('Replace the current thank-you page with this template?')) &&
+                        field.onChange(html)
+                      }
+                    />
+                    <MergeTags />
+                    <CustomRichTextEditor content={field.value ?? ''} onSave={field.onChange} />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              </FormSection>
             )}
-          </div>
-        </form>
-      </Form>
-    </div>
+          />
+
+          <FormSection
+            title="Search engines"
+            description="How the page appears on Google and when shared."
+          >
+            <FormField
+              control={form.control}
+              name="metadata.title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>SEO title</FormLabel>
+                  <FormControl>
+                    <Input {...field} value={field.value} onKeyDown={handleKeyPress} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="metadata.keywords"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Keywords</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value?.join(', ') || ''}
+                      onKeyDown={handleKeyPress}
+                      placeholder="café, cordyceps, énergie"
+                      onChange={e =>
+                        field.onChange(e.target.value.split(',').map(keyword => keyword.trim()))
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="tags"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tags</FormLabel>
+                  <FormControl>
+                    <MultiText
+                      placeholder="Add a tag and press Enter"
+                      value={field.value || []}
+                      onChange={tag => field.onChange([...(field.value || []), tag])}
+                      onRemove={tagToRemove =>
+                        field.onChange([...(field.value || []).filter(tag => tag !== tagToRemove)])
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </FormSection>
+        </FormColumns>
+
+        <FormActionBar
+          isLoading={isLoading}
+          submitLabel={initialData ? 'Save changes' : 'Create article'}
+          submitDisabled={categories.length < 1}
+          cancelHref="/blogs"
+          onDelete={initialData ? remove : undefined}
+          deleteTitle="Delete this article?"
+          deleteWarning="Its page and its ad links stop working. This can't be undone."
+        />
+      </form>
+    </Form>
   )
 }
 
@@ -510,7 +544,7 @@ function CountdownFields(props: { value: CountdownValue; onChange: (v: Countdown
   const { value, onChange } = props
   const set = (patch: Partial<NonNullable<CountdownValue>>) => onChange({ ...value!, ...patch })
   return (
-    <div className="grid gap-4 rounded-md border p-4 sm:grid-cols-2">
+    <div className="grid gap-4 sm:grid-cols-2">
       <Select
         value={value?.mode ?? 'off'}
         onValueChange={mode =>
@@ -543,7 +577,9 @@ function CountdownFields(props: { value: CountdownValue; onChange: (v: Countdown
               type="datetime-local"
               required
               value={toLocalInput(value.endsAt)}
-              onChange={e => e.target.value && set({ endsAt: new Date(e.target.value).toISOString() })}
+              onChange={e =>
+                e.target.value && set({ endsAt: new Date(e.target.value).toISOString() })
+              }
             />
           </label>
           {value.mode === 'loop' && (
@@ -570,6 +606,66 @@ function CountdownFields(props: { value: CountdownValue; onChange: (v: Countdown
           </label>
         </>
       )}
+    </div>
+  )
+}
+
+/** The thank-you page's merge tags, each copied in one click. */
+function MergeTags() {
+  return (
+    <details className="rounded-md border text-sm">
+      <summary className="cursor-pointer p-3 font-medium">
+        Merge tags: the customer&apos;s name, product, total, tracking link…
+      </summary>
+      <table className="w-full">
+        <tbody>
+          {THANK_YOU_TAGS.map(t => (
+            <tr key={t.tag} className="border-t">
+              <td className="p-2">
+                {t.label}
+                <span className="block text-xs text-muted-foreground">{t.description}</span>
+              </td>
+              <td className="p-2">
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 font-mono"
+                  title="Copy"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`{{${t.tag}}}`)
+                    toast({ description: `{{${t.tag}}} copied` })
+                  }}
+                >
+                  {`{{${t.tag}}}`} <Copy className="h-4 w-4" aria-hidden />
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </details>
+  )
+}
+
+/** Ready-made pages (French, the store's colors): one replaces the current page. */
+function Templates({ onPick }: { onPick: (html: string) => void }) {
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-medium">
+        Start from a template, then edit it (text in [brackets] is yours to fill in):
+      </p>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {THANK_YOU_TEMPLATES.map(t => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => onPick(t.html)}
+            className="rounded-md border p-3 text-left text-sm hover:bg-accent"
+          >
+            <span className="font-medium">{t.name}</span>
+            <span className="block text-xs text-muted-foreground">{t.description}</span>
+          </button>
+        ))}
+      </div>
     </div>
   )
 }

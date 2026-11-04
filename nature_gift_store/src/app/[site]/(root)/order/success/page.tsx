@@ -1,73 +1,77 @@
-'use client'
-import { Check } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { SiteLink as Link } from '@/components/Site'
-import { useLocalization } from '@/hooks/useLocalization'
-import { useAuthStore } from '@/hooks/store/auth-store'
-import { useSearchParams } from 'next/navigation'
-import { Suspense } from 'react'
+import { OrderSuccess } from '@/components/Order/OrderSuccess'
+import { ThankYouFooter } from '@/components/Order/ThankYouFooter'
+import { getDocumentByPathFresh, getStoreCache, siteOf } from '@/lib/api/utils'
+import { CollectionsName } from '@/lib/firebase/collection-name'
+import { Blog } from '@/lib/firebase/models'
+import { getTrackedOrder } from '@/lib/orders/tracking'
+import { safeHtml } from '@/lib/safe-html'
+import { absoluteUrl } from '@/lib/site'
+import { priceFormatted } from '@/lib/utils/utils'
+import { fillTags } from '@ngift/core/thank-you'
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
+import type { Metadata } from 'next'
 
-const OrderSuccess = () => {
-  const { user } = useAuthStore()
-  const params = useSearchParams()
-  const orderId = params.get('order')
-  const groupId = params.get('group')
-  const token = params.get('t')
-  // A marketplace cart with several stores: one tracking page for all its orders.
-  const tracking = groupId ? `/order/group/${groupId}?t=${token}` : `/order/${orderId}?t=${token}`
-  const hasTracking = !!(orderId || groupId) && !!token
-  const { localization } = useLocalization()
-  const isGuest = !user || user.isAnonymous
+export const metadata: Metadata = { robots: { index: false } }
+export const dynamic = 'force-dynamic'
 
+type Query = { order?: string; t?: string; ad?: string }
+
+/**
+ * The thank-you page of the ad page the order came from (`ad`: its blog id), filled with this
+ * order: only with the order's tracking token, and only when the page is the order's store's.
+ */
+async function adThankYou(site: string, siteStoreId: string | null, query: Query) {
+  const { order: orderId, t, ad } = query
+  if (!orderId || !ad || !/^[\w-]{1,200}$/.test(ad)) return undefined
+  const order = await getTrackedOrder(orderId, t)
+  if (!order?.storeId || (siteStoreId && order.storeId !== siteStoreId)) return undefined
+  // Fresh: a thank-you page saved a moment ago shows at once (one read per confirmation).
+  const blog = await getDocumentByPathFresh<Blog>({ path: `${CollectionsName.Blogs}/${ad}` })
+  if (!blog?.thankYouPage?.trim() || blog.storeId !== order.storeId) return undefined
+  const store = await getStoreCache(order.storeId)
+  if (!store) return undefined
+
+  const orderNumber = orderId.slice(0, 8).toUpperCase()
+  const tracking = `/order/${orderId}?t=${t}`
+  const name = order.userData?.fullName?.trim() ?? ''
+  const whatsapp = store.settings?.whatsapp ?? ''
+  const delivery = order.deliveryInfo
+  const html = fillTags(blog.thankYouPage, {
+    customerFirstName: name.split(/\s+/)[0],
+    customerName: name,
+    productName: order.items.map(i => i.product.title).join(', '),
+    productImage: order.items[0]?.product.medias?.[0]?.url ?? '',
+    quantity: String(order.items.reduce((n, i) => n + i.quantity, 0)),
+    orderTotal: priceFormatted(order.orderPrices.total),
+    orderId: orderNumber,
+    trackingUrl: absoluteUrl(site, tracking),
+    deliveryCity: delivery?.city ?? '',
+    deliveryDate: delivery?.deliveryDate
+      ? format(delivery.deliveryDate, 'PPP', { locale: fr })
+      : '',
+    storeName: store.name,
+    storeUrl: absoluteUrl(store.slug),
+    storeWhatsapp: whatsapp,
+    whatsappUrl: whatsapp
+      ? `https://wa.me/${whatsapp}?text=${encodeURIComponent(`Bonjour ${store.name}, à propos de ma commande ${orderNumber} : `)}`
+      : '',
+  })
+  return { html, orderNumber, tracking }
+}
+
+/** After an order: the ad page's own thank-you page, else the platform's confirmation. */
+export default async function OrderSuccessPage(props: {
+  params: Promise<{ site: string }>
+  searchParams: Promise<Query>
+}) {
+  const [{ site, store }, query] = await Promise.all([siteOf(props.params), props.searchParams])
+  const custom = await adThankYou(site, store?.id ?? null, query)
+  if (!custom) return <OrderSuccess />
   return (
-    <main className="flex min-h-[70vh] items-center justify-center px-4 py-16">
-      <div className="w-full max-w-md text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-          <Check className="h-8 w-8 text-primary" aria-hidden />
-        </div>
-        <h1 className="mt-6 text-3xl font-semibold">{localization.orderSuccessful}</h1>
-        <p className="mt-3 text-lg">{localization.thankYouForYourPurchase}</p>
-        <p className="mt-2 text-muted-foreground">{localization.confirmationEmailSent}</p>
-
-        {isGuest && (
-          <p className="mt-6 rounded-xl bg-muted p-4 text-sm">
-            {localization.createAccountMessage}
-          </p>
-        )}
-
-        <div className="mt-8 flex flex-col gap-3">
-          {groupId && <p className="text-sm text-muted-foreground">{localization.ordersByStore}</p>}
-          {hasTracking && (
-            <>
-              <Button className="h-12 w-full text-base" asChild>
-                <Link href={tracking}>{localization.trackOrder}</Link>
-              </Button>
-              <p className="text-xs text-muted-foreground">{localization.keepTrackingLink}</p>
-            </>
-          )}
-          <Button
-            variant={hasTracking ? 'outline' : 'default'}
-            className="h-12 w-full text-base"
-            asChild
-          >
-            <Link href="/shop">{localization.continueShopping}</Link>
-          </Button>
-          <Button variant="outline" className="h-12 w-full text-base" asChild>
-            <Link href={isGuest ? '/sign-up' : '/profile?tabs=orders'}>
-              {isGuest ? localization.createAccount : localization.myOrders}
-            </Link>
-          </Button>
-        </div>
-      </div>
+    <main className="mx-auto w-full max-w-4xl px-4 py-12">
+      <div>{safeHtml(custom.html)}</div>
+      <ThankYouFooter orderNumber={custom.orderNumber} tracking={custom.tracking} />
     </main>
   )
 }
-
-// useSearchParams needs a Suspense boundary.
-const OrderSuccessPage = () => (
-  <Suspense>
-    <OrderSuccess />
-  </Suspense>
-)
-
-export default OrderSuccessPage

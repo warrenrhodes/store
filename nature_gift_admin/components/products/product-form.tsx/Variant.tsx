@@ -16,7 +16,7 @@ export function VariantFields({ form }: VariantFieldsProps) {
           <FormLabel>Tags</FormLabel>
           <FormControl>
             <MultiText
-              placeholder="Tags"
+              placeholder="Add a tag and press Enter"
               value={field.value || []}
               onChange={tag => field.onChange([...(field.value || []), tag])}
               onRemove={tagToRemove =>

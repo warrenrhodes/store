@@ -59,6 +59,7 @@ export const blogSchema = z.object({
     })
     .nullable()
     .default(null),
+  orderFormPosition: z.enum(['start', 'end']).nullable().default('end'),
   thankYouPage: z.string().max(900 * 1024).nullable().default(null),
 })
 

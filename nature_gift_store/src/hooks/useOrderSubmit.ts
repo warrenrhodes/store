@@ -19,8 +19,17 @@ import { useState } from 'react'
  * Places the order for `items` (cart checkout and ad-page direct checkout share it): sends the
  * discount codes and checkout id, explains stock/promotion conflicts, tracks the purchase and
  * opens the confirmation page with the customer's tracking link. Prices are computed server-side.
+ * `adId`: the ad page (blog id) whose own thank-you page the confirmation shows.
  */
-export function useOrderSubmit({ items, onPlaced }: { items: CartItem[]; onPlaced: () => void }) {
+export function useOrderSubmit({
+  items,
+  onPlaced,
+  adId,
+}: {
+  items: CartItem[]
+  onPlaced: () => void
+  adId?: string
+}) {
   const router = useSiteRouter()
   const { site } = useSite()
   const { user } = useAuthStore()
@@ -128,7 +137,7 @@ export function useOrderSubmit({ items, onPlaced }: { items: CartItem[]; onPlace
     router.replace(
       checkoutGroupId
         ? `/order/success?group=${checkoutGroupId}&t=${trackingToken}`
-        : `/order/success?order=${transactionId}&t=${trackingToken}`,
+        : `/order/success?order=${transactionId}&t=${trackingToken}${adId ? `&ad=${adId}` : ''}`,
     )
   }
 

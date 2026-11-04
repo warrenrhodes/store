@@ -21,7 +21,7 @@ import { Check, Loader2 } from 'lucide-react'
 import { priceFormatted } from '@/lib/utils/utils'
 
 // Direct checkout: orders only the items passed in, never touches the global cart.
-export const AdsForm = (props: { shipments: ShippingZone[]; items: CartItem[] }) => {
+export const AdsForm = (props: { shipments: ShippingZone[]; items: CartItem[]; adId?: string }) => {
   const cartItems = props.items
   const { clearDeliveryInfo } = useCartDeliveryInfo()
   const [formData, setFormData] = useState<DeliveryFormData>()
@@ -72,7 +72,11 @@ export const AdsForm = (props: { shipments: ShippingZone[]; items: CartItem[] })
   })
 
   useCheckoutCapture(form, cartItems)
-  const { submit, isLoading } = useOrderSubmit({ items: cartItems, onPlaced: clearDeliveryInfo })
+  const { submit, isLoading } = useOrderSubmit({
+    items: cartItems,
+    onPlaced: clearDeliveryInfo,
+    adId: props.adId,
+  })
 
   const onOrderConfirm = async (data: DeliveryFormData) => {
     setFormData(data)

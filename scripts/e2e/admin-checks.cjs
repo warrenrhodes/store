@@ -42,10 +42,14 @@ module.exports = async function adminChecks({ db, ADMIN, AUTH_HOST, apiKey }) {
       ).status,
   })
 
-  const ownerA = as(await signIn('admin@test.cm'))
+  const cookies = {
+    ownerA: await signIn('admin@test.cm'),
+    platform: await signIn('platform@test.cm'),
+  }
+  const ownerA = as(cookies.ownerA)
   const ownerB = as(await signIn('vendorb@test.cm'))
   const staffA = as(await signIn('staff@test.cm'))
-  const platform = as(await signIn('platform@test.cm'))
+  const platform = as(cookies.platform)
 
   const pageHas = async (who, path, present, absent) => {
     const { status, html } = await who.page(path)
@@ -143,7 +147,7 @@ module.exports = async function adminChecks({ db, ADMIN, AUTH_HOST, apiKey }) {
   await pageHas(
     platform,
     '/platform',
-    ['N.Gift', 'Boutique Bertrand', 'Record cash payment', 'Super admin', 'Marketplace products', 'href="/"'],
+    ['N.Gift', 'Boutique Bertrand', 'Record cash payment', 'Super admin', 'Marketplace products'],
     ['Abandoned checkouts', 'Store settings'],
   )
   await pageHas(platform, '/products', ['No store selected', 'href="/platform"'], ['Café Ginseng', 'Miel de B'])
@@ -151,6 +155,30 @@ module.exports = async function adminChecks({ db, ADMIN, AUTH_HOST, apiKey }) {
   assert.equal(home.status, 307)
   assert.match(home.location, /\/platform$/)
   ok('platform console: refused to a store owner, its own area for the platform admin (no store menu), who lands there without a store')
+
+  // The list pages read in words: what a promotion gives, a blog's type, statuses.
+  await pageHas(ownerA, '/promotions', ['New promotion', 'Automatic', 'PUB-CAFE', '-10%', 'Active'], [])
+  await pageHas(ownerA, '/blogs', ['New article', 'Sales page', '/blogs/test-pub', 'Published'], [])
+  await pageHas(ownerA, '/products', ['New product', 'Café Ginseng', 'Published'], [])
+  ok('list pages: promotions show their discount and how they apply, blogs their type, statuses in words')
+
+  // Media upload: store members only; images and videos only, under their size limit. Refused
+  // before anything is sent to Cloudinary (absent here).
+  const upload = async (cookie, files) => {
+    const body = new FormData()
+    for (const [name, type, size] of files) body.append('files', new Blob([new Uint8Array(size)], { type }), name)
+    const res = await fetch(`${ADMIN}/api/media/upload`, { method: 'POST', headers: cookie ? { cookie } : {}, body })
+    return { status: res.status, error: (await res.json().catch(() => ({}))).error }
+  }
+  const photo = ['photo.jpg', 'image/jpeg', 10]
+  assert.equal((await upload(null, [photo])).status, 403)
+  assert.equal((await upload(cookies.platform, [photo])).status, 403, 'no store')
+  let refused = await upload(cookies.ownerA, [['notes.pdf', 'application/pdf', 10]])
+  assert.deepEqual([refused.status, refused.error], [400, 'notes.pdf: images and videos only.'])
+  refused = await upload(cookies.ownerA, [photo, ['big.png', 'image/png', 10 * 1024 * 1024 + 1]])
+  assert.deepEqual([refused.status, refused.error], [400, 'big.png: over 10 MB.'])
+  assert.equal((await upload(cookies.ownerA, [])).status, 400)
+  ok('media upload: refused signed out and without a store; only images (10 MB) and videos (100 MB), with the reason')
 
   console.log(`All ${step} admin checks passed\n`)
 }

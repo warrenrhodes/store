@@ -17,8 +17,8 @@ export default async function EditBlogPostPage(props: { params: Promise<{ blogId
   return (
     <div className="mx-auto w-full max-w-6xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold">Edit Blog Post</h1>
-        <p className="text-muted-foreground">Make changes to your blog post</p>
+        <h1 className="text-2xl font-semibold">Edit article</h1>
+        <p className="text-muted-foreground">{blog.data.title}</p>
       </div>
       <BlogForm initialData={blog} categories={categories} products={products} />
     </div>

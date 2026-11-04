@@ -38,6 +38,8 @@ interface DataTableProps<TData, TValue> {
   data: TData[]
   searchKey?: string
   searchPlaceholder?: string
+  /** Shown when there is nothing at all (not when a search finds nothing). */
+  emptyMessage?: string
   filterButton?: {
     label: string
     columnKey: string
@@ -51,6 +53,7 @@ export function DataTable<TData, TValue>({
   data,
   searchKey,
   searchPlaceholder,
+  emptyMessage,
   filterButton,
   initialFilters = [],
 }: DataTableProps<TData, TValue>) {
@@ -156,7 +159,7 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-32 text-center text-muted-foreground"
                 >
-                  No results.
+                  {data.length === 0 && emptyMessage ? emptyMessage : 'No results.'}
                 </TableCell>
               </TableRow>
             )}

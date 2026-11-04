@@ -6,8 +6,8 @@ export default async function NewProductPage() {
   return (
     <div className="mx-auto w-full max-w-6xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold">Create New Product</h1>
-        <p className="text-muted-foreground">Add a new product to your store</p>
+        <h1 className="text-2xl font-semibold">New product</h1>
+        <p className="text-muted-foreground">Add a product to your store</p>
       </div>
       <ProductFormV2 categories={categories} blogs={blogs} />
     </div>

@@ -148,6 +148,35 @@ module.exports = async function storeChecks({ db, STORE }) {
   assert.equal(again.body.orderPrices.total, 5000)
   ok('first order: -1 000 for a new phone only, not on its second order nor for a returning one')
 
+  // Ad page thank-you page: filled with the order, cleaned; only with the token, only its store's.
+  const placed = newcomer.body
+  const placedId = placed.path.split('/').pop()
+  const success = async (prefix, query) =>
+    (await fetch(`${STORE}${prefix}/order/success?${new URLSearchParams(query)}`)).text()
+  const query = { order: placedId, t: placed.trackingToken, ad: 'pub' }
+  for (const prefix of ['', '/boutique/nature-gift']) {
+    const thanks = await success(prefix, query)
+    assert.ok(thanks.includes('Merci Awa !'), prefix)
+    assert.ok(thanks.includes('Thé vert × 1 : 4'), 'product, quantity, total (welcome discount)')
+    assert.ok(thanks.includes(`commande ${placedId.slice(0, 8).toUpperCase()}`), 'order number')
+    assert.ok(thanks.includes(`/order/${placedId}?t=${placed.trackingToken}`), 'tracking link')
+    assert.ok(thanks.includes('{{nope}}') && thanks.includes('.ty{color:#222}'))
+    for (const bad of ['window.hacked', 'onerror', 'javascript:alert', 'evil.test']) {
+      assert.ok(!thanks.includes(bad), `${bad} removed`)
+    }
+  }
+  const custom = 'Merci Awa !'
+  assert.ok(!(await success('', { ...query, t: '0'.repeat(32) })).includes(custom), 'wrong token')
+  assert.ok(!(await success('/boutique/boutique-bertrand', query)).includes(custom), "B's site")
+  await db.doc('blogs/pub-b').set({ ...(await db.doc('blogs/pub').get()).data(), storeId: 'vendor-b', slug: 'pub-b' })
+  assert.ok(!(await success('', { ...query, ad: 'pub-b' })).includes(custom), "B's ad page")
+  // The ad page always hands its id to its order form (the confirmation decides), and never
+  // sends the thank-you page itself to the browser.
+  const adPage = await (await fetch(`${STORE}/blogs/test-pub`)).text()
+  assert.match(adPage, /adId\\?":\\?"pub\\?"/, 'ad id passed to the order form')
+  assert.ok(!adPage.includes('{{customerFirstName}}'), 'thank-you page not sent with the ad page')
+  ok("ad thank-you page: merge tags filled and escaped, scripts/handlers/forms removed, styles kept; wrong token, other store's site or ad page: the platform's confirmation")
+
   // Tracking page
   const id1 = o1.body.path.split('/').pop()
   const page = await fetch(`${STORE}/order/${id1}?t=${o1.body.trackingToken}`)

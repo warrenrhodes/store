@@ -26,9 +26,10 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onChange, onRemove, value }) 
       const body = new FormData()
       body.append('files', file)
       const res = await fetch('/api/media/upload', { method: 'POST', body })
-      const url = res.ok ? (await res.json()).data?.files?.[0]?.url : undefined
+      const json = await res.json().catch(() => null)
+      const url = res.ok ? json?.data?.files?.[0]?.url : undefined
       if (url) onChange(url)
-      else setError('Upload failed.')
+      else setError(json?.error ?? 'Upload failed.')
     } catch {
       setError('Upload failed.')
     } finally {

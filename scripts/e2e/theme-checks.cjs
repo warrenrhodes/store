@@ -256,6 +256,107 @@ module.exports = async function themeChecks({
       assert.equal(first[0], '22', 'loop restarted after its end date')
       await until(async () => (await shown()).join() !== first.join(), 'the timer ticks')
       ok('blog countdown: a loop past its end date starts a new 24 h cycle, with its label, and ticks')
+
+      // Blog cover (one image, already set): no drop zone, a Replace button; a new pick replaces it.
+      await tab.goto(`${ADMIN}/blogs/pub`)
+      const replace = tab.getByRole('button', { name: 'Replace image' })
+      await replace.waitFor()
+      assert.equal(await tab.getByText('Drag & drop').isVisible(), false, 'drop zone hidden when full')
+      await tab.locator('#fileInput').setInputFiles({
+        name: 'new.png',
+        mimeType: 'image/png',
+        buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64'),
+      })
+      await tab.getByText('new.png').waitFor()
+      assert.equal(await tab.getByRole('button', { name: 'Remove' }).count(), 1, 'replaced, not added')
+      assert.equal(await tab.getByText(/files allowed|at most/).count(), 0, 'no limit error')
+      assert.equal(new URL(tab.url()).pathname, '/blogs/pub', 'nothing submitted')
+      ok('blog cover: once set, the drop zone gives way to "Replace image"; a new pick replaces it, no limit error')
+
+      // The long forms' shared layout, on throwaway documents: sections show; Delete asks first;
+      // Save changes saves and goes back to the list; Delete deletes.
+      const copy = async (from, to, changes) =>
+        db.doc(to).set({ ...(await db.doc(from).get()).data(), ...changes })
+      const copied = (slug) => ({ slug, status: 'DRAFT', marketplaceListed: false, updatedAt: 'before' })
+      await copy('products/cafe', 'products/form-test', {
+        ...copied('form-test'),
+        // Below its alert threshold: an almost sold-out product can still be edited.
+        inventory: { quantity: 1, stockQuantity: 1, lowStockThreshold: 2 },
+        metadata: { seoTitle: 'T', seoDescription: 'D', keywords: ['k'] },
+      })
+      await copy('promotions/p-pub', 'promotions/p-form-test', {
+        status: 'DRAFT',
+        updatedAt: 'before',
+        code: 'FORM-TEST',
+        usageCount: 0,
+      })
+      await copy('blogs/pub', 'blogs/form-test', copied('form-test'))
+      for (const [path, list, sections, doc] of [
+        ['/products/form-test', '/products', ['Product', 'Images', 'Price', 'Stock', 'Publishing', 'Organization'], 'products/form-test'],
+        ['/promotions/p-form-test', '/promotions', ['Promotion', 'Conditions', 'Discount', 'Limits', 'Schedule'], 'promotions/p-form-test'],
+        ['/blogs/form-test', '/blogs', ['Article', 'Sales page', 'After the order', 'Publishing'], 'blogs/form-test'],
+      ]) {
+        await tab.goto(ADMIN + path)
+        for (const title of sections) await tab.getByText(title, { exact: true }).first().waitFor()
+        assert.equal(await tab.getByRole('button', { name: 'Upload', exact: true }).isVisible(), false, 'nothing to upload')
+        if (doc.startsWith('promotions/')) {
+          // A code promotion needs no condition (this one has none) to get its discount.
+          const addAction = tab.getByRole('button', { name: 'Add Action' })
+          assert.ok(await addAction.isEnabled(), 'code promotion: Add Action enabled')
+          await tab.getByRole('combobox').filter({ hasText: 'Discount code' }).click()
+          await tab.getByRole('option', { name: /^Automatic/ }).click()
+          assert.ok(await addAction.isDisabled(), 'automatic without a condition: Add Action disabled')
+          await tab.getByRole('combobox').filter({ hasText: 'Automatic' }).click()
+          await tab.getByRole('option', { name: /^Discount code/ }).click()
+        }
+        const askDelete = async () => {
+          await tab.getByRole('button', { name: 'Delete' }).click()
+          const dialog = tab.getByRole('alertdialog')
+          await dialog.waitFor()
+          return dialog
+        }
+        await (await askDelete()).getByRole('button', { name: 'Cancel' }).click()
+        assert.ok((await db.doc(doc).get()).exists, `${doc}: Cancel keeps it`)
+        await tab.getByRole('button', { name: 'Save changes' }).click()
+        await tab.waitForURL(`**${list}`, { timeout: 15000 }).catch(async () => {
+          throw new Error(`${path} not saved: ${await tab.locator('[role=status], li[role=status]').allInnerTexts()}`)
+        })
+        await until(async () => (await db.doc(doc).get()).get('updatedAt') !== 'before', `${doc} saved`)
+        await tab.goto(ADMIN + path)
+        await (await askDelete()).getByRole('button', { name: 'Delete' }).click()
+        await until(async () => !(await db.doc(doc).get()).exists, `${doc} deleted`)
+        await tab.waitForURL(`**${list}`)
+      }
+      ok('blog, product and promotion forms: sections show, Save changes saves and goes back to the list (also a product below its alert threshold), Delete asks first (Cancel keeps it) then deletes; a code promotion takes a discount without a condition, an automatic one needs a condition first')
+
+      // The account menu: one row in the sidebar, its links only once opened.
+      const accountMenu = async (page, url) => {
+        await page.goto(url)
+        const links = page.getByRole('menuitem')
+        assert.equal(await links.count(), 0, 'closed by default')
+        await page.getByRole('button', { name: 'Account menu' }).click()
+        await links.first().waitFor()
+        return links
+      }
+      const ownerMenu = await accountMenu(tab, `${ADMIN}/products`)
+      assert.deepEqual(await ownerMenu.allInnerTexts(), ['View my store', 'Copy store link', 'Sign in'])
+      assert.match(await ownerMenu.first().getAttribute('href'), /\/boutique\/ngift/)
+      const adminContext = await browser.newContext()
+      await adminContext.addCookies(
+        (await signIn('platform@test.cm')).split('; ').map(c => {
+          const i = c.indexOf('=')
+          return { name: c.slice(0, i), value: c.slice(i + 1), url: ADMIN }
+        }),
+      )
+      const adminTab = await adminContext.newPage()
+      const consoleMenu = await accountMenu(adminTab, `${ADMIN}/platform`)
+      assert.deepEqual(await consoleMenu.allInnerTexts(), ['Store dashboard', 'Sign in'])
+      assert.equal(await consoleMenu.first().getAttribute('href'), '/')
+      const dashboardMenu = await accountMenu(adminTab, `${ADMIN}/products`)
+      assert.deepEqual(await dashboardMenu.allInnerTexts(), ['Platform console', 'Sign in'])
+      assert.equal(await dashboardMenu.first().getAttribute('href'), '/platform')
+      await adminContext.close()
+      ok('account menu: closed by default; store links for an owner, the way between the store dashboard and the console for a platform admin')
     } finally {
       await browser.close()
     }

@@ -1,103 +1,77 @@
 'use client'
 
-import { ArrowUpDown, Edit } from 'lucide-react'
+import { Edit } from 'lucide-react'
 import Link from 'next/link'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { IPromotion } from '@/lib/actions/server'
-import { PromotionStatus } from '@/lib/firebase/models'
-import { cn } from '@/lib/utils'
-import { toDate } from '@/lib/utils/utils'
+import { priceFormatted } from '@/lib/utils/utils'
+import { discountLabel, promotionState } from '@ngift/core/promotion-summary'
 import { getDocumentId } from '@spreeloop/database'
 import { ColumnDef } from '@tanstack/react-table'
 import Delete from '../custom-ui/Delete'
+import { shortDate, SortHeader, StatusBadge } from '../custom-ui/ListParts'
 
 export const promotionsColumns: ColumnDef<IPromotion>[] = [
   {
-    accessorKey: 'code',
-    accessorFn: row => row.data.code,
-    header: 'Code',
-    cell: ({ row }) => (
-      <div className="space-y-1">
-        <div className="font-mono leading-none">{row.original.data.code}</div>
-        <Badge variant="outline" className="text-[10px] font-normal">
-          {row.original.data.requiresCode ? 'Code' : 'Automatic'}
-        </Badge>
-      </div>
-    ),
-  },
-  {
     accessorKey: 'name',
     accessorFn: row => row.data.name,
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Name
-          <ArrowUpDown />
-        </Button>
-      )
-    },
+    header: ({ column }) => <SortHeader column={column} label="Promotion" />,
     cell: ({ row }) => (
-      <div>
-        <div className="font-medium">{row.original.data.name}</div>
+      <Link href={`/promotions/${getDocumentId(row.original.path)}`} className="group block">
+        <span className="line-clamp-1 font-medium group-hover:underline">
+          {row.original.data.name}
+        </span>
         {row.original.data.description && (
-          <div className="text-sm text-muted-foreground truncate max-w-[300px]">
+          <span className="line-clamp-1 max-w-[300px] text-xs text-muted-foreground">
             {row.original.data.description}
-          </div>
+          </span>
         )}
-      </div>
+      </Link>
     ),
   },
   {
-    accessorKey: 'period',
-    header: 'Period',
+    accessorKey: 'code',
+    accessorFn: row => row.data.code,
+    header: 'Applies',
+    cell: ({ row }) =>
+      row.original.data.requiresCode ? (
+        <Badge variant="outline" className="font-mono font-medium">
+          {row.original.data.code}
+        </Badge>
+      ) : (
+        <span className="text-sm text-muted-foreground">Automatic</span>
+      ),
+  },
+  {
+    id: 'discount',
+    header: 'Discount',
     cell: ({ row }) => (
-      <div className="text-sm">
-        <div>{toDate(row.original.data.startDate)?.toLocaleDateString('en-GB') ?? '—'}</div>
-        <div className="text-muted-foreground">
-          to {toDate(row.original.data.endDate)?.toLocaleDateString('en-GB') ?? '—'}
-        </div>
-      </div>
+      <span className="whitespace-nowrap font-medium tabular-nums">
+        {discountLabel(row.original.data.actions, priceFormatted)}
+      </span>
     ),
   },
   {
     accessorKey: 'status',
-    accessorFn: row => row.data.status,
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Status
-          <ArrowUpDown />
-        </Button>
-      )
-    },
-    cell: ({ row }) => {
-      return (
-        <div>
-          <Badge
-            className={cn({
-              'bg-emerald-100 text-emerald-900 hover:bg-emerald-100':
-                row.original.data.status !== PromotionStatus.ACTIVE,
-              'bg-sky-100 text-sky-900 hover:bg-sky-100':
-                row.original.data.status === PromotionStatus.DRAFT,
-              'bg-red-100 text-red-900 hover:bg-red-100':
-                row.original.data.status === PromotionStatus.EXPIRED,
-              'bg-muted text-muted-foreground hover:bg-muted':
-                row.original.data.status === PromotionStatus.DISABLED,
-            })}
-          >
-            {row.original.data.status}
-          </Badge>
-        </div>
-      )
-    },
+    // Its real state: an active promotion past its end date reads Expired.
+    accessorFn: row => promotionState(row.data),
+    header: ({ column }) => <SortHeader column={column} label="Status" />,
+    cell: ({ row }) => <StatusBadge status={promotionState(row.original.data)} />,
+  },
+  {
+    accessorKey: 'period',
+    accessorFn: row => row.data.endDate,
+    header: ({ column }) => <SortHeader column={column} label="Period" />,
+    cell: ({ row }) => (
+      <span className="block whitespace-nowrap text-sm">
+        {shortDate(row.original.data.startDate)}
+        <span className="block text-xs text-muted-foreground">
+          to {shortDate(row.original.data.endDate)}
+        </span>
+      </span>
+    ),
   },
   {
     id: 'usage',
@@ -113,12 +87,6 @@ export const promotionsColumns: ColumnDef<IPromotion>[] = [
     },
   },
   {
-    accessorKey: 'priority',
-    accessorFn: row => row.data.priority,
-    header: 'Priority',
-    cell: ({ row }) => <div className="font-medium">{row.original.data.priority}</div>,
-  },
-  {
     id: 'actions',
     enableHiding: false,
     cell: ({ row }) => {
@@ -131,12 +99,12 @@ export const promotionsColumns: ColumnDef<IPromotion>[] = [
 
       return (
         <div className="flex items-center justify-end gap-1">
-          <Button asChild variant="ghost" size="icon" aria-label="Edit">
+          <Button asChild variant="ghost" size="icon" aria-label="Edit" title="Edit">
             <Link href={`/promotions/${getDocumentId(row.original.path)}`}>
               <Edit className="h-4 w-4" />
             </Link>
           </Button>
-          <Delete item="promotions" handleDelete={onDelete} />
+          <Delete handleDelete={onDelete} />
         </div>
       )
     },

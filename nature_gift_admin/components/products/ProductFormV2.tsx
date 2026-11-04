@@ -2,7 +2,7 @@
 
 import { useStorefront } from '@/components/layout/Storefront'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2, Trash2, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -28,13 +28,11 @@ import { useToast } from '@/hooks/use-toast'
 import { createProduct, deleteProduct, updateProduct } from '@/lib/actions/products.actions'
 import { IBlog, ICategory, IProduct } from '@/lib/actions/server'
 import { Media, MediaType, ProductStatus } from '@/lib/firebase/models'
-import { cn } from '@/lib/utils'
 import { getDocumentId } from '@spreeloop/database'
-import CustomAccordion from '../accordion/CustomAccordion'
 import { ContentEditor } from '../custom-ui/ContentEditor'
 import { FileUploader } from '../custom-ui/FileUploader'
+import { FormActionBar, FormColumns, FormSection, SwitchField } from '../custom-ui/FormLayout'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
-import { Switch } from '../ui/switch'
 import { ToastAction } from '../ui/toast'
 import { CategoriesForm } from './product-form.tsx/Categories'
 import { FeaturesForm } from './product-form.tsx/Features'
@@ -174,208 +172,182 @@ export function ProductFormV2({ initialData, categories, blogs }: ProductFormPro
     }
   }
 
+  const slug = form.watch('slug')
+
   return (
     <Form {...form}>
-      <div className="space-y-8">
-        <div className="md:grid sm:grid-cols-2 gap-8">
+      <FormColumns
+        side={
+          <>
+            <FormSection title="Publishing">
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value={ProductStatus.DRAFT}>Draft</SelectItem>
+                        <SelectItem value={ProductStatus.PUBLISHED}>Published</SelectItem>
+                        <SelectItem value={ProductStatus.ARCHIVED}>Archived</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <SwitchField control={form.control} name="visibility" label="Visible" />
+              <SwitchField
+                control={form.control}
+                name="isFeature"
+                label="Featured"
+                hint="In your featured products"
+              />
+              <SwitchField
+                control={form.control}
+                name="isNewProduct"
+                label="New"
+                hint="In your new arrivals"
+              />
+            </FormSection>
+
+            <FormSection title="Organization">
+              {categories && <CategoriesForm form={form} categories={categories} />}
+              <VariantFields form={form} />
+            </FormSection>
+
+            {blogs && blogs.length > 0 && slug && (
+              <FormSection title="Linked article">
+                <FormField
+                  control={form.control}
+                  name="blogUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex items-center gap-2">
+                        <Select onValueChange={field.onChange} value={field.value ?? undefined}>
+                          <FormControl>
+                            <SelectTrigger aria-label="Linked article">
+                              <SelectValue placeholder="No article" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {blogs.map(e => (
+                              <SelectItem
+                                value={`${storefront.url}/blogs/${e.data.slug}`}
+                                key={`blogs: ${e.data.slug}`}
+                              >
+                                {e.data.title}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {field.value && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            aria-label="No article"
+                            onClick={() => field.onChange(null)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </FormSection>
+            )}
+          </>
+        }
+      >
+        <FormSection title="Product" description="What customers see on the product page.">
           <FormField
             control={form.control}
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Product Title</FormLabel>
+                <FormLabel>Title</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
                     onKeyDown={handleKeyPress}
                     onChange={onTitleChange}
-                    placeholder="Product Title"
+                    placeholder="Café Ginseng"
+                    className="h-11 text-base"
                   />
                 </FormControl>
+                {slug && (
+                  <p className="truncate text-xs text-muted-foreground">
+                    Address: <span className="font-mono">/shop/{slug}</span>
+                  </p>
+                )}
                 <FormMessage />
               </FormItem>
             )}
           />
+          <ContentEditor
+            label="Description"
+            form={form}
+            contentTypeFieldKey="description.contentType"
+            contentFieldKey="description.content"
+          />
+        </FormSection>
+
+        <FormSection title="Images" description="The first image is the one shown in the lists.">
           <FormField
             control={form.control}
-            name="slug"
-            render={() => (
+            name="medias"
+            render={({ field }) => (
               <FormItem>
-                <FormLabel>Product Slug</FormLabel>
-                <FormControl>
-                  <Input
-                    {...form.register('slug')}
-                    onKeyDown={handleKeyPress}
-                    placeholder="product-slug"
-                    disabled
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <div className="md:grid sm:grid-cols-2 gap-8">
-          <FormField
-            control={form.control}
-            name="isFeature"
-            render={({ field }) => (
-              <FormItem className="space-y-0 flex gap-3 items-center">
-                <FormLabel className="!mt-0">Is Feature</FormLabel>
-                <FormControl>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="isNewProduct"
-            render={({ field }) => (
-              <FormItem className="space-y-0 flex gap-3 items-center">
-                <FormLabel className="!mt-0">Is New</FormLabel>
-                <FormControl>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <ContentEditor
-          label="Product Description*"
-          form={form}
-          contentTypeFieldKey="description.contentType"
-          contentFieldKey="description.content"
-        />
-
-        <PriceFields form={form} />
-
-        <InventoryFields form={form} />
-        <FormField
-          control={form.control}
-          name="medias"
-          render={({ field }) => (
-            <FormItem>
-              <CustomAccordion title="Product Images*">
                 <FileUploader
                   medias={field.value ? field.value : []}
                   setContent={(value: Media[]) => field.onChange(value)}
                   fileType={MediaType.IMAGE}
                   maxFiles={5}
                 />
-              </CustomAccordion>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="status"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Status</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value={ProductStatus.DRAFT}>Draft</SelectItem>
-                  <SelectItem value={ProductStatus.PUBLISHED}>Published</SelectItem>
-                  <SelectItem value={ProductStatus.ARCHIVED}>Archived</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="visibility"
-          render={({ field }) => (
-            <FormItem className="space-y-0 flex gap-3 items-center">
-              <FormLabel className="!mt-0">Visibility</FormLabel>
-              <FormControl>
-                <Switch checked={field.value} onCheckedChange={field.onChange} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FeaturesForm form={form} />
-
-        <div className="md:grid sm:grid-cols-2 gap-8">
-          {categories && <CategoriesForm form={form} categories={categories} />}
-          <VariantFields form={form} />
-        </div>
-
-        <MetadataFields form={form} />
-        {blogs && blogs.length > 0 && form.watch('slug') && (
-          <FormField
-            control={form.control}
-            name="blogUrl"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="!mt-0">Blog Url</FormLabel>
-                <FormControl>
-                  <div className="flex gap-2 items-center">
-                    <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select blog url" unselectable="on" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent unselectable="on">
-                        {blogs.map(e => (
-                          <SelectItem
-                            value={`${storefront.url}/blogs/${e.data.slug}`}
-                            key={`blogs: ${e.data.slug}`}
-                          >
-                            {e.data.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <X
-                      size={20}
-                      className={cn(
-                        {
-                          hidden: !field.value,
-                        },
-                        'text-red-500 cursor-pointer',
-                      )}
-                      onClick={() => field.onChange(null)}
-                    />
-                  </div>
-                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-        )}
+        </FormSection>
 
-        <div className="flex justify-between">
-          <Button disabled={isLoading} onClick={() => onSubmit(form.getValues())}>
-            {isLoading && <Loader2 className="animate-spin" />}
-            {initialData ? 'Update' : 'Create'} Product
-          </Button>
-          {initialData && (
-            <Button
-              type="button"
-              variant="destructive"
-              disabled={isLoading}
-              onClick={() => onDelete()}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Delete Product
-            </Button>
-          )}
-        </div>
-      </div>
+        <FormSection title="Price">
+          <PriceFields form={form} />
+        </FormSection>
+
+        <FormSection title="Stock">
+          <InventoryFields form={form} />
+        </FormSection>
+
+        <FormSection title="Features" description="Benefits listed on the product page.">
+          <FeaturesForm form={form} />
+        </FormSection>
+
+        <FormSection
+          title="Search engines"
+          description="How the product appears on Google and when shared."
+        >
+          <MetadataFields form={form} />
+        </FormSection>
+      </FormColumns>
+
+      <FormActionBar
+        isLoading={isLoading}
+        submitLabel={initialData ? 'Save changes' : 'Create product'}
+        cancelHref="/products"
+        onSubmit={() => onSubmit(form.getValues())}
+        onDelete={initialData ? onDelete : undefined}
+        deleteTitle="Delete this product?"
+        deleteWarning="It disappears from your store. Past orders keep their copy. This can't be undone."
+      />
     </Form>
   )
 }

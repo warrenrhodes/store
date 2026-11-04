@@ -81,8 +81,13 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         }
       }
 
+      // A single-file field: the new file replaces the current one.
+      if (maxFiles === 1) {
+        setFiles(acceptedFiles.slice(0, 1))
+        return
+      }
       if (files.length + acceptedFiles.length > maxFiles) {
-        setError(`Maximum ${maxFiles} files allowed`)
+        setError(`${maxFiles - files.length} more file(s) at most (${maxFiles} in all).`)
         return
       }
 
@@ -91,7 +96,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     [files.length, maxFiles, maxFileSize, validateFile],
   )
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const full = files.length >= maxFiles
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
     accept:
       fileType === MediaType.VIDEO
@@ -100,8 +106,9 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
           }
         : { 'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp'] },
     maxSize: maxFileSize,
-    multiple: multiple, // Use the multiple prop to determine if multiple files can be selected
+    multiple: multiple && maxFiles > 1,
   })
+  const kind = fileType === MediaType.VIDEO ? 'video' : 'image'
 
   const removeFile = (index: number) => {
     setFiles(files.filter((_, i) => i !== index))
@@ -146,6 +153,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             {file.name}
           </div>
           <button
+            type="button"
+            aria-label="Remove"
             onClick={e => {
               e.stopPropagation()
               removeFile(index)
@@ -173,6 +182,9 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
       const data = await result.json()
       return data.data.files
     }
+    // The server's reason (wrong type, too large) when it gives one.
+    const reason = (await result.json().catch(() => null))?.error
+    if (reason) setError(reason)
     return null
   }
 
@@ -191,12 +203,12 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         existingFiles.push(...result)
         setIsLoading(false)
         toast({ description: 'File uploaded successfully!' })
+        setFiles(existingFiles)
         setContent(existingFiles)
         return
       }
-      setError(null)
       setIsLoading(false)
-      toast({ description: 'Failed to upload file' })
+      toast({ variant: 'destructive', description: 'Failed to upload file' })
     } catch (err) {
       console.log(err)
       setIsLoading(false)
@@ -206,9 +218,10 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 
   return (
     <div className="w-full">
-      <div className="bg-white shadow-lg p-6">
+      <div>
         <div
           {...getRootProps()}
+          hidden={full}
           className={`relative rounded-lg border-2 border-dashed transition-colors
               ${isDragActive ? 'border-primary bg-primary/5' : 'border-gray-300'}
               ${error ? 'border-red-500' : ''}
@@ -234,25 +247,38 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
               )}
             </p>
             <p className="text-sm text-gray-500 mt-2">
-              Maximum {maxFiles} files, up to {maxFileSize / (1024 * 1024)}MB each
+              {maxFiles === 1 ? `One ${kind}` : `Up to ${maxFiles} files`}, {maxFileSize / (1024 * 1024)}
+              MB max{maxFiles === 1 ? '' : ' each'}
             </p>
           </div>
         </div>
+        {full && maxFiles > 1 && (
+          <p className="text-sm text-muted-foreground">
+            {maxFiles} files at most: remove one to add another.
+          </p>
+        )}
 
         {error && <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">{error}</div>}
 
         {files.length > 0 && (
-          <div className="mt-6 bg-gray-50 rounded-lg p-4">
+          <div className={`${full ? '' : 'mt-6 '}bg-gray-50 rounded-lg p-4`}>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {files.map((file, index) => renderPreview(file, index))}
             </div>
+            {full && maxFiles === 1 && (
+              <Button type="button" variant="outline" size="sm" className="mt-4" onClick={open}>
+                Replace {kind}
+              </Button>
+            )}
           </div>
         )}
 
-        <div className="mt-6 border-t border-gray-200 pt-6 flex gap-4">
+        <div className={`mt-4 gap-3 ${files.some(f => f instanceof File) ? 'flex' : 'hidden'}`}>
           <Button
+            type="button"
             onClick={() => {
-              setFiles([])
+              // Back to the saved files: drops the picks not uploaded yet.
+              setFiles(medias)
               setError(null)
             }}
             variant="outline"
@@ -262,6 +288,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             Cancel
           </Button>
           <Button
+            type="button"
             onClick={handleImport}
             className="flex-1 bg-primary hover:bg-primary/90 rounded-md"
             disabled={isLoading || files.length === 0}
@@ -272,7 +299,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 Uploading...
               </>
             ) : (
-              'Save Data'
+              'Upload'
             )}
           </Button>
         </div>
@@ -299,6 +326,8 @@ const ImageRender = ({ mediaUrl, removeFile }: { mediaUrl: string; removeFile: (
         )}
       </div>
       <button
+        type="button"
+        aria-label="Remove"
         onClick={e => {
           e.stopPropagation()
           removeFile()

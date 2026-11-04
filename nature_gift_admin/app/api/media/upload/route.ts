@@ -1,41 +1,63 @@
 import { normalizeFileName } from '@/lib/utils/normalize_file_name'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import cloudinary from '@/lib/cloudinary'
 import { v4 as uuidv4 } from 'uuid'
-import { getUserTokensOnApiRoute } from '@/lib/actions/server'
+import { randomBytes } from 'node:crypto'
+import { requireStore } from '@/lib/tenant'
 import { Media, MediaType } from '@/lib/firebase/models'
 
-export async function POST(request: NextRequest) {
-  try {
-    const token = await getUserTokensOnApiRoute(request)
+const MB = 1024 * 1024
+/** Images and videos only, each under its size limit. */
+const LIMITS = { image: 10 * MB, video: 100 * MB }
+const MAX_FILES = 10
 
-    if (!token) {
-      return new NextResponse('Unauthorized', { status: 403 })
+const kindOf = (file: File) =>
+  file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : null
+
+/**
+ * Uploads to the platform's Cloudinary, for members of a store only, into the store's folder
+ * (stores/<storeId>). Each file gets its own id (name + random suffix): never overwrites another.
+ */
+export async function POST(request: Request) {
+  const ctx = await requireStore().catch(() => null)
+  if (!ctx) return new NextResponse('Unauthorized', { status: 403 })
+
+  const files = (await request.formData()).getAll('files')
+  if (files.length === 0 || files.length > MAX_FILES || !files.every(f => f instanceof File)) {
+    return NextResponse.json({ error: `Send 1 to ${MAX_FILES} files.` }, { status: 400 })
+  }
+  for (const file of files as File[]) {
+    const kind = kindOf(file)
+    if (!kind) {
+      return NextResponse.json({ error: `${file.name}: images and videos only.` }, { status: 400 })
     }
+    if (file.size > LIMITS[kind]) {
+      return NextResponse.json(
+        { error: `${file.name}: over ${LIMITS[kind] / MB} MB.` },
+        { status: 400 },
+      )
+    }
+  }
 
-    const formData = await request.formData()
-    const uploadSource = request.headers.get('X-Upload-Source')
-    const files = formData.getAll('files')
-
-    if (!files)
-      NextResponse.json({ error: 'Internal error. Files image are empty' }, { status: 500 })
-
+  try {
     const responses = await Promise.all(
-      files.map(async (file: any) => {
+      (files as File[]).map(async file => {
         const buffer = Buffer.from(await file.arrayBuffer())
         const fileName = normalizeFileName(file.name)
+        const base = fileName.replace(/\.[^.]*$/, '').slice(0, 80) || 'media'
+        const kind = kindOf(file)!
 
-        // Upload to Cloudinary
-        const uploadResponse = await new Promise(async (resolve, reject) => {
+        const uploadResponse = await new Promise<{ secure_url: string }>((resolve, reject) => {
           cloudinary.uploader
             .upload_stream(
               {
-                folder: `users/${token.decodedToken.uid}`,
-                public_id: fileName.split('.')[0], // Remove extension from public_id
-                resource_type: 'auto',
+                folder: `stores/${ctx.storeId}`,
+                public_id: `${base}-${randomBytes(4).toString('hex')}`,
+                overwrite: false,
+                resource_type: kind,
               },
               (error, result) => {
-                if (error) {
+                if (error || !result) {
                   console.error('Cloudinary upload error:', error)
                   reject(error)
                 } else {
@@ -45,17 +67,14 @@ export async function POST(request: NextRequest) {
             )
             .end(buffer)
         })
-        const cloudinaryResponse = uploadResponse as any
-        const mediaUrl = cloudinaryResponse.secure_url
+        const mediaUrl = uploadResponse.secure_url
 
         // Generate blur data URL for images
         const { getPlaiceholder } = await import('plaiceholder')
-        const { base64 } = !file.type.startsWith('image/')
-          ? { base64: null }
-          : await getPlaiceholder(buffer)
+        const { base64 } = kind === 'image' ? await getPlaiceholder(buffer) : { base64: null }
 
         const media: Media = {
-          type: file.type.startsWith('image/') ? MediaType.IMAGE : MediaType.VIDEO,
+          type: kind === 'image' ? MediaType.IMAGE : MediaType.VIDEO,
           fileName: fileName,
           url: mediaUrl,
           blurDataUrl: base64,
@@ -64,6 +83,7 @@ export async function POST(request: NextRequest) {
       }),
     )
 
+    const uploadSource = request.headers.get('X-Upload-Source')
     if (uploadSource === 'froala-editor') {
       return NextResponse.json({
         link: responses[0].url,

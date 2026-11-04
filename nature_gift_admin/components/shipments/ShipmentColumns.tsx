@@ -60,7 +60,7 @@ export const getShipmentColumns = (names: Map<string, string>): ColumnDef<IShipm
                 <Edit className="h-4 w-4" />
               </Link>
             </Button>
-            <Delete item="shipments" handleDelete={onDelete} />
+            <Delete handleDelete={onDelete} />
           </div>
         )
       },

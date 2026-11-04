@@ -30,12 +30,15 @@ const AdsBlogDetail = ({
   associateProduct,
   relatedBlogs,
   freeShippingAreas = null,
+  adId,
 }: {
   blog: Blog
   shipments: ShippingZone[]
   associateProduct?: Product
   relatedBlogs: Blog[]
   freeShippingAreas?: string[] | null
+  /** This page's blog id: the confirmation shows its thank-you page, if it has one. */
+  adId?: string
 }) => {
   const { localization, formatDate } = useLocalization()
   const metadata = blog.metadata
@@ -153,7 +156,7 @@ const AdsBlogDetail = ({
         </Button>
       )}
       {cartItem && !soldOut && <FreeShippingBadge areas={freeShippingAreas} />}
-      {cartItem && !soldOut && <AdsForm shipments={shipments} items={[cartItem]} />}
+      {cartItem && !soldOut && <AdsForm shipments={shipments} items={[cartItem]} adId={adId} />}
       {cartItem && !soldOut && (
         <motion.footer
           className={cn(

@@ -3,7 +3,7 @@
 import { useStorefront } from '@/components/layout/Storefront'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { addDays, endOfDay, format, subDays } from 'date-fns'
-import { CalendarIcon, Copy, Link2, Loader2, Trash2 } from 'lucide-react'
+import { CalendarIcon, Copy, Link2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -39,6 +39,7 @@ import {
   validatePromotionFrom,
 } from '@/lib/validations/promotions'
 import { getDocumentId } from '@spreeloop/database'
+import { FormActionBar, FormColumns, FormSection } from '../custom-ui/FormLayout'
 import { ToastAction } from '../ui/toast'
 import { ActionFields } from './promotionForm/ActionFields'
 import { ConditionFields } from './promotionForm/ConditionFields'
@@ -159,148 +160,232 @@ export function PromotionFormV2({
     }
   }
 
+  const onDelete = async () => {
+    if (!initialData) return
+    setIsLoading(true)
+    try {
+      await fetch(`/api/promotions/${getDocumentId(initialData.path || '')}`, {
+        method: 'DELETE',
+      })
+      router.replace('/promotions') // list page is dynamic; refresh would re-request this page
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <Form {...form}>
-      <div className="space-y-8">
-        <div className="grid gap-4 sm:grid-cols-2">
+      <FormColumns
+        side={
+          <>
+            <FormSection title="Publishing">
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="DRAFT">Draft</SelectItem>
+                        <SelectItem value="ACTIVE">Active</SelectItem>
+                        <SelectItem value="DISABLED">Disabled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="priority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Priority</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={e => {
+                          const value = e.target.value
+                          if (/^\d*$/.test(value)) {
+                            const parsedValue = value ? parseInt(value) : 0
+                            field.onChange(parsedValue)
+                          }
+                        }}
+                        onKeyDown={e => {
+                          if (
+                            !/\d/.test(e.key) &&
+                            e.key !== 'Backspace' &&
+                            e.key !== 'Delete' &&
+                            e.key !== 'ArrowLeft' &&
+                            e.key !== 'ArrowRight'
+                          ) {
+                            e.preventDefault()
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground">
+                      The highest applies first when several match.
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormSection>
+
+            <FormSection title="Schedule">
+              <FormField
+                control={form.control}
+                name="startDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Start date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              'w-full pl-3 text-left font-normal',
+                              !field.value && 'text-muted-foreground',
+                            )}
+                          >
+                            {toDate(field.value) ? (
+                              format(toDate(field.value)!, 'PPP')
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={toDate(field.value)}
+                          onSelect={date => field.onChange(date?.toISOString())}
+                          disabled={date => date < subDays(new Date(), 1)}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="endDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>End date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              'w-full pl-3 text-left font-normal',
+                              !field.value && 'text-muted-foreground',
+                            )}
+                          >
+                            {toDate(field.value) ? (
+                              format(toDate(field.value)!, 'PPP')
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={toDate(field.value)}
+                          onSelect={date => field.onChange(date && endOfDay(date).toISOString())}
+                          disabled={date =>
+                            date < (toDate(form.getValues('startDate')) ?? new Date(0))
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormSection>
+          </>
+        }
+      >
+        <FormSection title="Promotion" description="Its name and how customers read it.">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="Offre de bienvenue"
+                      onChange={onTitleChange}
+                      onKeyDown={handleKeyPress}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="code"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Code</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="PUB-CAFE"
+                      className="uppercase"
+                      onChange={e => {
+                        setCodeEdited(true)
+                        field.onChange(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, ''))
+                      }}
+                      onKeyDown={handleKeyPress}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
           <FormField
             control={form.control}
-            name="name"
+            name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Name</FormLabel>
+                <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Input
-                    {...field}
-                    placeholder="Summer Sale 2024"
-                    onChange={onTitleChange}
-                    onKeyDown={handleKeyPress}
-                  />
+                  <Textarea {...field} value={field.value || ''} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="code"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Promotion Code</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    placeholder="PUB-CAFE"
-                    className="uppercase"
-                    onChange={e => {
-                      setCodeEdited(true)
-                      field.onChange(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, ''))
-                    }}
-                    onKeyDown={handleKeyPress}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea {...field} value={field.value || ''} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        </FormSection>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="startDate"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Start Date</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          'w-full pl-3 text-left font-normal',
-                          !field.value && 'text-muted-foreground',
-                        )}
-                      >
-                        {toDate(field.value) ? (
-                          format(toDate(field.value)!, 'PPP')
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={toDate(field.value)}
-                      onSelect={date => field.onChange(date?.toISOString())}
-                      disabled={date => date < subDays(new Date(), 1)}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="endDate"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>End Date</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          'w-full pl-3 text-left font-normal',
-                          !field.value && 'text-muted-foreground',
-                        )}
-                      >
-                        {toDate(field.value) ? (
-                          format(toDate(field.value)!, 'PPP')
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={toDate(field.value)}
-                      onSelect={date => field.onChange(date && endOfDay(date).toISOString())}
-                      disabled={date => date < (toDate(form.getValues('startDate')) ?? new Date(0))}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
+        <FormSection title="How it applies" description="On its own, or with a code.">
           <FormField
             control={form.control}
             name="requiresCode"
@@ -356,154 +441,83 @@ export function PromotionFormV2({
               </p>
             </div>
           )}
-        </div>
+        </FormSection>
 
-        <ConditionFields
-          form={form}
-          products={products}
-          locations={locations}
-          cities={cities}
-          categories={categories}
-        />
-        <ActionFields form={form} products={products} />
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="usageLimit.total"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Total uses (optional)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    min={1}
-                    placeholder="Unlimited"
-                    value={field.value ?? ''}
-                    onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                    onKeyDown={handleKeyPress}
-                  />
-                </FormControl>
-                {initialData && (
-                  <p className="text-xs text-muted-foreground">Used {usageCount} time(s) so far</p>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
+        <FormSection title="Conditions" description="All of them must be met for it to apply.">
+          <ConditionFields
+            form={form}
+            products={products}
+            locations={locations}
+            cities={cities}
+            categories={categories}
           />
-          <FormField
-            control={form.control}
-            name="usageLimit.perCustomer"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Uses per customer (optional)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    min={1}
-                    placeholder="Unlimited"
-                    value={field.value ?? ''}
-                    onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                    onKeyDown={handleKeyPress}
-                  />
-                </FormControl>
-                <p className="text-xs text-muted-foreground">Counted per phone number</p>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        </FormSection>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+        <FormSection title="Discount" description="What the customer gets.">
+          <ActionFields form={form} products={products} />
+        </FormSection>
+
+        <FormSection title="Limits">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="usageLimit.total"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Total uses (optional)</FormLabel>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
+                    <Input
+                      type="number"
+                      min={1}
+                      placeholder="Unlimited"
+                      value={field.value ?? ''}
+                      onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                      onKeyDown={handleKeyPress}
+                    />
                   </FormControl>
-                  <SelectContent>
-                    <SelectItem value="DRAFT">Draft</SelectItem>
-                    <SelectItem value="ACTIVE">Active</SelectItem>
-                    <SelectItem value="DISABLED">Disabled</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  {initialData && (
+                    <p className="text-xs text-muted-foreground">
+                      Used {usageCount} time(s) so far
+                    </p>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="usageLimit.perCustomer"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Uses per customer (optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={1}
+                      placeholder="Unlimited"
+                      value={field.value ?? ''}
+                      onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                      onKeyDown={handleKeyPress}
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">Counted per phone number</p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </FormSection>
+      </FormColumns>
 
-          <FormField
-            control={form.control}
-            name="priority"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Priority</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    {...field}
-                    onChange={e => {
-                      const value = e.target.value
-                      if (/^\d*$/.test(value)) {
-                        const parsedValue = value ? parseInt(value) : 0
-                        field.onChange(parsedValue)
-                      }
-                    }}
-                    onKeyDown={e => {
-                      if (
-                        !/\d/.test(e.key) &&
-                        e.key !== 'Backspace' &&
-                        e.key !== 'Delete' &&
-                        e.key !== 'ArrowLeft' &&
-                        e.key !== 'ArrowRight'
-                      ) {
-                        e.preventDefault()
-                      }
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="flex justify-between">
-          <Button disabled={isLoading} onClick={() => onSubmit(form.getValues())}>
-            {isLoading && <Loader2 className="animate-spin" />}
-            {initialData ? 'Update' : 'Create'} Promotion
-          </Button>
-          {initialData && (
-            <Button
-              type="button"
-              variant="destructive"
-              disabled={isLoading}
-              onClick={async () => {
-                setIsLoading(true)
-                try {
-                  await fetch(`/api/promotions/${getDocumentId(initialData.path || '')}`, {
-                    method: 'DELETE',
-                  })
-                  router.replace('/promotions') // list page is dynamic; refresh would re-request this page
-                } catch (error) {
-                  console.error(error)
-                } finally {
-                  setIsLoading(false)
-                }
-              }}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Delete Promotion
-            </Button>
-          )}
-        </div>
-      </div>
+      <FormActionBar
+        isLoading={isLoading}
+        submitLabel={initialData ? 'Save changes' : 'Create promotion'}
+        cancelHref="/promotions"
+        onSubmit={() => onSubmit(form.getValues())}
+        onDelete={initialData ? onDelete : undefined}
+        deleteTitle="Delete this promotion?"
+        deleteWarning="Customers can no longer use it. Past orders keep their discount. This can't be undone."
+      />
     </Form>
   )
 }

@@ -6,8 +6,10 @@ export default async function NewBlogPage() {
   return (
     <div className="mx-auto w-full max-w-6xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold">Create New Blog Post</h1>{' '}
-        <p className="text-muted-foreground">Add a new blog post to your site</p>
+        <h1 className="text-2xl font-semibold">New article</h1>
+        <p className="text-muted-foreground">
+          An article for your blog, or a sales page for your ads when it sells a product.
+        </p>
       </div>
       <BlogForm categories={categories} products={products} />
     </div>

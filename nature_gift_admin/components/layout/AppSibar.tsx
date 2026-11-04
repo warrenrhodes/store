@@ -3,11 +3,8 @@
 import * as React from 'react'
 import {
   BookOpenText,
-  ExternalLink,
   Gift,
   LayoutDashboard,
-  LogIn,
-  LogOut,
   Shapes,
   ShoppingBag,
   Stars,
@@ -20,9 +17,7 @@ import {
   Settings,
   UserCog,
   Building2,
-  Copy,
 } from 'lucide-react'
-import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
 import {
   Sidebar,
@@ -35,10 +30,7 @@ import {
 } from '@/components/ui/sidebar'
 import { NavMain } from './NavMain'
 import Link from 'next/link'
-import { useAuthStore } from '@/hooks/auth-store'
-import { ROUTES } from '@/lib/router'
 import { NavUser } from './NavUser'
-import { useRouter } from 'next/navigation'
 import { StoreSwitcher } from './StoreSwitcher'
 
 const data = {
@@ -132,8 +124,6 @@ export function AppSidebar({
   platformAdmin,
   ...props
 }: AppSidebarProps) {
-  const { user, logout } = useAuthStore()
-  const router = useRouter()
   const platform = area === 'platform'
   const navItems = platform
     ? platformNav
@@ -184,82 +174,7 @@ export function AppSidebar({
         <NavMain items={navItems} />
       </SidebarContent>
       <SidebarFooter>
-        {user && (
-          <NavUser
-            user={{
-              name: user.displayName || '',
-              email: user?.email || '',
-              avatar: user.photoURL || '',
-            }}
-          />
-        )}
-        <SidebarMenu>
-          {/* The way between the two areas: a platform admin's store(s) and the console. */}
-          {platform ? (
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="/">
-                  <LayoutDashboard />
-                  <span>Store dashboard</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ) : (
-            platformAdmin && (
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/platform">
-                    <Building2 />
-                    <span>Platform console</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )
-          )}
-          {!platform && storeUrl && (
-            <>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <a href={storeUrl} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink />
-                    <span>View my store</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(storeUrl)
-                    toast({ description: `Link copied: ${storeUrl}` })
-                  }}
-                >
-                  <Copy />
-                  <span>Copy store link</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </>
-          )}
-          <SidebarMenuItem>
-            {user ? (
-              <SidebarMenuButton
-                onClick={async () => {
-                  await logout()
-                  router.replace(ROUTES.signIn)
-                }}
-              >
-                <LogOut />
-                <span>Sign out</span>
-              </SidebarMenuButton>
-            ) : (
-              <SidebarMenuButton asChild>
-                <Link href={ROUTES.signIn}>
-                  <LogIn />
-                  <span>Sign in</span>
-                </Link>
-              </SidebarMenuButton>
-            )}
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <NavUser platform={platform} platformAdmin={platformAdmin} storeUrl={storeUrl} />
       </SidebarFooter>
     </Sidebar>
   )

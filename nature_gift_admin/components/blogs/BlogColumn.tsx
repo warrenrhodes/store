@@ -1,14 +1,14 @@
+import { useStorefront } from '@/components/layout/Storefront'
 import { toast } from '@/hooks/use-toast'
 import { IBlog } from '@/lib/actions/server'
-import { BlogStatus } from '@/lib/firebase/models'
-import { BlogMetadata } from '@/lib/type'
-import { cn } from '@/lib/utils'
-import { toDate } from '@/lib/utils/utils'
 import { getDocumentId } from '@spreeloop/database'
 import { ColumnDef } from '@tanstack/react-table'
-import { ArrowUpDown, Copy, Edit } from 'lucide-react'
+import { Copy, Edit } from 'lucide-react'
 import Link from 'next/link'
-import { useStorefront } from '@/components/layout/Storefront'
+import Delete from '../custom-ui/Delete'
+import { shortDate, SortHeader, StatusBadge, TitleCell } from '../custom-ui/ListParts'
+import { Badge } from '../ui/badge'
+import { Button } from '../ui/button'
 
 /** Copies the article's address in the current store. */
 function CopyBlogLink({ slug }: { slug: string }) {
@@ -18,6 +18,7 @@ function CopyBlogLink({ slug }: { slug: string }) {
       variant="ghost"
       size="icon"
       aria-label="Copy link"
+      title="Copy link"
       onClick={() => {
         navigator.clipboard.writeText(`${url}/blogs/${slug}`)
         toast({ description: 'Link copied to clipboard!' })
@@ -27,80 +28,48 @@ function CopyBlogLink({ slug }: { slug: string }) {
     </Button>
   )
 }
-import Delete from '../custom-ui/Delete'
-import { Badge } from '../ui/badge'
-import { Button } from '../ui/button'
 
 export const blogsColumns: ColumnDef<IBlog>[] = [
   {
     accessorKey: 'title',
     accessorFn: row => row.data.title,
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Title
-          <ArrowUpDown />
-        </Button>
-      )
-    },
-    cell: ({ row }) => <span className="font-mono leading-none">{row.original.data.title}</span>,
+    header: ({ column }) => <SortHeader column={column} label="Article" />,
+    cell: ({ row }) => (
+      <TitleCell
+        href={`/blogs/${getDocumentId(row.original.path)}`}
+        title={row.original.data.title}
+        detail={`/blogs/${row.original.data.slug}`}
+        image={row.original.data.metadata?.coverImage?.url}
+      />
+    ),
+  },
+  {
+    id: 'type',
+    accessorFn: row => (row.data.associateProductPath ? 'Sales page' : 'Article'),
+    header: 'Type',
+    cell: ({ row }) =>
+      row.original.data.associateProductPath ? (
+        <Badge variant="outline" className="font-medium">
+          Sales page
+        </Badge>
+      ) : (
+        <span className="text-sm text-muted-foreground">Article</span>
+      ),
   },
   {
     accessorKey: 'status',
     accessorFn: row => row.data.status,
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Status
-          <ArrowUpDown />
-        </Button>
-      )
-    },
-    cell: ({ row }) => {
-      return (
-        <div>
-          <Badge
-            className={cn({
-              'bg-sky-100 text-sky-900 hover:bg-sky-100':
-                row.original.data.status === BlogStatus.DRAFT,
-              'bg-red-100 text-red-900 hover:bg-red-100':
-                row.original.data.status === BlogStatus.ARCHIVED,
-              'bg-emerald-100 text-emerald-900 hover:bg-emerald-100':
-                row.original.data.status === BlogStatus.PUBLISHED,
-            })}
-          >
-            {row.original.data.status}
-          </Badge>
-        </div>
-      )
-    },
+    header: ({ column }) => <SortHeader column={column} label="Status" />,
+    cell: ({ row }) => <StatusBadge status={row.original.data.status} />,
   },
   {
     accessorKey: 'publishedAt',
     accessorFn: row => row.data.publishedAt,
-    header: 'Published At',
-    cell: ({ row }) =>
-      toDate(row.original.data.publishedAt) ? (
-        <span>{toDate(row.original.data.publishedAt)!.toLocaleDateString('en-GB')}</span>
-      ) : (
-        <span>Not Published</span>
-      ),
-  },
-  {
-    accessorKey: 'readingTime',
-    accessorFn: row => (row.data.metadata as BlogMetadata).readingTime,
-    header: 'Reading Time (min)',
+    header: ({ column }) => <SortHeader column={column} label="Published" />,
     cell: ({ row }) => (
-      <span>{(row.original.data.metadata as BlogMetadata).readingTime || 'N/A'}</span>
+      <span className="whitespace-nowrap text-sm">{shortDate(row.original.data.publishedAt)}</span>
     ),
   },
-
   {
     id: 'actions',
     enableHiding: false,
@@ -116,12 +85,12 @@ export const blogsColumns: ColumnDef<IBlog>[] = [
       return (
         <div className="flex items-center justify-end gap-1">
           <CopyBlogLink slug={blogs.data.slug} />
-          <Button asChild variant="ghost" size="icon" aria-label="Edit">
+          <Button asChild variant="ghost" size="icon" aria-label="Edit" title="Edit">
             <Link href={`/blogs/${getDocumentId(blogs.path)}`}>
               <Edit className="h-4 w-4" />
             </Link>
           </Button>
-          <Delete item="blogs" handleDelete={onDelete} />
+          <Delete handleDelete={onDelete} />
         </div>
       )
     },

@@ -59,6 +59,7 @@ export const blogSchema = z.object({
     })
     .nullable()
     .default(null),
+  thankYouPage: z.string().max(900 * 1024).nullable().default(null),
 })
 
 export type BlogSchemaType = z.infer<typeof blogSchema>

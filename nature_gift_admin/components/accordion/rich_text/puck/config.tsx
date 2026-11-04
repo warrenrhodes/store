@@ -235,11 +235,11 @@ function ImageInput({ value, onChange }: { value?: string; onChange: (v: string)
       const body = new FormData()
       body.append('files', file)
       const res = await fetch('/api/media/upload', { method: 'POST', body })
-      if (!res.ok) throw new Error(String(res.status))
-      const json = await res.json()
+      const json = await res.json().catch(() => null)
+      if (!res.ok) throw new Error(json?.error ?? 'Upload failed. Try again.')
       onChange(json.data.files[0].url)
-    } catch {
-      toast({ variant: 'destructive', description: 'Upload failed. Try again.' })
+    } catch (error) {
+      toast({ variant: 'destructive', description: (error as Error).message })
     } finally {
       setUploading(false)
     }
